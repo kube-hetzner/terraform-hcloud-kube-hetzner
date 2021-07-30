@@ -1,0 +1,126 @@
+upgradeCompatibility: '1.10'
+
+debug:
+  # -- Enable debug logging
+  enabled: false
+  # verbose:
+
+# gke:
+  # enabled: true
+
+ipam:
+  # -- Configure IP Address Management mode.
+  # ref: https://docs.cilium.io/en/stable/concepts/networking/ipam/
+  mode: kubernetes
+
+# -- Configure the encapsulation configuration for communication between nodes.
+# Possible values:
+#   - disabled (breaks csi-controller)
+#   - vxlan (default)
+#   - geneve
+tunnel: geneve
+
+# -- Specify the IPv4 CIDR for native routing (ie to avoid IP masquerade for).
+# This value corresponds to the configured cluster-cidr.
+nativeRoutingCIDR: 10.0.0.0/8
+
+# When enabled, causes legacy routing
+# endpointRoutes:
+  # -- Enable use of per endpoint routes instead of routing via
+  # the cilium_host interface.
+  # enabled: false
+
+# -- Enable installation of PodCIDR routes between worker
+# nodes if worker nodes share a common L2 network segment.
+autoDirectNodeRoutes: false
+
+bpf:
+  # -- Allow cluster external access to ClusterIP services.
+  lbExternalClusterIP: false
+
+  # -- Enable native IP masquerade support in eBPF
+  masquerade: true
+
+endpointHealthChecking:
+  # -- Enable connectivity health checking between virtual endpoints.
+  enabled: true
+
+# -- Configure ClusterIP service handling in the host namespace (the node).
+hostServices:
+  # -- Enable host reachable services.
+  enabled: true
+
+  # -- Supported list of protocols to apply ClusterIP translation to.
+  protocols: tcp,udp
+
+externalIPs:
+  # -- Enable ExternalIPs service support.
+  enabled: true
+
+hostPort:
+  # -- Enable hostPort service support.
+  enabled: true
+
+# -- Configure N-S k8s service loadbalancing
+nodePort:
+  # -- Enable the Cilium NodePort service implementation.
+  enabled: true
+
+# -- Enable connectivity health checking.
+healthChecking: true
+
+ipv4:
+  # -- Enable IPv4 support.
+  enabled: true
+
+ipv6:
+  # -- Enable IPv6 support.
+  enabled: false
+
+# -- Configure Kubernetes specific configuration
+k8s:
+  # -- requireIPv4PodCIDR enables waiting for Kubernetes to provide the PodCIDR
+  # range via the Kubernetes node resource
+  requireIPv4PodCIDR: true
+
+# -- Configure the kube-proxy replacement in Cilium BPF datapath
+# Valid options are "disabled", "probe", "partial", "strict".
+# ref: https://docs.cilium.io/en/stable/gettingstarted/kubeproxy-free/
+kubeProxyReplacement: strict
+
+# -- Enables masquerading of IPv4 traffic leaving the node from endpoints.
+enableIPv4Masquerade: true
+
+monitor:
+  # -- Enable the cilium-monitor sidecar.
+  enabled: false
+
+# -- Configure service load balancing
+loadBalancer:
+  # -- standalone enables the standalone L4LB which does not connect to
+  # kube-apiserver.
+  # standalone: false
+
+  # -- algorithm is the name of the load balancing algorithm for backend
+  # selection e.g. random or maglev
+  # algorithm: random
+
+  # -- mode is the operation mode of load balancing for remote backends
+  # e.g. snat, dsr, hybrid
+  mode: snat
+
+  # -- acceleration is the option to accelerate service handling via XDP
+  # e.g. native, disabled
+  # Gives "Error: virtio_net: Too few free TX rings available."
+  # acceleration: native
+
+# Breaks csi
+# devices: eth1
+
+# -- The agent can be put into one of the three policy enforcement modes:
+# default, always and never.
+# ref: https://docs.cilium.io/en/stable/policy/intro/#policy-enforcement-modes
+policyEnforcementMode: never
+
+# -- Enables the enforcement of host policies in the eBPF datapath.
+hostFirewall: false

@@ -1,0 +1,5 @@
+.terraform*
+*.tfstate*
+crash.log
+kubeconfig.yaml
+terraform.tfvars
