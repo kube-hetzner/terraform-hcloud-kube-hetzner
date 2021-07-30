@@ -235,10 +235,10 @@ Project Link: [https://github.com/mysticaltech/kube-hetzner](https://github.com/
 
 ## Acknowledgements
 
-[k-andy](https://github.com/StarpTech/k-andy) was the starting point for this project. It wouldn't have been possible without it.
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+- [k-andy](https://github.com/StarpTech/k-andy) was the starting point for this project. It wouldn't have been possible without it.
+- [Best-README-Template](https://github.com/othneildrew/Best-README-Template) that made writing this readme a lot easier.
+  <!-- MARKDOWN LINKS & IMAGES -->
+  <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 
 [contributors-shield]: https://img.shields.io/github/contributors/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [contributors-url]: https://github.com/mysticaltech/kube-hetzner/graphs/contributors
