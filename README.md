@@ -184,6 +184,21 @@ kubectl apply -f https://github.com/weaveworks/kured/releases/download/$latest/k
 helm upgrade --values=manifests/helm/cilium/values.yaml cilium cilium/cilium -n kube-system
 ```
 
+## Takedown
+
+- To take down your cluster it's simple:
+
+```sh
+terraform destroy -auto-approve
+```
+
+- Sometimes the Hetzner network does not get deleted on its own (probably due to a temporary bug), we have to deleted manually after running the first command, and re-run it.
+
+```sh
+hcloud network delete k3s-net
+terraform destroy -auto-approve
+```
+
 <!-- ROADMAP -->
 
 ## Roadmap
