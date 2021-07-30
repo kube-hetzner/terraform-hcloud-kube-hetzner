@@ -186,13 +186,13 @@ helm upgrade --values=manifests/helm/cilium/values.yaml cilium cilium/cilium -n 
 
 ## Takedown
 
-- To take down your cluster it's simple:
+- To take down your cluster, it's simple:
 
 ```sh
 terraform destroy -auto-approve
 ```
 
-- Sometimes the Hetzner network does not get deleted on its own (probably due to a temporary bug), we have to deleted manually after running the first command, and re-run it.
+- Sometimes, the Hetzner network does not get deleted on its own (probably due to a temporary bug); we have to delete it manually after running the first command and re-run it.
 
 ```sh
 hcloud network delete k3s-net
