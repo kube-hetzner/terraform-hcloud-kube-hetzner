@@ -30,7 +30,7 @@
 Here's what is working at the moment:
 
 - Lightweight and resource-efficient Kubernetes with [k3s](https://github.com/k3s-io/k3s), and Fedora nodes to take advantage of the latest Linux kernels.
-- Optimal [Cilium](https://github.com/cilium/cilium) CNI with full BPF support and Kube-proxy replacement. It uses the Hetzner private subnet underneath to communicate between the nodes, so no encryption is not needed.
+- Optimal [Cilium](https://github.com/cilium/cilium) CNI with full BPF support and Kube-proxy replacement. It uses the Hetzner private subnet underneath to communicate between the nodes, so no encryption is needed.
 - Automatic OS upgrades, supported by [kured](https://github.com/weaveworks/kured) that initiate a reboot of the node only when necessary and after having drained it properly.
 - Automatic HA by setting the required number of servers and agents nodes.
 - Automatic k3s upgrade by using Rancher's [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller) and tracking the latest 1.x stable branch.
