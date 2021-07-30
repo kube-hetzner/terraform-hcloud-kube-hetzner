@@ -143,7 +143,7 @@ The nodes and k3s versions are configured to self-upgrade unless you turn that f
 systemctl disable --now dnf-automatic.timer
 ```
 
-- To turn off k3s upgrade, you can just use kubectl to set the k3s_upgrade label to false for each node:
+- To turn off k3s upgrade, use kubectl to set the k3s_upgrade label to false for each node (replace the node-name in the command):
 
 ```sh
 kubectl label node node-name k3s_upgrade=false
