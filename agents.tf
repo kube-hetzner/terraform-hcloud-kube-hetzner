@@ -2,17 +2,17 @@ resource "hcloud_server" "agents" {
   count = var.agents_num
   name  = "k3s-agent-${count.index}"
 
-  image       = data.hcloud_image.linux.name
-  server_type = local.agent_server_type
-  location    = local.agent_locations[count.index][1]
+  image        = data.hcloud_image.linux.name
+  server_type  = var.agent_server_type
+  location     = var.location
+  ssh_keys     = [hcloud_ssh_key.default.id]
+  firewall_ids = [hcloud_firewall.k3s.id]
 
-  ssh_keys = [hcloud_ssh_key.default.id]
 
   labels = {
-    provisioner = "terraform",
-    engine      = "k3s",
-    node_type   = "agent"
-    k3s_upgrade = "true"
+    "provisioner" = "terraform",
+    "engine"      = "k3s",
+    "k3s_upgrade" = "true"
   }
 
   user_data = data.template_cloudinit_config.init_cfg.rendered
@@ -29,7 +29,7 @@ resource "hcloud_server" "agents" {
 
   provisioner "remote-exec" {
     inline = [
-      "curl -sfL https://get.k3s.io | K3S_TOKEN=${random_password.k3s_cluster_secret.result} sh -s - agent --server https://${local.first_control_plane_ip}:6443 --kubelet-arg='cloud-provider=external' --no-flannel"
+      "curl -sfL https://get.k3s.io | K3S_TOKEN=${random_password.k3s_cluster_secret.result} sh -s - agent --server https://${local.first_control_plane_network_ip}:6443 --node-ip=${cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)} ${var.k3s_agent_flags}"
     ]
 
     connection {

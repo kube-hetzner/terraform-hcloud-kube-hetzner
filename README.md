@@ -69,9 +69,11 @@ The number of control plane nodes and worker nodes, and the Hetzner datacenter l
 See the default values in the [variables.tf](variables.tf) file, they correspond to (you can copy-paste and customize):
 
 ```tfvars
-servers_num      = 2
-agents_num       = 2
-server_location  = "fsn1"
+servers_num = 2
+agents_num = 2
+location = "fsn1"
+agent_server_type = "cx21"
+control_plane_server_type = "cx11"
 ```
 
 ### Installation

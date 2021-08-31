@@ -27,14 +27,31 @@ variable "agents_num" {
   default     = 2
 }
 
-variable "server_location" {
+variable "location" {
   description = "Default server location"
   default     = "fsn1"
 }
 
-variable "k3s_extra_args" {
+
+variable "control_plane_server_type" {
+  description = "Default control plane server type"
+  default     = "cx11"
+
+}
+
+variable "agent_server_type" {
+  description = "Default agent server type"
+  default     = "cx21"
+}
+
+variable "k3s_server_flags" {
   description = "Important flags to make our setup work"
-  default     = "--disable-cloud-controller --disable-network-policy --no-deploy=traefik --no-deploy=servicelb --disable local-storage --disable traefik --disable servicelb --kubelet-arg='cloud-provider=external' --no-flannel"
+  default     = "--disable-cloud-controller --disable-network-policy --disable=traefik --disable=servicelb --disable='local-storage' --kubelet-arg='cloud-provider=external' --flannel-backend=none --flannel-iface=ens10"
+}
+
+variable "k3s_agent_flags" {
+  description = "Important flags to make our setup work"
+  default     = "--kubelet-arg='cloud-provider=external' --flannel-iface=ens10"
 }
 
 variable "initial_commands" {
@@ -46,6 +63,7 @@ variable "initial_commands" {
     "systemctl enable --now dnf-automatic.timer",
     "systemctl disable firewalld",
     "grubby --args='systemd.unified_cgroup_hierarchy=0' --update-kernel=ALL",
-    "sleep 10; shutdown -r +0"
+    "sleep 11; shutdown -r +0"
   ]
 }
+
