@@ -15,10 +15,10 @@ ipam:
 
 # -- Configure the encapsulation configuration for communication between nodes.
 # Possible values:
-#   - disabled (breaks csi-controller)
-#   - vxlan (default)
+#   - disabled (native routing on the hetzner network)
+#   - vxlan
 #   - geneve
-tunnel: geneve
+tunnel: disabled
 
 # -- Specify the IPv4 CIDR for native routing (ie to avoid IP masquerade for).
 # This value corresponds to the configured cluster-cidr.
@@ -104,6 +104,11 @@ loadBalancer:
   # -- algorithm is the name of the load balancing algorithm for backend
   # selection e.g. random or maglev
   algorithm: maglev
+
+  # -- mode is the operation mode of load balancing for remote backends
+  # e.g. snat, dsr, hybrid
+  # dsr requires native routing via tunnel disabled (set by default above), see https://docs.cilium.io/en/latest/gettingstarted/kubeproxy-free/
+  mode: dsr
 
 # -- The agent can be put into one of the three policy enforcement modes:
 # default, always and never.
