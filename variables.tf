@@ -46,12 +46,12 @@ variable "agent_server_type" {
 
 variable "k3s_server_flags" {
   description = "Important flags to make our setup work"
-  default     = "--disable-cloud-controller --disable-network-policy --disable=traefik --disable=servicelb --disable='local-storage' --kubelet-arg='cloud-provider=external' --flannel-backend=none --flannel-iface=ens10"
+  default     = "--disable-cloud-controller --disable-network-policy --disable=traefik --disable=servicelb --disable='local-storage' --kubelet-arg='cloud-provider=external' --flannel-backend=none"
 }
 
 variable "k3s_agent_flags" {
   description = "Important flags to make our setup work"
-  default     = "--kubelet-arg='cloud-provider=external' --flannel-iface=ens10"
+  default     = "--kubelet-arg='cloud-provider=external'"
 }
 
 variable "initial_commands" {

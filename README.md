@@ -83,7 +83,15 @@ terraform init
 terraform apply -auto-approve
 ```
 
-It will take a few minutes to complete, and then you should see a green output with the IP addresses of the nodes. Then you can immediately kubectl into it without any further action.
+It will take a few minutes to complete, and then you should see a green output with the IP addresses of the nodes. Then you can immediately kubectl into it (using the kubeconfig.yaml saved to the project's directory after the install).
+
+Just using the command `kubectl --kubeconfig kubeconfig.yaml` would work, but for more convenience, either create a symlink from `~/.kube/config` to `kubeconfig.yaml`, or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows:
+
+```sh
+export KUBECONFIG=/<path-to>/kubeconfig.yaml
+```
+
+To get the path, of course, you could use the `pwd` command.
 
 <!-- USAGE EXAMPLES -->
 

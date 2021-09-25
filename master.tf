@@ -49,15 +49,15 @@ resource "hcloud_server" "first_control_plane" {
   }
 
   provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${var.private_key} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ./kubeconfig.yaml"
+    command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${var.private_key} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml"
   }
 
   provisioner "local-exec" {
-    command = "sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ./kubeconfig.yaml"
+    command = "sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml"
   }
 
   provisioner "local-exec" {
-    command = "helm install --values=manifests/helm/cilium/values.yaml cilium cilium/cilium -n kube-system"
+    command = "helm repo add cilium https://helm.cilium.io/ --kubeconfig ${path.module}/kubeconfig.yaml; helm install --values=manifests/helm/cilium/values.yaml cilium cilium/cilium -n kube-system --kubeconfig ${path.module}/kubeconfig.yaml"
   }
 
   network {

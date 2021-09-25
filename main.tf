@@ -84,7 +84,7 @@ data "hcloud_image" "linux" {
 }
 
 data "template_file" "init_cfg" {
-  template = file("init.cfg")
+  template = file("${path.module}/init.cfg")
 }
 
 # Render a multi-part cloud-init config making use of the part
