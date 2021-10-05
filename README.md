@@ -166,7 +166,7 @@ To upgrade individual components, you can use the following commands:
 - Hetzner CCM
 
 ```sh
-kubectl apply -f manifests/hcloud-ccm-net.yaml
+kubectl apply -f https://raw.githubusercontent.com/mysticaltech/kube-hetzner/master/manifests/hcloud-ccm-net.yaml
 ```
 
 - Hetzner CSI
@@ -184,13 +184,14 @@ kubectl apply -f https://raw.githubusercontent.com/rancher/system-upgrade-contro
 - Kured (used to reboot the nodes after upgrading and draining them)
 
 ```sh
-latest=$(curl -s https://api.github.com/repos/weaveworks/kured/releases | jq -r .[0].tag_name)
+latest=$(curl -s https://api.github.com/repos/weaveworks/kured/releases | jq -r '.[0].tag_name')
 kubectl apply -f https://github.com/weaveworks/kured/releases/download/$latest/kured-$latest-dockerhub.yaml
 ```
 
 - Last but not least, upgrading Cilium itself
 
 ```sh
+helm repo update
 helm upgrade --values=manifests/helm/cilium/values.yaml cilium cilium/cilium -n kube-system
 ```
 
