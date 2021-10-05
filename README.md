@@ -109,7 +109,7 @@ _Note that the default geographic location and instance type of the load balance
 
 ## Usage
 
-When the cluster is on, you can do whatever you wish with it! 🎉
+When the cluster is up and running, you can do whatever you wish with it. Enjoy! 🎉
 
 ### Useful commands
 
