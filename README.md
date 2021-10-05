@@ -98,6 +98,8 @@ To get the path, of course, you could use the `pwd` command.
 To have a complete and useful setup, it is ideal to have an ingress controller running and it turns out that the Hetzner Cloud Controller allows us to automatically deploy a Hetzner Load Balancer that can be used by the ingress controller. We have chosen to use the Nginx ingress controller that you can install with the following command:
 
 ```sh
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
 helm install --values=manifests/helm/nginx/values.yaml ingress-nginx ingress-nginx/ingress-nginx -n kube-system
 ```
 
