@@ -57,7 +57,7 @@ resource "hcloud_server" "first_control_plane" {
   }
 
   provisioner "local-exec" {
-    command = "helm repo add cilium https://helm.cilium.io/ --kubeconfig ${path.module}/kubeconfig.yaml; helm install --values=manifests/helm/cilium/values.yaml cilium cilium/cilium -n kube-system --kubeconfig ${path.module}/kubeconfig.yaml"
+    command = "helm repo add cilium https://helm.cilium.io/ --kubeconfig ${path.module}/kubeconfig.yaml; helm repo update --kubeconfig ${path.module}; helm install --values=manifests/helm/cilium/values.yaml cilium cilium/cilium -n kube-system --kubeconfig ${path.module}/kubeconfig.yaml"
   }
 
   network {

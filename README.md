@@ -62,7 +62,7 @@ gofish install kubectl
 2. Generate an ssh key pair for your cluster, unless you already have one that you'd like to use.
 3. Rename terraform.tfvars.example to terraform.tfvars and replace the values from steps 1 and 2.
 
-### (Optional) Customize other variables
+### Customize other variables (Optional)
 
 The number of control plane nodes and worker nodes, and the Hetzner datacenter location, can be customized by adding the variables to your newly created [terraform.tfvars](terraform.tfvars) file.
 
@@ -92,6 +92,16 @@ export KUBECONFIG=/<path-to>/kubeconfig.yaml
 ```
 
 To get the path, of course, you could use the `pwd` command.
+
+### Ingress Controller (Optional)
+
+To have a complete and useful setup, it is ideal to have an ingress controller running and it turns out that the Hetzner Cloud Controller allows us to automatically deploy a Hetzner Load Balancer that can be used by the ingress controller. We have chosen to use the Nginx ingress controller that you can install with the following command:
+
+```sh
+helm install --values=manifests/helm/nginx/values.yaml ingress-nginx ingress-nginx/ingress-nginx -n kube-system
+```
+
+_Note that the default geographic location and instance type of the load balancer can be changed by editing the [values.yaml](manifests/helm/nginx/values.yaml) file._
 
 <!-- USAGE EXAMPLES -->
 
@@ -188,25 +198,25 @@ latest=$(curl -s https://api.github.com/repos/weaveworks/kured/releases | jq -r 
 kubectl apply -f https://github.com/weaveworks/kured/releases/download/$latest/kured-$latest-dockerhub.yaml
 ```
 
-- Last but not least, upgrading Cilium itself
+- Cilium and the Nginx ingress controller
 
 ```sh
 helm repo update
 helm upgrade --values=manifests/helm/cilium/values.yaml cilium cilium/cilium -n kube-system
+helm upgrade --values=manifests/helm/nginx/values.yaml ingress-nginx ingress-nginx/ingress-nginx -n kube-system
 ```
 
 ## Takedown
 
-- To take down your cluster, it's simple:
+If you chose to install the Nginx ingress controller, you need to delete it first to release the load balancer, as follows:
 
 ```sh
-terraform destroy -auto-approve
+helm delete ingress-nginx -n kube-system
 ```
 
-- Sometimes, the Hetzner network does not get deleted on its own (probably due to a temporary bug); we have to delete it manually after running the first command and re-run it.
+Then you can proceed to taking down the rest of the cluster with:
 
 ```sh
-hcloud network delete k3s-net
 terraform destroy -auto-approve
 ```
 

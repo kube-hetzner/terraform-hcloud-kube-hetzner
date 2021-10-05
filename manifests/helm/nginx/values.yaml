@@ -1,9 +1,11 @@
 controller:
   kind: DaemonSet
-  service: 
-    annotations:
-      # adjust the location if you have customized it in terraform.tfvars
-      load-balancer.hetzner.cloud/location: "fsn1"
-      load-balancer.hetzner.cloud/use-private-ip: "true"
-      load-balancer.hetzner.cloud/type: "lb11"
+  service:
     type: LoadBalancer
+    annotations:
+      load-balancer.hetzner.cloud/use-private-ip: "true"
+      # Adjust the location if you have customized it in terraform.tfvars
+      # For more info on Hetzner Cloud locations, see https://docs.hetzner.com/general/others/data-centers-and-connection/
+      load-balancer.hetzner.cloud/location: "fsn1"
+      # For details about, load balancer instances, see https://www.hetzner.com/cloud/load-balancer
+      load-balancer.hetzner.cloud/type: "lb11"
