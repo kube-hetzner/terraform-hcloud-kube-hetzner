@@ -104,11 +104,9 @@ loadBalancer:
   # -- algorithm is the name of the load balancing algorithm for backend
   # selection e.g. random or maglev
   algorithm: maglev
-
-  # -- mode is the operation mode of load balancing for remote backends
-  # e.g. snat, dsr, hybrid
-  # dsr requires native routing via tunnel disabled (set by default above), see https://docs.cilium.io/en/latest/gettingstarted/kubeproxy-free/
-  mode: dsr
+  
+  # dsr mode did probably caused packet drops, so falling back to snat
+  mode: snat
 
 # -- The agent can be put into one of the three policy enforcement modes:
 # default, always and never.
