@@ -30,7 +30,7 @@
 Here's what is working at the moment:
 
 - Lightweight and resource-efficient Kubernetes with [k3s](https://github.com/k3s-io/k3s), and Fedora nodes to take advantage of the latest Linux kernels.
-- Optimal [Cilium](https://github.com/cilium/cilium) CNI with full BPF support, native routing, and Kube-proxy replacement. It uses the Hetzner private subnet underneath to communicate between the nodes, so no encryption is needed.
+- Optimal [Cilium](https://github.com/cilium/cilium) CNI with full BPF support, geneve tunneling (more stable than native routing), and Kube-proxy replacement. It uses the Hetzner private subnet underneath to communicate between the nodes, so no encryption is needed.
 - Automatic OS upgrades, supported by [kured](https://github.com/weaveworks/kured) that initiate a reboot of the node only when necessary and after having drained it properly.
 - Automatic HA by setting the required number of servers and agents nodes.
 - Automatic k3s upgrade by using Rancher's [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller) and tracking the latest 1.x stable branch.
@@ -221,6 +221,14 @@ Then you can proceed to taking down the rest of the cluster with:
 ```sh
 terraform destroy -auto-approve
 ```
+
+Sometimes, the Hetzner network is still in use and refused to be deleted via terraform, in that case you can force delete it with:
+
+```sh
+hcloud network delete k3s-net
+```
+
+Also, if you had a full blown cluster in use, it's best do delete the whole project in your Hetzner account directly, as there may be other ressources created via operators that are not part of this project.
 
 <!-- ROADMAP -->
 

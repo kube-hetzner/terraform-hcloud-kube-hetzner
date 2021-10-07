@@ -15,10 +15,10 @@ ipam:
 
 # -- Configure the encapsulation configuration for communication between nodes.
 # Possible values:
-#   - disabled (native routing on the hetzner network)
+#   - disabled (native routing works, however I feel that geneve is more stable, but I may be wrong)
 #   - vxlan
 #   - geneve
-tunnel: disabled
+tunnel: geneve
 
 # -- Specify the IPv4 CIDR for native routing (ie to avoid IP masquerade for).
 # This value corresponds to the configured cluster-cidr.
