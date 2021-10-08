@@ -30,7 +30,7 @@
 Here's what is working at the moment:
 
 - Lightweight and resource-efficient Kubernetes with [k3s](https://github.com/k3s-io/k3s), and Fedora nodes to take advantage of the latest Linux kernels.
-- Optimal [Cilium](https://github.com/cilium/cilium) CNI with full BPF support, geneve tunneling (more stable than native routing), and Kube-proxy replacement. It uses the Hetzner private subnet underneath to communicate between the nodes, so no encryption is needed.
+- Optimal [Cilium](https://github.com/cilium/cilium) CNI with full BPF support, and Kube-proxy replacement. It uses the Hetzner private subnet underneath to communicate between the nodes, as for the tunneling we use Geneve by default, but native routing also works.
 - Automatic OS upgrades, supported by [kured](https://github.com/weaveworks/kured) that initiate a reboot of the node only when necessary and after having drained it properly.
 - Automatic HA by setting the required number of servers and agents nodes.
 - Automatic k3s upgrade by using Rancher's [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller) and tracking the latest 1.x stable branch.
@@ -64,7 +64,7 @@ gofish install kubectl
 
 ### Customize other variables (Optional)
 
-The number of control plane nodes and worker nodes, and the Hetzner datacenter location, can be customized by adding the variables to your newly created [terraform.tfvars](terraform.tfvars) file.
+The number of control plane nodes and worker nodes, and the Hetzner datacenter location, can be customized by adding the variables to your newly created terraform.tfvars file.
 
 See the default values in the [variables.tf](variables.tf) file, they correspond to (you can copy-paste and customize):
 
