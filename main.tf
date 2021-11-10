@@ -101,13 +101,18 @@ data "template_cloudinit_config" "init_cfg" {
   }
 }
 
-data "template_file" "ccm_manifest" {
+data "template_file" "ccm" {
   template = file("${path.module}/manifests/hcloud-ccm-net.yaml")
 }
 
-data "template_file" "upgrade_plan" {
-  template = file("${path.module}/manifests/upgrade/plan.yaml")
+data "template_file" "plans" {
+  template = file("${path.module}/manifests/upgrade/plans.yaml")
 }
+
+data "template_file" "kured" {
+  template = file("${path.module}/manifests/upgrade/kured.yaml")
+}
+
 
 locals {
   first_control_plane_network_ip = cidrhost(hcloud_network.k3s.ip_range, 2)

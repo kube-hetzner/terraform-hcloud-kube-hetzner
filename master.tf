@@ -32,13 +32,13 @@ resource "hcloud_server" "first_control_plane" {
       "until systemctl is-active --quiet k3s.service; do sleep 1; done",
       "until kubectl get node ${self.name}; do sleep 1; done",
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name}",
-      "kubectl apply -f -<<EOF\n${data.template_file.ccm_manifest.rendered}\nEOF",
+      "kubectl apply -f -<<EOF\n${data.template_file.ccm.rendered}\nEOF",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token}",
       "kubectl apply -f https://raw.githubusercontent.com/hetznercloud/csi-driver/master/deploy/kubernetes/hcloud-csi.yml",
       "kubectl apply -f https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-      "kubectl apply -f -<<EOF\n${data.template_file.upgrade_plan.rendered}\nEOF",
-      "latest=$(curl -s https://api.github.com/repos/weaveworks/kured/releases | jq -r .[0].tag_name)",
-      "kubectl apply -f https://github.com/weaveworks/kured/releases/download/$latest/kured-$latest-dockerhub.yaml"
+      "sleep 33",
+      "kubectl apply -f -<<EOF\n${data.template_file.plans.rendered}\nEOF",
+      "kubectl apply -f -<<EOF\n${data.template_file.kured.rendered}\nEOF",
     ]
 
     connection {

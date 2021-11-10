@@ -52,8 +52,8 @@ Then you'll need you have both the [terraform](https://learn.hashicorp.com/tutor
 
 ```sh
 gofish install terraform
-gofish install helm
 gofish install kubectl
+gofish install helm
 ```
 
 ### Creating terraform.tfvars

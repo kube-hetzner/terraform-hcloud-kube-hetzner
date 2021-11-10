@@ -58,7 +58,7 @@ variable "initial_commands" {
   description = "Initial commands to run on each machines."
   default = [
     "dnf upgrade -y",
-    "dnf install -y container-selinux selinux-policy-base fail2ban k3s-selinux dnf-automatic jq",
+    "dnf install -y container-selinux selinux-policy-base fail2ban k3s-selinux dnf-automatic jq dnf-utils",
     "systemctl enable --now fail2ban",
     "systemctl enable --now dnf-automatic.timer",
     "systemctl disable firewalld",
@@ -66,4 +66,3 @@ variable "initial_commands" {
     "sleep 11; shutdown -r +0"
   ]
 }
-
