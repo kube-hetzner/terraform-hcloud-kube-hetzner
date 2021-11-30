@@ -43,26 +43,3 @@ variable "agent_server_type" {
   description = "Default agent server type"
   default     = "cx21"
 }
-
-variable "k3s_server_flags" {
-  description = "Important flags to make our setup work"
-  default     = "--disable-cloud-controller --disable-network-policy --disable=traefik --disable=servicelb --disable='local-storage' --kubelet-arg='cloud-provider=external' --flannel-backend=none"
-}
-
-variable "k3s_agent_flags" {
-  description = "Important flags to make our setup work"
-  default     = "--kubelet-arg='cloud-provider=external'"
-}
-
-variable "initial_commands" {
-  description = "Initial commands to run on each machines."
-  default = [
-    "dnf upgrade -y",
-    "dnf install -y container-selinux selinux-policy-base fail2ban k3s-selinux dnf-automatic jq dnf-utils",
-    "systemctl enable --now fail2ban",
-    "systemctl enable --now dnf-automatic.timer",
-    "systemctl disable firewalld",
-    "grubby --args='systemd.unified_cgroup_hierarchy=0' --update-kernel=ALL",
-    "sleep 11; shutdown -r +0"
-  ]
-}

@@ -1,11 +1,11 @@
-resource "random_password" "k3s_cluster_secret" {
+resource "random_password" "k3s_token" {
   length  = 48
   special = false
 }
 
 resource "hcloud_ssh_key" "default" {
   name       = "K3S terraform module - Provisioning SSH key"
-  public_key = file(var.public_key)
+  public_key = local.ssh_public_key
 }
 
 resource "hcloud_network" "k3s" {
@@ -77,43 +77,34 @@ resource "hcloud_firewall" "k3s" {
       "0.0.0.0/0"
     ]
   }
-}
 
-data "hcloud_image" "linux" {
-  name = "fedora-34"
-}
-
-data "template_file" "init_cfg" {
-  template = file("${path.module}/init.cfg")
-}
-
-# Render a multi-part cloud-init config making use of the part
-# above, and other source files
-data "template_cloudinit_config" "init_cfg" {
-  gzip          = true
-  base64_encode = true
-
-  # Main cloud-config configuration file.
-  part {
-    filename     = "init.cfg"
-    content_type = "text/cloud-config"
-    content      = data.template_file.init_cfg.rendered
+  # Allow ping on ipv4
+  rule {
+    direction = "in"
+    protocol  = "icmp"
+    source_ips = [
+      "0.0.0.0/0"
+    ]
   }
 }
 
-data "template_file" "ccm" {
-  template = file("${path.module}/manifests/hcloud-ccm-net.yaml")
+data "hcloud_image" "linux" {
+  name = "ubuntu-20.04"
 }
-
-data "template_file" "plans" {
-  template = file("${path.module}/manifests/upgrade/plans.yaml")
-}
-
-data "template_file" "kured" {
-  template = file("${path.module}/manifests/upgrade/kured.yaml")
-}
-
 
 locals {
   first_control_plane_network_ip = cidrhost(hcloud_network.k3s.ip_range, 2)
+  name_master                    = "k3s-control-plane-0"
+  ssh_public_key                 = trimspace(file(var.public_key))
+}
+
+data "template_file" "master" {
+  template = file("${path.module}/templates/master.tpl")
+
+  vars = {
+    name           = local.name_master
+    ssh_public_key = local.ssh_public_key
+    k3s_token      = random_password.k3s_token.result
+    ip             = local.first_control_plane_network_ip
+  }
 }
