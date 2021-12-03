@@ -1,5 +1,5 @@
 resource "hcloud_server" "first_control_plane" {
-  name = local.name_master
+  name = "k3s-control-plane-0"
 
   image        = data.hcloud_image.linux.name
   rescue       = "linux64"
@@ -14,7 +14,12 @@ resource "hcloud_server" "first_control_plane" {
   }
 
   provisioner "file" {
-    content     = data.template_file.master.rendered
+    content = templatefile("${path.module}/templates/master.tpl", {
+      name           = self.name
+      ssh_public_key = local.ssh_public_key
+      k3s_token      = random_password.k3s_token.result
+      master_ip      = local.first_control_plane_network_ip
+    })
     destination = "/tmp/config.yaml"
 
     connection {
@@ -26,14 +31,7 @@ resource "hcloud_server" "first_control_plane" {
 
 
   provisioner "remote-exec" {
-    inline = [
-      "apt install -y grub-efi grub-pc-bin mtools xorriso",
-      "latest=$(curl -s https://api.github.com/repos/rancher/k3os/releases | jq '.[0].tag_name')",
-      "curl -Lo ./install.sh https://raw.githubusercontent.com/rancher/k3os/$(echo $latest | xargs)/install.sh",
-      "chmod +x ./install.sh",
-      "./install.sh --config /tmp/config.yaml /dev/sda https://github.com/rancher/k3os/releases/download/$(echo $latest | xargs)/k3os-amd64.iso",
-      "shutdown -r now"
-    ]
+    inline = local.k3os_install_commands
 
     connection {
       user        = "root"
@@ -44,7 +42,7 @@ resource "hcloud_server" "first_control_plane" {
 
   provisioner "local-exec" {
     command = <<-EOT
-      ping ${self.ipv4_address} | grep --line-buffered "bytes from" | head -1 && sleep 60 && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${var.private_key} rancher@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
+      sleep 60 && ping ${self.ipv4_address} | grep --line-buffered "bytes from" | head -1 && sleep 60 && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${var.private_key} rancher@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
       sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
     EOT
   }

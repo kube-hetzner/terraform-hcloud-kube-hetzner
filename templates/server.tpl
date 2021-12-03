@@ -15,18 +15,19 @@ run_cmd:
 k3os:
   k3s_args:
   - server
-  - "--cluster-init"
+  - "--server"
+  - "https://${master_ip}:6443"
   - "--disable-cloud-controller"
   - "--disable=traefik"
   - "--disable=servicelb"
   - "--disable=local-storage"
   - "--flannel-iface=eth1"
   - "--node-ip"
-  - "${master_ip}"
+  - "${node_ip}"
   - "--advertise-address"
-  - "${master_ip}"
+  - "${node_ip}"
   - "--tls-san"
-  - "${master_ip}"
+  - "${node_ip}"
   - "--kubelet-arg"
   - "cloud-provider=external"
   token: ${k3s_token}
