@@ -47,11 +47,12 @@ resource "hcloud_server" "first_control_plane" {
     EOT
   }
 
+  # Install the Hetzner Cloud cloud controller and cloud storage interface
   provisioner "local-exec" {
     command = <<-EOT
-      kubectl -n kube-system create secret generic hcloud --from-literal=token=${random_password.k3s_token.result} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
+      kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
       kubectl apply -f ${path.module}/manifests/hcloud-ccm-net.yaml --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${random_password.k3s_token.result} --kubeconfig ${path.module}/kubeconfig.yaml
+      kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
       kubectl apply -f https://raw.githubusercontent.com/hetznercloud/csi-driver/master/deploy/kubernetes/hcloud-csi.yml --kubeconfig ${path.module}/kubeconfig.yaml
     EOT
   }
