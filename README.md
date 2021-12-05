@@ -23,11 +23,11 @@
 
 ## About The Project
 
-[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with datacenter locations in both Europe and America. The goal of this project was to create an optimal and highly optimized Kubernetes installation, that is easy maintained, secure, and automatically upgrades itself. We aimed for functionality that was as close as possible to GKE's auto-pilot!
+[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and America. The goal of this project was to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades itself. We aimed for functionality as close as possible to GKE's auto-pilot!
 
 ### Features
 
-- Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3OS](https://github.com/rancher/k3os) nodes to take advantage of an auto-upgragradable and hardened OS, especially designed to run k3s.
+- Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
 - Automatic HA by setting the required number of servers and agents nodes.
 - (Optional) [Nginx ingress controller](https://kubernetes.github.io/ingress-nginx/) that will automatically use Hetzner's private network to allocate a Hetzner load balancer.
 
@@ -39,7 +39,7 @@ _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [
 
 ## Getting started
 
-Follow those simple steps and your world cheapest and coolest Kube cluster will be up and running in no time.
+Follow those simple steps, and your world's cheapest Kube cluster will be up and running in no time.
 
 ### Prerequisites
 
@@ -55,7 +55,7 @@ gofish install terraform && gofish install kubectl && gofish install helm
 
 1. Create a project in your Hetzner Cloud Console, and go to **Security > API Tokens** of that project to grab the API key.
 2. Generate an ssh key pair for your cluster, unless you already have one that you'd like to use.
-3. Rename terraform.tfvars.example to terraform.tfvars and replace the values from steps 1 and 2.
+3. Rename terraform.tfvars.example to terraform.tfvars, and replace the values from steps 1 and 2.
 
 ### Customize other variables (Optional)
 
@@ -86,11 +86,11 @@ Just using the command `kubectl --kubeconfig kubeconfig.yaml` would work, but fo
 export KUBECONFIG=/<path-to>/kubeconfig.yaml
 ```
 
-To get the path, of course, you could use the `pwd` command.
+Of course, to get the path, you could use the `pwd` command.
 
 ### Ingress Controller (Optional)
 
-To have a complete and useful setup, it is ideal to have an ingress controller running and it turns out that the Hetzner Cloud Controller allows us to automatically deploy a Hetzner Load Balancer that can be used by the ingress controller. We have chosen to use the Nginx ingress controller that you can install with the following command:
+When using Kubernetes, it is ideal to have an ingress controller to expose services to the outside world. And it turns out that the Hetzner Cloud Controller allows us to automatically deploy a Hetzner Load Balancer that the ingress controller can use. You can install the Nginx ingress controller with the following command:
 
 ```sh
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -98,7 +98,7 @@ helm repo update
 helm install --values=manifests/helm/nginx/values.yaml ingress-nginx ingress-nginx/ingress-nginx -n kube-system --kubeconfig kubeconfig.yaml
 ```
 
-_Note that the default geographic location and instance type of the load balancer can be changed by editing the [values.yaml](manifests/helm/nginx/values.yaml) file._
+_Please note that the load balancer's geographic location and instance type are editable in [values.yaml](manifests/helm/nginx/values.yaml)._
 
 <!-- USAGE EXAMPLES -->
 
@@ -129,7 +129,7 @@ ssh rancher@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 
 ### Automatic upgrade
 
-By default, k3os and its embedded k3s instance get upgraded automatically on each node in an HA and non-disruptive way, thanks to its embedded system upgrade controller. If you wish to turn that feature off, please remove the following label `k3os.io/upgrade=latest` with the following command:
+By default, k3os and its embedded k3s instance get upgraded automatically on each node, thanks to its embedded system upgrade controller. If you wish to turn that feature off, please remove the following label `k3os.io/upgrade=latest` with the following command:
 
 ```sh
 kubectl label node <nodename> 'k3os.io/upgrade'- --kubeconfig kubeconfig.yaml
@@ -155,13 +155,13 @@ helm upgrade --values=manifests/helm/nginx/values.yaml ingress-nginx ingress-ngi
 
 ## Takedown
 
-If you chose to install the Nginx ingress controller, you need to delete it first to release the load balancer, as follows:
+If you choose to install the Nginx ingress controller, you need to delete it first to release the load balancer, as follows:
 
 ```sh
 helm delete ingress-nginx -n kube-system --kubeconfig kubeconfig.yaml
 ```
 
-Then you can proceed to taking down the rest of the cluster with:
+Then you can proceed to take down the rest of the cluster with:
 
 ```sh
 kubectl delete -f https://raw.githubusercontent.com/mysticaltech/kube-hetzner/master/manifests/hcloud-ccm-net.yaml --kubeconfig kubeconfig.yaml
@@ -169,7 +169,7 @@ kubectl delete -f https://raw.githubusercontent.com/hetznercloud/csi-driver/mast
 terraform destroy -auto-approve
 ```
 
-Also, if you had a full blown cluster in use, it's best do delete the whole project in your Hetzner account directly, as there may be other ressources created via operators that are not part of this project.
+Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation.
 
 <!-- ROADMAP -->
 
