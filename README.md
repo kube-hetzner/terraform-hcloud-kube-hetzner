@@ -15,7 +15,7 @@
   <h2 align="center">Kube-Hetzner</h2>
 
   <p align="center">
-    A fully automated, highly optimized and auto-upgradable, HA-able, Kubernetes - k3s on k3os - cluster on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🥳
+    A highly optimized and auto-upgradable, HA-able, Kubernetes cluster powered by k3s on k3os on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 
   </p>
   <hr />
   <br />
@@ -23,18 +23,17 @@
 
 ## About The Project
 
-![Product Name Screen Shot][product-screenshot]
+[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with datacenter locations in both Europe and America. The goal of this project was to create an optimal and highly optimized Kubernetes installation, that is easy maintained, secure, and automatically upgrades itself. We aimed for functionality that was as close as possible to GKE's auto-pilot!
 
-[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances. The goal of this project was to create an optimal and highly optimized Kubernetes installation, that is easy maintained, secure, and automatically upgrades itself. We aimed for functionality that was as close as possible to GKE's auto-pilot.
+### Features
 
-Here's what is working at the moment:
-
-- Lightweight and resource-efficient Kubernetes with [k3s](https://github.com/k3s-io/k3s).
-- Powered by k3OS nodes to take advantage of an auto-upgragradable and hardened OS, especially designed to run k3s. That means that both the OS and your kube cluster will stay current and up-to-date.
+- Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3OS](https://github.com/rancher/k3os) nodes to take advantage of an auto-upgragradable and hardened OS, especially designed to run k3s.
 - Automatic HA by setting the required number of servers and agents nodes.
-- Optional [Nginx ingress controller](https://kubernetes.github.io/ingress-nginx/) that will automatically use Hetzner's private network to allocate a Hetzner load balancer.
+- (Optional) [Nginx ingress controller](https://kubernetes.github.io/ingress-nginx/) that will automatically use Hetzner's private network to allocate a Hetzner load balancer.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
+
+![Product Name Screen Shot][product-screenshot]
 
 <!-- GETTING STARTED -->
 
@@ -224,4 +223,4 @@ Project Link: [https://github.com/mysticaltech/kube-hetzner](https://github.com/
 [license-url]: https://github.com/mysticaltech/kube-hetzner/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/karimnaufal/
-[product-screenshot]: .images/kubectl-pods-screenshot.png
+[product-screenshot]: .images/kubectl-all-screenshot.png
