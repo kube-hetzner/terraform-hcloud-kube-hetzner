@@ -23,8 +23,7 @@ resource "hcloud_network_subnet" "k3s" {
 resource "hcloud_firewall" "k3s" {
   name = "k3s-firewall"
 
-  # Internal cluster traffic, kube api server, kubelet metrics, cilium, etcd,
-  # and Hetzner metadata service and cloud api
+  # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
   rule {
     direction = "in"
     protocol  = "tcp"
@@ -92,7 +91,7 @@ resource "hcloud_firewall" "k3s" {
 locals {
   first_control_plane_network_ip = cidrhost(hcloud_network.k3s.ip_range, 2)
   ssh_public_key                 = trimspace(file(var.public_key))
-  hcloud_image_name = "ubuntu-20.04"
+  hcloud_image_name              = "ubuntu-20.04"
 
   k3os_install_commands = [
     "apt install -y grub-efi grub-pc-bin mtools xorriso",
