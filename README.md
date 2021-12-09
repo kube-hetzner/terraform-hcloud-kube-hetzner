@@ -209,7 +209,7 @@ Project Link: [https://github.com/mysticaltech/kube-hetzner](https://github.com/
 
 - [k-andy](https://github.com/StarpTech/k-andy) was the starting point for this project. It wouldn't have been possible without it.
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) that made writing this readme a lot easier.
-- [k3os-hetzner])(https://github.com/hughobrien/k3os-hetzner) was the inspiration for the k3os installation method.
+- [k3os-hetzner](https://github.com/hughobrien/k3os-hetzner) was the inspiration for the k3os installation method.
 
 [contributors-shield]: https://img.shields.io/github/contributors/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [contributors-url]: https://github.com/mysticaltech/kube-hetzner/graphs/contributors
