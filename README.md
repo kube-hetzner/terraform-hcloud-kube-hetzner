@@ -210,7 +210,7 @@ The following code is distributed as-is and under the MIT License. See [LICENSE]
 - [k-andy](https://github.com/StarpTech/k-andy) was the starting point for this project. It wouldn't have been possible without it.
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) that made writing this readme a lot easier.
 - [k3os-hetzner](https://github.com/hughobrien/k3os-hetzner) was the inspiration for the k3os installation method.
-- [Hetzner Cloud](https://www.hetzner.com) for providing a solid infrastructure and well maintained terraform package.
+- [Hetzner Cloud](https://www.hetzner.com) for providing a solid infrastructure and terraform package.
 - [Hashicorp](https://www.hashicorp.com) for the amazing terraform framework that makes all the magic happen.
 - [Rancher](https://www.rancher.com) for k3s and k3os, robust and innovative technologies that are the very core engine of this project.
 
