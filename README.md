@@ -30,7 +30,8 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 ### Features
 
 - Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
-- Automatic HA by setting the required number of servers and agents nodes.
+- Automatic HA with the default setting of two control-plane and agents nodes.
+- Add or remove as many nodes as you want while the cluster stays running (just change the number instances and run terraform apply again).
 - (Optional) [Nginx ingress controller](https://kubernetes.github.io/ingress-nginx/) that will automatically use Hetzner's private network to allocate a Hetzner load balancer.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
