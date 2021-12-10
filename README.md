@@ -25,6 +25,8 @@
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and America. The goal of this project was to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades itself. We aimed for functionality as close as possible to GKE's auto-pilot!
 
+_Please note that we are not affiliated to Hetzner, this is just an open source project wanting to push for be the best possible solution for Kubernetes on Hetzner Cloud._
+
 ### Features
 
 - Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
@@ -208,6 +210,9 @@ The following code is distributed as-is and under the MIT License. See [LICENSE]
 - [k-andy](https://github.com/StarpTech/k-andy) was the starting point for this project. It wouldn't have been possible without it.
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) that made writing this readme a lot easier.
 - [k3os-hetzner](https://github.com/hughobrien/k3os-hetzner) was the inspiration for the k3os installation method.
+- [Hetzner Cloud](https://www.hetzner.com) for providing a solid infrastructure and well maintained terraform package.
+- [Hashicorp](https://www.hashicorp.com) for the amazing terraform framework that makes all the magic happen.
+- [Rancher](https://www.rancher.com) for k3s and k3os, robust and innovative technologies that are the very core engine of this project.
 
 [contributors-shield]: https://img.shields.io/github/contributors/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [contributors-url]: https://github.com/mysticaltech/kube-hetzner/graphs/contributors
