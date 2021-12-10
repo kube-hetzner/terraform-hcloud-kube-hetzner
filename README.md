@@ -197,11 +197,9 @@ The following code is distributed as-is and under the MIT License. See [LICENSE]
 
 <!-- CONTACT -->
 
-## Contact
+## Contributors
 
-Karim Naufal - [@mysticaltech](https://twitter.com/mysticaltech) - karim.naufal@me.com
-
-Project Link: [https://github.com/mysticaltech/kube-hetzner](https://github.com/mysticaltech/kube-hetzner)
+- Karim Naufal - [@mysticaltech](https://github.com/mysticaltech)
 
 <!-- ACKNOWLEDGEMENTS -->
 
