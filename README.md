@@ -25,7 +25,7 @@
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and America. The goal of this project was to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades itself. We aimed for functionality as close as possible to GKE's auto-pilot!
 
-_Please note that we are not affiliated to Hetzner, this is just an open source project wanting to push for be the best possible solution for Kubernetes on Hetzner Cloud._
+_Please note that we are not affiliated to Hetzner, this is just an open source project striving to be the best solution for Kubernetes on Hetzner Cloud._
 
 ### Features
 
