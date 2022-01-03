@@ -17,8 +17,6 @@ k3os:
   - server
   - "--cluster-init"
   - "--disable-cloud-controller"
-  - "--disable-network-policy"
-  - "--disable=traefik"
   - "--disable=servicelb"
   - "--disable=local-storage"
   - "--flannel-iface=eth1"
