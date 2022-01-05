@@ -30,9 +30,9 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 ### Features
 
 - Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
-- Automatic HA with the default setting of two control-plane and agents nodes.
-- Automatic Traefik ingress controller attached to a hetzner load balancer with proxy protocol turned on.
-- Add or remove as many nodes as you want while the cluster stays running (just change the number instances and run terraform apply again).
+- Maintenance free with auto-upgrade to the latest version of k3s and k3os, Hetzner CCM and CSI.
+- Automatic HA with the default setting of two control-plane and agents nodes. Add or remove as many nodes as you want while the cluster stays running.
+- Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -44,7 +44,7 @@ _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [
 
 Follow those simple steps, and your world's cheapest Kube cluster will be up and running in no time.
 
-### Prerequisites
+### ✔️ Prerequisites
 
 First and foremost, you need to have a Hetzner Cloud account. You can sign up for free [here](https://hetzner.com/cloud/).
 
@@ -54,13 +54,13 @@ Then you'll need you have the [terraform](https://learn.hashicorp.com/tutorials/
 gofish install terraform && gofish install kubectl && gofish install helm
 ```
 
-### ⚠️ [Essential step, do not skip] Creating the terraform.tfvars file
+### ⚠️ [Do not skip] Creating the terraform.tfvars file
 
 1. Create a project in your Hetzner Cloud Console, and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
 2. Generate an ssh key pair for your cluster, unless you already have one that you'd like to use. Take note of the respective paths! ✅
 3. Rename terraform.tfvars.example to terraform.tfvars, and replace the values from steps 1 and 2. ✅
 
-### Customize other variables (Optional)
+### 💡 Customize other variables (Optional)
 
 The number of control plane nodes and worker nodes, the [Hetzner datacenter location](https://docs.hetzner.com/general/others/data-centers-and-connection/) (.i.e. ngb1, fsn1, hel1 ...etc.), and the [Hetzner server types](https://www.hetzner.com/cloud) (i.e. cpx31, cpx41 ...etc.) can be customized by adding the corresponding variables to your newly created terraform.tfvars file.
 
@@ -75,7 +75,7 @@ control_plane_server_type = "cpx11"
 lb_server_type = "lb11"
 ```
 
-### Installation
+### 🎯 Installation
 
 ```sh
 terraform init
@@ -92,6 +92,12 @@ export KUBECONFIG=/<path-to>/kubeconfig.yaml
 
 Of course, to get the path, you could use the `pwd` command.
 
+<!-- USAGE EXAMPLES -->
+
+## Usage
+
+When the cluster is up and running, you can do whatever you wish with it. Enjoy! 🎉
+
 ### Scaling Nodes
 
 You can scale the number of nodes up and down without any issues or even disruption! Just add or edit these variables in `terraform.tfvars` and re-apply terraform.
@@ -100,12 +106,6 @@ You can scale the number of nodes up and down without any issues or even disrupt
 servers_num = 2
 agents_num = 3
 ```
-
-<!-- USAGE EXAMPLES -->
-
-## Usage
-
-When the cluster is up and running, you can do whatever you wish with it. Enjoy! 🎉
 
 ### Useful commands
 
@@ -140,7 +140,7 @@ As for the Hetzner CCM and CSI, their container images are set to latest and wit
 
 ## Takedown
 
-Then you can proceed to take down the rest of the cluster with:
+If you want to takedown the cluster, you can proceed as follows:
 
 ```sh
 kubectl delete -k hetzer/csi --kubeconfig kubeconfig.yaml
@@ -150,12 +150,6 @@ terraform destroy -auto-approve
 ```
 
 Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation.
-
-<!-- ROADMAP -->
-
-## Roadmap
-
-See the [open issues](https://github.com/mysticaltech/kube-hetzner/issues) for a list of proposed features (and known issues).
 
 <!-- CONTRIBUTING -->
 
@@ -168,12 +162,6 @@ Any contributions you make are **greatly appreciated**.
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin AmazingFeature`)
 5. Open a Pull Request
-
-<!-- LICENSE -->
-
-## License
-
-The following code is distributed as-is and under the MIT License. See [LICENSE](LICENSE) for more information.
 
 <!-- CONTACT -->
 
@@ -204,4 +192,4 @@ The following code is distributed as-is and under the MIT License. See [LICENSE]
 [license-url]: https://github.com/mysticaltech/kube-hetzner/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://www.linkedin.com/in/karimnaufal/
-[product-screenshot]: .images/kubectl-all-screenshot.png
+[product-screenshot]: .images/kubectl-pod-all.png
