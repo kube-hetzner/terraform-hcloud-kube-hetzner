@@ -85,6 +85,63 @@ resource "hcloud_firewall" "k3s" {
       "0.0.0.0/0"
     ]
   }
+
+  # Allow basic out traffic
+  # ICMP to ping outside services
+  rule {
+    direction = "out"
+    protocol  = "icmp"
+    destination_ips = [
+      "0.0.0.0/0"
+    ]
+  }
+
+  # DNS
+  rule {
+    direction = "out"
+    protocol  = "tcp"
+    port      = "53"
+    destination_ips = [
+      "0.0.0.0/0"
+    ]
+  }
+  rule {
+    direction = "out"
+    protocol  = "udp"
+    port      = "53"
+    destination_ips = [
+      "0.0.0.0/0"
+    ]
+  }
+
+  # HTTP(s)
+  rule {
+    direction = "out"
+    protocol  = "tcp"
+    port      = "80"
+    destination_ips = [
+      "0.0.0.0/0"
+    ]
+  }
+  rule {
+    direction = "out"
+    protocol  = "tcp"
+    port      = "443"
+    destination_ips = [
+      "0.0.0.0/0"
+    ]
+  }
+
+  #NTP
+  rule {
+    direction = "out"
+    protocol  = "udp"
+    port      = "123"
+    destination_ips = [
+      "0.0.0.0/0"
+    ]
+  }
+
 }
 
 
@@ -107,4 +164,12 @@ locals {
 
 data "hcloud_image" "linux" {
   name = local.hcloud_image_name
+}
+
+resource "local_file" "traefik_config" {
+  content = templatefile("${path.module}/templates/traefik_config.yaml.tpl", {
+    lb_server_type = var.lb_server_type
+    location       = var.location
+  })
+  filename = "${path.module}/templates/rendered/traefik_config.yaml"
 }

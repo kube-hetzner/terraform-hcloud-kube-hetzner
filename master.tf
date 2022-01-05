@@ -29,7 +29,7 @@ resource "hcloud_server" "first_control_plane" {
     }
   }
 
-
+  # Install k3os
   provisioner "remote-exec" {
     inline = local.k3os_install_commands
 
@@ -40,6 +40,7 @@ resource "hcloud_server" "first_control_plane" {
     }
   }
 
+  # Wait for k3os to be ready and fetch kubeconfig.yaml
   provisioner "local-exec" {
     command = <<-EOT
       sleep 60 && ping ${self.ipv4_address} | grep --line-buffered "bytes from" | head -1 && sleep 60 && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${var.private_key} rancher@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
@@ -47,14 +48,19 @@ resource "hcloud_server" "first_control_plane" {
     EOT
   }
 
-  # Install the Hetzner Cloud cloud controller and cloud storage interface
+  # Install Hetzner CCM and CSI
   provisioner "local-exec" {
     command = <<-EOT
       kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -f ${path.module}/manifests/hcloud-ccm-net.yaml --kubeconfig ${path.module}/kubeconfig.yaml
+      kubectl apply -k ${path.module}/hetzner/ccm --kubeconfig ${path.module}/kubeconfig.yaml
       kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -f https://raw.githubusercontent.com/hetznercloud/csi-driver/master/deploy/kubernetes/hcloud-csi.yml --kubeconfig ${path.module}/kubeconfig.yaml
+      kubectl apply -k  ${path.module}/hetzner/csi --kubeconfig ${path.module}/kubeconfig.yaml
     EOT
+  }
+
+  # Configure the Traefik ingress controller
+  provisioner "local-exec" {
+    command = "kubectl apply -f ${local_file.traefik_config.filename} --kubeconfig ${path.module}/kubeconfig.yaml"
   }
 
   network {

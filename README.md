@@ -32,7 +32,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 - Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
 - Automatic HA with the default setting of two control-plane and agents nodes.
 - Add or remove as many nodes as you want while the cluster stays running (just change the number instances and run terraform apply again).
-- (Optional) [Nginx ingress controller](https://kubernetes.github.io/ingress-nginx/) that will automatically use Hetzner's private network to allocate a Hetzner load balancer.
+- Automatic Traefik ingress controller and with a hetzner load balancer and proxy protocol turned on.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -72,6 +72,7 @@ agents_num = 2
 location = "fsn1"
 agent_server_type = "cpx21"
 control_plane_server_type = "cpx11"
+lb_server_type = "lb11"
 ```
 
 ### Installation
@@ -99,18 +100,6 @@ You can scale the number of nodes up and down without any issues or even disrupt
 servers_num = 2
 agents_num = 3
 ```
-
-### Ingress Controller (Optional)
-
-When using Kubernetes, it is ideal to have an ingress controller to expose services to the outside world. And it turns out that the Hetzner Cloud Controller allows us to automatically deploy a Hetzner Load Balancer that the ingress controller can use. You can install the Nginx ingress controller with the following command:
-
-```sh
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-helm install --values=manifests/helm/nginx/values.yaml ingress-nginx ingress-nginx/ingress-nginx -n kube-system --kubeconfig kubeconfig.yaml
-```
-
-_Please note that the load balancer's geographic location and instance type are editable in [values.yaml](manifests/helm/nginx/values.yaml)._
 
 <!-- USAGE EXAMPLES -->
 
@@ -147,37 +136,16 @@ By default, k3os and its embedded k3s instance get upgraded automatically on eac
 kubectl label node <nodename> 'k3os.io/upgrade'- --kubeconfig kubeconfig.yaml
 ```
 
-### Individual components upgrade
-
-To upgrade individual components, you can use the following commands:
-
-- Hetzner CCM and CSI
-
-```sh
-kubectl apply -f https://raw.githubusercontent.com/mysticaltech/kube-hetzner/master/manifests/hcloud-ccm-net.yaml --kubeconfig kubeconfig.yaml
-kubectl apply -f https://raw.githubusercontent.com/hetznercloud/csi-driver/master/deploy/kubernetes/hcloud-csi.yml --kubeconfig kubeconfig.yaml
-```
-
-- (Optional, if installed) Nginx ingress controller
-
-```sh
-helm repo update
-helm upgrade --values=manifests/helm/nginx/values.yaml ingress-nginx ingress-nginx/ingress-nginx -n kube-system --kubeconfig kubeconfig.yaml
-```
+As for the Hetzner CCM and CSI, their container images are set to latest and with and imagePullPolicy of "Always". This means that when the nodes upgrade, they will be automatically upgraded too.
 
 ## Takedown
-
-If you choose to install the Nginx ingress controller, you need to delete it first to release the load balancer, as follows:
-
-```sh
-helm delete ingress-nginx -n kube-system --kubeconfig kubeconfig.yaml
-```
 
 Then you can proceed to take down the rest of the cluster with:
 
 ```sh
-kubectl delete -f https://raw.githubusercontent.com/mysticaltech/kube-hetzner/master/manifests/hcloud-ccm-net.yaml --kubeconfig kubeconfig.yaml
-kubectl delete -f https://raw.githubusercontent.com/hetznercloud/csi-driver/master/deploy/kubernetes/hcloud-csi.yml --kubeconfig kubeconfig.yaml
+kubectl delete -k hetzer/csi --kubeconfig kubeconfig.yaml
+kubectl delete -k hetzer/ccm --kubeconfig kubeconfig.yaml
+hcloud load-balancer delete traefik
 terraform destroy -auto-approve
 ```
 

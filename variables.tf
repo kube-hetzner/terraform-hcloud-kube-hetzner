@@ -43,3 +43,8 @@ variable "agent_server_type" {
   description = "Default agent server type"
   default     = "cx21"
 }
+
+variable "lb_server_type" {
+  description = "Default load balancer server type"
+  default     = "lb11"
+}
