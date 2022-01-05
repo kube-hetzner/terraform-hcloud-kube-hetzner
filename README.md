@@ -15,7 +15,7 @@
   <h2 align="center">Kube-Hetzner</h2>
 
   <p align="center">
-    A highly optimized and auto-upgradable, HA-able, Kubernetes cluster powered by k3s on k3os on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 
+    A highly optimized and auto-upgradable, HA-able & Load-Balanced, Kubernetes cluster powered by k3s-on-k3os deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 🚀
   </p>
   <hr />
   <br />
@@ -23,7 +23,7 @@
 
 ## About The Project
 
-[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and America. The goal of this project was to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades itself. We aimed for functionality as close as possible to GKE's auto-pilot!
+[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US. The goal of this project was to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades itself. We aimed for functionality as close as possible to GKE's auto-pilot.
 
 _Please note that we are not affiliated to Hetzner, this is just an open source project striving to be an optimal solution for deploying and maintaining Kubernetes on Hetzner Cloud._
 
@@ -31,8 +31,8 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 
 - Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
 - Automatic HA with the default setting of two control-plane and agents nodes.
+- Automatic Traefik ingress controller attached to a hetzner load balancer with proxy protocol turned on.
 - Add or remove as many nodes as you want while the cluster stays running (just change the number instances and run terraform apply again).
-- Automatic Traefik ingress controller and with a hetzner load balancer and proxy protocol turned on.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -56,9 +56,9 @@ gofish install terraform && gofish install kubectl && gofish install helm
 
 ### Creating terraform.tfvars
 
-1. Create a project in your Hetzner Cloud Console, and go to **Security > API Tokens** of that project to grab the API key.
-2. Generate an ssh key pair for your cluster, unless you already have one that you'd like to use.
-3. Rename terraform.tfvars.example to terraform.tfvars, and replace the values from steps 1 and 2.
+1. Create a project in your Hetzner Cloud Console, and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
+2. Generate an ssh key pair for your cluster, unless you already have one that you'd like to use. Take note of the respective paths! ✅
+3. ⚠️ [Essential step] Rename terraform.tfvars.example to terraform.tfvars, and replace the values from steps 1 and 2. ✅
 
 ### Customize other variables (Optional)
 
