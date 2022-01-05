@@ -54,11 +54,11 @@ Then you'll need you have the [terraform](https://learn.hashicorp.com/tutorials/
 gofish install terraform && gofish install kubectl && gofish install helm
 ```
 
-### Creating terraform.tfvars
+### ⚠️ [Essential step, do not skip] Creating the terraform.tfvars file
 
 1. Create a project in your Hetzner Cloud Console, and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
 2. Generate an ssh key pair for your cluster, unless you already have one that you'd like to use. Take note of the respective paths! ✅
-3. ⚠️ [Essential step] Rename terraform.tfvars.example to terraform.tfvars, and replace the values from steps 1 and 2. ✅
+3. Rename terraform.tfvars.example to terraform.tfvars, and replace the values from steps 1 and 2. ✅
 
 ### Customize other variables (Optional)
 
