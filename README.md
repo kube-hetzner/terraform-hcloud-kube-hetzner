@@ -30,7 +30,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 ### Features
 
 - Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
-- Maintenance free with auto-upgrade to the latest version of k3s and k3os, Hetzner CCM and CSI.
+- Maintenance free with auto-upgrade to the latest version of k3os, k3s, Hetzner CCM and CSI.
 - Proper use of the underlying Hetzner private network to remove the need for encryption and make the cluster both fast and secure.
 - Automatic HA with the default setting of two control-plane and agents nodes.
 - Ability to add or remove as many nodes as you want while the cluster stays running.
