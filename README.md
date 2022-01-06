@@ -123,7 +123,7 @@ ssh rancher@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 
 By default, k3os and its embedded k3s instance get upgraded automatically on each node, thanks to its embedded system upgrade controller. As for the Hetzner CCM and CSI, their container images are set to latest and with and imagePullPolicy of "Always". This means that when the nodes upgrade, they will be automatically upgraded too.
 
-_If you wish to turn automatic upgrade off, please remove the following label `k3os.io/upgrade=latest` with the following command `kubectl label node <nodename> 'k3os.io/upgrade'-`._
+_If you wish to turn off automatic upgrade on a specific node, you need to take out the label `k3os.io/upgrade=latest`. It can be done with this command `kubectl label node <nodename> 'k3os.io/upgrade'-`._
 
 ## Takedown
 
