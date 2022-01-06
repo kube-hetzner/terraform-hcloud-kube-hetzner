@@ -3,3 +3,4 @@
 crash.log
 kubeconfig.yaml
 terraform.tfvars
+templates/rendered/traefik_config.yaml
