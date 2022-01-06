@@ -23,7 +23,7 @@
 
 ## About The Project
 
-[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US. The goal of this project was to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades itself. We aimed for functionality as close as possible to GKE's auto-pilot.
+[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US. The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot.
 
 _Please note that we are not affiliated to Hetzner, this is just an open source project striving to be an optimal solution for deploying and maintaining Kubernetes on Hetzner Cloud._
 
@@ -48,11 +48,14 @@ Follow those simple steps, and your world's cheapest Kube cluster will be up and
 
 First and foremost, you need to have a Hetzner Cloud account. You can sign up for free [here](https://hetzner.com/cloud/).
 
-Then you'll need you have the [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli), [helm](https://helm.sh/docs/intro/install/), and [kubectl](https://kubernetes.io/docs/tasks/tools/) cli installed. The easiest way is to use the [gofish](https://gofi.sh/#install) package manager to install them.
+Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) and [kubectl](https://kubernetes.io/docs/tasks/tools/) cli installed. The easiest way is to use the [gofish](https://gofi.sh/#install) package manager to install them.
 
 ```sh
-gofish install terraform && gofish install kubectl && gofish install helm
+gofish install terraform
+gofish install kubectl
 ```
+
+_The Hetzner cli `hcloud` is also useful to have, mainly for debugging without having to use the Hetzner website. See how to install it [here](https://github.com/hetznercloud/cli)._
 
 ### ⚠️ [Do not skip] Creating the terraform.tfvars file
 
@@ -84,23 +87,21 @@ terraform apply -auto-approve
 
 It will take a few minutes to complete, and then you should see a green output with the IP addresses of the nodes. Then you can immediately kubectl into it (using the kubeconfig.yaml saved to the project's directory after the install).
 
-Just using the command `kubectl --kubeconfig kubeconfig.yaml` would work, but for more convenience, either create a symlink from `~/.kube/config` to `kubeconfig.yaml`, or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows:
+_Just using the command `kubectl --kubeconfig kubeconfig.yaml` would work, but for more convenience, either create a symlink from `~/.kube/config` to `kubeconfig.yaml`, or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of kubeconfig.yaml by running `pwd`):_
 
 ```sh
 export KUBECONFIG=/<path-to>/kubeconfig.yaml
 ```
 
-Of course, to get the path, you could use the `pwd` command.
-
 <!-- USAGE EXAMPLES -->
 
 ## Usage
 
-When the cluster is up and running, you can do whatever you wish with it. Enjoy! 🎉
+When the cluster is up and running, you can do whatever you wish with it! 🎉
 
-### Scaling Nodes
+### Scaling nodes
 
-You can scale the number of nodes up and down without any issues or even disruption! Just add or edit these variables in `terraform.tfvars` and re-apply terraform.
+You can scale the number of nodes up and down without any issues or even disruption! Just add or edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
 
 ```tfvars
 servers_num = 2
