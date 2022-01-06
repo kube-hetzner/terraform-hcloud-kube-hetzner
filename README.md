@@ -140,7 +140,7 @@ hcloud load-balancer delete traefik
 terraform destroy -auto-approve
 ```
 
-Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation.
+_Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation._
 
 <!-- CONTRIBUTING -->
 
