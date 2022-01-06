@@ -1,3 +1,14 @@
-hcloud_token = "mL2oj8Xaxc0AC0uo5LM5NnBlqW8UFjPclc9ZoDIhcKc7ejKgNsjDT6EuObcf5Ia7I"
-public_key   = "/home/myuser/.ssh/id_ed25519.pub"
-private_key  = "/home/myuser/.ssh/id_ed25519"
+# You need to replace these
+hcloud_token = "xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz"
+public_key   = "/home/username/.ssh/id_ed25519.pub"
+private_key  = "/home/username/.ssh/id_ed25519"
+
+# These can be customized, or left with the default values
+# For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
+# For Hetzner server types see https://www.hetzner.com/cloud
+location                  = "fsn1"
+agent_server_type         = "cpx21"
+control_plane_server_type = "cpx11"
+lb_server_type            = "lb11"
+servers_num               = 2
+agents_num                = 2

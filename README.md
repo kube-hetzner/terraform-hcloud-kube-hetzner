@@ -57,26 +57,12 @@ gofish install kubectl
 
 _The Hetzner cli `hcloud` is also useful to have, mainly for debugging without having to use the Hetzner website. See how to install it [here](https://github.com/hetznercloud/cli)._
 
-### ⚠️ [Do not skip] Creating the terraform.tfvars file
+### 💡 [Do not skip] Creating the terraform.tfvars file
 
-1. Create a project in your Hetzner Cloud Console, and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
-2. Generate an ssh key pair for your cluster, unless you already have one that you'd like to use. Take note of the respective paths! ✅
-3. Rename terraform.tfvars.example to terraform.tfvars, and replace the values from steps 1 and 2. ✅
-
-### 💡 Customize other variables (Optional)
-
-The number of control plane nodes and worker nodes, the [Hetzner datacenter location](https://docs.hetzner.com/general/others/data-centers-and-connection/) (.i.e. ngb1, fsn1, hel1 ...etc.), and the [Hetzner server types](https://www.hetzner.com/cloud) (i.e. cpx31, cpx41 ...etc.) can be customized by adding the corresponding variables to your newly created terraform.tfvars file.
-
-See the default values in the [variables.tf](variables.tf) file, they correspond to (you can copy-paste and customize):
-
-```tfvars
-servers_num = 2
-agents_num = 2
-location = "fsn1"
-agent_server_type = "cpx21"
-control_plane_server_type = "cpx11"
-lb_server_type = "lb11"
-```
+1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.com/), and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
+2. Generate an ssh key pair for your cluster, unless you already have one that you'd like to use (ed25519 is the ideal type). Take note of the respective paths of your private and public keys! ✅
+3. Rename `terraform.tfvars.example` to `terraform.tfvars`, and replace the values from steps 1 and 2. ✅
+4. (Optional) There are other variables in `terraform.tfvars` that could be customized, like Hetzner region, and the node counts and sizes.
 
 ### 🎯 Installation
 
@@ -101,7 +87,9 @@ When the cluster is up and running, you can do whatever you wish with it! 🎉
 
 ### Scaling nodes
 
-You can scale the number of nodes up and down without any issues or even disruption! Just add or edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
+You can scale the number of nodes up and down without any issues or even disruption! Just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
+
+For instance:
 
 ```tfvars
 servers_num = 2
@@ -134,7 +122,7 @@ ssh rancher@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 By default, k3os and its embedded k3s instance get upgraded automatically on each node, thanks to its embedded system upgrade controller. If you wish to turn that feature off, please remove the following label `k3os.io/upgrade=latest` with the following command:
 
 ```sh
-kubectl label node <nodename> 'k3os.io/upgrade'- --kubeconfig kubeconfig.yaml
+kubectl label node <nodename> 'k3os.io/upgrade'-
 ```
 
 As for the Hetzner CCM and CSI, their container images are set to latest and with and imagePullPolicy of "Always". This means that when the nodes upgrade, they will be automatically upgraded too.
@@ -144,8 +132,8 @@ As for the Hetzner CCM and CSI, their container images are set to latest and wit
 If you want to takedown the cluster, you can proceed as follows:
 
 ```sh
-kubectl delete -k hetzer/csi --kubeconfig kubeconfig.yaml
-kubectl delete -k hetzer/ccm --kubeconfig kubeconfig.yaml
+kubectl delete -k hetzer/csi
+kubectl delete -k hetzer/ccm
 hcloud load-balancer delete traefik
 terraform destroy -auto-approve
 ```
