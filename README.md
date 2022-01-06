@@ -31,7 +31,9 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 
 - Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
 - Maintenance free with auto-upgrade to the latest version of k3s and k3os, Hetzner CCM and CSI.
-- Automatic HA with the default setting of two control-plane and agents nodes. Add or remove as many nodes as you want while the cluster stays running.
+- Proper use of the underlying Hetzner private network to remove the need for encryption and make the cluster both fast and secure.
+- Automatic HA with the default setting of two control-plane and agents nodes.
+- Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
