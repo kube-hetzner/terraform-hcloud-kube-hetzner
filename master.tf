@@ -51,6 +51,7 @@ resource "hcloud_server" "first_control_plane" {
   # Install Hetzner CCM and CSI
   provisioner "local-exec" {
     command = <<-EOT
+      sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
       kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
       kubectl apply -k ${path.module}/hetzner/ccm --kubeconfig ${path.module}/kubeconfig.yaml
       kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
