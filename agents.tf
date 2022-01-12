@@ -45,7 +45,7 @@ resource "hcloud_server" "agents" {
   }
 
   provisioner "local-exec" {
-    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 60"
+    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 100"
   }
 
   network {
