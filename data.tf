@@ -1,7 +1,3 @@
-data "hcloud_load_balancer" "lb11" {
-  name = "traefik"
-}
-  
 data "github_release" "hetzner_ccm" {
   repository  = "hcloud-cloud-controller-manager"
   owner       = "hetznercloud"
