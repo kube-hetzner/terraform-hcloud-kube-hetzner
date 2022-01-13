@@ -52,9 +52,9 @@ resource "hcloud_server" "first_control_plane" {
   provisioner "local-exec" {
     command = <<-EOT
       kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${path.module}/hetzner/ccm --kubeconfig ${path.module}/kubeconfig.yaml
+      kubectl apply -k ${dirname(local_file.hetzner_ccm_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
       kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k  ${path.module}/hetzner/csi --kubeconfig ${path.module}/kubeconfig.yaml
+      kubectl apply -k ${dirname(local_file.hetzner_csi_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
     EOT
   }
 

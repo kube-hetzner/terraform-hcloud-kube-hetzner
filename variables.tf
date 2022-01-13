@@ -42,3 +42,15 @@ variable "agents_num" {
   description = "Number of agent nodes."
   type        = number
 }
+
+variable "hetzner_ccm_version" {
+  type        = string
+  default     = null
+  description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud"
+}
+
+variable "hetzner_csi_version" {
+  type        = string
+  default     = null
+  description = "Version of Container Storage Interface driver for Hetzner Cloud"
+}
