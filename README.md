@@ -134,8 +134,8 @@ kubectl label node <nodename> 'k3os.io/upgrade'-
 If you want to takedown the cluster, you can proceed as follows:
 
 ```sh
-kubectl delete -k hetzer/csi
-kubectl delete -k hetzer/ccm
+kubectl delete -k hetzner/csi
+kubectl delete -k hetzner/ccm
 hcloud load-balancer delete traefik
 terraform destroy -auto-approve
 ```
