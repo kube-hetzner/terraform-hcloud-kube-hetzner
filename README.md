@@ -3,7 +3,6 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
 
 <!-- PROJECT LOGO -->
 <br />
@@ -159,6 +158,7 @@ Any contributions you make are **greatly appreciated**.
 ## Contributors
 
 - Karim Naufal - [@mysticaltech](https://github.com/mysticaltech)
+- Dennis Hoppe - [@dhoppe](https://github.com/dhoppe)
 
 <!-- ACKNOWLEDGEMENTS -->
 
@@ -181,6 +181,4 @@ Any contributions you make are **greatly appreciated**.
 [issues-url]: https://github.com/mysticaltech/kube-hetzner/issues
 [license-shield]: https://img.shields.io/github/license/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [license-url]: https://github.com/mysticaltech/kube-hetzner/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://www.linkedin.com/in/karimnaufal/
 [product-screenshot]: .images/kubectl-pod-all.png
