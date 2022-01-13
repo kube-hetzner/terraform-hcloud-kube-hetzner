@@ -12,3 +12,7 @@ control_plane_server_type = "cpx11"
 lb_server_type            = "lb11"
 servers_num               = 2
 agents_num                = 2
+
+# If you want to use a specific Hetzner CCM and CSI version, set them below, otherwise leave as is for the latest versions
+# hetzner_ccm_version = ""
+# hetzner_csi_version = ""
