@@ -1,6 +1,9 @@
 .terraform*
 *.tfstate*
 crash.log
+hetzner/ccm/kustomization.yaml
+hetzner/csi/kustomization.yaml
 kubeconfig.yaml
+kubeconfig.yaml-e
 terraform.tfvars
 templates/rendered/traefik_config.yaml
