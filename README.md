@@ -122,7 +122,7 @@ ssh rancher@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 
 By default, k3os and its embedded k3s instance get upgraded automatically on each node, thanks to its embedded system upgrade controller.
 
-_You can also choose to automatically kustomize the Hetzner CCM and CSI to set their container images to "latest" and with an imagePullPolicy of "Always". That means that when the nodes upgrade, these container images will be automatically upgraded too. For more info on this, see [terraform.tfvars.example](terraform.tfvars.example)._
+_You can also choose to automatically kustomize the Hetzner CCM and CSI to set their container images to "latest" with an imagePullPolicy of "Always". That means that when the nodes upgrade, these container images will be automatically upgraded too. For more info on this, see [terraform.tfvars.example](terraform.tfvars.example)._
 
 _If you wish to turn off automatic upgrade on a specific node, you need to take out the label `k3os.io/upgrade=latest`. It can be done with the following command:_
 

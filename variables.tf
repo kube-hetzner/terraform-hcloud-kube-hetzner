@@ -56,13 +56,13 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud"
 }
 
-variable "hetzner_ccm_container_latest" {
+variable "hetzner_ccm_containers_latest" {
   type        = bool
   default     = false
   description = "Whether to kustomize the Hetzner CCM manifest with the latest or canary tags for containers"
 }
 
-variable "hetzner_csi_container_latest" {
+variable "hetzner_csi_containers_latest" {
   type        = bool
   default     = false
   description = "Whether to kustomize the Hetzner CSI manifest with the latest or canary tags for containers"

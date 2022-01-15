@@ -147,7 +147,7 @@ resource "hcloud_firewall" "k3s" {
 resource "local_file" "hetzner_ccm_config" {
   content = templatefile("${path.module}/templates/hetzner_ccm.yaml.tpl", {
     ccm_version = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm.release_tag
-    patch_name  = var.hetzner_ccm_container_latest ? "patch_latest" : "patch"
+    patch_name  = var.hetzner_ccm_containers_latest ? "patch_latest" : "patch"
   })
   filename             = "${path.module}/hetzner/ccm/kustomization.yaml"
   file_permission      = "0644"
@@ -157,7 +157,7 @@ resource "local_file" "hetzner_ccm_config" {
 resource "local_file" "hetzner_csi_config" {
   content = templatefile("${path.module}/templates/hetzner_csi.yaml.tpl", {
     csi_version = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
-    patch_name  = var.hetzner_csi_container_latest ? "patch_latest" : ""
+    patch_name  = var.hetzner_csi_containers_latest ? "patch_latest" : ""
   })
   filename             = "${path.module}/hetzner/csi/kustomization.yaml"
   file_permission      = "0644"
