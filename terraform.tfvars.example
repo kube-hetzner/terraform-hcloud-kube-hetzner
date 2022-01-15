@@ -16,3 +16,10 @@ agents_num                = 2
 # If you want to use a specific Hetzner CCM and CSI version, set them below, otherwise leave as is for the latest versions
 # hetzner_ccm_version = ""
 # hetzner_csi_version = ""
+
+# If you want to kustomize the Hetzner CCM and CSI containers with the "latest" or "canary" tags and imagePullPolicy Always, 
+# to have them automatically update when the node themselve get updated via the rancher system upgrade controller, the default is "false".
+# If you choose to keep the default of "false", you can always use ArgoCD to monitor the CSI and CCM manifest for new releases,
+# that is probably the more "vanilla" option to keep these components always updated. 
+# hetzner_ccm_container_latest = true
+# hetzner_csi_container_latest = true

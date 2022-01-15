@@ -5,4 +5,4 @@ resources:
 - "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${ccm_version}/ccm-networks.yaml"
 
 patchesStrategicMerge:
-- patch.yaml
+- ${patch_name}.yaml
