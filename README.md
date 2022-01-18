@@ -88,7 +88,7 @@ When the cluster is up and running, you can do whatever you wish with it! 🎉
 
 ### Scaling nodes
 
-You can scale the number of nodes up and down without any issues or even disruption! Just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
+You can scale the number of nodes up and down without any issues. If you are going to scale down, just make sure to properly `kubectl drain` the nodes in question first. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
 
 For instance:
 
