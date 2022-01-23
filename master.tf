@@ -24,7 +24,8 @@ resource "hcloud_server" "first_control_plane" {
 
     connection {
       user        = "root"
-      private_key = file(var.private_key)
+      private_key = var.private_key == null ? null : file(var.private_key)
+      agent_identity = var.private_key == null ? file(var.public_key) : null
       host        = self.ipv4_address
     }
   }
@@ -35,7 +36,8 @@ resource "hcloud_server" "first_control_plane" {
 
     connection {
       user        = "root"
-      private_key = file(var.private_key)
+      private_key = var.private_key == null ? null : file(var.private_key)
+      agent_identity = var.private_key == null ? file(var.public_key) : null
       host        = self.ipv4_address
     }
   }
@@ -43,7 +45,7 @@ resource "hcloud_server" "first_control_plane" {
   # Wait for k3os to be ready and fetch kubeconfig.yaml
   provisioner "local-exec" {
     command = <<-EOT
-      sleep 60 && ping ${self.ipv4_address} | grep --line-buffered "bytes from" | head -1 && sleep 100 && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${var.private_key} rancher@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
+      sleep 60 && ping ${self.ipv4_address} | grep --line-buffered "bytes from" | head -1 && sleep 100 && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${var.private_key == null ? var.public_key : var.private_key} rancher@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
       sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
     EOT
   }
