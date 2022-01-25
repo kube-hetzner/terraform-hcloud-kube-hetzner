@@ -27,9 +27,10 @@ resource "hcloud_server" "agents" {
     destination = "/tmp/config.yaml"
 
     connection {
-      user        = "root"
-      private_key = file(var.private_key)
-      host        = self.ipv4_address
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
     }
   }
 
@@ -38,9 +39,10 @@ resource "hcloud_server" "agents" {
     inline = local.k3os_install_commands
 
     connection {
-      user        = "root"
-      private_key = file(var.private_key)
-      host        = self.ipv4_address
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
     }
   }
 
