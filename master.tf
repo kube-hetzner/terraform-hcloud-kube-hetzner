@@ -43,27 +43,58 @@ resource "hcloud_server" "first_control_plane" {
     }
   }
 
-  # Wait for k3os to be ready and fetch kubeconfig.yaml
+  # Wait 60 seconds for the server to shutdown, then wait for it to come back online
   provisioner "local-exec" {
     command = <<-EOT
-      sleep 60 && ping ${self.ipv4_address} | grep --line-buffered "bytes from" | head -1 && sleep 100 && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${local.ssh_identity_file} rancher@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
-      sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
-    EOT
+    sleep 60 && ping ${self.ipv4_address} | grep --line-buffered "bytes from" | head -1 && sleep 5
+  EOT
+  }
+
+  provisioner "file" {
+    content     = local.post_install_kustomization
+    destination = "/tmp/kustomization.yaml"
+
+    connection {
+      user           = "rancher"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
+  }
+
+  provisioner "file" {
+    content     = local.traefik_config
+    destination = "/tmp/traefik.yaml"
+
+    connection {
+      user           = "rancher"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
   }
 
   # Install Hetzner CCM and CSI
-  provisioner "local-exec" {
-    command = <<-EOT
-      kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${dirname(local_file.hetzner_ccm_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${dirname(local_file.hetzner_csi_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-    EOT
-  }
+  provisioner "remote-exec" {
+    inline = [
+      "while ! test -f /etc/rancher/k3s/k3s.yaml; do sleep 1; done",
+      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name}",
+      "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token}",
+      "kubectl apply -k /tmp/",
+      "kubectl apply -f /tmp/traefik.yaml",
+      "rm /tmp/traefik.yaml /tmp/kustomization.yaml"
+    ]
 
-  # Configure the Traefik ingress controller
-  provisioner "local-exec" {
-    command = "kubectl apply -f ${local_file.traefik_config.filename} --kubeconfig ${path.module}/kubeconfig.yaml"
+    connection {
+      user           = "rancher"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+      # by default, the inline commands above would be written to a path like
+      # /tmp/terraform_137284109.sh, but /tmp is mounted with noexec in k3os,
+      # so we change this path.
+      script_path = "/home/rancher/post-install.bash"
+    }
   }
 
   network {
