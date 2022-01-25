@@ -12,7 +12,6 @@ variable "public_key" {
 variable "private_key" {
   description = "SSH private Key."
   type        = string
-  default     = null
 }
 
 variable "location" {
