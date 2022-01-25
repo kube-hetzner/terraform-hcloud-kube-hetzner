@@ -143,6 +143,59 @@ terraform destroy -auto-approve
 
 _Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation._
 
+## Backups
+
+### Volumes
+
+This project uses hetzner cloud volumes via Hetzner CSI  for persistent volumes by default. Regretably, Hetzner does not
+currently support snapshotting and/or backupping of those volumes. Running backups with a cloud-native backup solution
+like [velero](https://velero.io/docs/) should work but isn't currently documentend for this project. Feel free to contribute
+a guide!
+
+### k3s state in etcd
+
+K3s will automatically backup your embedded etcd datastore every 12 hours to `/var/lib/rancher/k3s/server/db/snapshots/`.
+If you need to reset the cluster to a specific snapshot...
+
+1. Connect to your first control plane server and stop k3s
+
+```sh
+sudo systemctl stop k3s
+```
+
+2. Restore it to a given a snapshot
+
+```sh
+./k3s server \
+  --cluster-reset \
+  --cluster-reset-restore-path=<PATH-TO-SNAPSHOT>
+```
+
+> **Warning:** This forget all peers and the server becomes the sole member of a new cluster. You have to manually rejoin all servers.
+
+3. Backup and delete `/var/lib/rancher/k3s/server/db` on each server in your cluster to reset it.
+
+```sh
+sudo systemctl stop k3s
+rm -rf /var/lib/rancher/k3s/server/db
+sudo systemctl start k3s
+```
+
+This will rejoin the server one after another. After some time, all servers should be in sync again. Run `kubectl get node` to verify it.
+
+> **Info:** It exists no official tool to automate the procedure. In future, rancher might provide an operator to handle this ([issue](https://github.com/k3s-io/k3s/issues/3174)).
+
+
+## Debugging
+
+The following log files, available on each server, could prove useful during debugging:
+
+- `/var/log/cloud-init-output.log` - cloud-init runs on each boot to setup to configure the server
+- `/var/log/cloud-init.log`
+- `journalctl -u k3s.service -e` last logs of the k3s server
+- `journalctl -u k3s-agent.service -e` last logs of the k3s agent
+- And of course `kubectl logs`, which works as expected
+
 <!-- CONTRIBUTING -->
 
 ## Contributing
