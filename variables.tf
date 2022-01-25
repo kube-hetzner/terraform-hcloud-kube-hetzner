@@ -34,6 +34,12 @@ variable "lb_server_type" {
   type        = string
 }
 
+variable "lb_disable_ipv6" {
+  description = "Disable ipv6 for the load balancer"
+  type        = bool
+  default     = false
+}
+
 variable "servers_num" {
   description = "Number of control plane nodes."
   type        = number
