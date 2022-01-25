@@ -214,6 +214,7 @@ Any contributions you make are **greatly appreciated**.
 
 - Karim Naufal - [@mysticaltech](https://github.com/mysticaltech)
 - Dennis Hoppe - [@dhoppe](https://github.com/dhoppe)
+- Paul Härle - [@phaer](https://github.com/phaer)
 
 <!-- ACKNOWLEDGEMENTS -->
 
