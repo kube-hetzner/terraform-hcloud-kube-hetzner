@@ -1,6 +1,7 @@
 # You need to replace these
 hcloud_token = "xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz"
 public_key   = "/home/username/.ssh/id_ed25519.pub"
+# Must be "private_key = null" when you want to use ssh-agent, for a Yubikey like device auth or an SSH key-pair with passphrase
 private_key  = "/home/username/.ssh/id_ed25519"
 
 # These can be customized, or left with the default values
