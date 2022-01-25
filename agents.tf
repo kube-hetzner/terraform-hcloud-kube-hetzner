@@ -28,8 +28,8 @@ resource "hcloud_server" "agents" {
 
     connection {
       user           = "root"
-      private_key    = var.private_key == null ? null : file(var.private_key)
-      agent_identity = var.private_key == null ? file(var.public_key) : null
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
       host           = self.ipv4_address
     }
   }
@@ -40,8 +40,8 @@ resource "hcloud_server" "agents" {
 
     connection {
       user           = "root"
-      private_key    = var.private_key == null ? null : file(var.private_key)
-      agent_identity = var.private_key == null ? file(var.public_key) : null
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
       host           = self.ipv4_address
     }
   }
