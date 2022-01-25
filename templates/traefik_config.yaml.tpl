@@ -10,7 +10,12 @@ spec:
       type: LoadBalancer
       annotations:
         "load-balancer.hetzner.cloud/name": "traefik"
+        # make hetzners load-balancer connect to our nodes via our private k3s-net.
         "load-balancer.hetzner.cloud/use-private-ip": "true"
+        # keep hetzner-ccm from exposing our private ingress ip, which in general isn't routeable from the public internet.
+        "load-balancer.hetzner.cloud/disable-private-ingress": "true"
+        # disable ipv6 by default, because external-dns doesn't support AAAA for hcloud yet https://github.com/kubernetes-sigs/external-dns/issues/2044
+        "load-balancer.hetzner.cloud/ipv6-disabled": "${lb_disable_ipv6}"
         "load-balancer.hetzner.cloud/location": "${location}"
         "load-balancer.hetzner.cloud/type": "${lb_server_type}"
         "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
