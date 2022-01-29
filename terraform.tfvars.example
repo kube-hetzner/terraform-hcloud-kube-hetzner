@@ -7,7 +7,8 @@ private_key  = "/home/username/.ssh/id_ed25519"
 # These can be customized, or left with the default values
 # For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
 # For Hetzner server types see https://www.hetzner.com/cloud
-location                  = "fsn1"
+location                  = "fsn1" # change to `ash` for us-east Ashburn, Virginia location
+network_region            = "eu-central" # change to `us-east` if location is ash
 agent_server_type         = "cpx21"
 control_plane_server_type = "cpx11"
 lb_server_type            = "lb11"
