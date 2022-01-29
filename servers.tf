@@ -2,12 +2,13 @@ resource "hcloud_server" "control_planes" {
   count = var.servers_num - 1
   name  = "k3s-control-plane-${count.index + 1}"
 
-  image        = data.hcloud_image.linux.name
-  rescue       = "linux64"
-  server_type  = var.control_plane_server_type
-  location     = var.location
-  ssh_keys     = [hcloud_ssh_key.default.id]
-  firewall_ids = [hcloud_firewall.k3s.id]
+  image              = data.hcloud_image.linux.name
+  rescue             = "linux64"
+  server_type        = var.control_plane_server_type
+  location           = var.location
+  ssh_keys           = [hcloud_ssh_key.default.id]
+  firewall_ids       = [hcloud_firewall.k3s.id]
+  placement_group_id = hcloud_placement_group.k3s_placement_group.id
 
   labels = {
     "provisioner" = "terraform",

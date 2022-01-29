@@ -174,3 +174,13 @@ resource "local_file" "traefik_config" {
   file_permission      = "0644"
   directory_permission = "0755"
 }
+
+
+resource "hcloud_placement_group" "k3s_placement_group" {
+  name = "k3s-placement-group"
+  type = "spread"
+  labels = {
+    "provisioner" = "terraform",
+    "engine"      = "k3s"
+  }
+}

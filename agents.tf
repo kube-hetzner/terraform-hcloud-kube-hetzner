@@ -2,12 +2,13 @@ resource "hcloud_server" "agents" {
   count = var.agents_num
   name  = "k3s-agent-${count.index}"
 
-  image        = data.hcloud_image.linux.name
-  rescue       = "linux64"
-  server_type  = var.agent_server_type
-  location     = var.location
-  ssh_keys     = [hcloud_ssh_key.default.id]
-  firewall_ids = [hcloud_firewall.k3s.id]
+  image              = data.hcloud_image.linux.name
+  rescue             = "linux64"
+  server_type        = var.agent_server_type
+  location           = var.location
+  ssh_keys           = [hcloud_ssh_key.default.id]
+  firewall_ids       = [hcloud_firewall.k3s.id]
+  placement_group_id = hcloud_placement_group.k3s_placement_group.id
 
 
   labels = {
