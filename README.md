@@ -155,14 +155,6 @@ Any contributions you make are **greatly appreciated**.
 4. Push to the Branch (`git push origin AmazingFeature`)
 5. Open a Pull Request
 
-<!-- CONTACT -->
-
-## Contributors
-
-- Karim Naufal - [@mysticaltech](https://github.com/mysticaltech)
-- Dennis Hoppe - [@dhoppe](https://github.com/dhoppe)
-- Paul Härle - [@phaer](https://github.com/phaer)
-
 <!-- ACKNOWLEDGEMENTS -->
 
 ## Acknowledgements
