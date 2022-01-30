@@ -16,7 +16,7 @@ resource "hcloud_network" "k3s" {
 resource "hcloud_network_subnet" "k3s" {
   network_id   = hcloud_network.k3s.id
   type         = "cloud"
-  network_zone = "eu-central"
+  network_zone = var.network_region
   ip_range     = "10.0.0.0/16"
 }
 

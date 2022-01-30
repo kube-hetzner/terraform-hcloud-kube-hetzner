@@ -19,6 +19,11 @@ variable "location" {
   type        = string
 }
 
+variable "network_region" {
+  description = "Default region for network"
+  type        = string
+}
+
 variable "control_plane_server_type" {
   description = "Default control plane server type"
   type        = string
