@@ -166,9 +166,11 @@ resource "local_file" "hetzner_csi_config" {
 
 resource "local_file" "traefik_config" {
   content = templatefile("${path.module}/templates/traefik_config.yaml.tpl", {
-    lb_disable_ipv6 = var.lb_disable_ipv6
-    lb_server_type  = var.lb_server_type
-    location        = var.location
+    lb_disable_ipv6    = var.lb_disable_ipv6
+    lb_server_type     = var.lb_server_type
+    location           = var.location
+    traefik_acme_tls   = var.traefik_acme_tls
+    traefik_acme_email = var.traefik_acme_email
   })
   filename             = "${path.module}/templates/rendered/traefik_config.yaml"
   file_permission      = "0644"
