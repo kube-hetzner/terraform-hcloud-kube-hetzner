@@ -25,3 +25,7 @@ agents_num                = 2
 # that is probably the more "vanilla" option to keep these components always updated. 
 # hetzner_ccm_containers_latest = true
 # hetzner_csi_containers_latest = true
+
+# If you want to use letsencrypt with tls Challenge, the email address is used to send you certificates expiration notices
+# traefik_acme_tls = true
+# traefik_acme_email = "mail@example.com"

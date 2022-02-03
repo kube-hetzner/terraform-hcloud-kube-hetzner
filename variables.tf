@@ -78,3 +78,16 @@ variable "hetzner_csi_containers_latest" {
   default     = false
   description = "Whether to kustomize the Hetzner CSI manifest with the latest or canary tags for containers"
 }
+
+variable "traefik_acme_tls" {
+  type        = bool
+  default     = false
+  description = "Wheter to include the TLS configuration with the Traefik configuration"
+}
+
+variable "traefik_acme_email" {
+  type        = string
+  default     = false
+  description = "Email used to recieved expiration notice for certificate"
+}
+

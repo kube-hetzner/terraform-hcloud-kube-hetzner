@@ -24,3 +24,8 @@ spec:
       - "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
+%{ if traefik_acme_tls ~}
+      - "--certificatesresolvers.le.acme.tlschallenge=true"
+      - "--certificatesresolvers.le.acme.email=${traefik_acme_email}"
+      - "--certificatesresolvers.le.acme.storage=/data/acme.json"
+%{ endif ~}
