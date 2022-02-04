@@ -6,7 +6,7 @@ resource "hcloud_server" "agents" {
   rescue             = "linux64"
   server_type        = var.agent_server_type
   location           = var.location
-  ssh_keys           = [hcloud_ssh_key.default.id]
+  ssh_keys           = [hcloud_ssh_key.k3s.id]
   firewall_ids       = [hcloud_firewall.k3s.id]
   placement_group_id = hcloud_placement_group.k3s_placement_group.id
 
@@ -37,7 +37,7 @@ resource "hcloud_server" "agents" {
 
 
   provisioner "remote-exec" {
-    inline = local.k3os_install_commands
+    inline = local.microOS_install_commands
 
     connection {
       user           = "root"

@@ -31,8 +31,6 @@ k3os:
   - "${node_ip}"
   - "--kubelet-arg"
   - "cloud-provider=external"
-  - "--node-label"
-  - "k3os.io/upgrade=latest"
   token: ${k3s_token}
   ntp_servers:
   - 0.de.pool.ntp.org

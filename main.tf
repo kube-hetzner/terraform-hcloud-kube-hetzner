@@ -3,13 +3,13 @@ resource "random_password" "k3s_token" {
   special = false
 }
 
-resource "hcloud_ssh_key" "default" {
-  name       = "K3S terraform module - Provisioning SSH key"
+resource "hcloud_ssh_key" "k3s" {
+  name       = "k3s"
   public_key = local.ssh_public_key
 }
 
 resource "hcloud_network" "k3s" {
-  name     = "k3s-net"
+  name     = "k3s"
   ip_range = "10.0.0.0/8"
 }
 
@@ -21,7 +21,7 @@ resource "hcloud_network_subnet" "k3s" {
 }
 
 resource "hcloud_firewall" "k3s" {
-  name = "k3s-firewall"
+  name = "k3s"
 
   # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
   rule {

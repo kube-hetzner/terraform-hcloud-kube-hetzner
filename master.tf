@@ -5,7 +5,7 @@ resource "hcloud_server" "first_control_plane" {
   rescue             = "linux64"
   server_type        = var.control_plane_server_type
   location           = var.location
-  ssh_keys           = [hcloud_ssh_key.default.id]
+  ssh_keys           = [hcloud_ssh_key.k3s.id]
   firewall_ids       = [hcloud_firewall.k3s.id]
   placement_group_id = hcloud_placement_group.k3s_placement_group.id
 
@@ -33,7 +33,7 @@ resource "hcloud_server" "first_control_plane" {
 
   # Install k3os
   provisioner "remote-exec" {
-    inline = local.k3os_install_commands
+    inline = local.microOS_install_commands
 
     connection {
       user           = "root"
@@ -43,7 +43,7 @@ resource "hcloud_server" "first_control_plane" {
     }
   }
 
-  # Wait for k3os to be ready and fetch kubeconfig.yaml
+  # Wait for MicroOS to be ready and fetch kubeconfig.yaml
   provisioner "local-exec" {
     command = <<-EOT
       sleep 60 && ping ${self.ipv4_address} | grep --line-buffered "bytes from" | head -1 && sleep 100 && scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${local.ssh_identity_file} rancher@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
