@@ -7,4 +7,3 @@ kubeconfig.yaml
 kubeconfig.yaml-e
 terraform.tfvars
 templates/rendered/traefik_config.yaml
-.temp/*
