@@ -33,6 +33,7 @@ resource "hcloud_server" "first_control_plane" {
 
   provisioner "file" {
     content = templatefile("${path.module}/templates/config.ign.tpl", {
+      name           = self.name
       ssh_public_key = local.ssh_public_key
     })
     destination = "/root/config.ign"
