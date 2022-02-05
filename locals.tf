@@ -13,8 +13,9 @@ locals {
 
   microOS_install_commands = [
     "set -ex",
-    "aria2c https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-kvm-and-xen.qcow2.meta4",
-    "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep MicroOS | grep -v meta4) /dev/sda",
+    "apt install -y aria2",
+    "aria2c  --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-k3s-kvm-and-xen.qcow2.meta4",
+    "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*k3s.*qcow2$') /dev/sda",
     "sgdisk -e /dev/sda",
     "partprobe /dev/sda",
     "parted -s /dev/sda resizepart 4 99%",

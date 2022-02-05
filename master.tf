@@ -31,6 +31,20 @@ resource "hcloud_server" "first_control_plane" {
     }
   }
 
+  provisioner "file" {
+    content = templatefile("${path.module}/templates/config.ign.tpl", {
+      ssh_public_key = local.ssh_public_key
+    })
+    destination = "/root/config.ign"
+
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
+  }
+
   # Install k3os
   provisioner "remote-exec" {
     inline = local.microOS_install_commands
@@ -42,7 +56,7 @@ resource "hcloud_server" "first_control_plane" {
       host           = self.ipv4_address
     }
   }
-
+  /*
   # Wait for MicroOS to be ready and fetch kubeconfig.yaml
   provisioner "local-exec" {
     command = <<-EOT
@@ -65,7 +79,7 @@ resource "hcloud_server" "first_control_plane" {
   provisioner "local-exec" {
     command = "kubectl apply -f ${local_file.traefik_config.filename} --kubeconfig ${path.module}/kubeconfig.yaml"
   }
-
+*/
   network {
     network_id = hcloud_network.k3s.id
     ip         = local.first_control_plane_network_ip
