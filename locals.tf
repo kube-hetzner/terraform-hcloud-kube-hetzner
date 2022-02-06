@@ -11,14 +11,23 @@ locals {
   # if an ssh agent is used.
   ssh_identity_file = var.private_key == null ? var.public_key : var.private_key
 
-  k3os_install_commands = [
-    "apt install -y grub-efi grub-pc-bin mtools xorriso",
-    "latest=$(curl -s https://api.github.com/repos/rancher/k3os/releases | jq '.[0].tag_name')",
-    "curl -Lo ./install.sh https://raw.githubusercontent.com/rancher/k3os/$(echo $latest | xargs)/install.sh",
-    "chmod +x ./install.sh",
-    "./install.sh --config /tmp/config.yaml /dev/sda https://github.com/rancher/k3os/releases/download/$(echo $latest | xargs)/k3os-amd64.iso",
+  MicroOS_install_commands = [
+    "set -ex",
+    "apt-get install -y aria2",
+    "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-k3s-kvm-and-xen.qcow2.meta4",
+    "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*k3s.*qcow2$') /dev/sda",
+    "sgdisk -e /dev/sda",
+    "partprobe /dev/sda",
+    "parted -s /dev/sda resizepart 4 99%",
+    "parted -s /dev/sda mkpart primary ext2 99% 100%",
+    "mount /dev/sda4 /mnt/ && btrfs filesystem resize max /mnt && umount /mnt",
+    "mke2fs -L ignition /dev/sda5",
+    "mount /dev/sda5 /mnt",
+    "mkdir /mnt/ignition",
+    "cp /root/config.ign /mnt/ignition/config.ign",
+    "umount /mnt",
     "shutdown -r +1",
-    "sleep 3",
+    "sleep 1",
     "exit 0"
   ]
 

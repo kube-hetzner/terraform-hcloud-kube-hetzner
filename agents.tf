@@ -6,7 +6,7 @@ resource "hcloud_server" "agents" {
   rescue             = "linux64"
   server_type        = var.agent_server_type
   location           = var.location
-  ssh_keys           = [hcloud_ssh_key.default.id]
+  ssh_keys           = [hcloud_ssh_key.k3s.id]
   firewall_ids       = [hcloud_firewall.k3s.id]
   placement_group_id = hcloud_placement_group.k3s_placement_group.id
 
@@ -14,18 +14,14 @@ resource "hcloud_server" "agents" {
   labels = {
     "provisioner" = "terraform",
     "engine"      = "k3s",
-    "k3s_upgrade" = "true"
   }
 
   provisioner "file" {
-    content = templatefile("${path.module}/templates/agent.tpl", {
+    content = templatefile("${path.module}/templates/config.ign.tpl", {
       name           = self.name
       ssh_public_key = local.ssh_public_key
-      k3s_token      = random_password.k3s_token.result
-      master_ip      = local.first_control_plane_network_ip
-      node_ip        = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
     })
-    destination = "/tmp/config.yaml"
+    destination = "/root/config.ign"
 
     connection {
       user           = "root"
@@ -35,9 +31,9 @@ resource "hcloud_server" "agents" {
     }
   }
 
-
+  # Install MicroOS
   provisioner "remote-exec" {
-    inline = local.k3os_install_commands
+    inline = local.MicroOS_install_commands
 
     connection {
       user           = "root"
@@ -47,8 +43,59 @@ resource "hcloud_server" "agents" {
     }
   }
 
+  # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
-    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 100"
+    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 30"
+  }
+
+  # Generating and uploading the angent.conf file
+  provisioner "file" {
+    content = templatefile("${path.module}/templates/agent.conf.tpl", {
+      server_url = "https://${local.first_control_plane_network_ip}:6443"
+      node_token = random_password.k3s_token.result
+    })
+    destination = "/etc/rancher/k3s/agent.conf"
+
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
+  }
+
+  # Generating k3s server config file
+  provisioner "file" {
+    content = templatefile("${path.module}/templates/agent_config.yaml.tpl", {
+      node_ip   = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
+      node_name = self.name
+    })
+    destination = "/etc/rancher/k3s/config.yaml"
+
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
+  }
+
+  # Run the agent
+  provisioner "remote-exec" {
+    inline = [
+      "set -ex",
+      # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
+      "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
+      # then turn on k3s and join the cluster
+      "systemctl --now enable k3s-agent",
+    ]
+
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
   }
 
   network {
