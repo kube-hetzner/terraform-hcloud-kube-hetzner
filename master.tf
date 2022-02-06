@@ -124,7 +124,8 @@ resource "hcloud_server" "first_control_plane" {
       # by default, the inline commands above would be written to a path like
       # /tmp/terraform_137284109.sh, but /tmp is mounted with noexec in k3os,
       # so we change this path.
-      script_path = "/home/rancher/post-install.bash"
+      # TODO check on MicroOS
+      script_path = "/root/post-install.bash"
     }
   }
 
