@@ -1,17 +1,19 @@
-resource "hcloud_server" "first_control_plane" {
-  name = "k3s-control-plane-0"
+resource "hcloud_server" "agents" {
+  count = var.agents_num
+  name  = "k3s-agent-${count.index}"
 
   image              = data.hcloud_image.linux.name
   rescue             = "linux64"
-  server_type        = var.control_plane_server_type
+  server_type        = var.agent_server_type
   location           = var.location
   ssh_keys           = [hcloud_ssh_key.k3s.id]
   firewall_ids       = [hcloud_firewall.k3s.id]
   placement_group_id = hcloud_placement_group.k3s_placement_group.id
 
+
   labels = {
     "provisioner" = "terraform",
-    "engine"      = "k3s"
+    "engine"      = "k3s",
   }
 
   provisioner "file" {
@@ -46,11 +48,26 @@ resource "hcloud_server" "first_control_plane" {
     command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 30"
   }
 
-  # Generating k3s master config file
+  # Generating and uploading the angent.conf file
   provisioner "file" {
-    content = templatefile("${path.module}/templates/master_config.yaml.tpl", {
-      node_ip   = local.first_control_plane_network_ip
-      token     = random_password.k3s_token.result
+    content = templatefile("${path.module}/templates/agent.conf.tpl", {
+      server_url = "https://${local.first_control_plane_network_ip}:6443"
+      node_token = random_password.k3s_token.result
+    })
+    destination = "/etc/rancher/k3s/agent.conf"
+
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
+  }
+
+  # Generating k3s server config file
+  provisioner "file" {
+    content = templatefile("${path.module}/templates/agent_config.yaml.tpl", {
+      node_ip   = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
       node_name = self.name
     })
     destination = "/etc/rancher/k3s/config.yaml"
@@ -62,14 +79,15 @@ resource "hcloud_server" "first_control_plane" {
       host           = self.ipv4_address
     }
   }
-  # Run the first control plane
+
+  # Run the agent
   provisioner "remote-exec" {
     inline = [
       "set -ex",
       # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
       "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-      # then we initiate the cluster
-      "systemctl --now enable k3s-server",
+      # then turn on k3s and join the cluster
+      "systemctl --now enable k3s-agent",
     ]
 
     connection {
@@ -80,40 +98,13 @@ resource "hcloud_server" "first_control_plane" {
     }
   }
 
-  # Get the Kubeconfig, and wait for the node to be available
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -ex
-      sleep 30
-      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${local.ssh_identity_file} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
-      sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
-      sleep 30
-    EOT
-  }
-
-  # Install the Hetzner CCM and CSI
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -ex
-      kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${dirname(local_file.hetzner_ccm_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${dirname(local_file.hetzner_csi_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-    EOT
-  }
-
-  # Configure the Traefik ingress controller
-  provisioner "local-exec" {
-    command = "kubectl apply -f ${local_file.traefik_config.filename} --kubeconfig ${path.module}/kubeconfig.yaml"
-  }
-
   network {
     network_id = hcloud_network.k3s.id
-    ip         = local.first_control_plane_network_ip
+    ip         = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
   }
 
   depends_on = [
-    hcloud_network_subnet.k3s,
-    hcloud_firewall.k3s
+    hcloud_server.first_control_plane,
+    hcloud_network_subnet.k3s
   ]
 }

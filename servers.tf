@@ -1,5 +1,6 @@
-resource "hcloud_server" "first_control_plane" {
-  name = "k3s-control-plane-0"
+resource "hcloud_server" "control_planes" {
+  count = var.servers_num - 1
+  name  = "k3s-control-plane-${count.index + 1}"
 
   image              = data.hcloud_image.linux.name
   rescue             = "linux64"
@@ -11,7 +12,7 @@ resource "hcloud_server" "first_control_plane" {
 
   labels = {
     "provisioner" = "terraform",
-    "engine"      = "k3s"
+    "engine"      = "k3s",
   }
 
   provisioner "file" {
@@ -46,12 +47,13 @@ resource "hcloud_server" "first_control_plane" {
     command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 30"
   }
 
-  # Generating k3s master config file
+  # Generating k3s server config file
   provisioner "file" {
-    content = templatefile("${path.module}/templates/master_config.yaml.tpl", {
-      node_ip   = local.first_control_plane_network_ip
-      token     = random_password.k3s_token.result
-      node_name = self.name
+    content = templatefile("${path.module}/templates/server_config.yaml.tpl", {
+      first_control_plane_url = "https://${local.first_control_plane_network_ip}:6443"
+      node_ip                 = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
+      token                   = random_password.k3s_token.result
+      node_name               = self.name
     })
     destination = "/etc/rancher/k3s/config.yaml"
 
@@ -62,7 +64,8 @@ resource "hcloud_server" "first_control_plane" {
       host           = self.ipv4_address
     }
   }
-  # Run the first control plane
+
+  # Run the other control plane
   provisioner "remote-exec" {
     inline = [
       "set -ex",
@@ -80,40 +83,13 @@ resource "hcloud_server" "first_control_plane" {
     }
   }
 
-  # Get the Kubeconfig, and wait for the node to be available
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -ex
-      sleep 30
-      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${local.ssh_identity_file} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
-      sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
-      sleep 30
-    EOT
-  }
-
-  # Install the Hetzner CCM and CSI
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -ex
-      kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${dirname(local_file.hetzner_ccm_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${dirname(local_file.hetzner_csi_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-    EOT
-  }
-
-  # Configure the Traefik ingress controller
-  provisioner "local-exec" {
-    command = "kubectl apply -f ${local_file.traefik_config.filename} --kubeconfig ${path.module}/kubeconfig.yaml"
-  }
-
   network {
     network_id = hcloud_network.k3s.id
-    ip         = local.first_control_plane_network_ip
+    ip         = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
   }
 
   depends_on = [
-    hcloud_network_subnet.k3s,
-    hcloud_firewall.k3s
+    hcloud_server.first_control_plane,
+    hcloud_network_subnet.k3s
   ]
 }

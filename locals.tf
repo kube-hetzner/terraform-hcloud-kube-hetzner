@@ -11,10 +11,10 @@ locals {
   # if an ssh agent is used.
   ssh_identity_file = var.private_key == null ? var.public_key : var.private_key
 
-  microOS_install_commands = [
+  MicroOS_install_commands = [
     "set -ex",
     "apt-get install -y aria2",
-    "aria2c  --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-k3s-kvm-and-xen.qcow2.meta4",
+    "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-k3s-kvm-and-xen.qcow2.meta4",
     "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*k3s.*qcow2$') /dev/sda",
     "sgdisk -e /dev/sda",
     "partprobe /dev/sda",
