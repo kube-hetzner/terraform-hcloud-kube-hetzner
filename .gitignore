@@ -3,6 +3,7 @@
 crash.log
 hetzner/ccm/kustomization.yaml
 hetzner/csi/kustomization.yaml
+kured/kustomization.yaml
 kubeconfig.yaml
 kubeconfig.yaml-e
 terraform.tfvars
