@@ -50,7 +50,7 @@ resource "hcloud_server" "agents" {
 
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
-    command = "until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true; do sleep 1; done"
+    command = "ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 10 && until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true; do sleep 1; done"
   }
 
   # Generating and uploading the angent.conf file
