@@ -123,14 +123,16 @@ ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 
 ## Automatic upgrade
 
-By default, k3os and its embedded k3s instance get upgraded automatically on each node, thanks to its embedded system upgrade controller.
+By default, MicroOS and its embedded k3s instance get upgraded automatically on each node, and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
 _You can also choose to automatically kustomize the Hetzner CCM and CSI to set their container images to "latest" with an imagePullPolicy of "Always". That means that when the nodes upgrade, these container images will be automatically upgraded too. For more info on this, see [terraform.tfvars.example](terraform.tfvars.example)._
 
-_If you wish to turn off automatic upgrade on a specific node, you need to take out the label `k3os.io/upgrade=latest`. It can be done with the following command:_
+_About [Kured](https://github.com/weaveworks/kured), it does not have a latest tag present of its image, but it's pretty compatible, so you can just manually update the tag from once every year or more._
+
+_Last but not least, if you wish to turn off automatic upgrade on a specific node, you need to ssh into it and issue the following command:_
 
 ```sh
-kubectl label node <nodename> 'k3os.io/upgrade'-
+systemctl --now disable transactional-update.timer
 ```
 
 ## Takedown
@@ -166,7 +168,8 @@ Any contributions you make are **greatly appreciated**.
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) that made writing this readme a lot easier.
 - [Hetzner Cloud](https://www.hetzner.com) for providing a solid infrastructure and terraform package.
 - [Hashicorp](https://www.hashicorp.com) for the amazing terraform framework that makes all the magic happen.
-- [Rancher](https://www.rancher.com) for k3s and k3os, robust and innovative technologies that are the very core engine of this project.
+- [Rancher](https://www.rancher.com) for k3s, an amazing Kube distribution that is the very core engine of this project.
+- [openSUSE](https://www.opensuse.org) for MicroOS, which is just next level Container OS technology, that just works and makes our lives easier.
 
 [contributors-shield]: https://img.shields.io/github/contributors/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [contributors-url]: https://github.com/mysticaltech/kube-hetzner/graphs/contributors
