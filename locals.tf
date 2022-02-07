@@ -12,7 +12,7 @@ locals {
   ssh_identity_file = var.private_key == null ? var.public_key : var.private_key
 
   # shared flags for ssh to ignore host keys, to use root and our ssh identity file for all connections during provisioning.
-  ssh_args = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root -i ${local.ssh_identity_file}"
+  ssh_args = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${local.ssh_identity_file}"
 
   MicroOS_install_commands = [
     "set -ex",
