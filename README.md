@@ -24,14 +24,14 @@
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US. 
 
-The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot. In order to achieve this, we built on the shoulders of giants, by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system, and [k3s](https://k3s.io/) as the Kubernetes engine.
+The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot. In order to achieve this, we built it on the shoulders of giants, by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system, and [k3s](https://k3s.io/) as the Kubernetes engine.
 
 
 _Please note that we are not affiliated to Hetzner, this is just an open source project striving to be an optimal solution for deploying and maintaining Kubernetes on Hetzner Cloud._
 
 ### Features
 
-- Maintenance free with auto-upgrade to the latest version of MicroOS, k3s, Hetzner CCM and CSI.
+- Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
 - Proper use of the underlying Hetzner private network to remove the need for encryption and make the cluster both fast and secure.
 - Automatic HA with the default setting of two control-plane and agents nodes.
 - Ability to add or remove as many nodes as you want while the cluster stays running.
@@ -127,7 +127,7 @@ By default, MicroOS and its embedded k3s instance get upgraded automatically on 
 
 _You can also choose to automatically kustomize the Hetzner CCM and CSI to set their container images to "latest" with an imagePullPolicy of "Always". That means that when the nodes upgrade, these container images will be automatically upgraded too. For more info on this, see [terraform.tfvars.example](terraform.tfvars.example)._
 
-_About [Kured](https://github.com/weaveworks/kured), it does not have a latest tag present of its image, but it's pretty compatible, so you can just manually update the tag from once every year or more._
+_About [Kured](https://github.com/weaveworks/kured), it does not have a latest tag present for its image, but it's pretty compatible, so you can just manually update the tag from once every year for instance._
 
 _Last but not least, if you wish to turn off automatic upgrade on a specific node, you need to ssh into it and issue the following command:_
 
