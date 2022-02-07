@@ -43,9 +43,14 @@ resource "hcloud_server" "agents" {
     }
   }
 
+  # Issue a reboot command
+  provisioner "local-exec" {
+    command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root ${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
+  }
+
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
-    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 60"
+    command = "until ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root -o ConnectTimeout=2 ${self.ipv4_address} true; do sleep 1; done"
   }
 
   # Generating and uploading the angent.conf file

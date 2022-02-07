@@ -17,18 +17,14 @@ locals {
     "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-k3s-kvm-and-xen.qcow2.meta4",
     "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*k3s.*qcow2$') /dev/sda",
     "sgdisk -e /dev/sda",
-    "partprobe /dev/sda",
     "parted -s /dev/sda resizepart 4 99%",
     "parted -s /dev/sda mkpart primary ext2 99% 100%",
-    "udevadm settle",
+    "partprobe /dev/sda",
     "mount /dev/sda4 /mnt/ && btrfs filesystem resize max /mnt && umount /mnt",
     "mke2fs -L ignition /dev/sda5",
     "mount /dev/sda5 /mnt",
     "mkdir /mnt/ignition",
     "cp /root/config.ign /mnt/ignition/config.ign",
-    "umount /mnt",
-    "shutdown -r +1",
-    "sleep 1",
-    "exit 0"
+    "umount /mnt"
   ]
 }
