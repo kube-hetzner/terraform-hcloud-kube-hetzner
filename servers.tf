@@ -44,12 +44,12 @@ resource "hcloud_server" "control_planes" {
 
   # Issue a reboot command
   provisioner "local-exec" {
-    command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root ${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
+    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
   }
 
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
-    command = "until ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root -o ConnectTimeout=2 ${self.ipv4_address} true; do sleep 1; done"
+    command = "until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true; do sleep 1; done"
   }
 
   # Generating k3s server config file
