@@ -1,7 +1,8 @@
 server: ${first_control_plane_url}
 disable-cloud-controller: true
-disable: servicelb 
-disable: local-storage
+disable:
+- servicelb
+- local-storage
 flannel-iface: eth1
 node-ip: ${node_ip}
 advertise-address: ${node_ip}
