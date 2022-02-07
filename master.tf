@@ -92,7 +92,7 @@ resource "hcloud_server" "first_control_plane" {
       sleep 30
       scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${local.ssh_identity_file} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
       sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
-      sleep 10 && until kubectl get node ${self.name}; do sleep 5; done
+      sleep 10 && until kubectl get node ${self.name} --kubeconfig ${path.module}/kubeconfig.yaml; do sleep 5; done
     EOT
   }
 
