@@ -5,4 +5,4 @@ resources:
 - "https://github.com/weaveworks/kured/releases/download/${version}/kured-${version}-dockerhub.yaml"
 
 patchesStrategicMerge:
-- ${patch_name}.yaml
+- patch.yaml

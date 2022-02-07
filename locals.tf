@@ -20,7 +20,7 @@ locals {
     "partprobe /dev/sda",
     "parted -s /dev/sda resizepart 4 99%",
     "parted -s /dev/sda mkpart primary ext2 99% 100%",
-    "sleep 5 && fdisk -l /dev/sda",
+    "udevadm settle",
     "mount /dev/sda4 /mnt/ && btrfs filesystem resize max /mnt && umount /mnt",
     "mke2fs -L ignition /dev/sda5",
     "mount /dev/sda5 /mnt",

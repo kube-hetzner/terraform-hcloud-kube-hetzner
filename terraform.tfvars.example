@@ -26,9 +26,6 @@ agents_num                = 2
 # hetzner_ccm_containers_latest = true
 # hetzner_csi_containers_latest = true
 
-# If you want to kustomize the kured container with the latest image tag and imagePullPolicy Always, set this to true, by default it's false
-# kured_container_latest = true
-
 # If you want to use letsencrypt with tls Challenge, the email address is used to send you certificates expiration notices
 # traefik_acme_tls = true
 # traefik_acme_email = "mail@example.com"

@@ -166,8 +166,7 @@ resource "local_file" "hetzner_csi_config" {
 
 resource "local_file" "kured_config" {
   content = templatefile("${path.module}/templates/kured.yaml.tpl", {
-    version    = data.github_release.kured.release_tag
-    patch_name = var.kured_container_latest ? "patch_latest" : "patch"
+    version = data.github_release.kured.release_tag
   })
   filename             = "${path.module}/kured/kustomization.yaml"
   file_permission      = "0644"

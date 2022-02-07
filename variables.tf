@@ -79,12 +79,6 @@ variable "hetzner_csi_containers_latest" {
   description = "Whether to kustomize the Hetzner CSI manifest with the latest or canary tags for containers and imagePullPolicy of Always"
 }
 
-variable "kured_container_latest" {
-  type        = bool
-  default     = false
-  description = "Whether to kustomize the Kured container with the latest tag and imagePullPolicy of Always"
-}
-
 variable "traefik_acme_tls" {
   type        = bool
   default     = false
