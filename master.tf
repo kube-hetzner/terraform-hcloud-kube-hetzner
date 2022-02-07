@@ -43,12 +43,12 @@ resource "hcloud_server" "first_control_plane" {
 
   # Issue a reboot command
   provisioner "local-exec" {
-    command = "ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root ${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
+    command = "ssh ${local.ssh_args} ${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
   }
 
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
-    command = "until ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -l root -o ConnectTimeout=2 ${self.ipv4_address} true; do sleep 1; done"
+    command = "until ssh ${local.ssh_args} -o ConnectTimeout=2 ${self.ipv4_address} true; do sleep 1; done"
   }
 
   # Generating k3s master config file
@@ -90,7 +90,7 @@ resource "hcloud_server" "first_control_plane" {
     command = <<-EOT
       set -ex
       sleep 30
-      scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${local.ssh_identity_file} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
+      scp ${local.ssh_args} ${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
       sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
       sleep 10 && until kubectl get node ${self.name}; do sleep 5; done
     EOT
