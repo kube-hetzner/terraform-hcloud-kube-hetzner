@@ -29,3 +29,6 @@ agents_num                = 2
 # If you want to use letsencrypt with tls Challenge, the email address is used to send you certificates expiration notices
 # traefik_acme_tls = true
 # traefik_acme_email = "mail@example.com"
+
+# If you want to allow non-control-plane workloads to run on the control-plane nodes set "true" below. The default is "false".
+# allow_scheduling_on_control_plane = true

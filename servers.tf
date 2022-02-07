@@ -55,10 +55,11 @@ resource "hcloud_server" "control_planes" {
   # Generating k3s server config file
   provisioner "file" {
     content = templatefile("${path.module}/templates/server_config.yaml.tpl", {
-      first_control_plane_url = "https://${local.first_control_plane_network_ip}:6443"
-      node_ip                 = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
-      token                   = random_password.k3s_token.result
-      node_name               = self.name
+      first_control_plane_url           = "https://${local.first_control_plane_network_ip}:6443"
+      node_ip                           = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
+      token                             = random_password.k3s_token.result
+      node_name                         = self.name
+      allow_scheduling_on_control_plane = var.allow_scheduling_on_control_plane
     })
     destination = "/etc/rancher/k3s/config.yaml"
 
