@@ -59,15 +59,30 @@ resource "hcloud_server" "agents" {
     EOT
   }
 
-  # Generating k3s server config file
+
+  # Generating and uploading the agent.conf file
+  provisioner "file" {
+    content = templatefile("${path.module}/templates/agent.conf.tpl", {
+      server = "https://${local.first_control_plane_network_ip}:6443"
+      token = random_password.k3s_token.result
+    })
+    destination = "/etc/rancher/k3s/agent.conf"
+
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
+  }
+
+  # Generating k3s  agent config file
   provisioner "file" {
     content = yamlencode({
       node-name     = self.name
-      server        = "https://${local.first_control_plane_network_ip}:6443"
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
       node-ip       = local.first_control_plane_network_ip
-      token         = random_password.k3s_token.result
     })
     destination = "/etc/rancher/k3s/config.yaml"
 
