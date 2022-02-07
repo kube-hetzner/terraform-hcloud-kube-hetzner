@@ -59,11 +59,16 @@ resource "hcloud_server" "first_control_plane" {
 
   # Generating k3s master config file
   provisioner "file" {
-    content = templatefile("${path.module}/templates/master_config.yaml.tpl", {
-      node_ip                           = local.first_control_plane_network_ip
-      token                             = random_password.k3s_token.result
-      node_name                         = self.name
-      allow_scheduling_on_control_plane = var.allow_scheduling_on_control_plane
+    content = yamlencode({
+      node-name                = self.name
+      cluster-init             = true
+      disable-cloud-controller = true
+      disable                  = "servicelb, local-storage"
+      flannel-iface            = "eth1"
+      kubelet-arg              = "cloud-provider=external"
+      node-ip                  = local.first_control_plane_network_ip
+      advertise-address        = local.first_control_plane_network_ip
+      token                    = random_password.k3s_token.result
     })
     destination = "/etc/rancher/k3s/config.yaml"
 
