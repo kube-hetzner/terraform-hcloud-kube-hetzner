@@ -10,3 +10,5 @@ tls-san: ${node_ip}
 kubelet-arg: "cloud-provider=external"
 token: ${token}
 node-name: ${node_name}
+node-taint:
+- node-role.kubernetes.io/master:NoSchedule
