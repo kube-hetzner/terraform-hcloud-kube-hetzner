@@ -82,7 +82,7 @@ variable "hetzner_csi_containers_latest" {
 variable "traefik_acme_tls" {
   type        = bool
   default     = false
-  description = "Wheter to include the TLS configuration with the Traefik configuration"
+  description = "Whether to include the TLS configuration with the Traefik configuration"
 }
 
 variable "traefik_acme_email" {
@@ -91,3 +91,8 @@ variable "traefik_acme_email" {
   description = "Email used to recieved expiration notice for certificate"
 }
 
+variable "allow_scheduling_on_control_plane" {
+  type        = bool
+  default     = false
+  description = "Whether to allow non-control-plane workloads to run on the control-plane nodes"
+}
