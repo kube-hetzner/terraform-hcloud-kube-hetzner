@@ -43,7 +43,7 @@ resource "hcloud_server" "first_control_plane" {
 
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
-    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 30"
+    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 60"
   }
 
   # Generating k3s master config file
@@ -87,7 +87,7 @@ resource "hcloud_server" "first_control_plane" {
       sleep 30
       scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ${local.ssh_identity_file} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
       sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
-      sleep 30
+      sleep 10 && until kubectl get node ${self.name}; do sleep 5; done
     EOT
   }
 
@@ -99,6 +99,14 @@ resource "hcloud_server" "first_control_plane" {
       kubectl apply -k ${dirname(local_file.hetzner_ccm_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
       kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
       kubectl apply -k ${dirname(local_file.hetzner_csi_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
+    EOT
+  }
+
+  # Install Kured
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -ex
+      kubectl -n kube-system apply -k ${dirname(local_file.kured_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
     EOT
   }
 

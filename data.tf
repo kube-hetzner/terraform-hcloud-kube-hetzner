@@ -10,6 +10,13 @@ data "github_release" "hetzner_csi" {
   retrieve_by = "latest"
 }
 
+// github_release for kured
+data "github_release" "kured" {
+  repository  = "kured"
+  owner       = "weaveworks"
+  retrieve_by = "latest"
+}
+
 data "hcloud_image" "linux" {
   name = local.hcloud_image_name
 }

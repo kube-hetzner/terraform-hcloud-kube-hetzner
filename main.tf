@@ -164,6 +164,16 @@ resource "local_file" "hetzner_csi_config" {
   directory_permission = "0755"
 }
 
+resource "local_file" "kured_config" {
+  content = templatefile("${path.module}/templates/kured.yaml.tpl", {
+    version    = data.github_release.kured.release_tag
+    patch_name = var.kured_container_latest ? "patch_latest" : "patch"
+  })
+  filename             = "${path.module}/kured/kustomization.yaml"
+  file_permission      = "0644"
+  directory_permission = "0755"
+}
+
 resource "local_file" "traefik_config" {
   content = templatefile("${path.module}/templates/traefik_config.yaml.tpl", {
     lb_disable_ipv6    = var.lb_disable_ipv6

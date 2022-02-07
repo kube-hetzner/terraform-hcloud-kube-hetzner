@@ -14,7 +14,7 @@
   <h2 align="center">Kube-Hetzner</h2>
 
   <p align="center">
-    A highly optimized and auto-upgradable, HA-able & Load-Balanced, Kubernetes cluster powered by k3s-on-k3os deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 🚀
+    A highly optimized and auto-upgradable, HA-able & Load-Balanced, Kubernetes cluster powered by k3s-on-MicroOS and deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 🚀
   </p>
   <hr />
   <br />
@@ -22,18 +22,21 @@
 
 ## About The Project
 
-[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US. The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot.
+[Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US. 
+
+The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot. In order to achieve this, we built on the shoulders of giants, by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system, and [k3s](https://k3s.io/) as the Kubernetes engine.
+
 
 _Please note that we are not affiliated to Hetzner, this is just an open source project striving to be an optimal solution for deploying and maintaining Kubernetes on Hetzner Cloud._
 
 ### Features
 
-- Lightweight and resource-efficient Kubernetes powered by [k3s](https://github.com/k3s-io/k3s) on [k3os](https://github.com/rancher/k3os) nodes.
-- Maintenance free with auto-upgrade to the latest version of k3os, k3s, Hetzner CCM and CSI.
+- Maintenance free with auto-upgrade to the latest version of MicroOS, k3s, Hetzner CCM and CSI.
 - Proper use of the underlying Hetzner private network to remove the need for encryption and make the cluster both fast and secure.
 - Automatic HA with the default setting of two control-plane and agents nodes.
 - Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
+- (Optional) Out of the box config of Traefik with SSL certficate auto-generation.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -109,13 +112,13 @@ hcloud server list
 - See the Hetzner network config:
 
 ```sh
-hcloud network describe k3s-net
+hcloud network describe k3s
 ```
 
 - Log into one of your nodes (replace the location of your private key if needed):
 
 ```sh
-ssh rancher@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
+ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 ```
 
 ## Automatic upgrade

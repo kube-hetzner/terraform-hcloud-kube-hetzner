@@ -44,7 +44,7 @@ resource "hcloud_server" "control_planes" {
 
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
-    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 30"
+    command = "sleep 60 && ping ${self.ipv4_address} | grep --line-buffered 'bytes from' | head -1 && sleep 60"
   }
 
   # Generating k3s server config file
