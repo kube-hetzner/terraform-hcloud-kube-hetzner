@@ -22,7 +22,7 @@ locals {
     "sgdisk -e /dev/sda",
     "parted -s /dev/sda resizepart 4 99%",
     "parted -s /dev/sda mkpart primary ext2 99% 100%",
-    "partprobe /dev/sda",
+    "partprobe /dev/sda && udevadm settle && fdisk -l /dev/sda",
     "mount /dev/sda4 /mnt/ && btrfs filesystem resize max /mnt && umount /mnt",
     "mke2fs -L ignition /dev/sda5",
     "mount /dev/sda5 /mnt",
