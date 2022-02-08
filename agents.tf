@@ -82,7 +82,7 @@ resource "hcloud_server" "agents" {
       node-name     = self.name
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
-      node-ip       = local.first_control_plane_network_ip
+      node-ip       = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
     })
     destination = "/etc/rancher/k3s/config.yaml"
 
