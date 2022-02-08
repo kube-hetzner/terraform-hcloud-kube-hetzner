@@ -64,7 +64,7 @@ resource "hcloud_server" "agents" {
   provisioner "file" {
     content = templatefile("${path.module}/templates/agent.conf.tpl", {
       server = "https://${local.first_control_plane_network_ip}:6443"
-      token = random_password.k3s_token.result
+      token  = random_password.k3s_token.result
     })
     destination = "/etc/rancher/k3s/agent.conf"
 
