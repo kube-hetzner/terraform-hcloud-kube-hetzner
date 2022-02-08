@@ -60,12 +60,19 @@ resource "hcloud_server" "control_planes" {
 
   # Generating k3s server config file
   provisioner "file" {
-    content = templatefile("${path.module}/templates/server_config.yaml.tpl", {
-      first_control_plane_url           = "https://${local.first_control_plane_network_ip}:6443"
-      node_ip                           = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
-      token                             = random_password.k3s_token.result
-      node_name                         = self.name
-      allow_scheduling_on_control_plane = var.allow_scheduling_on_control_plane
+    content = yamlencode({
+      node-name                = self.name
+      server                   = "https://${local.first_control_plane_network_ip}:6443"
+      cluster-init             = true
+      disable-cloud-controller = true
+      disable                  = "servicelb, local-storage"
+      flannel-iface            = "eth1"
+      kubelet-arg              = "cloud-provider=external"
+      node-ip                  = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
+      advertise-address        = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
+      tls-san                  = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
+      token                    = random_password.k3s_token.result
+      node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
     })
     destination = "/etc/rancher/k3s/config.yaml"
 

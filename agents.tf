@@ -59,11 +59,12 @@ resource "hcloud_server" "agents" {
     EOT
   }
 
-  # Generating and uploading the angent.conf file
+
+  # Generating and uploading the agent.conf file
   provisioner "file" {
     content = templatefile("${path.module}/templates/agent.conf.tpl", {
-      server_url = "https://${local.first_control_plane_network_ip}:6443"
-      node_token = random_password.k3s_token.result
+      server = "https://${local.first_control_plane_network_ip}:6443"
+      token  = random_password.k3s_token.result
     })
     destination = "/etc/rancher/k3s/agent.conf"
 
@@ -75,11 +76,13 @@ resource "hcloud_server" "agents" {
     }
   }
 
-  # Generating k3s server config file
+  # Generating k3s  agent config file
   provisioner "file" {
-    content = templatefile("${path.module}/templates/agent_config.yaml.tpl", {
-      node_ip   = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
-      node_name = self.name
+    content = yamlencode({
+      node-name     = self.name
+      kubelet-arg   = "cloud-provider=external"
+      flannel-iface = "eth1"
+      node-ip       = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
     })
     destination = "/etc/rancher/k3s/config.yaml"
 
