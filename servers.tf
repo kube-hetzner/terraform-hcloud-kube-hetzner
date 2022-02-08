@@ -72,6 +72,7 @@ resource "hcloud_server" "control_planes" {
       advertise-address        = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
       tls-san                  = cidrhost(hcloud_network.k3s.ip_range, 3 + count.index)
       token                    = random_password.k3s_token.result
+      node-taint               = var.allow_scheduling_on_control_plane ? [] : [ "node-role.kubernetes.io/master:NoSchedule" ]
     })
     destination = "/etc/rancher/k3s/config.yaml"
 

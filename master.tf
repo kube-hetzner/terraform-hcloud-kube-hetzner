@@ -69,6 +69,7 @@ resource "hcloud_server" "first_control_plane" {
       node-ip                  = local.first_control_plane_network_ip
       advertise-address        = local.first_control_plane_network_ip
       token                    = random_password.k3s_token.result
+      node-taint               = var.allow_scheduling_on_control_plane ? [] : [ "node-role.kubernetes.io/master:NoSchedule" ]
     })
     destination = "/etc/rancher/k3s/config.yaml"
 
