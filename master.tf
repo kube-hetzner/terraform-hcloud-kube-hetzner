@@ -124,7 +124,7 @@ resource "hcloud_server" "first_control_plane" {
   provisioner "local-exec" {
     command = <<-EOT
       set -ex
-      kubectl -n kube-system apply -k ${dirname(local_file.kured_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
+      kubectl -n kube-system apply ${path.module}/config/kured.yaml --kubeconfig ${path.module}/kubeconfig.yaml
     EOT
   }
 
