@@ -76,13 +76,13 @@ resource "hcloud_server" "agents" {
     }
   }
 
-  # Generating k3s  agent config file
+  # Generating k3s agent config file
   provisioner "file" {
     content = yamlencode({
       node-name     = self.name
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
-      node-ip       = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
+      node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
     })
     destination = "/etc/rancher/k3s/config.yaml"
 
@@ -114,7 +114,7 @@ resource "hcloud_server" "agents" {
 
   network {
     network_id = hcloud_network.k3s.id
-    ip         = cidrhost(hcloud_network.k3s.ip_range, 2 + var.servers_num + count.index)
+    ip         = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
   }
 
   depends_on = [
