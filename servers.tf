@@ -52,7 +52,7 @@ resource "hcloud_server" "control_planes" {
     command = <<-EOT
       until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
-        echo "Waiting for ssh to be ready..."
+        echo "Waiting for MicroOS to reboot and become available..."
         sleep 2
       done
     EOT
@@ -87,7 +87,6 @@ resource "hcloud_server" "control_planes" {
   # Run an other control plane server
   provisioner "remote-exec" {
     inline = [
-      "set -ex",
       # set the hostname in a persistent fashion
       "hostnamectl set-hostname ${self.name}",
       # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
@@ -98,7 +97,7 @@ resource "hcloud_server" "control_planes" {
         until systemctl status k3s-server > /dev/null
         do
           systemctl start k3s-server
-          echo "Waiting on other 'learning' control planes, patience is the mother of virtues..."
+          echo "Waiting on other 'learning' control planes, patience is the mother of all virtues..."
           sleep 2
         done
       EOT

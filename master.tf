@@ -51,7 +51,7 @@ resource "hcloud_server" "first_control_plane" {
     command = <<-EOT
       until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
-        echo "Waiting for ssh to be ready..."
+        echo "Waiting for MicroOS to reboot and become available..."
         sleep 2
       done
     EOT
@@ -80,10 +80,10 @@ resource "hcloud_server" "first_control_plane" {
       host           = self.ipv4_address
     }
   }
+
   # Run the first control plane
   provisioner "remote-exec" {
     inline = [
-      "set -ex",
       # set the hostname in a persistent fashion
       "hostnamectl set-hostname ${self.name}",
       # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
@@ -111,7 +111,6 @@ resource "hcloud_server" "first_control_plane" {
   # Get the Kubeconfig, and wait for the node to be available
   provisioner "local-exec" {
     command = <<-EOT
-      set -ex
       until ssh -q ${local.ssh_args} root@${self.ipv4_address} [[ -f /etc/rancher/k3s/k3s.yaml ]]
       do
         echo "Waiting for the k3s config file to be ready..."
@@ -148,7 +147,10 @@ resource "hcloud_server" "first_control_plane" {
 
   # Configure the Traefik ingress controller
   provisioner "local-exec" {
-    command = "kubectl apply -f ${local_file.traefik_config.filename} --kubeconfig ${path.module}/kubeconfig.yaml"
+    command = <<-EOT
+      set -ex
+      kubectl apply -f ${local_file.traefik_config.filename} --kubeconfig ${path.module}/kubeconfig.yaml
+    EOT
   }
 
   network {
