@@ -174,6 +174,7 @@ Any contributions you make are **greatly appreciated**.
 - [Hashicorp](https://www.hashicorp.com) for the amazing terraform framework that makes all the magic happen.
 - [Rancher](https://www.rancher.com) for k3s, an amazing Kube distribution that is the very core engine of this project.
 - [openSUSE](https://www.opensuse.org) for MicroOS, which is just next level Container OS technology, that just works and makes our lives easier.
+- [k3os](https://github.com/rancher/k3os) really spread its wing with k3os, it's was an amazing OS for k3s. If curious look at our [k3os branch](https://github.com/kube-hetzner/kube-hetzner/tree/k3os).
 
 [contributors-shield]: https://img.shields.io/github/contributors/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [contributors-url]: https://github.com/mysticaltech/kube-hetzner/graphs/contributors
