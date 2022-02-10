@@ -187,8 +187,8 @@ resource "local_file" "traefik_config" {
 }
 
 
-resource "hcloud_placement_group" "k3s_placement_group" {
-  name = "k3s-placement-group"
+resource "hcloud_placement_group" "k3s" {
+  name = "k3s"
   type = "spread"
   labels = {
     "provisioner" = "terraform",

@@ -8,7 +8,7 @@ resource "hcloud_server" "control_planes" {
   location           = var.location
   ssh_keys           = [hcloud_ssh_key.k3s.id]
   firewall_ids       = [hcloud_firewall.k3s.id]
-  placement_group_id = hcloud_placement_group.k3s_placement_group.id
+  placement_group_id = hcloud_placement_group.k3s.id
 
   labels = {
     "provisioner" = "terraform",
@@ -52,7 +52,7 @@ resource "hcloud_server" "control_planes" {
     command = <<-EOT
       until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
-        echo Waiting for ssh to be ready...
+        echo "Waiting for ssh to be ready..."
         sleep 2
       done
     EOT
@@ -84,14 +84,24 @@ resource "hcloud_server" "control_planes" {
     }
   }
 
-  # Run the other control plane
+  # Run an other control plane server
   provisioner "remote-exec" {
     inline = [
       "set -ex",
+      # set the hostname in a persistent fashion
+      "hostnamectl set-hostname ${self.name}",
       # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
       "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-      # then we initiate the cluster
-      "systemctl --now enable k3s-server",
+      # then then we start k3s in server mode and join the cluster
+      "systemctl enable k3s-server",
+      <<-EOT
+        until systemctl status k3s-server > /dev/null
+        do
+          systemctl start k3s-server
+          echo "Waiting on other 'learning' control planes, patience is the mother of virtues..."
+          sleep 2
+        done
+      EOT
     ]
 
     connection {

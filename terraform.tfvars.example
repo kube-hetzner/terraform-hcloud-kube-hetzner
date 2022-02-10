@@ -12,7 +12,11 @@ network_region            = "eu-central" # change to `us-east` if location is as
 agent_server_type         = "cpx21"
 control_plane_server_type = "cpx11"
 lb_server_type            = "lb11"
-servers_num               = 2
+
+# At least 3 server nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
+servers_num               = 3
+
+# For agent nodes, at least 2 is recommended for HA, but you can keep automatic upgrades.
 agents_num                = 2
 
 # If you want to use a specific Hetzner CCM and CSI version, set them below, otherwise leave as is for the latest versions

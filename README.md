@@ -33,7 +33,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 
 - Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
 - Proper use of the underlying Hetzner private network to remove the need for encryption and make the cluster both fast and secure.
-- Automatic HA with the default setting of two control-plane and agents nodes.
+- Automatic HA with the default setting of three control-plane and two agents nodes.
 - Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - (Optional) Out of the box config of Traefik with SSL certficate auto-generation.
@@ -93,11 +93,15 @@ When the cluster is up and running, you can do whatever you wish with it! 🎉
 
 You can scale the number of nodes up and down without any issues. If you are going to scale down, just make sure to properly `kubectl drain` the nodes in question first. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
 
+**If you want to remain HA, it's important to keep a number of control planes of at least 3, see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
+
+Otherwise, you may want to turn off automated updates and reboots of the control-plane nodes (2 or less), and do these maintenance manually.
+
 For instance:
 
 ```tfvars
-servers_num = 2
-agents_num = 3
+servers_num = 3
+agents_num = 2
 ```
 
 ### Useful commands
@@ -143,6 +147,7 @@ If you want to takedown the cluster, you can proceed as follows:
 kubectl delete -k hetzner/csi
 kubectl delete -k hetzner/ccm
 hcloud load-balancer delete traefik
+hcloud network delete k3s
 terraform destroy -auto-approve
 ```
 

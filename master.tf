@@ -7,7 +7,7 @@ resource "hcloud_server" "first_control_plane" {
   location           = var.location
   ssh_keys           = [hcloud_ssh_key.k3s.id]
   firewall_ids       = [hcloud_firewall.k3s.id]
-  placement_group_id = hcloud_placement_group.k3s_placement_group.id
+  placement_group_id = hcloud_placement_group.k3s.id
 
   labels = {
     "provisioner" = "terraform",
@@ -51,7 +51,7 @@ resource "hcloud_server" "first_control_plane" {
     command = <<-EOT
       until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
-        echo Waiting for ssh to be ready...
+        echo "Waiting for ssh to be ready..."
         sleep 2
       done
     EOT
@@ -84,10 +84,20 @@ resource "hcloud_server" "first_control_plane" {
   provisioner "remote-exec" {
     inline = [
       "set -ex",
+      # set the hostname in a persistent fashion
+      "hostnamectl set-hostname ${self.name}",
       # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
       "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
       # then we initiate the cluster
-      "systemctl --now enable k3s-server",
+      "systemctl enable k3s-server",
+      <<-EOT
+        until systemctl status k3s-server > /dev/null
+        do
+          systemctl start k3s-server
+          echo "Initiating the cluster..."
+          sleep 2
+        done
+      EOT
     ]
 
     connection {
@@ -102,10 +112,18 @@ resource "hcloud_server" "first_control_plane" {
   provisioner "local-exec" {
     command = <<-EOT
       set -ex
-      sleep 30
+      until ssh -q ${local.ssh_args} root@${self.ipv4_address} [[ -f /etc/rancher/k3s/k3s.yaml ]]
+      do
+        echo "Waiting for the k3s config file to be ready..."
+        sleep 2
+      done
       scp ${local.ssh_args} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
       sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
-      sleep 10 && until kubectl get node ${self.name} --kubeconfig ${path.module}/kubeconfig.yaml; do sleep 5; done
+      until kubectl get node ${self.name} --kubeconfig ${path.module}/kubeconfig.yaml 2> /dev/null || false
+      do 
+        echo "Waiting for the node to become available...";
+        sleep 2
+      done
     EOT
   }
 
