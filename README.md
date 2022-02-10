@@ -93,9 +93,9 @@ When the cluster is up and running, you can do whatever you wish with it! 🎉
 
 You can scale the number of nodes up and down without any issues. If you are going to scale down, just make sure to properly `kubectl drain` the nodes in question first. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
 
-**If you want to remain HA, it's important to keep a number of control planes of at least 3, see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
+**If you want to be HA, it's important to keep a number of control planes nodes of at least 3 (2 to maintain quorum when 1 goes down for automated upgrades and reboot for instance), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
 
-Otherwise, you may want to turn off automated updates and reboots of the control-plane nodes (2 or less), and do these maintenance manually.
+Otherwise, it's important to turn off automatic updates and reboots for the control-plane nodes (2 or less), and do the maintenance yourself.
 
 For instance:
 
