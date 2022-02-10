@@ -31,7 +31,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 ### Features
 
 - Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
-- Proper use of the underlying Hetzner private network to remove the need for encryption and make the cluster both fast and secure.
+- Proper use of the underlying Hetzner private network to remove the need for encryption and minimize latency.
 - Automatic HA with the default setting of three control-plane and two agents nodes.
 - Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
@@ -154,6 +154,10 @@ _Also, if you had a full-blown cluster in use, it would be best to delete the wh
 
 <!-- CONTRIBUTING -->
 
+## In the code
+
+This project has tried two other OS flavors before settling on MicroOS. Fedora Server, and k3OS. The latter is now defunct, that's why we decided to upgrade to openSUSE MicroOS. However, our code base for it lives on in the [k3os branch](https://github.com/kube-hetzner/kube-hetzner/tree/k3os).
+
 ## Contributing
 
 Any contributions you make are **greatly appreciated**.
@@ -174,7 +178,6 @@ Any contributions you make are **greatly appreciated**.
 - [Hashicorp](https://www.hashicorp.com) for the amazing terraform framework that makes all the magic happen.
 - [Rancher](https://www.rancher.com) for k3s, an amazing Kube distribution that is the very core engine of this project.
 - [openSUSE](https://www.opensuse.org) for MicroOS, which is just next level Container OS technology.
-- [k3os](https://github.com/rancher/k3os) really spread its wing with k3os, it's was an amazing OS for k3s. If curious look at our [k3os branch](https://github.com/kube-hetzner/kube-hetzner/tree/k3os).
 
 [contributors-shield]: https://img.shields.io/github/contributors/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [contributors-url]: https://github.com/mysticaltech/kube-hetzner/graphs/contributors
