@@ -95,12 +95,8 @@ resource "hcloud_server" "first_control_plane" {
           echo "Initiating the cluster..."
           sleep 2
         done
-        timeout 120 bash <<EOF
-          while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' curl -k https://localhost:6443/readyz)" != "200" ]]
-          do
-            echo "Waiting for cluster to become ready"
-            sleep 1
-          done
+        timeout 120 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' curl -k https://localhost:6443/readyz)" != "200" ]]; do echo "Waiting for cluster to become ready"
+; sleep 1; done'
         EOF
       EOT
     ]
