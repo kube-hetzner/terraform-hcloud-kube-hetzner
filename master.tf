@@ -146,8 +146,16 @@ resource "hcloud_server" "first_control_plane" {
   # Deploy our post-installation kustomization
   provisioner "remote-exec" {
     inline = [
+      # This ugly hack is here, because terraform serializes the
+      # embedded yaml files with "- |2", when there is more than
+      # one yamldocument in the embedded file. Kustomize does not understand
+      # that syntax and tries to parse the blocks content as a file, resulting
+      # in weird errors. so gnu sed with funny escaping is used to
+      # replace lines like "- |3" by "- |" (yaml block syntax).
+      # due to indendation this should not changes the embedded
+      # manifests themselves
+      "sed -i 's/^- |[0-9]\\+$/- |/g' /tmp/post_install/kustomization.yaml",
       "kubectl apply -k /tmp/post_install",
-      "rm -rf /tmp/post_install"
     ]
   }
 
