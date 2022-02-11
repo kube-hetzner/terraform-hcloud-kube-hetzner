@@ -67,6 +67,30 @@ resource "hcloud_server" "first_control_plane" {
     destination = "/etc/rancher/k3s/config.yaml"
   }
 
+  # Run the first control plane
+  provisioner "remote-exec" {
+    inline = [
+      # set the hostname in a persistent fashion
+      "hostnamectl set-hostname ${self.name}",
+      # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
+      "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
+      # then we initiate the cluster
+      "systemctl enable k3s-server",
+      # prepare a directory for our post-installation kustomizations
+      "mkdir -p /tmp/post_install",
+      # start k3s and wait for the cluster to be ready
+      <<-EOT
+        until systemctl status k3s-server > /dev/null
+        do
+          systemctl start k3s-server
+          echo "Initiating the cluster..."
+          sleep 2
+        done
+        timeout 120 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' curl -k https://localhost:6443/readyz)" != "200" ]]; do echo "Waiting for cluster to become ready" ; sleep 1; done'
+      EOT
+    ]
+  }
+
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
   provisioner "file" {
     content     = local.post_install_kustomization
@@ -79,30 +103,6 @@ resource "hcloud_server" "first_control_plane" {
     destination = "/tmp/post_install/traefik.yaml"
   }
 
-  # Run the first control plane
-  provisioner "remote-exec" {
-    inline = [
-      # set the hostname in a persistent fashion
-      "hostnamectl set-hostname ${self.name}",
-      # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
-      "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-      # then we initiate the cluster
-      "systemctl enable k3s-server",
-      <<-EOT
-        until systemctl status k3s-server > /dev/null
-        do
-          systemctl start k3s-server
-          echo "Initiating the cluster..."
-          sleep 2
-        done
-        timeout 120 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' curl -k https://localhost:6443/readyz)" != "200" ]]; do echo "Waiting for cluster to become ready"
-; sleep 1; done'
-        EOF
-      EOT
-    ]
-  }
-
-  # Provision kubernetes resources for CSI, CCM, kured, traefik, etc
   provisioner "remote-exec" {
     inline = [
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name}",
