@@ -98,16 +98,39 @@ resource "hcloud_server" "first_control_plane" {
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
   provisioner "file" {
-    content     = local.post_install_kustomization
+    content = yamlencode({
+      apiVersion = "kustomize.config.k8s.io/v1beta1"
+      kind       = "Kustomization"
+      resources = [
+        "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
+        "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
+        "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
+        "./traefik.yaml"
+      ]
+      patchesStrategicMerge = [
+        file("${path.module}/patches/kured.yaml"),
+        local.ccm_latest ? file("${path.module}/patches/ccm_latest.yaml") : file("${path.module}/patches/ccm.yaml"),
+        local.csi_latest ? file("${path.module}/patches/csi_latest.yaml") : null,
+      ]
+    })
     destination = "/tmp/post_install/kustomization.yaml"
   }
 
   # Upload traefik config
   provisioner "file" {
-    content     = local.traefik_config
+    content = templatefile(
+      "${path.module}/templates/traefik_config.yaml.tpl",
+      {
+        lb_disable_ipv6    = var.lb_disable_ipv6
+        lb_server_type     = var.lb_server_type
+        location           = var.location
+        traefik_acme_tls   = var.traefik_acme_tls
+        traefik_acme_email = var.traefik_acme_email
+    })
     destination = "/tmp/post_install/traefik.yaml"
   }
 
+  # Deploy our post-installation kustomization
   provisioner "remote-exec" {
     inline = [
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name}",

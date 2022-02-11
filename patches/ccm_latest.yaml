@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hcloud-cloud-controller-manager
+  namespace: kube-system
+spec:
+  template:
+    spec:
+      containers:
+        - name: hcloud-cloud-controller-manager
+          command:
+            - "/bin/hcloud-cloud-controller-manager"
+            - "--cloud-provider=hcloud"
+            - "--leader-elect=false"
+            - "--allow-untagged-cloud"
+            - "--allocate-node-cidrs=true"
+            - "--cluster-cidr=10.42.0.0/16"
+          image: hetznercloud/hcloud-cloud-controller-manager:latest
+          imagePullPolicy: Always
