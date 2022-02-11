@@ -74,19 +74,24 @@ resource "hcloud_server" "first_control_plane" {
       "hostnamectl set-hostname ${self.name}",
       # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
       "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-      # then we initiate the cluster
-      "systemctl enable k3s-server",
       # prepare a directory for our post-installation kustomizations
       "mkdir -p /tmp/post_install",
-      # start k3s and wait for the cluster to be ready
+      # then we initiate the cluster
+      "systemctl enable k3s-server",
+      # start k3s
+      "systemctl start k3s-server",
+      # wait for k3s to get ready
       <<-EOT
-        until systemctl status k3s-server > /dev/null
-        do
-          systemctl start k3s-server
-          echo "Initiating the cluster..."
-          sleep 2
+      timeout 120 bash <<EOF
+        until [ -e /etc/rancher/k3s/k3s.yaml ]; do
+          echo "Waiting for kubectl config"
+          sleep 1
         done
-        timeout 120 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' curl -k https://localhost:6443/readyz)" != "200" ]]; do echo "Waiting for cluster to become ready" ; sleep 1; done'
+        until [[ "$(kubectl get --raw='/readyz')" == "ok" ]]; do
+          echo "Waiting for cluster to become ready"
+          sleep 1
+        done
+      EOF
       EOT
     ]
   }
