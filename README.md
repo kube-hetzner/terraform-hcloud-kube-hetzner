@@ -90,17 +90,15 @@ When the cluster is up and running, you can do whatever you wish with it! 🎉
 
 ### Scaling nodes
 
-You can scale the number of nodes up and down without any issues. If you are going to scale down, just make sure to properly `kubectl drain` the nodes in question first. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
+⚠️ Once you start with Terraform, it's best not to change the state manually in Hetzner, otherwise when you try to scale up or down, Terraform will complain that things changed outside of it and will not be able to do it. _In the future, we will provide a tool to create bare nodes, either agents or control planes, to be joined manually._
 
-**If you want to be HA, it's important to keep a number of control planes nodes of at least 3 (2 to maintain quorum when 1 goes down for automated upgrades and reboot for instance), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
-
-Otherwise, it's important to turn off automatic updates and reboots for the control-plane nodes (2 or less), and do the maintenance yourself.
+To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
 
 For instance:
 
 ```tfvars
-servers_num = 3
-agents_num = 2
+servers_num = 4
+agents_num = 3
 ```
 
 ### Useful commands
@@ -124,11 +122,17 @@ hcloud network describe k3s
 ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 ```
 
+## By default HA
+
+By default, we have 3 control planes configured and 2 agents, with automatic upgrades and reboots of the nodes.
+
+**But if you want to remain HA, it's important to keep a number of control planes nodes of at least 3 (2 to maintain quorum when 1 goes down for automated upgrades and reboot for instance), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
+
+Otherwise, it's important to turn off automatic upgrades (see below) and reboots for the control-plane nodes (2 or less), and do the maintenance yourself.
+
 ## Automatic upgrade
 
 By default, MicroOS and its embedded k3s instance get upgraded automatically on each node, and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
-
-_You can also choose to automatically kustomize the Hetzner CCM and CSI to set their container images to "latest" with an imagePullPolicy of "Always". That means that when the nodes upgrade, these container images will be automatically upgraded too. For more info on this, see [terraform.tfvars.example](terraform.tfvars.example)._
 
 _About [Kured](https://github.com/weaveworks/kured), it does not have a latest tag present for its image, but it's pretty compatible, so you can just manually update the tag from once every year for instance._
 
