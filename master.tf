@@ -70,13 +70,13 @@ resource "hcloud_server" "first_control_plane" {
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
   provisioner "file" {
     content     = local.post_install_kustomization
-    destination = "/tmp/kustomization.yaml"
+    destination = "/tmp/post_install/kustomization.yaml"
   }
 
   # Upload traefik config
   provisioner "file" {
     content     = local.traefik_config
-    destination = "/tmp/traefik.yaml"
+    destination = "/tmp/post_install/traefik.yaml"
   }
 
   # Run the first control plane
@@ -95,15 +95,24 @@ resource "hcloud_server" "first_control_plane" {
           echo "Initiating the cluster..."
           sleep 2
         done
+        timeout 120 bash <<EOF
+          while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' curl -k https://localhost:6443/readyz)" != "200" ]]
+          do
+            echo "Waiting for cluster to become ready"
+            sleep 1
+          done
+        EOF
       EOT
-      , <<-EOT
-         timeout 120 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' curl -k https://localhost:6443/readyz)" != "200" ]]; do sleep 1; done'
-      EOT
-      , "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name}",
+    ]
+  }
+
+  # Provision kubernetes resources for CSI, CCM, kured, traefik, etc
+  provisioner "remote-exec" {
+    inline = [
+      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name}",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token}",
-      "kubectl apply -k /tmp/",
-      "kubectl apply -f /tmp/traefik.yaml",
-      "rm /tmp/traefik.yaml /tmp/kustomization.yaml"
+      "kubectl apply -k /tmp/post_install",
+      "rm -rf /tmp/post_install"
     ]
   }
 

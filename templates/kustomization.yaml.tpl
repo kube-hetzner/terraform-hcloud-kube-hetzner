@@ -6,6 +6,7 @@ resources:
 - "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${ccm_version}/ccm-networks.yaml"
 - "https://raw.githubusercontent.com/hetznercloud/csi-driver/${csi_version}/deploy/kubernetes/hcloud-csi.yml"
 - "https://github.com/weaveworks/kured/releases/download/${kured_version}/kured-${kured_version}-dockerhub.yaml"
+- ./traefik.yaml
 
 patchesStrategicMerge:
 - |-
