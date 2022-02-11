@@ -135,11 +135,17 @@ resource "hcloud_server" "first_control_plane" {
     destination = "/tmp/post_install/traefik.yaml"
   }
 
-  # Deploy our post-installation kustomization
+  # Deploy secrets, logging is automatically disabled due to sensitive variables
   provisioner "remote-exec" {
     inline = [
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name}",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token}",
+    ]
+  }
+
+  # Deploy our post-installation kustomization
+  provisioner "remote-exec" {
+    inline = [
       "kubectl apply -k /tmp/post_install",
       "rm -rf /tmp/post_install"
     ]
