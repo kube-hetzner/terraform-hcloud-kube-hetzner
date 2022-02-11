@@ -81,6 +81,32 @@ resource "hcloud_server" "first_control_plane" {
     }
   }
 
+  # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
+  provisioner "file" {
+    content     = local.post_install_kustomization
+    destination = "/tmp/kustomization.yaml"
+
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
+  }
+
+  # Upload traefik config
+  provisioner "file" {
+    content     = local.traefik_config
+    destination = "/tmp/traefik.yaml"
+
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = self.ipv4_address
+    }
+  }
+
   # Run the first control plane
   provisioner "remote-exec" {
     inline = [
@@ -98,6 +124,14 @@ resource "hcloud_server" "first_control_plane" {
           sleep 2
         done
       EOT
+      , <<-EOT
+         timeout 120 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%%{http_code}'' curl -k https://localhost:6443/readyz)" != "200" ]]; do sleep 1; done'
+      EOT
+      , "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name}",
+      "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token}",
+      "kubectl apply -k /tmp/",
+      "kubectl apply -f /tmp/traefik.yaml",
+      "rm /tmp/traefik.yaml /tmp/kustomization.yaml"
     ]
 
     connection {
@@ -106,51 +140,6 @@ resource "hcloud_server" "first_control_plane" {
       agent_identity = local.ssh_identity
       host           = self.ipv4_address
     }
-  }
-
-  # Get the Kubeconfig, and wait for the node to be available
-  provisioner "local-exec" {
-    command = <<-EOT
-      until ssh -q ${local.ssh_args} root@${self.ipv4_address} [[ -f /etc/rancher/k3s/k3s.yaml ]]
-      do
-        echo "Waiting for the k3s config file to be ready..."
-        sleep 2
-      done
-      scp ${local.ssh_args} root@${self.ipv4_address}:/etc/rancher/k3s/k3s.yaml ${path.module}/kubeconfig.yaml
-      sed -i -e 's/127.0.0.1/${self.ipv4_address}/g' ${path.module}/kubeconfig.yaml
-      until kubectl get node ${self.name} --kubeconfig ${path.module}/kubeconfig.yaml 2> /dev/null || false
-      do 
-        echo "Waiting for the node to become available...";
-        sleep 2
-      done
-    EOT
-  }
-
-  # Install the Hetzner CCM and CSI
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -ex
-      kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${dirname(local_file.hetzner_ccm_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --kubeconfig ${path.module}/kubeconfig.yaml
-      kubectl apply -k ${dirname(local_file.hetzner_csi_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-    EOT
-  }
-
-  # Install Kured
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -ex
-      kubectl -n kube-system apply -k ${dirname(local_file.kured_config.filename)} --kubeconfig ${path.module}/kubeconfig.yaml
-    EOT
-  }
-
-  # Configure the Traefik ingress controller
-  provisioner "local-exec" {
-    command = <<-EOT
-      set -ex
-      kubectl apply -f ${local_file.traefik_config.filename} --kubeconfig ${path.module}/kubeconfig.yaml
-    EOT
   }
 
   network {

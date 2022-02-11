@@ -30,4 +30,24 @@ locals {
     "cp /root/config.ign /mnt/ignition/config.ign",
     "umount /mnt"
   ]
+
+  post_install_kustomization = templatefile(
+    "${path.module}/templates/kustomization.yaml.tpl",
+    {
+      ccm_version   = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm.release_tag
+      ccm_latest    = var.hetzner_ccm_containers_latest
+      csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
+      csi_latest    = var.hetzner_csi_containers_latest
+      kured_version = data.github_release.kured.release_tag
+  })
+
+  traefik_config = templatefile(
+    "${path.module}/templates/traefik_config.yaml.tpl",
+    {
+      lb_disable_ipv6    = var.lb_disable_ipv6
+      lb_server_type     = var.lb_server_type
+      location           = var.location
+      traefik_acme_tls   = var.traefik_acme_tls
+      traefik_acme_email = var.traefik_acme_email
+  })
 }
