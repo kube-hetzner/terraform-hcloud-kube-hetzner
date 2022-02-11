@@ -14,31 +14,24 @@ resource "hcloud_server" "first_control_plane" {
     "engine"      = "k3s"
   }
 
+  connection {
+    user           = "root"
+    private_key    = local.ssh_private_key
+    agent_identity = local.ssh_identity
+    host           = self.ipv4_address
+  }
+
   provisioner "file" {
     content = templatefile("${path.module}/templates/config.ign.tpl", {
       name           = self.name
       ssh_public_key = local.ssh_public_key
     })
     destination = "/root/config.ign"
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Install MicroOS
   provisioner "remote-exec" {
     inline = local.MicroOS_install_commands
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Issue a reboot command
@@ -72,39 +65,18 @@ resource "hcloud_server" "first_control_plane" {
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
     })
     destination = "/etc/rancher/k3s/config.yaml"
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
   provisioner "file" {
     content     = local.post_install_kustomization
     destination = "/tmp/kustomization.yaml"
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Upload traefik config
   provisioner "file" {
     content     = local.traefik_config
     destination = "/tmp/traefik.yaml"
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Run the first control plane
@@ -133,13 +105,6 @@ resource "hcloud_server" "first_control_plane" {
       "kubectl apply -f /tmp/traefik.yaml",
       "rm /tmp/traefik.yaml /tmp/kustomization.yaml"
     ]
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   network {

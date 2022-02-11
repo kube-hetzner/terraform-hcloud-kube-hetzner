@@ -16,31 +16,24 @@ resource "hcloud_server" "agents" {
     "engine"      = "k3s",
   }
 
+  connection {
+    user           = "root"
+    private_key    = local.ssh_private_key
+    agent_identity = local.ssh_identity
+    host           = self.ipv4_address
+  }
+
   provisioner "file" {
     content = templatefile("${path.module}/templates/config.ign.tpl", {
       name           = self.name
       ssh_public_key = local.ssh_public_key
     })
     destination = "/root/config.ign"
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Install MicroOS
   provisioner "remote-exec" {
     inline = local.MicroOS_install_commands
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Issue a reboot command
@@ -67,13 +60,6 @@ resource "hcloud_server" "agents" {
       token  = random_password.k3s_token.result
     })
     destination = "/etc/rancher/k3s/agent.conf"
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Generating k3s agent config file
@@ -85,13 +71,6 @@ resource "hcloud_server" "agents" {
       node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
     })
     destination = "/etc/rancher/k3s/config.yaml"
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   # Run the agent
@@ -112,13 +91,6 @@ resource "hcloud_server" "agents" {
         done
       EOT
     ]
-
-    connection {
-      user           = "root"
-      private_key    = local.ssh_private_key
-      agent_identity = local.ssh_identity
-      host           = self.ipv4_address
-    }
   }
 
   network {
