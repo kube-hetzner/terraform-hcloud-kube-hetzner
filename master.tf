@@ -83,12 +83,17 @@ resource "hcloud_server" "first_control_plane" {
       # wait for k3s to get ready
       <<-EOT
       timeout 120 bash <<EOF
-        until [ -e /etc/rancher/k3s/k3s.yaml ]; do
-          echo "Waiting for kubectl config"
+        until systemctl status k3s-server > /dev/null; do
+          systemctl start k3s-server
+          echo "Initiating the cluster..."
           sleep 1
         done
-        until [[ "$(kubectl get --raw='/readyz')" == "ok" ]]; do
-          echo "Waiting for cluster to become ready"
+        until [ -e /etc/rancher/k3s/k3s.yaml ]; do
+          echo "Waiting for kubectl config..."
+          sleep 1
+        done
+        until [[ "\$(kubectl get --raw='/readyz')" == "ok" ]]; do
+          echo "Waiting for cluster to become ready..."
           sleep 1
         done
       EOF
