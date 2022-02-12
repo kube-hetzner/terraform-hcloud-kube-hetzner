@@ -78,8 +78,6 @@ resource "hcloud_server" "first_control_plane" {
       "mkdir -p /tmp/post_install",
       # then we initiate the cluster
       "systemctl enable k3s-server",
-      # start k3s
-      "systemctl start k3s-server",
       # wait for k3s to get ready
       <<-EOT
       timeout 120 bash <<EOF
