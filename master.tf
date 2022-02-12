@@ -91,7 +91,7 @@ resource "hcloud_server" "first_control_plane" {
           sleep 1
         done
         until [[ "\$(kubectl get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
-          echo "Waiting for cluster to become ready..."
+          echo "Waiting for the cluster to become ready..."
           sleep 1
         done
       EOF
