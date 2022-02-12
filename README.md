@@ -147,8 +147,6 @@ systemctl --now disable transactional-update.timer
 If you want to takedown the cluster, you can proceed as follows:
 
 ```sh
-kubectl delete -k hetzner/csi
-kubectl delete -k hetzner/ccm
 hcloud load-balancer delete traefik
 hcloud network delete k3s
 terraform destroy -auto-approve
