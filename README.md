@@ -156,9 +156,9 @@ _Also, if you had a full-blown cluster in use, it would be best to delete the wh
 
 <!-- CONTRIBUTING -->
 
-## In the code
+## History
 
-This project has tried two other OS flavors before settling on MicroOS. Fedora Server, and k3OS. The latter is now defunct, that's why we decided to upgrade to openSUSE MicroOS. However, our code base for it lives on in the [k3os branch](https://github.com/kube-hetzner/kube-hetzner/tree/k3os).
+This project has tried two other OS flavors before settling on MicroOS. Fedora Server, and k3OS. The latter, k3OS, is now defunct! However, our code base for it lives on in the [k3os branch](https://github.com/kube-hetzner/kube-hetzner/tree/k3os). Do not hesitate to check it out, it should still work.
 
 ## Contributing
 
