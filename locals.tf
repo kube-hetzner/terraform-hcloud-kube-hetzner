@@ -1,7 +1,8 @@
 locals {
   first_control_plane_network_ip = cidrhost(hcloud_network_subnet.k3s.ip_range, 2)
   hcloud_image_name              = "ubuntu-20.04"
-  ssh_public_key                 = trimspace(file(var.public_key))
+
+  ssh_public_key = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
   # ssh_identity is not set if the private key is passed directly, but if ssh agent is used, the public key tells ssh agent which private key to use.
@@ -10,9 +11,14 @@ locals {
   # ssh_identity_file is used for ssh "-i" flag, its the private key if that is set, or a public key file
   # if an ssh agent is used.
   ssh_identity_file = var.private_key == null ? var.public_key : var.private_key
-
   # shared flags for ssh to ignore host keys, to use root and our ssh identity file for all connections during provisioning.
   ssh_args = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${local.ssh_identity_file}"
+
+  ccm_version   = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm.release_tag
+  ccm_latest    = var.hetzner_ccm_containers_latest
+  csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
+  csi_latest    = var.hetzner_csi_containers_latest
+  kured_version = data.github_release.kured.release_tag
 
   MicroOS_install_commands = [
     "set -ex",

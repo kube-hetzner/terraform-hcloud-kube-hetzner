@@ -7,9 +7,7 @@ spec:
   template:
     spec:
       containers:
-        - image: hetznercloud/hcloud-cloud-controller-manager:latest
-          imagePullPolicy: Always
-          name: hcloud-cloud-controller-manager
+        - name: hcloud-cloud-controller-manager
           command:
             - "/bin/hcloud-cloud-controller-manager"
             - "--cloud-provider=hcloud"
@@ -17,3 +15,5 @@ spec:
             - "--allow-untagged-cloud"
             - "--allocate-node-cidrs=true"
             - "--cluster-cidr=10.42.0.0/16"
+          image: hetznercloud/hcloud-cloud-controller-manager:latest
+          imagePullPolicy: Always

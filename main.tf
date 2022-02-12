@@ -144,49 +144,6 @@ resource "hcloud_firewall" "k3s" {
 
 }
 
-resource "local_file" "hetzner_ccm_config" {
-  content = templatefile("${path.module}/templates/hetzner_ccm.yaml.tpl", {
-    ccm_version = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm.release_tag
-    patch_name  = var.hetzner_ccm_containers_latest ? "patch_latest" : "patch"
-  })
-  filename             = "${path.module}/hetzner/ccm/kustomization.yaml"
-  file_permission      = "0644"
-  directory_permission = "0755"
-}
-
-resource "local_file" "hetzner_csi_config" {
-  content = templatefile("${path.module}/templates/hetzner_csi.yaml.tpl", {
-    csi_version = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
-    patch_name  = var.hetzner_csi_containers_latest ? "patch_latest" : ""
-  })
-  filename             = "${path.module}/hetzner/csi/kustomization.yaml"
-  file_permission      = "0644"
-  directory_permission = "0755"
-}
-
-resource "local_file" "kured_config" {
-  content = templatefile("${path.module}/templates/kured.yaml.tpl", {
-    version = data.github_release.kured.release_tag
-  })
-  filename             = "${path.module}/kured/kustomization.yaml"
-  file_permission      = "0644"
-  directory_permission = "0755"
-}
-
-resource "local_file" "traefik_config" {
-  content = templatefile("${path.module}/templates/traefik_config.yaml.tpl", {
-    lb_disable_ipv6    = var.lb_disable_ipv6
-    lb_server_type     = var.lb_server_type
-    location           = var.location
-    traefik_acme_tls   = var.traefik_acme_tls
-    traefik_acme_email = var.traefik_acme_email
-  })
-  filename             = "${path.module}/templates/rendered/traefik_config.yaml"
-  file_permission      = "0644"
-  directory_permission = "0755"
-}
-
-
 resource "hcloud_placement_group" "k3s" {
   name = "k3s"
   type = "spread"
