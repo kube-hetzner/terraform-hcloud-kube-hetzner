@@ -8,6 +8,11 @@ output "agents_public_ip" {
   description = "The public IP addresses of the agent server."
 }
 
+output "load_balancer_public_ip" {
+  description = "The public IPv4 address of the Hetzner load balancer"
+  value = data.hcloud_load_balancer.traefik.ipv4
+}
+
 output "kubeconfig_file" {
   value       = local.kubeconfig_external
   description = "Kubeconfig file content with external IP address"

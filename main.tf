@@ -152,3 +152,7 @@ resource "hcloud_placement_group" "k3s" {
     "engine"      = "k3s"
   }
 }
+
+data "hcloud_load_balancer" "traefik" {
+  name = "traefik"
+}
