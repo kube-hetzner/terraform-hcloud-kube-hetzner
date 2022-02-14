@@ -10,7 +10,7 @@ output "agents_public_ip" {
 
 output "load_balancer_public_ip" {
   description = "The public IPv4 address of the Hetzner load balancer"
-  value = data.hcloud_load_balancer.traefik.ipv4
+  value       = data.hcloud_load_balancer.traefik.ipv4
 }
 
 output "kubeconfig_file" {
