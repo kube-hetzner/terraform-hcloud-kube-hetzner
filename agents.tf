@@ -81,7 +81,7 @@ resource "hcloud_server" "agents" {
       # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
       "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
       # then we start k3s agent and join the cluster
-      "systemctl enable k3s-server",
+      "systemctl enable k3s-agent",
       <<-EOT
         until systemctl status k3s-agent > /dev/null
         do
