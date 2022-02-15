@@ -15,9 +15,7 @@ locals {
   ssh_args = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${local.ssh_identity_file}"
 
   ccm_version   = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm.release_tag
-  ccm_latest    = var.hetzner_ccm_containers_latest
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
-  csi_latest    = var.hetzner_csi_containers_latest
   kured_version = data.github_release.kured.release_tag
 
   MicroOS_install_commands = [

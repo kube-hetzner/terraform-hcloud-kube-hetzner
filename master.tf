@@ -112,8 +112,7 @@ resource "hcloud_server" "first_control_plane" {
       ]
       patchesStrategicMerge = [
         file("${path.module}/patches/kured.yaml"),
-        local.ccm_latest ? file("${path.module}/patches/ccm_latest.yaml") : file("${path.module}/patches/ccm.yaml"),
-        local.csi_latest ? file("${path.module}/patches/csi_latest.yaml") : null,
+        file("${path.module}/patches/ccm.yaml")
       ]
     })
     destination = "/tmp/post_install/kustomization.yaml"

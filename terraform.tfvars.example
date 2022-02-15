@@ -23,12 +23,6 @@ agents_num                = 2
 # hetzner_ccm_version = ""
 # hetzner_csi_version = ""
 
-# If you want to kustomize the Hetzner CCM and CSI containers with the "latest" tags and imagePullPolicy Always, 
-# to have them automatically update when the node themselve get updated via the rancher system upgrade controller, the default is "true".
-# Instead, if you choose false, it will give you the versions that Hetzner uses at the time of install.
-# hetzner_ccm_containers_latest = false
-# hetzner_csi_containers_latest = false
-
 # If you want to use letsencrypt with tls Challenge, the email address is used to send you certificates expiration notices
 # traefik_acme_tls = true
 # traefik_acme_email = "mail@example.com"
