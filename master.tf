@@ -67,7 +67,7 @@ resource "hcloud_server" "first_control_plane" {
     destination = "/etc/rancher/k3s/config.yaml"
   }
 
-  # Run the first control plane
+  /*  # Run the first control plane
   provisioner "remote-exec" {
     inline = [
       # set the hostname in a persistent fashion
@@ -154,7 +154,7 @@ resource "hcloud_server" "first_control_plane" {
       "sed -i 's/^- |[0-9]\\+$/- |/g' /tmp/post_install/kustomization.yaml",
       "kubectl apply -k /tmp/post_install",
     ]
-  }
+  } */
 
   network {
     network_id = hcloud_network.k3s.id
