@@ -84,3 +84,16 @@ variable "allow_scheduling_on_control_plane" {
   default     = false
   description = "Whether to allow non-control-plane workloads to run on the control-plane nodes"
 }
+
+variable "k3s_upgrade_channel" {
+  type        = string
+  default     = "stable"
+  description = "Allows you to specify the k3s upgrade channel"
+}
+
+variable "automatically_upgrade_k3s" {
+  type        = bool
+  default     = true
+  description = "Whether to automatically upgrade k3s based on the selected channel"
+}
+

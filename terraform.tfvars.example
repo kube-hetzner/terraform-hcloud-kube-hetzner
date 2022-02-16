@@ -29,3 +29,12 @@ agents_num                = 2
 
 # If you want to allow non-control-plane workloads to run on the control-plane nodes set "true" below. The default is "false".
 # allow_scheduling_on_control_plane = true
+
+# If you want to disable automatic upgrade of k3s (stable channel), you can set this to false, default is "true".
+# automatically_upgrade_k3s = false
+
+# If you would like to specify the k3s upgrade channel from the get go, you can do so, the default is "stable".
+# For a list of available channels, see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
+# k3s_upgrade_channel = "latest"
+
+

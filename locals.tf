@@ -18,7 +18,7 @@ locals {
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
   kured_version = data.github_release.kured.release_tag
 
-  MicroOS_install_commands = [
+  microOS_install_commands = [
     "set -ex",
     "apt-get install -y aria2",
     "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-kvm-and-xen.qcow2.meta4",
@@ -33,5 +33,17 @@ locals {
     "mkdir /mnt/ignition",
     "cp /root/config.ign /mnt/ignition/config.ign",
     "umount /mnt"
+  ]
+
+  install_k3s_server = [
+    "set -ex",
+    # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
+    "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
+    # prepare the k3s config directory
+    "mkdir -p /etc/rancher/k3s",
+    # move the config file into place
+    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
+    # install k3s
+    "INSTALL_K3S_SKIP_START=true curl -sfL https://get.k3s.io | sh -",
   ]
 }
