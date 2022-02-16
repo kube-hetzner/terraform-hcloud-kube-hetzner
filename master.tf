@@ -180,7 +180,7 @@ resource "hcloud_server" "first_control_plane" {
       "sed -i 's/^- |[0-9]\\+$/- |/g' /tmp/post_install/kustomization.yaml",
       "kubectl apply -k /tmp/post_install",
       "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
-      "kubectl -n system-upgrade wait --for=condition=available --timeout=300s deployment/system-upgrade-controller",
+      "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
       "kubectl apply -f /tmp/post_install/plans.yaml"
     ]
   }
