@@ -35,27 +35,17 @@ locals {
     "umount /mnt"
   ]
 
-  install_k3s_server = [
+  common_commands_install_k3s = [
     "set -ex",
     # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
     "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
     # prepare the k3s config directory
     "mkdir -p /etc/rancher/k3s",
     # move the config file into place
-    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
-    # install k3s server
-    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=server sh -",
+    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml"
   ]
 
-  install_k3s_agent = [
-    "set -ex",
-    # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
-    "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-    # prepare the k3s config directory
-    "mkdir -p /etc/rancher/k3s",
-    # move the config file into place
-    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
-    # install k3s server
-    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=agent sh -",
-  ]
+  install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=server sh -"])
+
+  install_k3s_agent = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=agent sh -"])
 }
