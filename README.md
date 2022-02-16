@@ -128,18 +128,24 @@ By default, we have 3 control planes configured and 2 agents, with automatic upg
 
 **But if you want to remain HA, it's important to keep a number of control planes nodes of at least 3 (2 to maintain quorum when 1 goes down for automated upgrades and reboot for instance), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
 
-Otherwise, it's important to turn off automatic upgrades (see below) and reboots for the control-plane nodes (2 or less), and do the maintenance yourself.
+Otherwise, it's important to turn off automatic upgrades (see below) for the control-plane nodes (2 or less), and do the maintenance yourself.
 
 ## Automatic upgrade
 
-By default, MicroOS and its embedded k3s instance get upgraded automatically on each node, and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
+By default, MicroOS gets upgraded automatically on each node, and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
-_About [Kured](https://github.com/weaveworks/kured), it does not have a latest tag present for its image, but it's pretty compatible, so you can just manually update the tag from once every year for instance._
+As for k3s it is also automatically upgrades thanks to Rancher's <https://github.com/rancher/system-upgrade-controller>. By default it follows the k3s `stable` channel, but you can also change to `latest` one if needed, or specify a target version to upgrade to via the upgrade plan. You can copy and modify the one in the templates for that! More on the subject in [k3s upgrades basic](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
-_Last but not least, if you wish to turn off automatic upgrade on a specific node, you need to ssh into it and issue the following command:_
+_If you wish to turn off automatic MicroOS upgrades on a specific node, you need to ssh into it and issue the following command:_
 
 ```sh
 systemctl --now disable transactional-update.timer
+```
+
+_To turn off k3s upgrades, you can either set the `k3s_upgrade=true` label in the node you want, or set it to `false`. To just remove it, apply:_
+
+```sh
+kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 ```
 
 ## Takedown
