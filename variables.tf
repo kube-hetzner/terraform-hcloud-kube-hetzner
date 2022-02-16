@@ -7,11 +7,26 @@ variable "hcloud_token" {
 variable "public_key" {
   description = "SSH public Key."
   type        = string
+  default     = null
 }
 
 variable "private_key" {
   description = "SSH private Key."
   type        = string
+  default     = null
+}
+
+variable "public_key_pem" {
+  description = "SSH public Key in PEM format."
+  type        = string
+  default     = null
+}
+
+variable "private_key_pem" {
+  description = "SSH private Key in PEM format."
+  type        = string
+  sensitive   = true
+  default     = null
 }
 
 variable "location" {

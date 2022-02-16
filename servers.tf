@@ -36,14 +36,20 @@ resource "hcloud_server" "control_planes" {
   }
 
   # Issue a reboot command
-  provisioner "local-exec" {
-    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
+  provisioner "remote-exec" {
+    inline = [
+      "sleep 2",
+      "reboot"
+    ]
+    # reboot doesn't return a proper exit code, so we have to trust that it works
+    on_failure = continue
   }
 
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
     command = <<-EOT
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
+      sleep 3
+      until ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PubkeyAuthentication=no -o PasswordAuthentication=no -o KbdInteractiveAuthentication=no -o ChallengeResponseAuthentication=no -o ConnectTimeout=2 ${self.ipv4_address}  2>&1 | grep "Permission denied"
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 2
