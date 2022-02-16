@@ -59,7 +59,7 @@ resource "hcloud_server" "agents" {
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
       node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
-      node-label    = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
+      node-label    = var.automatically_upgrade_k3s ? ["k3s-upgrade=true"] : []
     })
     destination = "/tmp/config.yaml"
   }

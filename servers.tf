@@ -64,7 +64,7 @@ resource "hcloud_server" "control_planes" {
       advertise-address        = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
       tls-san                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
-      node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
+      node-label               = var.automatically_upgrade_k3s ? ["k3s-upgrade=true"] : []
     })
     destination = "/tmp/config.yaml"
   }

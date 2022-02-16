@@ -61,7 +61,7 @@ resource "hcloud_server" "first_control_plane" {
       advertise-address        = local.first_control_plane_network_ip
       token                    = random_password.k3s_token.result
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
-      node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
+      node-label               = var.automatically_upgrade_k3s ? ["k3s-upgrade=true"] : []
     })
     destination = "/tmp/config.yaml"
   }
