@@ -58,7 +58,7 @@ resource "hcloud_server" "agents" {
       token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
-      node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
+      node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + count.index)
       node-label    = var.automatically_upgrade_k3s ? ["k3s-upgrade=true"] : []
     })
     destination = "/tmp/config.yaml"
@@ -100,7 +100,7 @@ resource "hcloud_server" "agents" {
 
   network {
     network_id = hcloud_network.k3s.id
-    ip         = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
+    ip         = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + count.index)
   }
 
   depends_on = [

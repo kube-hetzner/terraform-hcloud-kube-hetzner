@@ -60,9 +60,9 @@ resource "hcloud_server" "control_planes" {
       disable                  = "servicelb, local-storage"
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
-      node-ip                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
-      advertise-address        = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
-      tls-san                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
+      node-ip                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
+      advertise-address        = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
+      tls-san                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s-upgrade=true"] : []
     })
@@ -104,7 +104,7 @@ resource "hcloud_server" "control_planes" {
 
   network {
     network_id = hcloud_network.k3s.id
-    ip         = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
+    ip         = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
   }
 
   depends_on = [

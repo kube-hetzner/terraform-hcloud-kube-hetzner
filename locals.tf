@@ -1,5 +1,5 @@
 locals {
-  first_control_plane_network_ip = cidrhost(hcloud_network_subnet.k3s.ip_range, 2)
+  first_control_plane_network_ip = cidrhost(hcloud_network_subnet.k3s.ip_range, 257)
   hcloud_image_name              = "ubuntu-20.04"
 
   ssh_public_key = trimspace(file(var.public_key))
