@@ -54,6 +54,8 @@ resource "hcloud_server" "agents" {
   provisioner "file" {
     content = yamlencode({
       node-name     = self.name
+      server        = "https://${local.first_control_plane_network_ip}:6443"
+      token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
       node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
@@ -64,22 +66,7 @@ resource "hcloud_server" "agents" {
 
   # Install k3s agent
   provisioner "remote-exec" {
-    inline = [
-      "set -ex",
-      # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
-      "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-      # prepare the k3s config directory
-      "mkdir -p /etc/rancher/k3s",
-      # move the config file into place
-      "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
-      # install k3s
-      <<-EOT
-      INSTALL_K3S_SKIP_START=true \
-      K3S_URL=${"https://${local.first_control_plane_network_ip}:6443"} \
-      K3S_TOKEN=${random_password.k3s_token.result} \
-      curl -sfL https://get.k3s.io | sh -
-      EOT
-    ]
+    inline = local.install_k3s_agent
   }
 
   # Issue a reboot command and wait for the node to reboot
@@ -103,7 +90,7 @@ resource "hcloud_server" "agents" {
       timeout 120 bash <<EOF
         until systemctl status k3s-agent > /dev/null; do
           echo "Waiting for the k3s agent to start..."
-          sleep 1
+          sleep 2
         done
       EOF
       EOT

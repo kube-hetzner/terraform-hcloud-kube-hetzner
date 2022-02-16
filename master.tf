@@ -97,15 +97,15 @@ resource "hcloud_server" "first_control_plane" {
       timeout 120 bash <<EOF
         until systemctl status k3s > /dev/null; do
           echo "Waiting for the k3s server to start..."
-          sleep 1
+          sleep 2
         done
         until [ -e /etc/rancher/k3s/k3s.yaml ]; do
           echo "Waiting for kubectl config..."
-          sleep 1
+          sleep 2
         done
         until [[ "\$(kubectl get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
           echo "Waiting for the cluster to become ready..."
-          sleep 1
+          sleep 2
         done
       EOF
       EOT
@@ -179,7 +179,8 @@ resource "hcloud_server" "first_control_plane" {
       # manifests themselves
       "sed -i 's/^- |[0-9]\\+$/- |/g' /tmp/post_install/kustomization.yaml",
       "kubectl apply -k /tmp/post_install",
-      "echo 'Waiting for the system-upgrade-controller deployment to become available...' && kubectl -n system-upgrade wait --for=condition=available --timeout=300s deployment/system-upgrade-controller",
+      "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
+      "kubectl -n system-upgrade wait --for=condition=available --timeout=300s deployment/system-upgrade-controller",
       "kubectl apply -f /tmp/post_install/plans.yaml"
     ]
   }

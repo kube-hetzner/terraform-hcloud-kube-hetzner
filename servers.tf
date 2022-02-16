@@ -54,6 +54,7 @@ resource "hcloud_server" "control_planes" {
     content = yamlencode({
       node-name                = self.name
       server                   = "https://${local.first_control_plane_network_ip}:6443"
+      token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
       disable                  = "servicelb, local-storage"
@@ -62,7 +63,6 @@ resource "hcloud_server" "control_planes" {
       node-ip                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
       advertise-address        = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
       tls-san                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 3 + count.index)
-      token                    = random_password.k3s_token.result
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
@@ -95,7 +95,7 @@ resource "hcloud_server" "control_planes" {
       timeout 120 bash <<EOF
         until systemctl status k3s > /dev/null; do
           echo "Waiting for the k3s server to start..."
-          sleep 1
+          sleep 2
         done
       EOF
       EOT
