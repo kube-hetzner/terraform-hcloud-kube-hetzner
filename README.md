@@ -126,17 +126,19 @@ ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 
 ## High Availability
 
-By default, we have 3 control planes configured and 2 agents, with automatic upgrades and reboots of the nodes.
+By default, we have 3 control planes and 2 agents configured, with automatic upgrades and reboots of the nodes.
 
-**But if you want to remain HA, it's important to keep a number of control planes nodes of at least 3 (2 to maintain quorum when 1 goes down for automated upgrades and reboot for instance), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
+**If you want to remain HA (no downtime), it's important to keep a number of control planes nodes of at least 3 (2 minimum to maintain quorum when 1 goes down for automated upgrades and reboot), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
 
-Otherwise, it's important to turn off automatic upgrades (see below) for the control-plane nodes (2 or less), and do the maintenance yourself.
+Otherwise, it's important to turn off automatic upgrades of the OS only (k3s can continue to update without issue) for the control-plane nodes (when 2 or less control-plane nodes), and do the maintenance yourself.
 
 ## Automatic Upgrade
 
 By default, MicroOS gets upgraded automatically on each node, and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
-As for k3s it is also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default it follows the k3s `stable` channel, but you can also change to `latest` one if needed, or specify a target version to upgrade to via the upgrade plan. You can copy and modify the one in the templates for that! More on the subject in [k3s upgrades basic](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
+As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default it follows the k3s `stable` channel, but you can also change to `latest` one if needed, or specify a target version to upgrade to via the upgrade plan.
+
+You can copy and modify the [one in the templates](https://github.com/kube-hetzner/kube-hetzner/blob/master/templates/plans.yaml.tpl) for that! More on the subject in [k3s upgrades basic](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
 _If you wish to turn off automatic MicroOS upgrades on a specific node, you need to ssh into it and issue the following command:_
 
