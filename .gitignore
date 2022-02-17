@@ -4,3 +4,4 @@ crash.log
 kubeconfig.yaml
 kubeconfig.yaml-e
 terraform.tfvars
+plans.yaml
