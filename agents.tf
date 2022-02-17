@@ -31,6 +31,12 @@ resource "hcloud_server" "agents" {
     destination = "/root/config.ign"
   }
 
+  # Combustion script file to install k3s-selinux
+  provisioner "file" {
+    content     = local.combustion_script
+    destination = "/root/script"
+  }
+
   # Install MicroOS
   provisioner "remote-exec" {
     inline = local.microOS_install_commands
@@ -69,20 +75,6 @@ resource "hcloud_server" "agents" {
     inline = local.install_k3s_agent
   }
 
-  # Issue a reboot command and wait for the node to reboot
-  provisioner "local-exec" {
-    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
-  }
-  provisioner "local-exec" {
-    command = <<-EOT
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
-      do
-        echo "Waiting for MicroOS to reboot and become available..."
-        sleep 2
-      done
-    EOT
-  }
-
   # Upon reboot verify that k3s agent starts correctly
   provisioner "remote-exec" {
     inline = [
@@ -96,7 +88,6 @@ resource "hcloud_server" "agents" {
       EOT
     ]
   }
-
 
   network {
     network_id = hcloud_network.k3s.id

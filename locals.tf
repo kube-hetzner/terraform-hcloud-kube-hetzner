@@ -20,6 +20,7 @@ locals {
 
   microOS_install_commands = [
     "set -ex",
+    "apt-get update",
     "apt-get install -y aria2",
     "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-kvm-and-xen.qcow2.meta4",
     "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
@@ -32,8 +33,19 @@ locals {
     "mount /dev/sda5 /mnt",
     "mkdir /mnt/ignition",
     "cp /root/config.ign /mnt/ignition/config.ign",
+    "mkdir /mnt/combustion",
+    "cp /root/script /mnt/combustion/script",
     "umount /mnt"
   ]
+
+  combustion_script = <<EOF
+#!/bin/bash
+# combustion: network
+rpm --import https://rpm.rancher.io/public.key
+zypper refresh
+zypper --gpg-auto-import-keys install -y https://rpm.rancher.io/k3s/stable/common/microos/noarch/k3s-selinux-0.4-1.sle.noarch.rpm
+udevadm settle
+    EOF
 
   common_commands_install_k3s = [
     "set -ex",
@@ -45,7 +57,7 @@ locals {
     "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml"
   ]
 
-  install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=server sh -"])
+  install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=server sh -"])
 
-  install_k3s_agent = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=agent sh -"])
+  install_k3s_agent = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_EXEC=agent sh -"])
 }
