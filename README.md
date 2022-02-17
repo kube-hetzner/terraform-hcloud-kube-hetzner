@@ -43,7 +43,7 @@ _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [
 
 <!-- GETTING STARTED -->
 
-## Getting started
+## Getting Started
 
 Follow those simple steps, and your world's cheapest Kube cluster will be up and running in no time.
 
@@ -88,7 +88,7 @@ export KUBECONFIG=/<path-to>/kubeconfig.yaml
 
 When the cluster is up and running, you can do whatever you wish with it! 🎉
 
-### Scaling nodes
+### Scaling Nodes
 
 ⚠️ Once you start with Terraform, it's best not to change the state manually in Hetzner, otherwise when you try to scale up or down, Terraform will complain that things changed outside of it and will not be able to do it. _In the future, we will provide a tool to create bare nodes, either agents or control planes, to be joined manually._
 
@@ -101,7 +101,7 @@ servers_num = 4
 agents_num = 3
 ```
 
-### Useful commands
+### Useful Commands
 
 - List your nodes IPs, with either of those:
 
@@ -122,7 +122,7 @@ hcloud network describe k3s
 ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 ```
 
-## By default HA
+## High Availability
 
 By default, we have 3 control planes configured and 2 agents, with automatic upgrades and reboots of the nodes.
 
@@ -130,7 +130,7 @@ By default, we have 3 control planes configured and 2 agents, with automatic upg
 
 Otherwise, it's important to turn off automatic upgrades (see below) for the control-plane nodes (2 or less), and do the maintenance yourself.
 
-## Automatic upgrade
+## Automatic Upgrade
 
 By default, MicroOS gets upgraded automatically on each node, and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
