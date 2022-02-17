@@ -97,7 +97,6 @@ resource "hcloud_server" "agents" {
     ]
   }
 
-
   network {
     network_id = hcloud_network.k3s.id
     ip         = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + count.index)
