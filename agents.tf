@@ -44,7 +44,7 @@ resource "hcloud_server" "agents" {
 
   # Issue a reboot command and wait for the node to reboot
   provisioner "local-exec" {
-    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
+    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 5"
   }
   provisioner "local-exec" {
     command = <<-EOT
