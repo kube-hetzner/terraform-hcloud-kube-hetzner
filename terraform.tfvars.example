@@ -36,5 +36,3 @@ agents_num                = 2
 # If you would like to specify the k3s upgrade channel from the get go, you can do so, the default is "stable".
 # For a list of available channels, see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
 # k3s_upgrade_channel = "latest"
-
-

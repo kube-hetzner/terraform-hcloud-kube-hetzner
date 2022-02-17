@@ -96,4 +96,3 @@ variable "automatically_upgrade_k3s" {
   default     = true
   description = "Whether to automatically upgrade k3s based on the selected channel"
 }
-
