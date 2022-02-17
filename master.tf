@@ -113,11 +113,12 @@ resource "hcloud_server" "first_control_plane" {
         "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
         "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-        "./traefik.yaml",
+        "traefik.yaml",
       ]
       patchesStrategicMerge = [
         file("${path.module}/patches/kured.yaml"),
-        file("${path.module}/patches/ccm.yaml")
+        file("${path.module}/patches/ccm.yaml"),
+        file("${path.module}/patches/system-upgrade-controller.yaml")
       ]
     })
     destination = "/tmp/post_install/kustomization.yaml"
