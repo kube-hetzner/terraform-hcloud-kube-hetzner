@@ -134,7 +134,7 @@ Otherwise, it's important to turn off automatic upgrades (see below) for the con
 
 By default, MicroOS gets upgraded automatically on each node, and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
-As for k3s it is also automatically upgrades thanks to Rancher's <https://github.com/rancher/system-upgrade-controller>. By default it follows the k3s `stable` channel, but you can also change to `latest` one if needed, or specify a target version to upgrade to via the upgrade plan. You can copy and modify the one in the templates for that! More on the subject in [k3s upgrades basic](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
+As for k3s it is also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default it follows the k3s `stable` channel, but you can also change to `latest` one if needed, or specify a target version to upgrade to via the upgrade plan. You can copy and modify the one in the templates for that! More on the subject in [k3s upgrades basic](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
 _If you wish to turn off automatic MicroOS upgrades on a specific node, you need to ssh into it and issue the following command:_
 
@@ -165,6 +165,8 @@ _Also, if you had a full-blown cluster in use, it would be best to delete the wh
 ## History
 
 This project has tried two other OS flavors before settling on MicroOS. Fedora Server, and k3OS. The latter, k3OS, is now defunct! However, our code base for it lives on in the [k3os branch](https://github.com/kube-hetzner/kube-hetzner/tree/k3os). Do not hesitate to check it out, it should still work.
+
+There is also a branch where openSUSE MicroOS came preinstalled with the k3s RPM from devel:kubic/k3s, but we moved away from that solution as the k3s version was rarely getting updates. See the [microOS-k3s-rpm](https://github.com/kube-hetzner/kube-hetzner/tree/microOS-k3s-rpm) branch for more.
 
 ## Contributing
 
