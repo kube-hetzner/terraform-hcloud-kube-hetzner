@@ -128,7 +128,7 @@ ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 
 By default, we have 3 control planes and 2 agents configured, with automatic upgrades and reboots of the nodes.
 
-**If you want to remain HA (no downtime), it's important to keep a number of control planes nodes of at least 3 (2 minimum to maintain quorum when 1 goes down for automated upgrades and reboot), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).**
+If you want to remain HA (no downtime), it's important to **keep a number of control planes nodes of at least 3** (2 minimum to maintain quorum when 1 goes down for automated upgrades and reboot), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).
 
 Otherwise, it's important to turn off automatic upgrades of the OS only (k3s can continue to update without issue) for the control-plane nodes (when 2 or less control-plane nodes), and do the maintenance yourself.
 
