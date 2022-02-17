@@ -4,4 +4,9 @@ crash.log
 kubeconfig.yaml
 kubeconfig.yaml-e
 terraform.tfvars
+<<<<<<< HEAD
 plans.yaml
+=======
+plans.yaml
+traefik_config.yaml
+>>>>>>> k3s-install

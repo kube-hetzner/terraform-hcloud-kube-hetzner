@@ -1,5 +1,5 @@
 locals {
-  first_control_plane_network_ip = cidrhost(hcloud_network_subnet.k3s.ip_range, 2)
+  first_control_plane_network_ip = cidrhost(hcloud_network_subnet.k3s.ip_range, 257)
   hcloud_image_name              = "ubuntu-20.04"
 
   ssh_public_key = trimspace(file(var.public_key))
@@ -18,11 +18,12 @@ locals {
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
   kured_version = data.github_release.kured.release_tag
 
-  MicroOS_install_commands = [
+  microOS_install_commands = [
     "set -ex",
+    "apt-get update",
     "apt-get install -y aria2",
-    "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-k3s-kvm-and-xen.qcow2.meta4",
-    "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*k3s.*qcow2$') /dev/sda",
+    "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-kvm-and-xen.qcow2.meta4",
+    "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
     "sgdisk -e /dev/sda",
     "parted -s /dev/sda resizepart 4 99%",
     "parted -s /dev/sda mkpart primary ext2 99% 100%",
@@ -32,6 +33,31 @@ locals {
     "mount /dev/sda5 /mnt",
     "mkdir /mnt/ignition",
     "cp /root/config.ign /mnt/ignition/config.ign",
+    "mkdir /mnt/combustion",
+    "cp /root/script /mnt/combustion/script",
     "umount /mnt"
   ]
+
+  combustion_script = <<EOF
+#!/bin/bash
+# combustion: network
+rpm --import https://rpm.rancher.io/public.key
+zypper refresh
+zypper --gpg-auto-import-keys install -y https://rpm.rancher.io/k3s/stable/common/microos/noarch/k3s-selinux-0.4-1.sle.noarch.rpm
+udevadm settle
+    EOF
+
+  common_commands_install_k3s = [
+    "set -ex",
+    # first we disable automatic reboot (after transactional updates), and configure the reboot method as kured
+    "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
+    # prepare the k3s config directory
+    "mkdir -p /etc/rancher/k3s",
+    # move the config file into place
+    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml"
+  ]
+
+  install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=server sh -"])
+
+  install_k3s_agent = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_EXEC=agent sh -"])
 }

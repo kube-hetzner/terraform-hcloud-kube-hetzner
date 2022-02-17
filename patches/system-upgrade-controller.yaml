@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: system-upgrade-controller
+  namespace: system-upgrade
+spec:
+  template:
+    spec:
+      containers:
+        - name: system-upgrade-controller
+          volumeMounts:
+            - name: ca-certificates
+              mountPath: /var/lib/ca-certificates
+      volumes:
+        - name: ca-certificates
+          hostPath:
+            path: /var/lib/ca-certificates
+            type: Directory
