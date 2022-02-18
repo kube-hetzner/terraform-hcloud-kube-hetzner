@@ -12,6 +12,7 @@ variable "public_key" {
 variable "additional_public_keys" {
   description = "Additional SSH public Keys."
   type        = list(string)
+  default     = []
 }
 
 variable "private_key" {
