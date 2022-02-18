@@ -42,14 +42,14 @@ resource "hcloud_server" "first_control_plane" {
 
   # Issue a reboot command and wait for the node to reboot
   provisioner "local-exec" {
-    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 5"
+    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
   }
   provisioner "local-exec" {
     command = <<-EOT
       until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
-        sleep 2
+        sleep 3
       done
     EOT
   }
