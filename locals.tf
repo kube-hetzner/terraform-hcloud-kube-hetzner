@@ -19,8 +19,6 @@ locals {
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
   kured_version = data.github_release.kured.release_tag
 
-  all_server_ips = concat([hcloud_server.first_control_plane.ipv4_address], hcloud_server.control_planes.*.ipv4_address, hcloud_server.agents.*.ipv4_address)
-
   MicroOS_install_commands = [
     "set -ex",
     "apt-get install -y aria2",
