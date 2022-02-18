@@ -3,6 +3,7 @@ locals {
   hcloud_image_name              = "ubuntu-20.04"
 
   ssh_public_key = trimspace(file(var.public_key))
+  ssh_public_keys = concat(var.additional_public_keys, [local.ssh_public_key])
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
   # ssh_identity is not set if the private key is passed directly, but if ssh agent is used, the public key tells ssh agent which private key to use.
@@ -17,6 +18,8 @@ locals {
   ccm_version   = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm.release_tag
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
   kured_version = data.github_release.kured.release_tag
+
+  all_server_ips = concat([hcloud_server.first_control_plane.ipv4_address], hcloud_server.control_planes.*.ipv4_address, hcloud_server.agents.*.ipv4_address)
 
   MicroOS_install_commands = [
     "set -ex",

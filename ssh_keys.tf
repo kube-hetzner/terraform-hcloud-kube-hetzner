@@ -1,5 +1,5 @@
 resource "null_resource" "add_ssh_keys" {
-  for_each = toset(concat([hcloud_server.first_control_plane.ipv4_address], hcloud_server.control_planes.*.ipv4_address, hcloud_server.agents.*.ipv4_address))
+  for_each = toset(local.all_server_ips)
 
   connection {
     user           = "root"
@@ -9,8 +9,8 @@ resource "null_resource" "add_ssh_keys" {
   }
 
   provisioner "remote-exec" {
-    inline = [ 
-      "echo '${join("\n", concat(var.additional_public_keys, [local.ssh_public_key]))}' > /root/.ssh/authorized_keys",
+    inline = [
+      "echo '${join("\n", local.ssh_public_keys)}' > /root/.ssh/authorized_keys",
     ]
   }
 
@@ -21,6 +21,6 @@ resource "null_resource" "add_ssh_keys" {
   ]
 
   triggers = {
-    always_run = "${join("\n", concat(var.additional_public_keys, [local.ssh_public_key]))}"
+    always_run = "${join("\n", local.ssh_public_keys)}"
   }
 }
