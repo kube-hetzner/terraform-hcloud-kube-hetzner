@@ -23,10 +23,7 @@ resource "hcloud_server" "control_planes" {
   }
 
   provisioner "file" {
-    content = templatefile("${path.module}/templates/config.ign.tpl", {
-      name           = self.name
-      ssh_public_key = local.ssh_public_key
-    })
+    content     = local.ignition_config
     destination = "/root/config.ign"
   }
 
