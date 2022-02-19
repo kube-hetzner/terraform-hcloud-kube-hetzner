@@ -45,7 +45,7 @@ locals {
     passwd = {
       users = [{
         name              = "root"
-        sshAuthorizedKeys = [local.ssh_public_key]
+        sshAuthorizedKeys = concat([local.ssh_public_key], var.additional_public_keys)
       }]
     }
     storage = {
