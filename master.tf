@@ -1,63 +1,45 @@
-resource "hcloud_server" "first_control_plane" {
+module "first_control_plane" {
+  source = "./modules/host"
+
   name = "k3s-control-plane-0"
 
-  image              = data.hcloud_image.linux.name
-  rescue             = "linux64"
-  server_type        = var.control_plane_server_type
-  location           = var.location
   ssh_keys           = [hcloud_ssh_key.k3s.id]
+  public_key         = var.public_key
+  private_key        = var.private_key
   firewall_ids       = [hcloud_firewall.k3s.id]
   placement_group_id = hcloud_placement_group.k3s.id
+  location           = var.location
+  network_id         = hcloud_network.k3s.id
+  ip                 = local.first_control_plane_network_ip
+  server_type        = var.control_plane_server_type
 
   labels = {
     "provisioner" = "terraform",
     "engine"      = "k3s"
   }
 
+  hcloud_token = var.hcloud_token
+}
+
+resource "null_resource" "first_control_plane" {
+
+  triggers = {
+    first_control_plane_id = module.first_control_plane.id
+  }
+
+
   connection {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = self.ipv4_address
-  }
-
-  provisioner "file" {
-    content = templatefile("${path.module}/templates/config.ign.tpl", {
-      name           = self.name
-      ssh_public_key = local.ssh_public_key
-    })
-    destination = "/root/config.ign"
-  }
-
-  # Combustion script file to install k3s-selinux
-  provisioner "file" {
-    content     = local.combustion_script
-    destination = "/root/script"
-  }
-
-  # Install MicroOS
-  provisioner "remote-exec" {
-    inline = local.microOS_install_commands
-  }
-
-  # Issue a reboot command and wait for the node to reboot
-  provisioner "local-exec" {
-    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
-  }
-  provisioner "local-exec" {
-    command = <<-EOT
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
-      do
-        echo "Waiting for MicroOS to reboot and become available..."
-        sleep 3
-      done
-    EOT
+    host           = module.first_control_plane.ipv4_address
   }
 
   # Generating k3s master config file
   provisioner "file" {
     content = yamlencode({
-      node-name                = self.name
+      node-name                = module.first_control_plane.name
+      token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
       disable                  = ["servicelb", "local-storage"]
@@ -65,7 +47,7 @@ resource "hcloud_server" "first_control_plane" {
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = local.first_control_plane_network_ip
       advertise-address        = local.first_control_plane_network_ip
-      token                    = random_password.k3s_token.result
+      tls-san                  = local.first_control_plane_network_ip
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
@@ -175,11 +157,6 @@ resource "hcloud_server" "first_control_plane" {
       "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
       "kubectl -n system-upgrade apply -f /tmp/post_install/plans.yaml"
     ]
-  }
-
-  network {
-    network_id = hcloud_network.k3s.id
-    ip         = local.first_control_plane_network_ip
   }
 
   depends_on = [

@@ -1,65 +1,45 @@
-resource "hcloud_server" "agents" {
+module "agents" {
+  source = "./modules/host"
+
   count = var.agents_num
   name  = "k3s-agent-${count.index}"
 
-  image              = data.hcloud_image.linux.name
-  rescue             = "linux64"
-  server_type        = var.agent_server_type
-  location           = var.location
   ssh_keys           = [hcloud_ssh_key.k3s.id]
+  public_key         = var.public_key
+  private_key        = var.private_key
   firewall_ids       = [hcloud_firewall.k3s.id]
   placement_group_id = hcloud_placement_group.k3s.id
-
+  location           = var.location
+  network_id         = hcloud_network.k3s.id
+  ip                 = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + count.index)
+  server_type        = var.control_plane_server_type
 
   labels = {
     "provisioner" = "terraform",
-    "engine"      = "k3s",
+    "engine"      = "k3s"
+  }
+
+  hcloud_token = var.hcloud_token
+}
+
+resource "null_resource" "agents" {
+  count = var.agents_num
+
+  triggers = {
+    agent_id = module.agents[count.index].id
   }
 
   connection {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = self.ipv4_address
-  }
-
-  provisioner "file" {
-    content = templatefile("${path.module}/templates/config.ign.tpl", {
-      name           = self.name
-      ssh_public_key = local.ssh_public_key
-    })
-    destination = "/root/config.ign"
-  }
-
-  # Combustion script file to install k3s-selinux
-  provisioner "file" {
-    content     = local.combustion_script
-    destination = "/root/script"
-  }
-
-  # Install MicroOS
-  provisioner "remote-exec" {
-    inline = local.microOS_install_commands
-  }
-
-  # Issue a reboot command and wait for the node to reboot
-  provisioner "local-exec" {
-    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
-  }
-  provisioner "local-exec" {
-    command = <<-EOT
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
-      do
-        echo "Waiting for MicroOS to reboot and become available..."
-        sleep 3
-      done
-    EOT
+    host           = module.agents[count.index].ipv4_address
   }
 
   # Generating k3s agent config file
   provisioner "file" {
     content = yamlencode({
-      node-name     = self.name
+      node-name     = module.agents[count.index].name
       server        = "https://${local.first_control_plane_network_ip}:6443"
       token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
@@ -89,13 +69,8 @@ resource "hcloud_server" "agents" {
     ]
   }
 
-  network {
-    network_id = hcloud_network.k3s.id
-    ip         = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + count.index)
-  }
-
   depends_on = [
-    hcloud_server.first_control_plane,
+    null_resource.first_control_plane,
     hcloud_network_subnet.k3s
   ]
 }
