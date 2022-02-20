@@ -152,6 +152,41 @@ _To turn off k3s upgrades, you can either set the `k3s_upgrade=true` label in th
 kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 ```
 
+## Example Ingress with TLS
+
+Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example
+```sh
+kubectl apply -f examples/tls/.
+```
+```yml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  annotations:
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: le
+spec:
+  tls:
+    - hosts:
+        - example.com
+      secretName: example-tls
+  rules:
+    - host: example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 80
+
+
+```
+
+
 ## Takedown
 
 If you want to takedown the cluster, you can proceed as follows:
