@@ -3,15 +3,16 @@ module "first_control_plane" {
 
   name = "k3s-control-plane-0"
 
-  ssh_keys           = [hcloud_ssh_key.k3s.id]
-  public_key         = var.public_key
-  private_key        = var.private_key
-  firewall_ids       = [hcloud_firewall.k3s.id]
-  placement_group_id = hcloud_placement_group.k3s.id
-  location           = var.location
-  network_id         = hcloud_network.k3s.id
-  ip                 = local.first_control_plane_network_ip
-  server_type        = var.control_plane_server_type
+  ssh_keys               = [hcloud_ssh_key.k3s.id]
+  public_key             = var.public_key
+  private_key            = var.private_key
+  additional_public_keys = var.additional_public_keys
+  firewall_ids           = [hcloud_firewall.k3s.id]
+  placement_group_id     = hcloud_placement_group.k3s.id
+  location               = var.location
+  network_id             = hcloud_network.k3s.id
+  ip                     = local.first_control_plane_network_ip
+  server_type            = var.control_plane_server_type
 
   labels = {
     "provisioner" = "terraform",
@@ -69,6 +70,7 @@ resource "null_resource" "first_control_plane" {
       <<-EOT
       timeout 120 bash <<EOF
         until systemctl status k3s > /dev/null; do
+          systemctl start k3s
           echo "Waiting for the k3s server to start..."
           sleep 2
         done

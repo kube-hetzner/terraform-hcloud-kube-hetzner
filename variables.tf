@@ -14,6 +14,12 @@ variable "private_key" {
   type        = string
 }
 
+variable "additional_public_keys" {
+  description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes"
+  type        = list(string)
+  default     = []
+}
+
 variable "location" {
   description = "Default server location"
   type        = string

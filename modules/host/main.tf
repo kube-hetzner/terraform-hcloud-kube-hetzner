@@ -25,10 +25,7 @@ resource "hcloud_server" "server" {
   }
 
   provisioner "file" {
-    content = templatefile("${path.module}/templates/config.ign.tpl", {
-      name           = self.name
-      ssh_public_key = local.ssh_public_key
-    })
+    content     = local.ignition_config
     destination = "/root/config.ign"
   }
 
@@ -54,7 +51,7 @@ resource "hcloud_server" "server" {
       until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
-        sleep 2
+        sleep 3
       done
     EOT
   }
