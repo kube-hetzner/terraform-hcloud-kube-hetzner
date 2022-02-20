@@ -100,9 +100,9 @@ resource "null_resource" "first_control_plane" {
         "traefik.yaml",
       ]
       patchesStrategicMerge = [
-        file("${path.module}/patches/kured.yaml"),
-        file("${path.module}/patches/ccm.yaml"),
-        file("${path.module}/patches/system-upgrade-controller.yaml")
+        file("${path.module}/kustomize/kured.yaml"),
+        file("${path.module}/kustomize/ccm.yaml"),
+        file("${path.module}/kustomize/system-upgrade-controller.yaml")
       ]
     })
     destination = "/tmp/post_install/kustomization.yaml"
