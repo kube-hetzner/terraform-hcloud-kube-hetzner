@@ -1,66 +1,51 @@
-resource "hcloud_server" "control_planes" {
+module "control_planes" {
+  source = "./modules/host"
+
   count = var.servers_num - 1
   name  = "k3s-control-plane-${count.index + 1}"
 
-  image              = data.hcloud_image.linux.name
-  rescue             = "linux64"
-  server_type        = var.control_plane_server_type
-  location           = var.location
-  ssh_keys           = [hcloud_ssh_key.k3s.id]
-  firewall_ids       = [hcloud_firewall.k3s.id]
-  placement_group_id = hcloud_placement_group.k3s.id
+  ssh_keys               = [hcloud_ssh_key.k3s.id]
+  public_key             = var.public_key
+  private_key            = var.private_key
+  additional_public_keys = var.additional_public_keys
+  firewall_ids           = [hcloud_firewall.k3s.id]
+  placement_group_id     = hcloud_placement_group.k3s.id
+  location               = var.location
+  network_id             = hcloud_network.k3s.id
+  ip                     = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
+  server_type            = var.control_plane_server_type
 
   labels = {
     "provisioner" = "terraform",
-    "engine"      = "k3s",
+    "engine"      = "k3s"
+  }
+
+  hcloud_token = var.hcloud_token
+}
+
+resource "null_resource" "control_planes" {
+  count = var.servers_num - 1
+
+  triggers = {
+    control_plane_id = module.control_planes[count.index].id
   }
 
   connection {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = self.ipv4_address
-  }
-
-  provisioner "file" {
-    content     = local.ignition_config
-    destination = "/root/config.ign"
-  }
-
-  # Combustion script file to install k3s-selinux
-  provisioner "file" {
-    content     = local.combustion_script
-    destination = "/root/script"
-  }
-
-  # Install MicroOS
-  provisioner "remote-exec" {
-    inline = local.microOS_install_commands
-  }
-
-  # Issue a reboot command and wait for the node to reboot
-  provisioner "local-exec" {
-    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
-  }
-  provisioner "local-exec" {
-    command = <<-EOT
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
-      do
-        echo "Waiting for MicroOS to reboot and become available..."
-        sleep 3
-      done
-    EOT
+    host           = module.control_planes[count.index].ipv4_address
   }
 
   # Generating k3s server config file
   provisioner "file" {
     content = yamlencode({
-      node-name                = self.name
+      node-name                = module.control_planes[count.index].name
       server                   = "https://${local.first_control_plane_network_ip}:6443"
       token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
-      disable                  = "servicelb, local-storage"
+      disable                  = ["servicelb", "local-storage"]
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
@@ -93,13 +78,8 @@ resource "hcloud_server" "control_planes" {
     ]
   }
 
-  network {
-    network_id = hcloud_network.k3s.id
-    ip         = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
-  }
-
   depends_on = [
-    hcloud_server.first_control_plane,
+    null_resource.first_control_plane,
     hcloud_network_subnet.k3s
   ]
 }

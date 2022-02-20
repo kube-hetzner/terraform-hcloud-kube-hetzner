@@ -16,7 +16,3 @@ data "github_release" "kured" {
   owner       = "weaveworks"
   retrieve_by = "latest"
 }
-
-data "hcloud_image" "linux" {
-  name = local.hcloud_image_name
-}
