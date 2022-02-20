@@ -59,11 +59,11 @@ resource "null_resource" "agents" {
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = [
-      "systemctl start k3s-agent",
+      "systemctl start k3s-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
         until systemctl status k3s-agent > /dev/null; do
-          systemctl start k3s-agent
+          systemctl start k3s-agent 2> /dev/null
           echo "Waiting for the k3s agent to start..."
           sleep 2
         done
