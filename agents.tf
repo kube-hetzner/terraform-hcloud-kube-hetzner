@@ -72,12 +72,14 @@ resource "hcloud_server" "agents" {
     inline = local.install_k3s_agent
   }
 
-  # Upon reboot verify that k3s agent starts correctly
+  # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = [
+      "systemctl start k3s-agent",
       <<-EOT
       timeout 120 bash <<EOF
         until systemctl status k3s-agent > /dev/null; do
+          systemctl start k3s-agent
           echo "Waiting for the k3s agent to start..."
           sleep 2
         done

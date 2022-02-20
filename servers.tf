@@ -77,13 +77,14 @@ resource "hcloud_server" "control_planes" {
     inline = local.install_k3s_server
   }
 
-  # Upon reboot verify that the k3s server starts correctly
+  # Start the k3s server and wait for it to have started correctly
   provisioner "remote-exec" {
     inline = [
       "systemctl start k3s",
       <<-EOT
       timeout 120 bash <<EOF
         until systemctl status k3s > /dev/null; do
+          systemctl start k3s
           echo "Waiting for the k3s server to start..."
           sleep 2
         done
