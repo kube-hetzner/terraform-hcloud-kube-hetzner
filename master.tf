@@ -157,7 +157,14 @@ resource "null_resource" "first_control_plane" {
       "kubectl apply -k /tmp/post_install",
       "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
       "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
-      "kubectl -n system-upgrade apply -f /tmp/post_install/plans.yaml"
+      "kubectl -n system-upgrade apply -f /tmp/post_install/plans.yaml",
+      <<-EOT
+      timeout 120 bash <<EOF
+      until [ -n "\$(kubectl get -n kube-system service/traefik --output=jsonpath='{.status.loadBalancer.ingress[0].ip}')" ]; do
+          echo "Waiting for load-balancer to get an IP..."
+      done
+      EOF
+      EOT
     ]
   }
 

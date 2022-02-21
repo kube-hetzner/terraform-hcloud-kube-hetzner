@@ -153,10 +153,8 @@ resource "hcloud_placement_group" "k3s" {
   }
 }
 
-/* 
 data "hcloud_load_balancer" "traefik" {
   name = "traefik"
 
-  depends_on = [hcloud_server.agents[0]]
+  depends_on = [module.first_control_plane]
 }
-*/
