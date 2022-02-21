@@ -156,5 +156,40 @@ resource "hcloud_placement_group" "k3s" {
 data "hcloud_load_balancer" "traefik" {
   name = "traefik"
 
-  depends_on = [module.first_control_plane]
+  depends_on = [null_resource.cluster_provisioning]
+}
+
+
+resource "null_resource" "cluster_provisioning" {
+
+  triggers = {
+    agent_ids         = "${join(",", module.agents.*.id)}"
+    control_plane_ids = "${join(",", concat([module.first_control_plane.id], module.control_planes.*.id))}"
+  }
+
+  depends_on = [ null_resource.first_control_plane, null_resource.control_planes, null_resource.agents ]
+
+  provisioner "remote-exec" {
+    connection {
+      user           = "root"
+      private_key    = local.ssh_private_key
+      agent_identity = local.ssh_identity
+      host           = module.first_control_plane.ipv4_address
+    }
+
+    inline = [
+      <<-EOT
+      timeout 120 bash <<EOF
+      until [ -n "\$(kubectl get -n kube-system service/traefik --output=jsonpath='{.status.loadBalancer.ingress[0].ip}')" ]; do
+          echo "Waiting for load-balancer to get an IP..."
+      done
+      EOF
+      EOT
+    ]
+  }
+
+  provisioner "local-exec" {
+    when = destroy
+    command = "hcloud load-balancer delete traefik"
+  }
 }
