@@ -167,7 +167,7 @@ resource "null_resource" "cluster_provisioning" {
     control_plane_ids = "${join(",", concat([module.first_control_plane.id], module.control_planes.*.id))}"
   }
 
-  depends_on = [ null_resource.first_control_plane, null_resource.control_planes, null_resource.agents ]
+  depends_on = [null_resource.first_control_plane, null_resource.control_planes, null_resource.agents]
 
   provisioner "remote-exec" {
     connection {
@@ -189,7 +189,7 @@ resource "null_resource" "cluster_provisioning" {
   }
 
   provisioner "local-exec" {
-    when = destroy
+    when    = destroy
     command = "hcloud load-balancer delete traefik"
   }
 }
