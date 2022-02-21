@@ -161,13 +161,11 @@ data "hcloud_load_balancer" "traefik" {
 
 
 resource "null_resource" "cluster_provisioning" {
-
-  triggers = {
-    agent_ids         = "${join(",", module.agents.*.id)}"
-    control_plane_ids = "${join(",", concat([module.first_control_plane.id], module.control_planes.*.id))}"
-  }
-
-  depends_on = [null_resource.first_control_plane, null_resource.control_planes, null_resource.agents]
+  depends_on = [
+    null_resource.first_control_plane,
+    null_resource.control_planes,
+    null_resource.agents
+  ]
 
   provisioner "remote-exec" {
     connection {
