@@ -58,8 +58,7 @@ resource "null_resource" "first_control_plane" {
   }
 
   depends_on = [
-    hcloud_network_subnet.k3s,
-    hcloud_firewall.k3s
+    hcloud_network_subnet.k3s
   ]
 }
 
