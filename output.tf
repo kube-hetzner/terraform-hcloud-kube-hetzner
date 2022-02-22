@@ -1,5 +1,5 @@
 output "controlplanes_public_ip" {
-  value       = concat([module.first_control_plane.ipv4_address], module.control_planes.*.ipv4_address)
+  value       = module.control_planes.*.ipv4_address
   description = "The public IP addresses of the controlplane server."
 }
 
