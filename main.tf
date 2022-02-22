@@ -156,19 +156,5 @@ resource "hcloud_placement_group" "k3s" {
 data "hcloud_load_balancer" "traefik" {
   name = "traefik"
 
-  depends_on = [null_resource.cluster_provisioning]
-}
-
-
-resource "null_resource" "cluster_provisioning" {
-
-  provisioner "local-exec" {
-    when    = destroy
-    command = <<-EOT
-      hcloud load-balancer delete traefik
-      hcloud network delete k3s
-    EOT
-  }
-
   depends_on = [null_resource.first_control_plane]
 }
