@@ -13,7 +13,7 @@ module "agents" {
   location               = var.location
   network_id             = hcloud_network.k3s.id
   ip                     = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + count.index)
-  server_type            = var.control_plane_server_type
+  server_type            = var.agent_server_type
 
   labels = {
     "provisioner" = "terraform",
