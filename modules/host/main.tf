@@ -56,13 +56,15 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Run the agent
   provisioner "remote-exec" {
     inline = [
-      # set the hostname in a persistent fashion
-      "hostnamectl set-hostname ${self.name}",
       # Disable automatic reboot (after transactional updates), and configure the reboot method as kured
-      "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf"
+      "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
+      # set the hostname
+      <<-EOT
+      hostnamectl set-hostname ${self.name}
+      sed -e 's#NETCONFIG_NIS_SETDOMAINNAME="yes"#NETCONFIG_NIS_SETDOMAINNAME="no"#g' /etc/sysconfig/network/config > /dev/null
+      EOT
     ]
   }
 }

@@ -22,6 +22,8 @@
 
 ## About The Project
 
+ℹ️ _This project is still in development and changing rapidly. Soon enough we will have a stable release with semver-compliant versions. Thank you for your patience._
+
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
 The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot.
