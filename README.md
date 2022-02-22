@@ -19,7 +19,7 @@
   <hr />
 </p>
 
-ℹ️ _This project is still in development and changing rapidly. Soon enough we will have a stable release with semver-compliant versions. Thank you for your patience._
+ℹ️ _This project is still in development and changing rapidly. Soon enough we will have a stable release with semver-compliant versions. Thank you for your patience!_
 
 ## About The Project
 
