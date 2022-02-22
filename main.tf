@@ -156,5 +156,5 @@ resource "hcloud_placement_group" "k3s" {
 data "hcloud_load_balancer" "traefik" {
   name = "traefik"
 
-  depends_on = [null_resource.first_control_plane]
+  depends_on = [null_resource.kustomization]
 }

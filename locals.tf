@@ -1,5 +1,5 @@
 locals {
-  first_control_plane_network_ip = cidrhost(hcloud_network_subnet.k3s.ip_range, 257)
+  first_control_plane_network_ip = module.control_planes[0].private_ipv4_address
 
   ssh_public_key = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
@@ -22,7 +22,9 @@ locals {
     # prepare the k3s config directory
     "mkdir -p /etc/rancher/k3s",
     # move the config file into place
-    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml"
+    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
+    # if the server has already been initialized just stop here
+    "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
   ]
 
   install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC=server sh -"])

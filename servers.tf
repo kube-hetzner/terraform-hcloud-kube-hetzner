@@ -1,8 +1,8 @@
 module "control_planes" {
   source = "./modules/host"
 
-  count = var.servers_num - 1
-  name  = "k3s-control-plane-${count.index + 1}"
+  count = var.servers_num
+  name  = "k3s-control-plane-${count.index}"
 
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
@@ -12,7 +12,7 @@ module "control_planes" {
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = var.location
   network_id             = hcloud_network.k3s.id
-  ip                     = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
+  ip                     = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
   server_type            = var.control_plane_server_type
 
   labels = {
@@ -24,7 +24,7 @@ module "control_planes" {
 }
 
 resource "null_resource" "control_planes" {
-  count = var.servers_num - 1
+  count = var.servers_num
 
   triggers = {
     control_plane_id = module.control_planes[count.index].id
@@ -41,15 +41,15 @@ resource "null_resource" "control_planes" {
   provisioner "file" {
     content = yamlencode({
       node-name                = module.control_planes[count.index].name
-      server                   = "https://${local.first_control_plane_network_ip}:6443"
+      server                   = "https://${element(module.control_planes.*.private_ipv4_address, count.index > 0 ? 0 : 1)}:6443"
       token                    = random_password.k3s_token.result
       disable-cloud-controller = true
       disable                  = ["servicelb", "local-storage"]
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
-      node-ip                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
-      advertise-address        = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
-      tls-san                  = cidrhost(hcloud_network_subnet.k3s.ip_range, 258 + count.index)
+      node-ip                  = module.control_planes[count.index].private_ipv4_address
+      advertise-address        = module.control_planes[count.index].private_ipv4_address
+      tls-san                  = module.control_planes[count.index].private_ipv4_address
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
