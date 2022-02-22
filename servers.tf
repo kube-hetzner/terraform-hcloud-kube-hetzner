@@ -43,7 +43,6 @@ resource "null_resource" "control_planes" {
       node-name                = module.control_planes[count.index].name
       server                   = "https://${element(module.control_planes.*.private_ipv4_address, count.index > 0 ? 0 : 1)}:6443"
       token                    = random_password.k3s_token.result
-      cluster-init             = true
       disable-cloud-controller = true
       disable                  = ["servicelb", "local-storage"]
       flannel-iface            = "eth1"
