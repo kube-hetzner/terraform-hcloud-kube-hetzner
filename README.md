@@ -192,7 +192,6 @@ spec:
 ```
 
 </details>
-<br />
 
 ## Takedown
 
