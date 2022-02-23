@@ -8,26 +8,25 @@ resource "hcloud_server" "server" {
   ssh_keys           = var.ssh_keys
   firewall_ids       = var.firewall_ids
   placement_group_id = var.placement_group_id
-
+  user_data          = data.template_cloudinit_config.config.rendered
 
   labels = var.labels
+
+  # Prevent destroying the whole cluster if the user changes
+  # any of the attributes that force to recreate the servers.
+  lifecycle {
+    ignore_changes = [
+      location,
+      ssh_keys,
+      user_data,
+    ]
+  }
 
   connection {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
     host           = self.ipv4_address
-  }
-
-  provisioner "file" {
-    content     = local.ignition_config
-    destination = "/root/config.ign"
-  }
-
-  # Combustion script file to install k3s-selinux
-  provisioner "file" {
-    content     = local.combustion_script
-    destination = "/root/script"
   }
 
   # Install MicroOS
@@ -50,21 +49,40 @@ resource "hcloud_server" "server" {
       done
     EOT
   }
-
-  provisioner "remote-exec" {
-    inline = [
-      # Disable automatic reboot (after transactional updates), and configure the reboot method as kured
-      "set -ex",
-      "rebootmgrctl set-strategy off",
-      "echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-      # set the hostname
-      "hostnamectl set-hostname ${self.name}"
-    ]
-  }
 }
 
 resource "hcloud_server_network" "server" {
   ip        = var.private_ipv4
   server_id = hcloud_server.server.id
   subnet_id = var.ipv4_subnet_id
+}
+
+data "template_cloudinit_config" "config" {
+  gzip          = true
+  base64_encode = true
+
+  # Main cloud-config configuration file.
+  part {
+    filename     = "init.cfg"
+    content_type = "text/cloud-config"
+    content = templatefile(
+      "${path.module}/templates/userdata.yaml.tpl",
+      {
+        hostname          = var.name
+        sshAuthorizedKeys = concat([local.ssh_public_key], var.additional_public_keys)
+      }
+    )
+  }
+
+  # Initialization script (runs at every reboot)
+  part {
+    content_type = "text/cloud-boothook"
+    filename     = "boothook.sh"
+    content = templatefile(
+      "${path.module}/templates/boothook.sh.tpl",
+      {
+        hostname = var.name
+      }
+    )
+  }
 }
