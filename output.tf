@@ -4,7 +4,9 @@ output "controlplanes_public_ip" {
 }
 
 output "agents_public_ip" {
-  value       = module.agents.*.ipv4_address
+  value = [
+    for obj in module.agents : obj.ipv4_address
+  ]
   description = "The public IP addresses of the agent server."
 }
 

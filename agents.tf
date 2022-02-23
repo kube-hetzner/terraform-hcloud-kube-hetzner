@@ -1,9 +1,9 @@
 module "agents" {
   source = "./modules/host"
 
-  count = var.agents_num
-  name  = "k3s-agent-${count.index}"
+  for_each = local.agent_nodepools
 
+  name                   = each.key
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
   private_key            = var.private_key
@@ -12,8 +12,8 @@ module "agents" {
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = var.location
   network_id             = hcloud_network.k3s.id
-  ip                     = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + count.index)
-  server_type            = var.agent_server_type
+  ip                     = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + each.value.index)
+  server_type            = each.value.server_type
 
   labels = {
     "provisioner" = "terraform",
@@ -24,28 +24,28 @@ module "agents" {
 }
 
 resource "null_resource" "agents" {
-  count = var.agents_num
+  for_each = local.agent_nodepools
 
   triggers = {
-    agent_id = module.agents[count.index].id
+    agent_id = module.agents[each.key].id
   }
 
   connection {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = module.agents[count.index].ipv4_address
+    host           = module.agents[each.key].ipv4_address
   }
 
   # Generating k3s agent config file
   provisioner "file" {
     content = yamlencode({
-      node-name     = module.agents[count.index].name
+      node-name     = module.agents[each.key].name
       server        = "https://${local.first_control_plane_network_ip}:6443"
       token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
-      node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + count.index)
+      node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + each.value.index)
       node-label    = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
     destination = "/tmp/config.yaml"

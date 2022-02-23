@@ -35,10 +35,6 @@ variable "control_plane_server_type" {
   type        = string
 }
 
-variable "agent_server_type" {
-  description = "Default agent server type"
-  type        = string
-}
 
 variable "lb_server_type" {
   description = "Default load balancer server type"
@@ -56,9 +52,12 @@ variable "servers_num" {
   type        = number
 }
 
-variable "agents_num" {
+variable "agent_nodepools" {
   description = "Number of agent nodes."
-  type        = number
+  type = map(object({
+    server_type = string
+    count       = number
+  }))
 }
 
 variable "hetzner_ccm_version" {

@@ -9,7 +9,6 @@ private_key  = "/home/username/.ssh/id_ed25519"
 # For Hetzner server types see https://www.hetzner.com/cloud
 location                  = "fsn1" # change to `ash` for us-east Ashburn, Virginia location
 network_region            = "eu-central" # change to `us-east` if location is ash
-agent_server_type         = "cpx21"
 control_plane_server_type = "cpx11"
 lb_server_type            = "lb11"
 
@@ -17,7 +16,17 @@ lb_server_type            = "lb11"
 servers_num               = 3
 
 # For agent nodes, at least 2 is recommended for HA, but you can keep automatic upgrades.
-agents_num                = 2
+agent_nodepools = {
+  big = {
+    server_type = "cpx31",
+    count       = 3
+  }
+  # Will fail because of the ip address collision (we use index number)
+  # small = {
+  #   server_type = "cpx31",
+  #   count       = 3
+  # }
+}
 
 # If you want to use a specific Hetzner CCM and CSI version, set them below, otherwise leave as is for the latest versions
 # hetzner_ccm_version = ""
