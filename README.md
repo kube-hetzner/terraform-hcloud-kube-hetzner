@@ -153,12 +153,17 @@ _To turn off k3s upgrades, you can either set the `k3s_upgrade=true` label in th
 kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 ```
 
-## Example Ingress with TLS
+## Examples
 
-Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example
+<details>
+<summary>Ingress with TLS</summary>
+
+Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example:
+
 ```sh
 kubectl apply -f examples/tls/.
 ```
+
 ```yml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -184,9 +189,10 @@ spec:
                 port:
                   number: 80
 
-
 ```
 
+</details>
+<br />
 
 ## Takedown
 
@@ -210,7 +216,9 @@ There is also a branch where openSUSE MicroOS came preinstalled with the k3s RPM
 
 ## Contributing
 
-Any contributions you make are **greatly appreciated**.
+✅ There is something you can do right away to help this project succeed! **Just take a few minutes to send a support request to Hetzner, asking them to please add openSUSE MicroOS as a default image**, not just an ISO. If that succeeds, we will be able to deploy in less than 2 minutes instead of 5, without passing by the rescue mode. The more requests they receive the likelier they are to add it. The official link to openSUSE MicroOS is <https://get.opensuse.org/microos>.
+
+About code contributions, they are **greatly appreciated**.
 
 1. Fork the Project
 2. Create your Branch (`git checkout -b AmazingFeature`)
