@@ -91,10 +91,15 @@ variable "allow_scheduling_on_control_plane" {
   description = "Whether to allow non-control-plane workloads to run on the control-plane nodes"
 }
 
-variable "k3s_upgrade_channel" {
+variable "initial_k3s_channel" {
   type        = string
   default     = "stable"
-  description = "Allows you to specify the k3s upgrade channel"
+  description = "Allows you to specify an initial k3s channel"
+
+  validation {
+    condition     = contains(["stable", "latest", "testing"], var.initial_k3s_channel)
+    error_message = "The initial k3s channel must be one of stable, latest or testing."
+  }
 }
 
 variable "automatically_upgrade_k3s" {

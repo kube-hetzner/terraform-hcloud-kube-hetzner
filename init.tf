@@ -110,7 +110,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/plans.yaml.tpl",
       {
-        channel = var.k3s_upgrade_channel
+        channel = var.initial_k3s_channel
     })
     destination = "/tmp/post_install/plans.yaml"
   }
