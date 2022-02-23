@@ -156,6 +156,7 @@ kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 ## Examples
 
 <details>
+
 <summary>Ingress with TLS</summary>
 
 Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example:
