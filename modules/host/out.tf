@@ -3,7 +3,7 @@ output "ipv4_address" {
 }
 
 output "private_ipv4_address" {
-  value = var.ip
+  value = hcloud_server_network.server.ip
 }
 
 output "name" {

@@ -12,11 +12,6 @@ resource "hcloud_server" "server" {
 
   labels = var.labels
 
-  network {
-    network_id = var.network_id
-    ip         = try(var.ip, null)
-  }
-
   connection {
     user           = "root"
     private_key    = local.ssh_private_key
@@ -67,4 +62,9 @@ resource "hcloud_server" "server" {
       EOT
     ]
   }
+}
+
+resource "hcloud_server_network" "server" {
+  server_id  = hcloud_server.server.id
+  network_id = var.network_id
 }

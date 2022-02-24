@@ -59,13 +59,6 @@ variable "network_id" {
   type        = number
 }
 
-variable "ip" {
-  default     = null
-  description = "The IP"
-  type        = string
-  nullable    = true
-}
-
 variable "server_type" {
   description = "The server type"
   type        = string
