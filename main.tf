@@ -158,3 +158,20 @@ data "hcloud_load_balancer" "traefik" {
 
   depends_on = [null_resource.kustomization]
 }
+
+resource "null_resource" "destroy_lb" {
+  triggers = {
+    token = random_password.k3s_token.result
+  }
+
+  # Important when issuing terraform destroy, otherwise the LB will not let the network get deleted
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      hcloud load-balancer delete traefik
+      hcloud network delete k3s
+    EOT
+
+    on_failure = continue
+  }
+}

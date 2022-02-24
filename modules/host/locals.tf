@@ -66,6 +66,7 @@ rpm --import https://rpm.rancher.io/public.key
 zypper refresh
 zypper --gpg-auto-import-keys install -y https://rpm.rancher.io/k3s/stable/common/microos/noarch/k3s-selinux-0.4-1.sle.noarch.rpm
 udevadm settle
+exit 0
 EOF
 
 }
