@@ -16,7 +16,7 @@ lb_server_type            = "lb11"
 servers_num               = 3
 
 # For agent nodes, at least 2 is recommended for HA, but you can keep automatic upgrades.
-agents_num = 2
+agents_num                = 2
 
 agent_nodepools = {
   big = {

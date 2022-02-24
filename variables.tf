@@ -53,7 +53,7 @@ variable "servers_num" {
 }
 
 variable "agents_num" {
-  description = "Default agent server type"
+  description = "Number of agent nodes."
   type        = number
 }
 
