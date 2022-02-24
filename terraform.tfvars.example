@@ -16,16 +16,16 @@ lb_server_type            = "lb11"
 servers_num               = 3
 
 # For agent nodes, at least 2 is recommended for HA, but you can keep automatic upgrades.
+agents_num = 2
+
 agent_nodepools = {
   big = {
     server_type = "cpx31",
-    count       = 3
+    count       = 1
   }
-  # Will fail because of the ip address collision (we use index number)
-  # small = {
-  #   server_type = "cpx31",
-  #   count       = 3
-  # }
+  small = {
+    server_type = "cpx21",
+  }
 }
 
 # If you want to use a specific Hetzner CCM and CSI version, set them below, otherwise leave as is for the latest versions

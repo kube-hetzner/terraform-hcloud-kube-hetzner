@@ -52,12 +52,14 @@ variable "servers_num" {
   type        = number
 }
 
+variable "agents_num" {
+  description = "Default agent server type"
+  type        = number
+}
+
 variable "agent_nodepools" {
   description = "Number of agent nodes."
-  type = map(object({
-    server_type = string
-    count       = number
-  }))
+  type        = map(any)
 }
 
 variable "hetzner_ccm_version" {

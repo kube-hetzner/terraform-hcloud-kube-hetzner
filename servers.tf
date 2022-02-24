@@ -12,7 +12,6 @@ module "control_planes" {
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = var.location
   network_id             = hcloud_network.k3s.id
-  ip                     = cidrhost(hcloud_network_subnet.k3s.ip_range, 257 + count.index)
   server_type            = var.control_plane_server_type
 
   labels = {
