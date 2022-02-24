@@ -14,7 +14,7 @@ resource "hcloud_server" "server" {
 
   network {
     network_id = var.network_id
-    ip         = var.ip
+    ip         = try(var.ip, null)
   }
 
   connection {

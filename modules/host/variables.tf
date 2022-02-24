@@ -60,6 +60,7 @@ variable "network_id" {
 }
 
 variable "ip" {
+  default     = null
   description = "The IP"
   type        = string
   nullable    = true

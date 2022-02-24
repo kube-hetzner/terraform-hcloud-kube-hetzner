@@ -12,7 +12,6 @@ module "agents" {
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = var.location
   network_id             = hcloud_network.k3s.id
-  ip                     = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + each.value.index)
   server_type            = each.value.server_type
 
   labels = {
@@ -45,7 +44,7 @@ resource "null_resource" "agents" {
       token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
-      node-ip       = cidrhost(hcloud_network_subnet.k3s.ip_range, 513 + each.value.index)
+      node-ip       = module.agents[each.key].ipv4_address
       node-label    = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
     destination = "/tmp/config.yaml"

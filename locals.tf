@@ -33,7 +33,7 @@ locals {
 
   agent_nodepools = merge([
     for nodepool_name, nodepool_obj in var.agent_nodepools : {
-      for index in range(nodepool_obj.count) :
+      for index in range(lookup(nodepool_obj, "count", var.agents_num)) :
       format("%s-%s", nodepool_name, index) => {
         index : index, # just for the compatibility with previous structure
         server_type : nodepool_obj.server_type
