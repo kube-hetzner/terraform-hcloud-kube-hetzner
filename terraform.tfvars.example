@@ -35,3 +35,8 @@ agents_num                = 2
 
 # Allows you to specify either stable, latest, or testing (defaults to stable), see https://rancher.com/docs/k3s/latest/en/upgrades/basic/
 # initial_k3s_channel = "latest"
+
+# If you want to use the cloudflare module you need to replace these variables
+# cloudflare_zone_id="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+# cloudflare_email="mail@example.com"
+# cloudflare_api_key="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" # this is the cloudfalre API key, not the API token

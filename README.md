@@ -39,6 +39,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 - Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - (Optional) Out of the box config of Traefik with SSL certficate auto-generation.
+- (Optional) Config for Cloudflare DNS configuration.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -190,6 +191,33 @@ spec:
                 port:
                   number: 80
 
+```
+
+</details>
+
+<details>
+
+<summary>Cloudflare DNS</summary>
+
+Here is an example to configure a Cloudflare DNS record to point and proxy to your new Loadbalancer:
+Copy the `examples/cloudflare.tf` to the root dir.
+
+```sh
+cp -v examples/cloudflare.tf ./
+```
+
+Now edit the last block resource "cloudflare_record" to edit your dns records to your liking.
+For more infos, check the module documentation here -> <https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs>
+
+```tf
+resource "cloudflare_record" "root" {
+  zone_id = var.cloudflare_zone_id
+  name    = "@"
+  value   = data.hcloud_load_balancer.traefik.ipv4
+  type    = "A"
+  proxied = true
+  ttl     = 1
+}
 ```
 
 </details>

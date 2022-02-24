@@ -16,5 +16,9 @@ terraform {
       source  = "tenstad/remote"
       version = "~> 0.0.23"
     }
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+      version = "~> 3.0"
+    }
   }
 }
