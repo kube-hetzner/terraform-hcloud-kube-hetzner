@@ -199,10 +199,10 @@ spec:
 If you want to takedown the cluster, you can proceed as follows:
 
 ```sh
-hcloud load-balancer delete traefik
-hcloud network delete k3s
 terraform destroy -auto-approve
 ```
+
+And if the network is slow to delete, just issue `hcloud network delete k3s` to speed things up!
 
 _Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation._
 
