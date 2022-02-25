@@ -159,7 +159,6 @@ data "hcloud_load_balancer" "traefik" {
   depends_on = [null_resource.kustomization]
 }
 
-
 resource "null_resource" "destroy_traefik_loadbalancer" {
   # this only gets triggered before total destruction of the cluster, but when the necessary elements to run the commands are still available
   triggers = {

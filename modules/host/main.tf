@@ -59,12 +59,11 @@ resource "hcloud_server" "server" {
   provisioner "remote-exec" {
     inline = [
       # Disable automatic reboot (after transactional updates), and configure the reboot method as kured
-      "rebootmgrctl set-strategy off && echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
+      "set -ex",
+      "rebootmgrctl set-strategy off",
+      "echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
       # set the hostname
-      <<-EOT
-      hostnamectl set-hostname ${self.name}
-      sed -e 's#NETCONFIG_NIS_SETDOMAINNAME="yes"#NETCONFIG_NIS_SETDOMAINNAME="no"#g' /etc/sysconfig/network/config > /dev/null
-      EOT
+      "hostnamectl set-hostname ${self.name}"
     ]
   }
 }
