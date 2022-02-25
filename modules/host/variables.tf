@@ -54,9 +54,14 @@ variable "location" {
   type        = string
 }
 
-variable "network_id" {
-  description = "The network or subnet id"
-  type        = number
+variable "subnet_id" {
+  description = "The subnet id"
+  type        = string
+}
+
+variable "private_ip" {
+  description = "Private IP for the server"
+  type        = string
 }
 
 variable "server_type" {

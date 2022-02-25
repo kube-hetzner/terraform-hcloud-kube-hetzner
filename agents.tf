@@ -11,15 +11,19 @@ module "agents" {
   firewall_ids           = [hcloud_firewall.k3s.id]
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = var.location
-  network_id             = hcloud_network.k3s.id
   server_type            = each.value.server_type
-
+  subnet_id              = hcloud_network_subnet.subnet[each.value.subnet].id
+  private_ip             = cidrhost(var.network_subnets[each.value.subnet], each.value.index + 1)
   labels = {
     "provisioner" = "terraform",
     "engine"      = "k3s"
   }
 
   hcloud_token = var.hcloud_token
+
+  depends_on = [
+    hcloud_network_subnet.subnet
+  ]
 }
 
 resource "null_resource" "agents" {
@@ -73,6 +77,6 @@ resource "null_resource" "agents" {
 
   depends_on = [
     null_resource.first_control_plane,
-    hcloud_network_subnet.k3s
+    hcloud_network_subnet.subnet
   ]
 }

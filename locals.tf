@@ -33,9 +33,11 @@ locals {
 
   agent_nodepools = merge([
     for nodepool_name, nodepool_obj in var.agent_nodepools : {
-      for index in range(lookup(nodepool_obj, "count", var.agents_num)) :
+      for index in range(nodepool_obj.count) :
       format("%s-%s", nodepool_name, index) => {
-        server_type : nodepool_obj.server_type
+        server_type : nodepool_obj.server_type,
+        subnet : lookup(nodepool_obj, "subnet", "default"),
+        index : index
       }
     }
   ]...)
