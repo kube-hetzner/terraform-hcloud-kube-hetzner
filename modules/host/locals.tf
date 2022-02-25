@@ -61,11 +61,14 @@ locals {
 
   combustion_script = <<EOF
 #!/bin/bash
+sed -i 's#NETCONFIG_NIS_SETDOMAINNAME="yes"#NETCONFIG_NIS_SETDOMAINNAME="no"#g' /etc/sysconfig/network/config
+sed -i 's#WAIT_FOR_INTERFACES="30"#WAIT_FOR_INTERFACES="60"#g' /etc/sysconfig/network/config
+sed -i 's#CHECK_DUPLICATE_IP="yes"#CHECK_DUPLICATE_IP="no"#g' /etc/sysconfig/network/config
 # combustion: network
 rpm --import https://rpm.rancher.io/public.key
 zypper refresh
 zypper --gpg-auto-import-keys install -y https://rpm.rancher.io/k3s/stable/common/microos/noarch/k3s-selinux-0.4-1.sle.noarch.rpm
-udevadm settle
+udevadm settle || true
 EOF
 
 }

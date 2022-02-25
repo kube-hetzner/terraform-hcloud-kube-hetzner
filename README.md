@@ -153,12 +153,18 @@ _To turn off k3s upgrades, you can either set the `k3s_upgrade=true` label in th
 kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 ```
 
-## Example Ingress with TLS
+## Examples
 
-Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example
+<details>
+
+<summary>Ingress with TLS</summary>
+
+Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example:
+
 ```sh
 kubectl apply -f examples/tls/.
 ```
+
 ```yml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -184,19 +190,19 @@ spec:
                 port:
                   number: 80
 
-
 ```
 
+</details>
 
 ## Takedown
 
 If you want to takedown the cluster, you can proceed as follows:
 
 ```sh
-hcloud load-balancer delete traefik
-hcloud network delete k3s
 terraform destroy -auto-approve
 ```
+
+And if the network is slow to delete, just issue `hcloud network delete k3s` to speed things up!
 
 _Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation._
 
@@ -210,7 +216,9 @@ There is also a branch where openSUSE MicroOS came preinstalled with the k3s RPM
 
 ## Contributing
 
-Any contributions you make are **greatly appreciated**.
+🌱 This project currently installs openSUSE MicroOS via the Hetzner rescue mode, which makes things a few minutes slower. If you could **take a few minutes to send a support request to Hetzner, asking them to please add openSUSE MicroOS as a default image**, not just an ISO, it would be wonderful. The more requests they receive the likelier they are to add support for it, and if they do, that would cut the deploy time by half. The official link to openSUSE MicroOS is <https://get.opensuse.org/microos>.
+
+About code contributions, they are **greatly appreciated**.
 
 1. Fork the Project
 2. Create your Branch (`git checkout -b AmazingFeature`)
