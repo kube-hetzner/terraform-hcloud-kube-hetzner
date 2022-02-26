@@ -96,8 +96,8 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/traefik_config.yaml.tpl",
       {
-        lb_disable_ipv6    = var.lb_disable_ipv6
-        lb_server_type     = var.lb_server_type
+        load_balancer_disable_ipv6    = var.load_balancer_disable_ipv6
+        load_balancer_type     = var.load_balancer_type
         location           = var.location
         traefik_acme_tls   = var.traefik_acme_tls
         traefik_acme_email = var.traefik_acme_email

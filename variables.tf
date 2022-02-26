@@ -51,12 +51,12 @@ variable "control_plane_count" {
 }
 
 
-variable "lb_server_type" {
+variable "load_balancer_type" {
   description = "Default load balancer server type"
   type        = string
 }
 
-variable "lb_disable_ipv6" {
+variable "load_balancer_disable_ipv6" {
   description = "Disable ipv6 for the load balancer"
   type        = bool
   default     = false
