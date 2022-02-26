@@ -45,6 +45,11 @@ variable "control_plane_server_type" {
   type        = string
 }
 
+variable "control_plane_count" {
+  description = "Number of control plane nodes."
+  type        = number
+}
+
 
 variable "lb_server_type" {
   description = "Default load balancer server type"
@@ -55,11 +60,6 @@ variable "lb_disable_ipv6" {
   description = "Disable ipv6 for the load balancer"
   type        = bool
   default     = false
-}
-
-variable "servers_num" {
-  description = "Number of control plane nodes."
-  type        = number
 }
 
 variable "agent_nodepools" {

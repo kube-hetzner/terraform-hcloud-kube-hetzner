@@ -20,7 +20,7 @@ control_plane_server_type = "cpx11"
 lb_server_type            = "lb11"
 
 # At least 3 server nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
-servers_num = 3
+control_plane_count = 3
 
 
 agent_nodepools = {

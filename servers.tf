@@ -1,7 +1,7 @@
 module "control_planes" {
   source = "./modules/host"
 
-  count = var.servers_num
+  count = var.control_plane_count
   name  = "k3s-control-plane-${count.index}"
 
   ssh_keys               = [hcloud_ssh_key.k3s.id]
@@ -28,7 +28,7 @@ module "control_planes" {
 }
 
 resource "null_resource" "control_planes" {
-  count = var.servers_num
+  count = var.control_plane_count
 
   triggers = {
     control_plane_id = module.control_planes[count.index].id
