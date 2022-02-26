@@ -12,8 +12,8 @@ module "agents" {
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = var.location
   server_type            = each.value.server_type
-  subnet_id              = hcloud_network_subnet.subnet[each.value.subnet].id
-  private_ip             = cidrhost(var.network_subnets[each.value.subnet], each.value.index + 1)
+  ipv4_subnet_id         = hcloud_network_subnet.subnet[each.value.subnet].id
+  private_ipv4           = cidrhost(var.network_ipv4_subnets[each.value.subnet], each.value.index + 1)
   labels = {
     "provisioner" = "terraform",
     "engine"      = "k3s"
@@ -44,7 +44,7 @@ resource "null_resource" "agents" {
   provisioner "file" {
     content = yamlencode({
       node-name     = module.agents[each.key].name
-      server        = "https://${local.first_control_plane_network_ip}:6443"
+      server        = "https://${local.first_control_plane_network_ipv4}:6443"
       token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"

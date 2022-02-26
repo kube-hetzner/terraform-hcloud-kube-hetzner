@@ -1,7 +1,7 @@
 module "control_planes" {
   source = "./modules/host"
 
-  count = var.servers_num
+  count = var.control_plane_count
   name  = "k3s-control-plane-${count.index}"
 
   ssh_keys               = [hcloud_ssh_key.k3s.id]
@@ -12,8 +12,8 @@ module "control_planes" {
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = var.location
   server_type            = var.control_plane_server_type
-  subnet_id              = hcloud_network_subnet.subnet["control_plane"].id
-  private_ip             = cidrhost(var.network_subnets["control_plane"], count.index + 1)
+  ipv4_subnet_id         = hcloud_network_subnet.subnet["control_plane"].id
+  private_ipv4           = cidrhost(var.network_ipv4_subnets["control_plane"], count.index + 1)
 
   labels = {
     "provisioner" = "terraform",
@@ -28,7 +28,7 @@ module "control_planes" {
 }
 
 resource "null_resource" "control_planes" {
-  count = var.servers_num
+  count = var.control_plane_count
 
   triggers = {
     control_plane_id = module.control_planes[count.index].id

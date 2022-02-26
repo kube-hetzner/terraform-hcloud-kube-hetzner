@@ -100,7 +100,7 @@ To scale the number of nodes up or down, just make sure to properly `kubectl dra
 For instance:
 
 ```tfvars
-servers_num = 4
+control_plane_count = 4
 agents_num = 3
 ```
 

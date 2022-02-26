@@ -30,12 +30,12 @@ variable "network_region" {
   type        = string
 }
 
-variable "network_ip_range" {
-  description = "Default IP range for network"
+variable "network_ipv4_range" {
+  description = "Default IPv4 range for network"
   type        = string
 }
 
-variable "network_subnets" {
+variable "network_ipv4_subnets" {
   description = "Subnets definition for default network"
   type        = map(string)
 }
@@ -45,21 +45,20 @@ variable "control_plane_server_type" {
   type        = string
 }
 
+variable "control_plane_count" {
+  description = "Number of control plane nodes."
+  type        = number
+}
 
-variable "lb_server_type" {
+variable "load_balancer_type" {
   description = "Default load balancer server type"
   type        = string
 }
 
-variable "lb_disable_ipv6" {
+variable "load_balancer_disable_ipv6" {
   description = "Disable ipv6 for the load balancer"
   type        = bool
   default     = false
-}
-
-variable "servers_num" {
-  description = "Number of control plane nodes."
-  type        = number
 }
 
 variable "agent_nodepools" {
