@@ -10,11 +10,11 @@ resource "hcloud_ssh_key" "k3s" {
 
 resource "hcloud_network" "k3s" {
   name     = "k3s"
-  ip_range = var.network_ip_range
+  ip_range = var.network_ipv4_range
 }
 
 resource "hcloud_network_subnet" "subnet" {
-  for_each     = var.network_subnets
+  for_each     = var.network_ipv4_subnets
   network_id   = hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
@@ -30,7 +30,7 @@ resource "hcloud_firewall" "k3s" {
     protocol  = "tcp"
     port      = "any"
     source_ips = [
-      var.network_ip_range,
+      var.network_ipv4_range,
       "127.0.0.1/32",
       "169.254.169.254/32",
       "213.239.246.1/32"
@@ -41,7 +41,7 @@ resource "hcloud_firewall" "k3s" {
     protocol  = "udp"
     port      = "any"
     source_ips = [
-      var.network_ip_range,
+      var.network_ipv4_range,
       "127.0.0.1/32",
       "169.254.169.254/32",
       "213.239.246.1/32"
@@ -51,7 +51,7 @@ resource "hcloud_firewall" "k3s" {
     direction = "in"
     protocol  = "icmp"
     source_ips = [
-      var.network_ip_range,
+      var.network_ipv4_range,
       "127.0.0.1/32",
       "169.254.169.254/32",
       "213.239.246.1/32"

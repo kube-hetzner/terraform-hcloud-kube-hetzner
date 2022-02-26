@@ -64,7 +64,7 @@ resource "hcloud_server" "server" {
 }
 
 resource "hcloud_server_network" "server" {
-  ip        = var.private_ip
+  ip        = var.private_ipv4
   server_id = hcloud_server.server.id
-  subnet_id = var.subnet_id
+  subnet_id = var.ipv4_subnet_id
 }

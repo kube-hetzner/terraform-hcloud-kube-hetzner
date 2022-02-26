@@ -9,8 +9,8 @@ private_key  = "/home/username/.ssh/id_ed25519"
 # For Hetzner server types see https://www.hetzner.com/cloud
 location         = "fsn1"       # change to `ash` for us-east Ashburn, Virginia location
 network_region   = "eu-central" # change to `us-east` if location is ash
-network_ip_range = "10.0.0.0/8"
-network_subnets = {
+network_ipv4_range = "10.0.0.0/8"
+network_ipv4_subnets = {
   control_plane = "10.1.0.0/16"
   subnet1       = "10.2.0.0/16"
   subnet2       = "10.3.0.0/16"

@@ -30,12 +30,12 @@ variable "network_region" {
   type        = string
 }
 
-variable "network_ip_range" {
-  description = "Default IP range for network"
+variable "network_ipv4_range" {
+  description = "Default IPv4 range for network"
   type        = string
 }
 
-variable "network_subnets" {
+variable "network_ipv4_subnets" {
   description = "Subnets definition for default network"
   type        = map(string)
 }
@@ -49,7 +49,6 @@ variable "control_plane_count" {
   description = "Number of control plane nodes."
   type        = number
 }
-
 
 variable "load_balancer_type" {
   description = "Default load balancer server type"

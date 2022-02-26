@@ -54,12 +54,12 @@ variable "location" {
   type        = string
 }
 
-variable "subnet_id" {
+variable "ipv4_subnet_id" {
   description = "The subnet id"
   type        = string
 }
 
-variable "private_ip" {
+variable "private_ipv4" {
   description = "Private IP for the server"
   type        = string
 }
