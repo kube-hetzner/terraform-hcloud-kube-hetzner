@@ -12,11 +12,6 @@ resource "hcloud_server" "server" {
 
   labels = var.labels
 
-  network {
-    network_id = var.network_id
-    ip         = var.ip
-  }
-
   connection {
     user           = "root"
     private_key    = local.ssh_private_key
@@ -66,4 +61,10 @@ resource "hcloud_server" "server" {
       "hostnamectl set-hostname ${self.name}"
     ]
   }
+}
+
+resource "hcloud_server_network" "server" {
+  ip        = var.private_ip
+  server_id = hcloud_server.server.id
+  subnet_id = var.subnet_id
 }

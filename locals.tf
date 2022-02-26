@@ -30,4 +30,15 @@ locals {
   install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"])
 
   install_k3s_agent = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"])
+
+  agent_nodepools = merge([
+    for nodepool_name, nodepool_obj in var.agent_nodepools : {
+      for index in range(nodepool_obj.count) :
+      format("%s-%s", nodepool_name, index) => {
+        server_type : nodepool_obj.server_type,
+        subnet : lookup(nodepool_obj, "subnet", "default"),
+        index : index
+      }
+    }
+  ]...)
 }
