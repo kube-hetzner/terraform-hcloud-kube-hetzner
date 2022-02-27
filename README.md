@@ -73,29 +73,29 @@ gofish install hcloud
 ### 🎯 Installation
 
 ```sh
-terraform init
+terraform init --upgrade
 terraform apply -auto-approve
 ```
 
-It will take around 12 minutes to complete, and then you should see a green output with the IP addresses of the nodes. Then you can immediately kubectl into it (using the kubeconfig.yaml saved to the project's directory after the install).
-
-_Just using the command `kubectl --kubeconfig kubeconfig.yaml` would work, but for more convenience, either create a symlink from `~/.kube/config` to `kubeconfig.yaml`, or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of kubeconfig.yaml by running `pwd`):_
-
-```sh
-export KUBECONFIG=/<path-to>/kubeconfig.yaml
-```
-
-<!-- USAGE EXAMPLES -->
+It will take around 12 minutes to complete, and then you should see a green output with the IP addresses of the nodes. 
 
 ## Usage
 
 When the cluster is up and running, you can do whatever you wish with it! 🎉
 
+You can immediately kubectl into it (using the kubeconfig.yaml saved to the project's directory after the install). By doing `kubectl --kubeconfig kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `kubeconfig.yaml`, or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of kubeconfig.yaml by running `pwd`):_
+
+```sh
+export KUBECONFIG=/<path-to>/kubeconfig.yaml
+```
+
+_Once you start with Terraform, it's best not to change the state manually in Hetzner, otherwise when you try to scale up or down, or even destroy the cluster, you'll get an error._
+
 ### Scaling Nodes
 
-⚠️ Once you start with Terraform, it's best not to change the state manually in Hetzner, otherwise when you try to scale up or down, Terraform will complain that things changed outside of it and will not be able to do it. _In the future, we will provide a tool to create bare nodes, either agents or control planes, to be joined manually._
-
 To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
+
+_In the future, we will provide a tool to create bare nodes, either agents or control planes, to be joined manually._
 
 ## High Availability
 
