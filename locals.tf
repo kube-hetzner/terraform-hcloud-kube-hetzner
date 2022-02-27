@@ -17,6 +17,127 @@ locals {
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
   kured_version = data.github_release.kured.release_tag
 
+  base_firewall_rules = [
+    # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "any"
+      source_ips = [
+        var.network_ipv4_range,
+        "127.0.0.1/32",
+        "169.254.169.254/32",
+        "213.239.246.1/32"
+      ]
+    },
+    {
+      direction = "in"
+      protocol  = "udp"
+      port      = "any"
+      source_ips = [
+        var.network_ipv4_range,
+        "127.0.0.1/32",
+        "169.254.169.254/32",
+        "213.239.246.1/32"
+      ]
+    },
+    {
+      direction = "in"
+      protocol  = "icmp"
+      source_ips = [
+        var.network_ipv4_range,
+        "127.0.0.1/32",
+        "169.254.169.254/32",
+        "213.239.246.1/32"
+      ]
+    },
+
+    # Allow all traffic to the kube api server
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "6443"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+
+    # Allow all traffic to the ssh port
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "22"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+
+    # Allow ping on ipv4
+    {
+      direction = "in"
+      protocol  = "icmp"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+
+    # Allow basic out traffic
+    # ICMP to ping outside services
+    {
+      direction = "out"
+      protocol  = "icmp"
+      destination_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+
+    # DNS
+    {
+      direction = "out"
+      protocol  = "tcp"
+      port      = "53"
+      destination_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+    {
+      direction = "out"
+      protocol  = "udp"
+      port      = "53"
+      destination_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+
+    # HTTP(s)
+    {
+      direction = "out"
+      protocol  = "tcp"
+      port      = "80"
+      destination_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+    {
+      direction = "out"
+      protocol  = "tcp"
+      port      = "443"
+      destination_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+
+    #NTP
+    {
+      direction = "out"
+      protocol  = "udp"
+      port      = "123"
+      destination_ips = [
+        "0.0.0.0/0"
+      ]
+    }
+  ]
+
   common_commands_install_k3s = [
     "set -ex",
     # prepare the k3s config directory
