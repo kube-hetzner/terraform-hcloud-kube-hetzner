@@ -77,7 +77,7 @@ terraform init --upgrade
 terraform apply -auto-approve
 ```
 
-It will take around 12 minutes to complete, and then you should see a green output with the IP addresses of the nodes. 
+It will take around 5 minutes to complete, and then you should see a green output with the IP addresses of the nodes.
 
 ## Usage
 
