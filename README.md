@@ -93,11 +93,13 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 ### Scaling Nodes
 
-To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
+To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit your `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
+
+About nodepools, `terraform.tfvars.example` has clear example how to configure them.
 
 ## High Availability
 
-By default, we have 3 control planes and 2 agents configured, with automatic upgrades and reboots of the nodes.
+By default, we have 3 control planes and 3 agents configured, with automatic upgrades and reboots of the nodes.
 
 If you want to remain HA (no downtime), it's important to **keep a number of control planes nodes of at least 3** (2 minimum to maintain quorum when 1 goes down for automated upgrades and reboot), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).
 
