@@ -68,7 +68,8 @@ _The Hetzner cli `hcloud` is also useful to have, mainly for debugging without h
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
 2. Either, generate a passphrase-less ed25519 SSH key-pair for your cluster, unless you already have one that you'd like to use. Take note of the respective paths of your private and public keys. Or, for a key-pair with passphrase or a device like a Yubikey, make sure you have have an SSH agent running and your key is loaded (`ssh-add -L` to verify) and set `private_key = null` in the following step. ✅
 3. Copy `terraform.tfvars.example` to `terraform.tfvars`, and replace the values from steps 1 and 2. ✅
-4. (Optional) There are other variables in `terraform.tfvars` that could be customized, like Hetzner region, and the node counts and sizes.
+4. Make sure you have the latest Terraform version, ideally at least 1.1.0. You can check with `terraform -v`. ✅
+5. (Optional) There are other variables in `terraform.tfvars` that could be customized, like Hetzner region, and the node counts and sizes.
 
 ### 🎯 Installation
 
@@ -96,13 +97,6 @@ When the cluster is up and running, you can do whatever you wish with it! 🎉
 ⚠️ Once you start with Terraform, it's best not to change the state manually in Hetzner, otherwise when you try to scale up or down, Terraform will complain that things changed outside of it and will not be able to do it. _In the future, we will provide a tool to create bare nodes, either agents or control planes, to be joined manually._
 
 To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
-
-For instance:
-
-```tfvars
-servers_num = 4
-agents_num = 3
-```
 
 ### Useful Commands
 
