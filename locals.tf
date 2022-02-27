@@ -1,5 +1,5 @@
 locals {
-  first_control_plane_network_ip = module.control_planes[0].private_ipv4_address
+  first_control_plane_network_ipv4 = module.control_planes[0].private_ipv4_address
 
   ssh_public_key = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
@@ -30,4 +30,15 @@ locals {
   install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"])
 
   install_k3s_agent = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"])
+
+  agent_nodepools = merge([
+    for nodepool_name, nodepool_obj in var.agent_nodepools : {
+      for index in range(nodepool_obj.count) :
+      format("%s-%s", nodepool_name, index) => {
+        server_type : nodepool_obj.server_type,
+        subnet : lookup(nodepool_obj, "subnet", "default"),
+        index : index
+      }
+    }
+  ]...)
 }
