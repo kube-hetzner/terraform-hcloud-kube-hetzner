@@ -33,6 +33,7 @@ variable "network_region" {
 variable "network_ipv4_range" {
   description = "Default IPv4 range for network"
   type        = string
+  default     = "10.0.0.0/8"
 }
 
 variable "network_ipv4_subnets" {
