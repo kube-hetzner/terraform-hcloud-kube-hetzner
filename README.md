@@ -181,7 +181,7 @@ Then for the rest, you'll often need to login to your cluster via ssh, to do tha
 ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 ```
 
-Then, for control-plane nodes, use `journalctl -u k3s` to see the k3s logs, and for agents, use `journalctl -u k3s-agents` instead.
+Then, for control-plane nodes, use `journalctl -u k3s` to see the k3s logs, and for agents, use `journalctl -u k3s-agent` instead.
 
 Last but not least, to see when the last reboot took place, you can use both `last reboot`and `uptime`.
 
