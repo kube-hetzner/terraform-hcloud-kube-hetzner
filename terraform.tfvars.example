@@ -13,24 +13,26 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 # It's best to leave the network range as is, unless you know what you are doing. The default is "10.0.0.0/8".
 # network_ipv4_range = "10.0.0.0/8"
 
-# You can have up to as many subnets as you want (preferably if the form of 10.X.0.0/16), their primary use is to logically separate the nodes.
+# You can have up to as many subnets as you want (preferably if the form of 10.X.0.0/16),
+# their primary use is to logically separate the nodes.
 network_ipv4_subnets = {
   control_plane = "10.1.0.0/16"
-  subnet1       = "10.2.0.0/16"
-  subnet2       = "10.3.0.0/16"
+  agent_big     = "10.2.0.0/16"
+  agent_small   = "10.3.0.0/16"
 }
 
-# As for the agent nodepools, below is just an example, if you do not want nodepools, just use one, and change the name to what you want, it need not be "big" or "small", also give them the subnet you want, or keep the default.
+# As for the agent nodepools, below is just an example, if you do not want nodepools, just use one,  
+# and change the name to what you want, it need not be "agent-big" or "agent-small", also give them the subnet prefer.
 agent_nodepools = {
-  big = {
+  agent-big = {
     server_type = "cpx21",
     count       = 1,
-    subnet      = "subnet1",
+    subnet      = "agent_big",
   }
-  small = {
+  agent-small = {
     server_type = "cpx11",
     count       = 2,
-    subnet      = "subnet2",
+    subnet      = "agent_small",
   }
 }
 
