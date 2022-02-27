@@ -2,7 +2,7 @@ module "control_planes" {
   source = "./modules/host"
 
   count = var.control_plane_count
-  name  = "k3s-control-plane-${count.index}"
+  name  = "control-plane-${count.index}"
 
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
