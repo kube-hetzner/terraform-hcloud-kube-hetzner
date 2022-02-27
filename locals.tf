@@ -154,7 +154,7 @@ locals {
       for index in range(nodepool_obj.count) :
       format("%s-%s", nodepool_name, index) => {
         server_type : nodepool_obj.server_type,
-        subnet : lookup(nodepool_obj, "subnet", "default"),
+        subnet : nodepool_obj.subnet,
         index : index
       }
     }
