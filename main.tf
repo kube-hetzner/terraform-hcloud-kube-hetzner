@@ -30,8 +30,8 @@ resource "hcloud_firewall" "k3s" {
       direction       = rule.value.direction
       protocol        = rule.value.protocol
       port            = lookup(rule.value, "port", null)
-      destination_ips = lookup(rule.value, "destination_ips", null)
-      source_ips      = lookup(rule.value, "source_ips", null)
+      destination_ips = lookup(rule.value, "destination_ips", [])
+      source_ips      = lookup(rule.value, "source_ips", [])
     }
   }
 }
