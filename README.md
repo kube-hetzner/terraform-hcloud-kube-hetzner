@@ -83,7 +83,7 @@ It will take around 5 minutes to complete, and then you should see a green outpu
 
 When the cluster is up and running, you can do whatever you wish with it! 🎉
 
-You can immediately kubectl into it (using the kubeconfig.yaml saved to the project's directory after the install). By doing `kubectl --kubeconfig kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `kubeconfig.yaml`, or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of kubeconfig.yaml by running `pwd`):_
+You can immediately kubectl into it (using the kubeconfig.yaml saved to the project's directory after the install). By doing `kubectl --kubeconfig kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `kubeconfig.yaml`, or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of kubeconfig.yaml by running `pwd`):
 
 ```sh
 export KUBECONFIG=/<path-to>/kubeconfig.yaml
