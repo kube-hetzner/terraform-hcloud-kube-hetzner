@@ -95,8 +95,6 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
 
-_In the future, we will provide a tool to create bare nodes, either agents or control planes, to be joined manually._
-
 ## High Availability
 
 By default, we have 3 control planes and 2 agents configured, with automatic upgrades and reboots of the nodes.
