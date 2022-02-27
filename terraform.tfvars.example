@@ -19,16 +19,17 @@ network_ipv4_subnets = {
   subnet1       = "10.2.0.0/16"
   subnet2       = "10.3.0.0/16"
 
-agent_nodepools = {
-  big = {
-    server_type = "cpx21",
-    count       = 1,
-    subnet      = "subnet1",
-  }
-  small = {
-    server_type = "cpx11",
-    count       = 2,
-    subnet      = "subnet2",
+  agent_nodepools = {
+    big = {
+      server_type = "cpx21",
+      count       = 1,
+      subnet      = "subnet1",
+    }
+    small = {
+      server_type = "cpx11",
+      count       = 2,
+      subnet      = "subnet2",
+    }
   }
 }
 
