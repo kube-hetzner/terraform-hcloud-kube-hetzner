@@ -113,3 +113,9 @@ variable "automatically_upgrade_k3s" {
   default     = true
   description = "Whether to automatically upgrade k3s based on the selected channel"
 }
+
+variable "extra_firewall_rules" {
+  type        = list(any)
+  default     = []
+  description = "Additional firewall rules to apply to the cluster"
+}

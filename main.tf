@@ -24,125 +24,16 @@ resource "hcloud_network_subnet" "subnet" {
 resource "hcloud_firewall" "k3s" {
   name = "k3s"
 
-  # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
-  rule {
-    direction = "in"
-    protocol  = "tcp"
-    port      = "any"
-    source_ips = [
-      var.network_ipv4_range,
-      "127.0.0.1/32",
-      "169.254.169.254/32",
-      "213.239.246.1/32"
-    ]
+  dynamic "rule" {
+    for_each = concat(local.base_firewall_rules, var.extra_firewall_rules)
+    content {
+      direction       = rule.value.direction
+      protocol        = rule.value.protocol
+      port            = lookup(rule.value, "port", null)
+      destination_ips = lookup(rule.value, "destination_ips", [])
+      source_ips      = lookup(rule.value, "source_ips", [])
+    }
   }
-  rule {
-    direction = "in"
-    protocol  = "udp"
-    port      = "any"
-    source_ips = [
-      var.network_ipv4_range,
-      "127.0.0.1/32",
-      "169.254.169.254/32",
-      "213.239.246.1/32"
-    ]
-  }
-  rule {
-    direction = "in"
-    protocol  = "icmp"
-    source_ips = [
-      var.network_ipv4_range,
-      "127.0.0.1/32",
-      "169.254.169.254/32",
-      "213.239.246.1/32"
-    ]
-  }
-
-  # Allow all traffic to the kube api server
-  rule {
-    direction = "in"
-    protocol  = "tcp"
-    port      = "6443"
-    source_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-
-  # Allow all traffic to the ssh port
-  rule {
-    direction = "in"
-    protocol  = "tcp"
-    port      = "22"
-    source_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-
-  # Allow ping on ipv4
-  rule {
-    direction = "in"
-    protocol  = "icmp"
-    source_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-
-  # Allow basic out traffic
-  # ICMP to ping outside services
-  rule {
-    direction = "out"
-    protocol  = "icmp"
-    destination_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-
-  # DNS
-  rule {
-    direction = "out"
-    protocol  = "tcp"
-    port      = "53"
-    destination_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-  rule {
-    direction = "out"
-    protocol  = "udp"
-    port      = "53"
-    destination_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-
-  # HTTP(s)
-  rule {
-    direction = "out"
-    protocol  = "tcp"
-    port      = "80"
-    destination_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-  rule {
-    direction = "out"
-    protocol  = "tcp"
-    port      = "443"
-    destination_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-
-  #NTP
-  rule {
-    direction = "out"
-    protocol  = "udp"
-    port      = "123"
-    destination_ips = [
-      "0.0.0.0/0"
-    ]
-  }
-
 }
 
 resource "hcloud_placement_group" "k3s" {

@@ -50,3 +50,17 @@ agent_nodepools = {
 
 # Allows you to specify either stable, latest, or testing (defaults to stable), see https://rancher.com/docs/k3s/latest/en/upgrades/basic/
 # initial_k3s_channel = "latest"
+
+# Adding extra firewall rules, like opening a port
+# In this example with allow port TCP 5432 for a Postgres service we will open via a nodeport
+# More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall
+# extra_firewall_rules = [
+#   {
+#     direction = "in"
+#     protocol  = "tcp"
+#     port      = "5432"
+#     source_ips = [
+#       "0.0.0.0/0"
+#     ]
+#   },
+# ]
