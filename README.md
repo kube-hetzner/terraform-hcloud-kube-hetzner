@@ -168,7 +168,7 @@ spec:
 
 ## Debugging
 
-First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without having to login to the UI. There where the `hcloud` cli comes in.
+First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without having to login to the UI. That is where the `hcloud` cli comes in.
 
 - Activate it with `hcloud context create kube-hetzner`, it will prompt for your Hetzner API token, paste that and hit `enter`.
 - To check the nodes, if they are running, for instance, use `hcloud server list`.
