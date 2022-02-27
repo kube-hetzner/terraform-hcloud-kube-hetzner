@@ -54,14 +54,13 @@ Follow those simple steps, and your world's cheapest Kube cluster will be up and
 
 First and foremost, you need to have a Hetzner Cloud account. You can sign up for free [here](https://hetzner.com/cloud/).
 
-Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) and [kubectl](https://kubernetes.io/docs/tasks/tools/) cli installed. The easiest way is to use the [gofish](https://gofi.sh/#install) package manager to install them.
+Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli),  [kubectl](https://kubernetes.io/docs/tasks/tools/) cli, and [hcloud](<https://github.com/hetznercloud/cli>) the Hetzner cli. The easiest way is to use the [gofish](https://gofi.sh/#install) package manager to install them.
 
 ```sh
 gofish install terraform
 gofish install kubectl
+gofish install hcloud
 ```
-
-_The Hetzner cli `hcloud` is also useful to have, mainly for debugging without having to use the Hetzner website. See how to install it [here](https://github.com/hetznercloud/cli)._
 
 ### 💡 [Do not skip] Creating the terraform.tfvars file
 
@@ -97,27 +96,6 @@ When the cluster is up and running, you can do whatever you wish with it! 🎉
 ⚠️ Once you start with Terraform, it's best not to change the state manually in Hetzner, otherwise when you try to scale up or down, Terraform will complain that things changed outside of it and will not be able to do it. _In the future, we will provide a tool to create bare nodes, either agents or control planes, to be joined manually._
 
 To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit these variables in `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
-
-### Useful Commands
-
-- List your nodes IPs, with either of those:
-
-```sh
-terraform outputs
-hcloud server list
-```
-
-- See the Hetzner network config:
-
-```sh
-hcloud network describe k3s
-```
-
-- Log into one of your nodes (replace the location of your private key if needed):
-
-```sh
-ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
-```
 
 ## High Availability
 
@@ -187,6 +165,25 @@ spec:
 ```
 
 </details>
+
+## Debugging
+
+First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without having to login to the UI. There where the `hcloud` cli comes in.
+
+- Activate it with `hcloud context create kube-hetzner`, it will prompt for your Hetzner API token, paste that and hit `enter`.
+- To check the nodes, if they are running, for instance, use `hcloud server list`.
+- To check the network use `hcloud network describe k3s`.
+- To see a look at the LB, use `hcloud loadbalancer describe traefik`.
+
+Then for the rest, you'll often need to login to your cluster via ssh, to do that, use:
+
+```sh
+ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
+```
+
+Then, for control-plane nodes, use `journalctl -u k3s` to see the k3s logs, and for agents, use `journalctl -u k3s-agents` instead.
+
+Last but not least, to see when the last reboot took place, you can use both `last reboot`and `uptime`.
 
 ## Takedown
 
