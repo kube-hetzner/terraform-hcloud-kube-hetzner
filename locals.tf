@@ -17,39 +17,35 @@ locals {
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
   kured_version = data.github_release.kured.release_tag
 
+  # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
+  # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
+  hetzner_metadata_service_ipv4 = "169.254.169.254/32"
+  hetzner_cloud_api_ipv4        = "213.239.246.1/32"
+  whitelisted_ips = [
+    var.network_ipv4_range,
+    local.hetzner_metadata_service_ipv4,
+    local.hetzner_cloud_api_ipv4,
+    "127.0.0.1/32",
+  ]
+
   base_firewall_rules = [
     # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
     {
-      direction = "in"
-      protocol  = "tcp"
-      port      = "any"
-      source_ips = [
-        var.network_ipv4_range,
-        "127.0.0.1/32",
-        "169.254.169.254/32",
-        "213.239.246.1/32"
-      ]
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "any"
+      source_ips = local.whitelisted_ips
     },
     {
-      direction = "in"
-      protocol  = "udp"
-      port      = "any"
-      source_ips = [
-        var.network_ipv4_range,
-        "127.0.0.1/32",
-        "169.254.169.254/32",
-        "213.239.246.1/32"
-      ]
+      direction  = "in"
+      protocol   = "udp"
+      port       = "any"
+      source_ips = local.whitelisted_ips
     },
     {
-      direction = "in"
-      protocol  = "icmp"
-      source_ips = [
-        var.network_ipv4_range,
-        "127.0.0.1/32",
-        "169.254.169.254/32",
-        "213.239.246.1/32"
-      ]
+      direction  = "in"
+      protocol   = "icmp"
+      source_ips = local.whitelisted_ips
     },
 
     # Allow all traffic to the kube api server
