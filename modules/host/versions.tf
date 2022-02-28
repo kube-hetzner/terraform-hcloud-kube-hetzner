@@ -12,9 +12,5 @@ terraform {
       source  = "tenstad/remote"
       version = "~> 0.0.23"
     }
-    template = {
-      source  = "hashicorp/template"
-      version = "~> 2.2.0"
-    }
   }
 }
