@@ -15,13 +15,19 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 
 # You can have up to as many subnets as you want (preferably if the form of 10.X.0.0/16),
 # their primary use is to logically separate the nodes.
+# The control_plane network is mandatory.
 network_ipv4_subnets = {
   control_plane = "10.1.0.0/16"
   agent_big     = "10.2.0.0/16"
   agent_small   = "10.3.0.0/16"
 }
 
-# As for the agent nodepools, below is just an example, if you do not want nodepools, just use one,  
+# At least 3 server nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
+control_plane_count       = 3
+control_plane_server_type = "cpx11"
+load_balancer_type        = "lb11"
+
+# As for the agent nodepools, below is just an example, if you do not want nodepools, just use one,
 # and change the name to what you want, it need not be "agent-big" or "agent-small", also give them the subnet prefer.
 agent_nodepools = {
   agent-big = {
