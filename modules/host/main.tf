@@ -49,15 +49,6 @@ resource "hcloud_server" "server" {
       done
     EOT
   }
-
-  provisioner "remote-exec" {
-    inline = [
-      # Disable automatic reboot (after transactional updates), and configure the reboot method as kured
-      "set -ex",
-      "rebootmgrctl set-strategy off",
-      "echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-    ]
-  }
 }
 
 resource "hcloud_server_network" "server" {

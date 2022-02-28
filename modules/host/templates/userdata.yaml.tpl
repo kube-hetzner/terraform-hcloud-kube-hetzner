@@ -17,6 +17,12 @@ write_files:
     AuthorizedKeysFile .ssh/authorized_keys
   path: /etc/ssh/sshd_config.d/kube-hetzner.conf
 
+# Setting the right reboot mode
+- content: | 
+    REBOOT_METHOD=kured
+  path: /etc/transactional-update.conf
+  append: true
+
 # Add ssh authorized keys
 ssh_authorized_keys:
 %{ for key in sshAuthorizedKeys ~}
@@ -33,3 +39,7 @@ runcmd:
 
 # Fix hostname (during first boot)
 - hostnamectl hostname ${hostname}
+
+# Finishing automatic reboot via Kured setup
+- systemctl reload transactional-update
+- rebootmgrctl set-strategy off
