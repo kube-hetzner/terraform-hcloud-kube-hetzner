@@ -18,3 +18,4 @@ spec:
           command:
             - /usr/bin/kured
             - --reboot-command=/usr/bin/systemctl reboot
+            - --reboot-sentinel=/var/run/reboot-needed
