@@ -40,3 +40,4 @@ runcmd:
 
   # Finishing automatic reboot via Kured setup
   - rebootmgrctl set-strategy off
+  
