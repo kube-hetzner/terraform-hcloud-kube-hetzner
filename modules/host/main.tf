@@ -31,14 +31,42 @@ resource "hcloud_server" "server" {
 
   # Install MicroOS
   provisioner "remote-exec" {
-    inline = local.microOS_install_commands
+    inline = [
+      "set -ex",
+      "apt-get update",
+      "apt-get install -y aria2",
+      "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.meta4",
+      "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
+    ]
   }
 
   # Issue a reboot command
   provisioner "local-exec" {
     command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
   }
+  # Wait for MicroOS to reboot and be ready
+  provisioner "local-exec" {
+    command = <<-EOT
+      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
+      do
+        echo "Waiting for MicroOS to reboot and become available..."
+        sleep 3
+      done
+    EOT
+  }
 
+  # We've rebooted into MicroOS, now we install the k3s-selinux RPM
+  provisioner "remote-exec" {
+    inline = [
+      "set -ex",
+      "transactional-update pkg install -y k3s-selinux"
+    ]
+  }
+
+  # Issue a reboot command
+  provisioner "local-exec" {
+    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
+  }
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
     command = <<-EOT

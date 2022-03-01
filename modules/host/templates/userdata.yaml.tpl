@@ -29,15 +29,14 @@ ssh_authorized_keys:
 %{ endfor ~}
 
 runcmd:
+  # Activate the private network
+  - systemctl reload network
 
-# Activate the private network
-- systemctl reload network
+  # Activate ssh configuration
+  - systemctl reload sshd
 
-# Activate ssh configuration
-- systemctl reload sshd
+  # Fix hostname (during first boot)
+  - hostnamectl hostname ${hostname}
 
-# Fix hostname (during first boot)
-- hostnamectl hostname ${hostname}
-
-# Finishing automatic reboot via Kured setup
-- rebootmgrctl set-strategy off
+  # Finishing automatic reboot via Kured setup
+  - rebootmgrctl set-strategy off
