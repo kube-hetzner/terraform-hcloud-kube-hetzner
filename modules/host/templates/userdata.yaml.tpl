@@ -1,5 +1,9 @@
 #cloud-config
 
+# Resize /var, not /, as that's the last partition in MicroOS image.
+growpart:
+    devices: ["/var"]
+
 write_files:
   # Configure private network
   - content: |
@@ -28,13 +32,16 @@ write_files:
     - ${key}
   %{ endfor ~}
 
-# Making sure the hostname is set correctly
+# Make sure the hostname is set correctly
 manage_etc_hosts: "localhost"
 preserve_hostname: true
 prefer_fqdn_over_hostname: false
 hostname: ${hostname}
 
 runcmd:
+  # As above, make sure the hostname is not reset
+  - sed -i 's#NETCONFIG_NIS_SETDOMAINNAME="yes"#NETCONFIG_NIS_SETDOMAINNAME="no"#g' /etc/sysconfig/network/config
+  
   # Activate the private network
   - systemctl reload network
 
@@ -48,4 +55,3 @@ runcmd:
   # And from 4-10 number limit important, to 2
   - snapper -c root set-config "NUMBER_LIMIT=4"
   - snapper -c root set-config "NUMBER_LIMIT_IMPORTANT=2"
-
