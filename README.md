@@ -207,7 +207,7 @@ There is also a branch where openSUSE MicroOS came preinstalled with the k3s RPM
 
 ## Contributing
 
-🌱 This project currently installs openSUSE MicroOS via the Hetzner rescue mode, which makes things a few minutes slower. If you could **take a few minutes to send a support request to Hetzner, asking them to please add openSUSE MicroOS as a default image**, not just an ISO, it would be wonderful. The more requests they receive the likelier they are to add support for it, and if they do, that would cut the deploy time by half. The official link to openSUSE MicroOS is <https://get.opensuse.org/microos>.
+🌱 This project currently installs openSUSE MicroOS via the Hetzner rescue mode, which makes things a few minutes slower. If you could **take a few minutes to send a support request to Hetzner, asking them to please add openSUSE MicroOS as a default image**, not just an ISO, it would be wonderful. The more requests they receive the likelier they are to add support for it, and if they do, that would cut the deploy time by half. The official link to openSUSE MicroOS is <https://get.opensuse.org/microos>, and their `OpenStack Cloud` image has full support for Cloud-init, so it's a great option to propose to them!
 
 About code contributions, they are **greatly appreciated**.
 
