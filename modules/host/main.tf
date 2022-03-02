@@ -75,16 +75,4 @@ data "template_cloudinit_config" "config" {
       }
     )
   }
-
-  # Initialization script (runs at every reboot)
-  part {
-    content_type = "text/cloud-boothook"
-    filename     = "boothook.sh"
-    content = templatefile(
-      "${path.module}/templates/boothook.sh.tpl",
-      {
-        hostname = var.name
-      }
-    )
-  }
 }
