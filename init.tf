@@ -30,7 +30,20 @@ resource "null_resource" "first_control_plane" {
     inline = local.install_k3s_server
   }
 
-  # Upon reboot verify that the k3s server is starts, and wait for k3s to be ready to receive commands
+  # so that the new snapshot with k3s-selinux kicks in
+  # Issue a reboot command and wait for MicroOS to reboot and be ready
+  provisioner "local-exec" {
+    command = <<-EOT
+      ssh ${local.ssh_args} root@${module.control_planes[0].ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${module.control_planes[0].ipv4_address} true 2> /dev/null
+      do
+        echo "Waiting for MicroOS to reboot and become available..."
+        sleep 3
+      done
+    EOT
+  }
+
+  # Upon reboot verify start k3s and wait for it to be ready to receive commands
   provisioner "remote-exec" {
     inline = [
       "systemctl start k3s",

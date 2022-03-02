@@ -59,6 +59,19 @@ resource "null_resource" "agents" {
     inline = local.install_k3s_agent
   }
 
+  # Issue a reboot command and wait for MicroOS to reboot and be ready
+  # so that the new snapshot with k3s-selinux kicks in
+  provisioner "local-exec" {
+    command = <<-EOT
+      ssh ${local.ssh_args} root@${module.agents[each.key].ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${module.agents[each.key].ipv4_address} true 2> /dev/null
+      do
+        echo "Waiting for MicroOS to reboot and become available..."
+        sleep 3
+      done
+    EOT
+  }
+
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = [

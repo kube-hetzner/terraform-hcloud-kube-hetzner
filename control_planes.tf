@@ -65,6 +65,19 @@ resource "null_resource" "control_planes" {
     inline = local.install_k3s_server
   }
 
+  # Issue a reboot command and wait for MicroOS to reboot and be ready,
+  # so that the new snapshot with k3s-selinux kicks in, only if k3s has never been initialized on the node
+  provisioner "local-exec" {
+    command = <<-EOT
+      ssh ${local.ssh_args} root@${module.control_planes[count.index].ipv4_address} '[[ ! -f /etc/rancher/k3s/k3s.yaml ]] && (sleep 2; reboot)&'; sleep 3
+      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${module.control_planes[count.index].ipv4_address} true 2> /dev/null
+      do
+        echo "Waiting for MicroOS to reboot and become available..."
+        sleep 3
+      done
+    EOT
+  }
+
   # Start the k3s server and wait for it to have started correctly
   provisioner "remote-exec" {
     inline = [
