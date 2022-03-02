@@ -1,4 +1,9 @@
 #cloud-config
+
+# Resize /var, not /, as that's the last partition in MicroOS image.
+growpart:
+    devices: ["/var"]
+
 write_files:
 
 # Configure private network
@@ -40,4 +45,3 @@ runcmd:
 
   # Finishing automatic reboot via Kured setup
   - rebootmgrctl set-strategy off
-  
