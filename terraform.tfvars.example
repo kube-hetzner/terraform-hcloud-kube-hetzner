@@ -1,4 +1,4 @@
-# Only the first values starting with a * are obligatory, the rest can remain with their default values, but Values or you want
+# Only the first values starting with a * are obligatory, the rest can remain with their default values, or you
 # could adapt them to your needs.
 #
 # Note that some values, notably "location" and "public_key" have no effect after the initial cluster has been setup.
