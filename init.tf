@@ -30,7 +30,7 @@ resource "null_resource" "first_control_plane" {
     inline = local.install_k3s_server
   }
 
-  # Upon reboot verify start k3s and wait for it to be ready to receive commands
+  # Upon reboot start k3s and wait for it to be ready to receive commands
   provisioner "remote-exec" {
     inline = [
       "systemctl start k3s",
