@@ -1,5 +1,6 @@
 locals {
   first_control_plane_network_ipv4 = module.control_planes[0].private_ipv4_address
+  is_single_node_cluster           = var.control_plane_count + length(keys(var.agent_nodepools)) == 1
 
   ssh_public_key = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
@@ -29,7 +30,7 @@ locals {
     "127.0.0.1/32",
   ]
 
-  base_firewall_rules = [
+  base_firewall_rules = concat([
     # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
     {
       direction  = "in"
@@ -133,7 +134,26 @@ locals {
         "0.0.0.0/0"
       ]
     }
-  ]
+    ], !local.is_single_node_cluster ? [] : [
+    # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
+    # not an external load-balancer.
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "80"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "443"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    }
+  ])
 
   common_commands_install_k3s = [
     "set -ex",
