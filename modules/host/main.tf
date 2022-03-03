@@ -51,6 +51,26 @@ resource "hcloud_server" "server" {
       done
     EOT
   }
+
+  # Install k3s-selinux (compatible version)
+  provisioner "remote-exec" {
+    inline = [
+      "set -ex",
+      "transactional-update pkg install -y k3s-selinux"
+    ]
+  }
+
+  # Issue a reboot command and wait for MicroOS to reboot and be ready
+  provisioner "local-exec" {
+    command = <<-EOT
+      ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
+      do
+        echo "Waiting for MicroOS to reboot and become available..."
+        sleep 3
+      done
+    EOT
+  }
 }
 
 resource "hcloud_server_network" "server" {
