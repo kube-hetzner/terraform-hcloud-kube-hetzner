@@ -43,6 +43,10 @@ runcmd:
 # We set Google DNS servers
 - [ sed, -i, 's#NETCONFIG_DNS_STATIC_SERVERS=""#NETCONFIG_DNS_STATIC_SERVERS="8.8.8.8 8.8.4.4"#g', /etc/sysconfig/network/config]
 
+# Bound the amount of logs that can survive on the system
+- [ sed, -i, 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
+- [ sed, -i, 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
+
 # Activate the private network
 - systemctl reload network
 
