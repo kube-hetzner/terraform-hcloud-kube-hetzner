@@ -18,11 +18,6 @@ write_files:
     AuthorizedKeysFile .ssh/authorized_keys
   path: /etc/ssh/sshd_config.d/kube-hetzner.conf
 
-# Setting the right reboot mode
-- content: | 
-    REBOOT_METHOD=rebootmgr
-  path: /etc/transactional-update.conf
-
 # Add ssh authorized keys
 ssh_authorized_keys:
 %{ for key in sshAuthorizedKeys ~}
