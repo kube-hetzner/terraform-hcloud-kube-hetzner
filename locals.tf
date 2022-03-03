@@ -1,6 +1,4 @@
 locals {
-  first_control_plane_network_ipv4 = module.control_planes[0].private_ipv4_address
-
   ssh_public_key = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))

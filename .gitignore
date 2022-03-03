@@ -6,3 +6,4 @@ kubeconfig.yaml-e
 terraform.tfvars
 plans.yaml
 traefik_config.yaml
+kured.yaml
