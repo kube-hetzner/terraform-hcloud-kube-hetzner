@@ -1,5 +1,5 @@
 resource "random_pet" "cluster" {
-  length = 1
+  length = 2
 }
 
 resource "random_password" "k3s_token" {
