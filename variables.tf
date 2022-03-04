@@ -119,3 +119,9 @@ variable "extra_firewall_rules" {
   default     = []
   description = "Additional firewall rules to apply to the cluster"
 }
+
+variable "insecureSkipVerify" {
+  type        = bool
+  default     = false
+  description = "Whether to set the insecureSkipVerify=true configuration with the Traefik configuration"
+}

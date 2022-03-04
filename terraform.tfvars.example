@@ -78,3 +78,7 @@ load_balancer_type        = "lb11"
 #     ]
 #   },
 # ]
+
+# If you want to configure traefik with "insecureSkipVerify". This might be required if your ingress is connecting to TLS services; see https://doc.traefik.io/traefik/routing/overview/#insecureskipverify
+# You probably should not use this in production
+# insecureSkipVerify = true
