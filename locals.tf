@@ -1,5 +1,5 @@
 locals {
-  # if we are in a single cluster config, we use the default klipper lb instead of traefik
+  # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   is_single_node_cluster = var.control_plane_count + length(keys(var.agent_nodepools)) == 1
   ssh_public_key         = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
