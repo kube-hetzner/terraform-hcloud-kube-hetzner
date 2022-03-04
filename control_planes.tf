@@ -1,12 +1,13 @@
 resource "random_pet" "control_planes" {
-  count = var.control_plane_count
+  count  = var.control_plane_count
+  length = 1
 }
 
 module "control_planes" {
   source = "./modules/host"
 
   count = var.control_plane_count
-  name  = "control-plane-${random_pet.cluster.id}-${random_pet.control_planes[count.index].id}"
+  name  = "control-plane-${random_pet.control_planes[count.index].id}"
 
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
