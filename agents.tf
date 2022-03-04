@@ -44,11 +44,11 @@ resource "null_resource" "agents" {
   provisioner "file" {
     content = yamlencode({
       node-name     = module.agents[each.key].name
-      server        = "https://${local.first_control_plane_network_ipv4}:6443"
+      server        = "https://${module.control_planes[0].private_ipv4_address}:6443"
       token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
-      node-ip       = module.agents[each.key].ipv4_address
+      node-ip       = module.agents[each.key].private_ipv4_address
       node-label    = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
     destination = "/tmp/config.yaml"

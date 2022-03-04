@@ -1,8 +1,7 @@
 locals {
-  first_control_plane_network_ipv4 = module.control_planes[0].private_ipv4_address
-  is_single_node_cluster           = var.control_plane_count + length(keys(var.agent_nodepools)) == 1
-
-  ssh_public_key = trimspace(file(var.public_key))
+  # if we are in a single cluster config, we use the default klipper lb instead of traefik
+  is_single_node_cluster = var.control_plane_count + length(keys(var.agent_nodepools)) == 1
+  ssh_public_key         = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
   # ssh_identity is not set if the private key is passed directly, but if ssh agent is used, the public key tells ssh agent which private key to use.
