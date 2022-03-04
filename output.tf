@@ -1,3 +1,8 @@
+output "cluster_pet_name" {
+  value       = random_pet.cluster
+  description = "Shared suffix for all resources belonging to this cluster."
+}
+
 output "control_planes_public_ipv4" {
   value       = module.control_planes.*.ipv4_address
   description = "The public IPv4 addresses of the controlplane server."

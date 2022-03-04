@@ -1,9 +1,13 @@
+resource "random_pet" "agents" {
+  for_each = local.agent_nodepools
+}
+
 module "agents" {
   source = "./modules/host"
 
   for_each = local.agent_nodepools
 
-  name                   = each.key
+  name                   = "${each.key}-${random_pet.cluster.id}-${random_pet.agents[each.key].id}"
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
   private_key            = var.private_key
