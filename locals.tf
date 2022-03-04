@@ -1,5 +1,7 @@
 locals {
-  ssh_public_key = trimspace(file(var.public_key))
+  # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
+  is_single_node_cluster = var.control_plane_count + length(keys(var.agent_nodepools)) == 1
+  ssh_public_key         = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
   # ssh_identity is not set if the private key is passed directly, but if ssh agent is used, the public key tells ssh agent which private key to use.
@@ -27,7 +29,7 @@ locals {
     "127.0.0.1/32",
   ]
 
-  base_firewall_rules = [
+  base_firewall_rules = concat([
     # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
     {
       direction  = "in"
@@ -131,7 +133,26 @@ locals {
         "0.0.0.0/0"
       ]
     }
-  ]
+    ], !local.is_single_node_cluster ? [] : [
+    # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
+    # not an external load-balancer.
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "80"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "443"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    }
+  ])
 
   common_commands_install_k3s = [
     "set -ex",
