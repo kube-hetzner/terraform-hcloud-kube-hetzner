@@ -4,11 +4,6 @@ crash.log
 kubeconfig.yaml
 kubeconfig.yaml-e
 terraform.tfvars
-<<<<<<< HEAD
 plans-custom.yaml
 traefik-custom.yaml
 kured-custom.yaml
-=======
-plans.yaml
-traefik_config.yaml
->>>>>>> 32d43b50f40b30cba207fb5946dee422825d93ef
