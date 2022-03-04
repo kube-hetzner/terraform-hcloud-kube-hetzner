@@ -47,7 +47,7 @@ runcmd:
 - [ sed, -i, 's#DHCLIENT_SET_HOSTNAME="yes"#DHCLIENT_SET_HOSTNAME="no"#g', /etc/sysconfig/network/dhcp]
 
 # We set Google DNS servers
-- [ sed, -i, 's#NETCONFIG_DNS_STATIC_SERVERS=""#NETCONFIG_DNS_STATIC_SERVERS="8.8.8.8 8.8.4.4"#g', /etc/sysconfig/network/config]
+- [ sed, -i, 's#NETCONFIG_DNS_STATIC_SERVERS=""#NETCONFIG_DNS_STATIC_SERVERS="1.1.1.1 1.0.0.1"#g', /etc/sysconfig/network/config]
 
 # Bound the amount of logs that can survive on the system
 - [ sed, -i, 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
