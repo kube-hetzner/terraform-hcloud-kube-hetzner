@@ -54,6 +54,7 @@ runcmd:
 - systemctl reload sshd
 
 # Finishing automatic reboot via Kured setup
+- echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf
 - rebootmgrctl set-strategy off
 
 # Reduce the default number of snapshots from 2-10 number limit, to 4
