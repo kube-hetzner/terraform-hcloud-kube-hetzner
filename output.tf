@@ -1,4 +1,4 @@
-output "cluster_pet_name" {
+output "cluster_name" {
   value       = random_pet.cluster.id
   description = "Shared suffix for all resources belonging to this cluster."
 }
