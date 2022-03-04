@@ -1,7 +1,15 @@
-# You need to replace these
+# Only the first values starting with a * are obligatory, the rest can remain with their default values, or you
+# could adapt them to your needs.
+#
+# Note that some values, notably "location" and "public_key" have no effect after the initial cluster has been setup.
+# This is in order to keep terraform from re-provisioning all nodes at once which would loose data. If you want to update,
+# those, you should instead change the value here and then manually re-provision each node one-by-one. Grep for "lifecycle".
+
+# * Your Hetzner project API token 
 hcloud_token = "xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz"
+# * Your public key
 public_key   = "/home/username/.ssh/id_ed25519.pub"
-# Must be "private_key = null" when you want to use ssh-agent, for a Yubikey like device auth or an SSH key-pair with passphrase
+# * Your private key, must be "private_key = null" when you want to use ssh-agent, for a Yubikey like device auth or an SSH key-pair with passphrase
 private_key  = "/home/username/.ssh/id_ed25519"
 
 # These can be customized, or left with the default values
@@ -9,9 +17,6 @@ private_key  = "/home/username/.ssh/id_ed25519"
 # For Hetzner server types see https://www.hetzner.com/cloud
 location         = "fsn1"       # change to `ash` for us-east Ashburn, Virginia location
 network_region   = "eu-central" # change to `us-east` if location is ash
-
-# It's best to leave the network range as is, unless you know what you are doing. The default is "10.0.0.0/8".
-# network_ipv4_range = "10.0.0.0/8"
 
 # You can have up to as many subnets as you want (preferably if the form of 10.X.0.0/16),
 # their primary use is to logically separate the nodes.
@@ -25,7 +30,7 @@ network_ipv4_subnets = {
 # At least 3 server nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
 # As per rancher docs, it must be always an odd number, never even! See https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
 # For instance, 1 is ok (non-HA), 2 not ok, 3 is ok (becomes HA).
-control_plane_count       = 3
+control_plane_count = 3
 
 # The type of control plane nodes, see https://www.hetzner.com/cloud, the minimum instance supported is cpx11 (just a few cents more than cx11)
 control_plane_server_type = "cpx11"
@@ -47,6 +52,11 @@ agent_nodepools = {
 
 # That will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
 load_balancer_type        = "lb11"
+
+### The following values are fully optional
+
+# It's best to leave the network range as is, unless you know what you are doing. The default is "10.0.0.0/8".
+# network_ipv4_range = "10.0.0.0/8"
 
 # If you want to use a specific Hetzner CCM and CSI version, set them below, otherwise leave as is for the latest versions
 # hetzner_ccm_version = ""

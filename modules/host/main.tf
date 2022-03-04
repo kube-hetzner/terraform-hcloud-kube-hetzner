@@ -8,9 +8,19 @@ resource "hcloud_server" "server" {
   ssh_keys           = var.ssh_keys
   firewall_ids       = var.firewall_ids
   placement_group_id = var.placement_group_id
-
+  user_data          = data.template_cloudinit_config.config.rendered
 
   labels = var.labels
+
+  # Prevent destroying the whole cluster if the user changes
+  # any of the attributes that force to recreate the servers.
+  lifecycle {
+    ignore_changes = [
+      location,
+      ssh_keys,
+      user_data,
+    ]
+  }
 
   connection {
     user           = "root"
@@ -19,30 +29,21 @@ resource "hcloud_server" "server" {
     host           = self.ipv4_address
   }
 
-  provisioner "file" {
-    content     = local.ignition_config
-    destination = "/root/config.ign"
-  }
-
-  # Combustion script file to install k3s-selinux
-  provisioner "file" {
-    content     = local.combustion_script
-    destination = "/root/script"
-  }
-
   # Install MicroOS
   provisioner "remote-exec" {
-    inline = local.microOS_install_commands
+    inline = [
+      "set -ex",
+      "apt-get update",
+      "apt-get install -y aria2",
+      "aria2c --follow-metalink=mem https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.meta4",
+      "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
+    ]
   }
 
-  # Issue a reboot command
-  provisioner "local-exec" {
-    command = "ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3"
-  }
-
-  # Wait for MicroOS to reboot and be ready
+  # Issue a reboot command and wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
     command = <<-EOT
+      ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
       until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
@@ -51,15 +52,24 @@ resource "hcloud_server" "server" {
     EOT
   }
 
+  # Install k3s-selinux (compatible version)
   provisioner "remote-exec" {
     inline = [
-      # Disable automatic reboot (after transactional updates), and configure the reboot method as kured
       "set -ex",
-      "rebootmgrctl set-strategy off",
-      "echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf",
-      # set the hostname
-      "hostnamectl set-hostname ${self.name}"
+      "transactional-update pkg install -y k3s-selinux"
     ]
+  }
+
+  # Issue a reboot command and wait for MicroOS to reboot and be ready
+  provisioner "local-exec" {
+    command = <<-EOT
+      ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
+      do
+        echo "Waiting for MicroOS to reboot and become available..."
+        sleep 3
+      done
+    EOT
   }
 }
 
@@ -67,4 +77,22 @@ resource "hcloud_server_network" "server" {
   ip        = var.private_ipv4
   server_id = hcloud_server.server.id
   subnet_id = var.ipv4_subnet_id
+}
+
+data "template_cloudinit_config" "config" {
+  gzip          = true
+  base64_encode = true
+
+  # Main cloud-config configuration file.
+  part {
+    filename     = "init.cfg"
+    content_type = "text/cloud-config"
+    content = templatefile(
+      "${path.module}/templates/userdata.yaml.tpl",
+      {
+        hostname          = var.name
+        sshAuthorizedKeys = concat([local.ssh_public_key], var.additional_public_keys)
+      }
+    )
+  }
 }
