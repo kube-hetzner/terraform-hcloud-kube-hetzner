@@ -149,7 +149,6 @@ spec:
   tls:
     - hosts:
         - example.com
-      secretName: example-tls
   rules:
     - host: example.com
       http:
