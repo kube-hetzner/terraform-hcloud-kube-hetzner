@@ -18,6 +18,11 @@ write_files:
     AuthorizedKeysFile .ssh/authorized_keys
   path: /etc/ssh/sshd_config.d/kube-hetzner.conf
 
+# Set reboot method as "kured"
+- content: |
+    REBOOT_METHOD=kured
+  path: /etc/transactional-update.conf
+
 # Add ssh authorized keys
 ssh_authorized_keys:
 %{ for key in sshAuthorizedKeys ~}
@@ -31,33 +36,23 @@ growpart:
 # Make sure the hostname is set correctly
 hostname: ${hostname}
 preserve_hostname: true
-manage_etc_hosts: "localhost"
 
 runcmd:
 
 # As above, make sure the hostname is not reset
-- [ sed, -i, 's#preserve_hostname: false#preserve_hostname: true#g', /etc/cloud/cloud.cfg]
-- [ sed, -i, 's#NETCONFIG_NIS_SETDOMAINNAME="yes"#NETCONFIG_NIS_SETDOMAINNAME="no"#g', /etc/sysconfig/network/config]
-- [ sed, -i, 's#DHCLIENT_SET_HOSTNAME="yes"#DHCLIENT_SET_HOSTNAME="no"#g', /etc/sysconfig/network/dhcp]
+- [sed, -i, 's#NETCONFIG_NIS_SETDOMAINNAME="yes"#NETCONFIG_NIS_SETDOMAINNAME="no"#g', /etc/sysconfig/network/config]
+- [sed, -i, 's#DHCLIENT_SET_HOSTNAME="yes"#DHCLIENT_SET_HOSTNAME="no"#g', /etc/sysconfig/network/dhcp]
 
-# We set Google DNS servers
-- [ sed, -i, 's#NETCONFIG_DNS_STATIC_SERVERS=""#NETCONFIG_DNS_STATIC_SERVERS="1.1.1.1 1.0.0.1 8.8.8.8 8.8.4.4"#g', /etc/sysconfig/network/config]
+# We set Cloudflare DNS servers, followed by Google as a backup
+- [sed, -i, 's#NETCONFIG_DNS_STATIC_SERVERS=""#NETCONFIG_DNS_STATIC_SERVERS="1.1.1.1 1.0.0.1 8.8.8.8"#g', /etc/sysconfig/network/config]
 
-# Bound the amount of logs that can survive on the system
-- [ sed, -i, 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
-- [ sed, -i, 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
+# Bounds the amount of logs that can survive on the system
+- [sed, -i, 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
+- [sed, -i, 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
 
-# Activate the private network
-- systemctl reload network
+# Disables unneeded services
+- [systemctl, disable, '--now', 'rebootmgr.service']
 
-# Activate ssh configuration
-- systemctl reload sshd
-
-# Finishing automatic reboot via Kured setup
-- echo 'REBOOT_METHOD=kured' > /etc/transactional-update.conf
-- rebootmgrctl set-strategy off
-
-# Reduce the default number of snapshots from 2-10 number limit, to 4
-# And from 4-10 number limit important, to 2
-- snapper -c root set-config "NUMBER_LIMIT=4"
-- snapper -c root set-config "NUMBER_LIMIT_IMPORTANT=2"
+# Reduces the default number of snapshots from 2-10 number limit, to 4 and from 4-10 number limit important, to 2
+- [snapper, -c, root, 'set-config', 'NUMBER_LIMIT=4']
+- [snapper, -c, root, 'set-config', 'NUMBER_LIMIT_IMPORTANT=2']
