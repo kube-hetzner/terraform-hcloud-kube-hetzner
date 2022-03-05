@@ -126,3 +126,9 @@ variable "use_cluster_name_in_node_name" {
   default     = true
   description = "Whether to use the cluster name in the node name"
 }
+
+variable "cluster_prefix" {
+  type        = string
+  default     = "k3s"
+  description = "Prefix for the cluster name"
+}
