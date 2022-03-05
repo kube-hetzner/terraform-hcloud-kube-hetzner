@@ -123,6 +123,6 @@ variable "extra_firewall_rules" {
 
 variable "use_cluster_name_in_node_name" {
   type        = bool
-  default     = false
+  default     = true
   description = "Whether to use the cluster name in the node name"
 }
