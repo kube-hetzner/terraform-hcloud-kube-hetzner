@@ -120,3 +120,9 @@ variable "extra_firewall_rules" {
   default     = []
   description = "Additional firewall rules to apply to the cluster"
 }
+
+variable "use_cluster_name_in_node_name" {
+  type        = bool
+  default     = false
+  description = "Whether to use the cluster name in the node name"
+}

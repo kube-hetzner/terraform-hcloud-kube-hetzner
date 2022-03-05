@@ -6,9 +6,8 @@ resource "random_pet" "control_planes" {
 module "control_planes" {
   source = "./modules/host"
 
-  count = var.control_plane_count
-  name  = "control-plane-${random_pet.cluster.id}-${random_pet.control_planes[count.index].id}"
-
+  count                  = var.control_plane_count
+  name                   = var.use_cluster_name_in_node_name ? "k3s-${random_pet.cluster.id}-control-plane-${random_pet.control_planes[count.index].id}" : "control-plane-${random_pet.control_planes[count.index].id}"
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
   private_key            = var.private_key
