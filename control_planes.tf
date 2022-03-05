@@ -13,7 +13,10 @@ module "control_planes" {
   location               = var.location
   server_type            = var.control_plane_server_type
   ipv4_subnet_id         = hcloud_network_subnet.subnet["control_plane"].id
-  private_ipv4           = cidrhost(var.network_ipv4_subnets["control_plane"], count.index + 1)
+
+  # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
+  # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.  
+  private_ipv4 = cidrhost(var.network_ipv4_subnets["control_plane"], count.index + 101)
 
   labels = {
     "provisioner" = "terraform",
