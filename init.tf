@@ -13,12 +13,11 @@ resource "null_resource" "first_control_plane" {
       token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
-      disable                  = ["servicelb", "local-storage"]
+      disable                  = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"])
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[0].private_ipv4_address
       advertise-address        = module.control_planes[0].private_ipv4_address
-      tls-san                  = module.control_planes[0].private_ipv4_address
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
@@ -30,7 +29,7 @@ resource "null_resource" "first_control_plane" {
     inline = local.install_k3s_server
   }
 
-  # Upon reboot verify that the k3s server is starts, and wait for k3s to be ready to receive commands
+  # Upon reboot start k3s and wait for it to be ready to receive commands
   provisioner "remote-exec" {
     inline = [
       "systemctl start k3s",
@@ -75,13 +74,12 @@ resource "null_resource" "kustomization" {
     content = yamlencode({
       apiVersion = "kustomize.config.k8s.io/v1beta1"
       kind       = "Kustomization"
-      resources = [
+      resources = concat([
         "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
         "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
         "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-        "traefik.yaml",
-      ]
+      ], local.is_single_node_cluster ? [] : ["traefik.yaml"]),
       patchesStrategicMerge = [
         file("${path.module}/kustomize/kured.yaml"),
         file("${path.module}/kustomize/ccm.yaml"),
@@ -93,7 +91,7 @@ resource "null_resource" "kustomization" {
 
   # Upload traefik config
   provisioner "file" {
-    content = templatefile(
+    content = local.is_single_node_cluster ? "" : templatefile(
       "${path.module}/templates/traefik_config.yaml.tpl",
       {
         load_balancer_disable_ipv6 = var.load_balancer_disable_ipv6
@@ -127,7 +125,7 @@ resource "null_resource" "kustomization" {
 
   # Deploy our post-installation kustomization
   provisioner "remote-exec" {
-    inline = [
+    inline = concat([
       "set -ex",
       # This ugly hack is here, because terraform serializes the
       # embedded yaml files with "- |2", when there is more than
@@ -141,8 +139,9 @@ resource "null_resource" "kustomization" {
       "kubectl apply -k /tmp/post_install",
       "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
       "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
-      "kubectl -n system-upgrade apply -f /tmp/post_install/plans.yaml",
-      <<-EOT
+      "kubectl -n system-upgrade apply -f /tmp/post_install/plans.yaml"
+      ],
+      local.is_single_node_cluster ? [] : [<<-EOT
       timeout 120 bash <<EOF
       until [ -n "\$(kubectl get -n kube-system service/traefik --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
@@ -150,7 +149,7 @@ resource "null_resource" "kustomization" {
       done
       EOF
       EOT
-    ]
+    ])
   }
 
   depends_on = [

@@ -149,7 +149,6 @@ spec:
   tls:
     - hosts:
         - example.com
-      secretName: example-tls
   rules:
     - host: example.com
       http:
@@ -162,6 +161,21 @@ spec:
                 port:
                   number: 80
 
+```
+
+</details>
+
+<details>
+
+<summary>single-node cluster</summary>
+
+Running a development cluster on a single node, without any high-availability is possible as well.
+In this case, we don't deploy an external load-balancer, but use [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall.
+
+``` terraform
+control_plane_count = 1
+allow_scheduling_on_control_plane = true
+agent_nodepools = {}
 ```
 
 </details>

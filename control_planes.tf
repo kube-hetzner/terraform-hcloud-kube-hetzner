@@ -53,7 +53,6 @@ resource "null_resource" "control_planes" {
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[count.index].private_ipv4_address
       advertise-address        = module.control_planes[count.index].private_ipv4_address
-      tls-san                  = module.control_planes[count.index].private_ipv4_address
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })

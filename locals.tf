@@ -1,7 +1,7 @@
 locals {
-  first_control_plane_network_ipv4 = module.control_planes[0].private_ipv4_address
-
-  ssh_public_key = trimspace(file(var.public_key))
+  # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
+  is_single_node_cluster = var.control_plane_count + length(keys(var.agent_nodepools)) == 1
+  ssh_public_key         = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
   # ssh_identity is not set if the private key is passed directly, but if ssh agent is used, the public key tells ssh agent which private key to use.
@@ -29,7 +29,7 @@ locals {
     "127.0.0.1/32",
   ]
 
-  base_firewall_rules = [
+  base_firewall_rules = concat([
     # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
     {
       direction  = "in"
@@ -133,7 +133,26 @@ locals {
         "0.0.0.0/0"
       ]
     }
-  ]
+    ], !local.is_single_node_cluster ? [] : [
+    # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
+    # not an external load-balancer.
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "80"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    },
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "443"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    }
+  ])
 
   common_commands_install_k3s = [
     "set -ex",
@@ -145,9 +164,10 @@ locals {
     "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
   ]
 
-  install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"])
+  apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
 
-  install_k3s_agent = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_SKIP_START=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"])
+  install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"], local.apply_k3s_selinux)
+  install_k3s_agent  = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"], local.apply_k3s_selinux)
 
   agent_nodepools = merge([
     for nodepool_name, nodepool_obj in var.agent_nodepools : {
