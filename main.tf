@@ -51,7 +51,7 @@ resource "hcloud_placement_group" "k3s" {
 
 data "hcloud_load_balancer" "traefik" {
   count = local.is_single_node_cluster ? 0 : 1
-  name  = "traefik-${random_pet.cluster.id}"
+  name  = "k3s-${random_pet.cluster.id}-traefik"
 
   depends_on = [null_resource.kustomization]
 }

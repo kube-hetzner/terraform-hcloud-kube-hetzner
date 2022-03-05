@@ -9,7 +9,7 @@ spec:
       enabled: true
       type: LoadBalancer
       annotations:
-        "load-balancer.hetzner.cloud/name": "traefik-${cluster_pet_name}"
+        "load-balancer.hetzner.cloud/name": name
         # make hetzners load-balancer connect to our nodes via our private k3s
         "load-balancer.hetzner.cloud/use-private-ip": "true"
         # keep hetzner-ccm from exposing our private ingress ip, which in general isn't routeable from the public internet
