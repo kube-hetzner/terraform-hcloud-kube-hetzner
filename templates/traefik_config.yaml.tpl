@@ -24,7 +24,7 @@ spec:
       - "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-%{ for option in traefik_additionalOptions ~}
+%{ for option in traefik_additional_options ~}
       - "${option}"
 %{ endfor ~}
 %{ if traefik_acme_tls ~}
