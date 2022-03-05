@@ -24,8 +24,6 @@ module "agents" {
     "engine"      = "k3s"
   }
 
-  hcloud_token = var.hcloud_token
-
   depends_on = [
     hcloud_network_subnet.subnet
   ]
