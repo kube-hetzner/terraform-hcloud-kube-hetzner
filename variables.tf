@@ -120,3 +120,8 @@ variable "extra_firewall_rules" {
   default     = []
   description = "Additional firewall rules to apply to the cluster"
 }
+
+variable "traefik_additional_options" {
+  type    = list(string)
+  default = []
+}

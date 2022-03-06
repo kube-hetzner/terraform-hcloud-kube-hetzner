@@ -90,3 +90,7 @@ load_balancer_type        = "lb11"
 #     ]
 #   },
 # ]
+
+# If you want to configure additional Arguments for traefik, enter them here as a list and in the form of traefik CLI arguments; see https://doc.traefik.io/traefik/reference/static-configuration/cli/
+# Example: traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
+# traefik_additional_options = []

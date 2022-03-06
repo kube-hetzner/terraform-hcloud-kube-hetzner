@@ -99,6 +99,7 @@ resource "null_resource" "kustomization" {
         location                   = var.location
         traefik_acme_tls           = var.traefik_acme_tls
         traefik_acme_email         = var.traefik_acme_email
+        traefik_additional_options = var.traefik_additional_options
     })
     destination = "/tmp/post_install/traefik.yaml"
   }
