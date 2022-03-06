@@ -13,7 +13,11 @@ module "agents" {
   location               = var.location
   server_type            = each.value.server_type
   ipv4_subnet_id         = hcloud_network_subnet.subnet[each.value.subnet].id
-  private_ipv4           = cidrhost(var.network_ipv4_subnets[each.value.subnet], each.value.index + 1)
+
+  # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
+  # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
+  private_ipv4 = cidrhost(var.network_ipv4_subnets[each.value.subnet], each.value.index + 101)
+
   labels = {
     "provisioner" = "terraform",
     "engine"      = "k3s"
