@@ -132,3 +132,9 @@ variable "cluster_prefix" {
   default     = "k3s"
   description = "Prefix for the cluster name"
 }
+
+variable "traefik_additional_options" {
+  type    = list(string)
+  default = []
+
+}
