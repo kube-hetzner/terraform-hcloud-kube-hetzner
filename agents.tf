@@ -3,7 +3,7 @@ module "agents" {
 
   for_each = local.agent_nodepools
 
-  name                   = each.key
+  name                   = "${var.use_cluster_name_in_node_name ? "${random_pet.cluster.id}-" : ""}${each.value.nodepool_name}"
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
   private_key            = var.private_key
@@ -22,8 +22,6 @@ module "agents" {
     "provisioner" = "terraform",
     "engine"      = "k3s"
   }
-
-  hcloud_token = var.hcloud_token
 
   depends_on = [
     hcloud_network_subnet.subnet

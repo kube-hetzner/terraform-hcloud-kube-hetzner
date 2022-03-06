@@ -10,4 +10,7 @@ locals {
   ssh_identity_file = var.private_key == null ? var.public_key : var.private_key
   # shared flags for ssh to ignore host keys, to use our ssh identity file for all connections during provisioning.
   ssh_args = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${local.ssh_identity_file}"
+
+  # the hosts name with its unique suffix attached
+  name = "${var.name}-${random_pet.server.id}"
 }

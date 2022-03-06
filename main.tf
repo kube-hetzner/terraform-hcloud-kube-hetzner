@@ -1,15 +1,20 @@
+resource "random_pet" "cluster" {
+  length = 1
+  prefix = var.cluster_prefix
+}
+
 resource "random_password" "k3s_token" {
   length  = 48
   special = false
 }
 
 resource "hcloud_ssh_key" "k3s" {
-  name       = "k3s"
+  name       = random_pet.cluster.id
   public_key = local.ssh_public_key
 }
 
 resource "hcloud_network" "k3s" {
-  name     = "k3s"
+  name     = random_pet.cluster.id
   ip_range = var.network_ipv4_range
 }
 
@@ -32,7 +37,7 @@ resource "hcloud_network_subnet" "subnet" {
 }
 
 resource "hcloud_firewall" "k3s" {
-  name = "k3s"
+  name = random_pet.cluster.id
 
   dynamic "rule" {
     for_each = concat(local.base_firewall_rules, var.extra_firewall_rules)
@@ -47,7 +52,7 @@ resource "hcloud_firewall" "k3s" {
 }
 
 resource "hcloud_placement_group" "k3s" {
-  name = "k3s"
+  name = random_pet.cluster.id
   type = "spread"
   labels = {
     "provisioner" = "terraform",
@@ -57,7 +62,7 @@ resource "hcloud_placement_group" "k3s" {
 
 data "hcloud_load_balancer" "traefik" {
   count = local.is_single_node_cluster ? 0 : 1
-  name  = "traefik"
+  name  = "${random_pet.cluster.id}-traefik"
 
   depends_on = [null_resource.kustomization]
 }

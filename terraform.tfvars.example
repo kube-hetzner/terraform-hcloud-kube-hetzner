@@ -77,6 +77,12 @@ load_balancer_type        = "lb11"
 # Allows you to specify either stable, latest, or testing (defaults to stable), see https://rancher.com/docs/k3s/latest/en/upgrades/basic/
 # initial_k3s_channel = "latest"
 
+# Whether to use the cluster name in the node name, i.e. add the prefix k3s-(cluster_name)- to the nodes? The default is "true".
+# use_cluster_name_in_node_name = false
+
+# Prefix for the cluster name, by default "k3s"
+# cluster_prefix = ""
+
 # Adding extra firewall rules, like opening a port
 # In this example with allow port TCP 5432 for a Postgres service we will open via a nodeport
 # More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall

@@ -173,6 +173,7 @@ locals {
     for nodepool_name, nodepool_obj in var.agent_nodepools : {
       for index in range(nodepool_obj.count) :
       format("%s-%s", nodepool_name, index) => {
+        nodepool_name : nodepool_name,
         server_type : nodepool_obj.server_type,
         subnet : nodepool_obj.subnet,
         index : index

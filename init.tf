@@ -94,6 +94,7 @@ resource "null_resource" "kustomization" {
     content = local.is_single_node_cluster ? "" : templatefile(
       "${path.module}/templates/traefik_config.yaml.tpl",
       {
+        name                       = "${random_pet.cluster.id}-traefik"
         load_balancer_disable_ipv6 = var.load_balancer_disable_ipv6
         load_balancer_type         = var.load_balancer_type
         location                   = var.location
