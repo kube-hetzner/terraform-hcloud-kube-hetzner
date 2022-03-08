@@ -1,20 +1,22 @@
 resource "random_pet" "server" {
-  length  = 1
+  length = 1
   keepers = {
     # We re-create the id (and server) whenever one of those attributes
     # changes. This should include all input variables to this module,
     # but NO SENSITIVE values as they might be logged here.
-    name = var.name
-    public_key = var.public_key
+    name                   = var.name
+    public_key             = var.public_key
     additional_public_keys = join(",", var.additional_public_keys)
-    ssh_keys = join(",", var.ssh_keys)
-    firewall_ids = join(",", var.firewall_ids)
-    placement_group_id = var.placement_group_id
-    labels = join(",", [for k, v in var.labels: "${k}=${v}" ])
-    location = var.location
-    ipv4_subnet_id = var.ipv4_subnet_id
-    private_ipv4 = var.private_ipv4
-    server_type = var.server_type
+    firewall_ids           = join(",", var.firewall_ids)
+    placement_group_id     = var.placement_group_id
+    labels                 = join(",", [for k, v in var.labels : "${k}=${v}"])
+    ipv4_subnet_id         = var.ipv4_subnet_id
+    private_ipv4           = var.private_ipv4
+    server_type            = var.server_type
+
+    # Excluding these for now as they are part of the ignore_changes below
+    #ssh_keys = join(",", var.ssh_keys)
+    #location = var.location
   }
 }
 
