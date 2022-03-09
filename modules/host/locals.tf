@@ -12,5 +12,5 @@ locals {
   ssh_args = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${local.ssh_identity_file}"
 
   # the hosts name with its unique suffix attached
-  name = "${var.name}-${random_pet.server.id}"
+  name = "${var.name}-${random_string.server.id}"
 }
