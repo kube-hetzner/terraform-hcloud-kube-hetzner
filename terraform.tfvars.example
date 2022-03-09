@@ -77,7 +77,7 @@ load_balancer_type        = "lb11"
 # Allows you to specify either stable, latest, or testing (defaults to stable), see https://rancher.com/docs/k3s/latest/en/upgrades/basic/
 # initial_k3s_channel = "latest"
 
-# Whether to use the cluster name to in the node name, the default is true
+# Whether to use the cluster name in the node name, the default is "true".
 # use_cluster_name_in_node_name = false
 
 # The cluster name, by default "k3s"
