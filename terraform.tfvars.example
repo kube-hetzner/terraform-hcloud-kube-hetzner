@@ -32,13 +32,11 @@ control_plane_server_type = "cpx11"
 agent_nodepools = {
   agent-big = {
     server_type = "cpx21",
-    count       = 1,
-    subnet      = "agent_big",
+    count       = 1
   }
   agent-small = {
     server_type = "cpx11",
-    count       = 2,
-    subnet      = "agent_small",
+    count       = 2
   }
 }
 
