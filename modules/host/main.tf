@@ -8,11 +8,8 @@ resource "random_string" "server" {
   keepers = {
     # We re-create the id (and server) whenever one of those attributes
     # changes.
-    name                   = var.name
-    public_key             = var.public_key
-    additional_public_keys = join(",", var.additional_public_keys)
-    placement_group_id     = var.placement_group_id
-    private_ipv4           = var.private_ipv4
+    name         = var.name
+    private_ipv4 = var.private_ipv4
   }
 }
 
