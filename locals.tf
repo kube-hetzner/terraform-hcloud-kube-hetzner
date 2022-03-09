@@ -1,6 +1,6 @@
 locals {
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
-  is_single_node_cluster = var.control_plane_count + length(keys(var.agent_nodepools)) == 1
+  is_single_node_cluster = var.control_plane_count + length(var.agent_nodepools) == 1
   ssh_public_key         = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
@@ -170,10 +170,10 @@ locals {
   install_k3s_agent  = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"], local.apply_k3s_selinux)
 
   agent_nodepools = merge([
-    for nodepool_name, nodepool_obj in var.agent_nodepools : {
+    for nodepool_obj in var.agent_nodepools : {
       for index in range(nodepool_obj.count) :
-      format("%s-%s", nodepool_name, index) => {
-        nodepool_name : nodepool_name,
+      format("%s-%s", nodepool_obj.name, index) => {
+        nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
         index : index
       }

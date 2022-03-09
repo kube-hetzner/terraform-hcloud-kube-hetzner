@@ -53,8 +53,8 @@ variable "load_balancer_disable_ipv6" {
 
 variable "agent_nodepools" {
   description = "Number of agent nodes."
-  type        = map(any)
-  default     = {}
+  type        = list(any)
+  default     = []
 }
 
 variable "hetzner_ccm_version" {
