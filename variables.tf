@@ -116,10 +116,15 @@ variable "use_cluster_name_in_node_name" {
   description = "Whether to use the cluster name in the node name"
 }
 
-variable "cluster_prefix" {
+variable "cluster_name" {
   type        = string
   default     = "k3s"
-  description = "Prefix for the cluster name"
+  description = "Name of the cluster"
+
+  validation {
+    condition     = can(regex("^[a-z1-9\\-]+$", var.cluster_name))
+    error_message = "The cluster name must be in the form of lowercase alphanumeric characters and/or dashes."
+  }
 }
 
 variable "traefik_additional_options" {
