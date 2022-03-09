@@ -2,7 +2,7 @@ module "control_planes" {
   source = "./modules/host"
 
   count                  = var.control_plane_count
-  name                   = "${var.use_cluster_name_in_node_name ? "${random_pet.cluster.id}-" : ""}control-plane"
+  name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}control-plane"
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
   private_key            = var.private_key

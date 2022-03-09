@@ -1,5 +1,10 @@
-resource "random_pet" "server" {
-  length = 1
+resource "random_string" "server" {
+  length  = 3
+  lower   = true
+  special = false
+  number  = false
+  upper   = false
+
   keepers = {
     # We re-create the id (and server) whenever one of those attributes
     # changes.
