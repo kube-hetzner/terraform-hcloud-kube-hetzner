@@ -23,7 +23,7 @@ locals {
   hetzner_cloud_api_ipv4        = "213.239.246.1/32"
 
   whitelisted_ips = [
-    var.network_ipv4_range,
+    local.network_ipv4_cidr,
     local.hetzner_metadata_service_ipv4,
     local.hetzner_cloud_api_ipv4,
     "127.0.0.1/32",
@@ -175,9 +175,15 @@ locals {
       format("%s-%s", nodepool_name, index) => {
         nodepool_name : nodepool_name,
         server_type : nodepool_obj.server_type,
-        subnet : nodepool_obj.subnet,
         index : index
       }
     }
   ]...)
+
+  # The main network cidr that all subnets will be created upon
+  network_ipv4_cidr = "10.0.0.0/8"
+
+  # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
+  # the rest of the subnets are for agent nodes in each nodepools.
+  network_ipv4_subnets = [for index in range(length(var.agent_nodepools) + 2) : cidrsubnet(local.network_ipv4_cidr, 8, index)]
 }

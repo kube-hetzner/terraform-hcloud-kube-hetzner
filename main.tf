@@ -15,25 +15,15 @@ resource "hcloud_ssh_key" "k3s" {
 
 resource "hcloud_network" "k3s" {
   name     = random_pet.cluster.id
-  ip_range = var.network_ipv4_range
-}
-
-# This is the default subnet to be used by the load balancer.
-resource "hcloud_network_subnet" "default" {
-  network_id   = hcloud_network.k3s.id
-  type         = "cloud"
-  network_zone = var.network_region
-  ip_range     = "10.0.0.0/16"
+  ip_range = local.network_ipv4_cidr
 }
 
 resource "hcloud_network_subnet" "subnet" {
-  for_each     = var.network_ipv4_subnets
+  count        = length(local.network_ipv4_subnets)
   network_id   = hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
-  ip_range     = each.value
-
-  depends_on = [hcloud_network_subnet.default]
+  ip_range     = local.network_ipv4_subnets[count.index]
 }
 
 resource "hcloud_firewall" "k3s" {

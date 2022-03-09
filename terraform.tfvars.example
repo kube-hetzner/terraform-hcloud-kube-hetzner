@@ -18,15 +18,6 @@ private_key  = "/home/username/.ssh/id_ed25519"
 location         = "fsn1"       # change to `ash` for us-east Ashburn, Virginia location
 network_region   = "eu-central" # change to `us-east` if location is ash
 
-# You can have up to as many subnets as you want (preferably if the form of 10.X.0.0/16),
-# their primary use is to logically separate the nodes.
-# The control_plane network is mandatory.
-network_ipv4_subnets = {
-  control_plane = "10.1.0.0/16"
-  agent_big     = "10.2.0.0/16"
-  agent_small   = "10.3.0.0/16"
-}
-
 # At least 3 server nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
 # As per rancher docs, it must be always an odd number, never even! See https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
 # For instance, 1 is ok (non-HA), 2 not ok, 3 is ok (becomes HA).
@@ -55,9 +46,6 @@ agent_nodepools = {
 load_balancer_type        = "lb11"
 
 ### The following values are fully optional
-
-# It's best to leave the network range as is, unless you know what you are doing. The default is "10.0.0.0/8".
-# network_ipv4_range = "10.0.0.0/8"
 
 # If you want to use a specific Hetzner CCM and CSI version, set them below, otherwise leave as is for the latest versions
 # hetzner_ccm_version = ""
