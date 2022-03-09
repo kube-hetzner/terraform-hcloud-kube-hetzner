@@ -1,5 +1,5 @@
 output "cluster_name" {
-  value       = random_pet.cluster.id
+  value       = var.cluster_name
   description = "Shared suffix for all resources belonging to this cluster."
 }
 
