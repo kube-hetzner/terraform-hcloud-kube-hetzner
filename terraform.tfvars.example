@@ -28,7 +28,7 @@ control_plane_server_type = "cpx11"
 
 # As for the agent nodepools, below is just an example, if you do not want nodepools, just use one,
 # and change the name to what you want, it need not be "agent-big" or "agent-small", also give them the subnet prefer.
-# For single node clusters set this equal to [] or just set the counts to 0
+# For single node clusters set this equal to [] or just set the counts to 0.
 # IMPORTANT: Once the cluster is created, you can change the count, and even set it to 0, but do not remove a nodepool from the list. 
 # You can add others at the end of the list if you want.
 agent_nodepools = [
