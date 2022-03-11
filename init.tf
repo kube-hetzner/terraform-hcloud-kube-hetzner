@@ -13,7 +13,7 @@ resource "null_resource" "first_control_plane" {
       token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
-      disable                  = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"])
+      disable                  = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metric_server_enabled ? [] : ["metric-server"])
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[0].private_ipv4_address
@@ -79,7 +79,7 @@ resource "null_resource" "kustomization" {
         "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
         "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-      ], local.is_single_node_cluster ? [] : ["traefik.yaml"]),
+      ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik.yaml"] : []),
       patchesStrategicMerge = [
         file("${path.module}/kustomize/kured.yaml"),
         file("${path.module}/kustomize/ccm.yaml"),
@@ -91,7 +91,7 @@ resource "null_resource" "kustomization" {
 
   # Upload traefik config
   provisioner "file" {
-    content = local.is_single_node_cluster ? "" : templatefile(
+    content = local.is_single_node_cluster ? "" : var.traefik_enabled == false ? "" : templatefile(
       "${path.module}/templates/traefik_config.yaml.tpl",
       {
         name                       = "${var.cluster_name}-traefik"
@@ -142,7 +142,7 @@ resource "null_resource" "kustomization" {
       "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
       "kubectl -n system-upgrade apply -f /tmp/post_install/plans.yaml"
       ],
-      local.is_single_node_cluster ? [] : [<<-EOT
+      local.is_single_node_cluster ? [] : var.traefik_enabled == false ? [] : [<<-EOT
       timeout 120 bash <<EOF
       until [ -n "\$(kubectl get -n kube-system service/traefik --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."

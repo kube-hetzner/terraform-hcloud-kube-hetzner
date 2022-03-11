@@ -37,7 +37,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 - Proper use of the underlying Hetzner private network to remove the need for encryption and minimize latency.
 - Automatic HA with the default setting of three control-plane and two agents nodes.
 - Ability to add or remove as many nodes as you want while the cluster stays running.
-- Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
+- (Optional) Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - (Optional) Out of the box config of Traefik with SSL certficate auto-generation.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
