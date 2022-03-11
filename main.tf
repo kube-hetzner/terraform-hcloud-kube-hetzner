@@ -68,7 +68,7 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
   }
 
   depends_on = [
-    local_file.kubeconfig,
+    local_sensitive_file.kubeconfig,
     null_resource.control_planes[0],
     hcloud_network_subnet.subnet,
     hcloud_network.k3s,
