@@ -14,7 +14,7 @@ module "control_planes" {
   ipv4_subnet_id         = hcloud_network_subnet.subnet[1].id
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
-  # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.  
+  # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
   private_ipv4 = cidrhost(local.network_ipv4_subnets[1], count.index + 101)
 
   labels = {
@@ -48,7 +48,7 @@ resource "null_resource" "control_planes" {
       server                   = "https://${element(module.control_planes.*.private_ipv4_address, count.index > 0 ? 0 : 1)}:6443"
       token                    = random_password.k3s_token.result
       disable-cloud-controller = true
-      disable                  = ["servicelb", "local-storage"]
+      disable                  = ["servicelb", "local-storage", "traefik", "metric-server"]
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[count.index].private_ipv4_address

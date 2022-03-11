@@ -91,7 +91,7 @@ resource "null_resource" "kustomization" {
 
   # Upload traefik config
   provisioner "file" {
-    content = local.is_single_node_cluster ? "" : var.traefik_enabled == false ? "" : templatefile(
+    content = local.is_single_node_cluster || var.traefik_enabled == false ? "" : templatefile(
       "${path.module}/templates/traefik_config.yaml.tpl",
       {
         name                       = "${var.cluster_name}-traefik"
@@ -142,7 +142,7 @@ resource "null_resource" "kustomization" {
       "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
       "kubectl -n system-upgrade apply -f /tmp/post_install/plans.yaml"
       ],
-      local.is_single_node_cluster ? [] : var.traefik_enabled == false ? [] : [<<-EOT
+      local.is_single_node_cluster || var.traefik_enabled == false ? [] : [<<-EOT
       timeout 120 bash <<EOF
       until [ -n "\$(kubectl get -n kube-system service/traefik --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
