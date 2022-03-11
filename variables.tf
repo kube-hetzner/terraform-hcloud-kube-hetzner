@@ -69,6 +69,12 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud"
 }
 
+variable "traefik_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable or disbale k3s traefik installation"
+}
+
 variable "traefik_acme_tls" {
   type        = bool
   default     = false
@@ -85,6 +91,12 @@ variable "allow_scheduling_on_control_plane" {
   type        = bool
   default     = false
   description = "Whether to allow non-control-plane workloads to run on the control-plane nodes"
+}
+
+variable "metric_server_enabled" {
+  type        = bool
+  default     = true
+  description = "Whether to enable or disbale k3s mertric server"
 }
 
 variable "initial_k3s_channel" {
