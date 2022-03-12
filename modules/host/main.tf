@@ -6,10 +6,8 @@ resource "random_string" "server" {
   upper   = false
 
   keepers = {
-    # We re-create the id (and server) whenever one of those attributes
-    # changes.
-    name         = var.name
-    private_ipv4 = var.private_ipv4
+    # We re-create the apart of the name changes.
+    name = var.name
   }
 }
 
