@@ -13,7 +13,7 @@ terraform {
       version = "~> 0.0.23"
     }
     template = {
-      source  = "hashicorp/template"
+      source  = "hashicorp/cloudinit"
       version = "~> 2.2.0"
     }
   }
