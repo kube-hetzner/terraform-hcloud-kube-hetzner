@@ -21,7 +21,7 @@ resource "hcloud_server" "server" {
   ssh_keys           = var.ssh_keys
   firewall_ids       = var.firewall_ids
   placement_group_id = var.placement_group_id
-  user_data          = data.template_cloudinit_config.config.rendered
+  user_data          = data.cloudinit_config.config.rendered
 
   labels = var.labels
 
@@ -92,7 +92,7 @@ resource "hcloud_server_network" "server" {
   subnet_id = var.ipv4_subnet_id
 }
 
-data "template_cloudinit_config" "config" {
+data "cloudinit_config" "config" {
   gzip          = true
   base64_encode = true
 
