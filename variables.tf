@@ -71,7 +71,7 @@ variable "hetzner_csi_version" {
 
 variable "traefik_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Whether to enable or disbale k3s traefik installation"
 }
 
