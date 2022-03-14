@@ -23,8 +23,8 @@ locals {
   }
 }
 
-resource "local_file" "kubeconfig" {
-  sensitive_content = local.kubeconfig_external
-  filename          = "kubeconfig.yaml"
-  file_permission   = "600"
+resource "local_sensitive_file" "kubeconfig" {
+  content         = local.kubeconfig_external
+  filename        = "kubeconfig.yaml"
+  file_permission = "600"
 }

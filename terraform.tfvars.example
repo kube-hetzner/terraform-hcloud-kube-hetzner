@@ -5,7 +5,7 @@
 # This is in order to keep terraform from re-provisioning all nodes at once which would loose data. If you want to update,
 # those, you should instead change the value here and then manually re-provision each node one-by-one. Grep for "lifecycle".
 
-# * Your Hetzner project API token 
+# * Your Hetzner project API token
 hcloud_token = "xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz"
 # * Your public key
 public_key   = "/home/username/.ssh/id_ed25519.pub"
@@ -53,9 +53,14 @@ load_balancer_type        = "lb11"
 # hetzner_ccm_version = ""
 # hetzner_csi_version = ""
 
+# If you want to use traefik ingress controller with a loadbalancer
+# traefik_enabled = true
 # If you want to use letsencrypt with tls Challenge, the email address is used to send you certificates expiration notices
 # traefik_acme_tls = true
 # traefik_acme_email = "mail@example.com"
+
+# If you want to enable k8s metric server or not
+# metric_server_enabled = false
 
 # If you want to allow non-control-plane workloads to run on the control-plane nodes set "true" below. The default is "false".
 # Also good for single node clusters.

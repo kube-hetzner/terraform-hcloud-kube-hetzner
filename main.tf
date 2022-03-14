@@ -46,7 +46,7 @@ resource "hcloud_placement_group" "k3s" {
 }
 
 data "hcloud_load_balancer" "traefik" {
-  count = local.is_single_node_cluster ? 0 : 1
+  count = local.is_single_node_cluster ? 0 : var.traefik_enabled == false ? 0 : 1
   name  = "${var.cluster_name}-traefik"
 
   depends_on = [null_resource.kustomization]
@@ -68,7 +68,7 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
   }
 
   depends_on = [
-    local_file.kubeconfig,
+    local_sensitive_file.kubeconfig,
     null_resource.control_planes[0],
     hcloud_network_subnet.subnet,
     hcloud_network.k3s,
