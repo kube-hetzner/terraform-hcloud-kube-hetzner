@@ -53,13 +53,15 @@ load_balancer_type        = "lb11"
 # hetzner_ccm_version = ""
 # hetzner_csi_version = ""
 
-# If you want to use traefik ingress controller with a loadbalancer
-# traefik_enabled = true
+
 # If you want to use letsencrypt with tls Challenge, the email address is used to send you certificates expiration notices
 # traefik_acme_tls = true
 # traefik_acme_email = "mail@example.com"
 
-# If you want to enable k8s metric server or not
+# If you want to use disable the traefik ingress controller, you can. By default is it enabled!
+# traefik_enabled = false
+
+# If you want to disable the metric server, you can! By defaults it is enabled.
 # metric_server_enabled = false
 
 # If you want to allow non-control-plane workloads to run on the control-plane nodes set "true" below. The default is "false".
