@@ -47,16 +47,13 @@ func TestTerraformSingleNode(t *testing.T) {
 	terraform.InitAndApply(t, terraformOptions)
 
 	wwwEndpoint := terraform.OutputRequired(t, terraformOptions, "load_balancer_public_ipv4")
-	testURL(t, wwwEndpoint, "", 404, "not found")
-
-
-	//assert.Equal(t, expectedText, actualTextExample)
+	testURL(t, wwwEndpoint, "", 404, "page not found")
 }
 
 func testURL(t *testing.T, endpoint string, path string, expectedStatus int, expectedBody string) {
    url := fmt.Sprintf("%s://%s/%s", "http", endpoint, path)
    actionDescription := fmt.Sprintf("Calling %s", url)
-   output := retry.DoWithRetry(t, actionDescription, 10, 10 * time.Second, func() (string, error) {
+   output := retry.DoWithRetry(t, actionDescription, 10, 2 * time.Minute, func() (string, error) {
       statusCode, body := http_helper.HttpGet(t, url, nil)
       if statusCode == expectedStatus {
          logger.Logf(t, "Got expected status code %d from URL %s", expectedStatus, url)
