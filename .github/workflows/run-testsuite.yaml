@@ -3,7 +3,7 @@ name: Run Testsuite
 on:
   push:
     tags:
-      - 'test'
+      - '*'
 
 jobs:
 
