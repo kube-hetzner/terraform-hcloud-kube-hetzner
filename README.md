@@ -32,7 +32,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 ### Features
 
 - Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
-- Proper use of the underlying Hetzner private network to remove the need for encryption and minimize latency.
+- Proper use of the underlying Hetzner private network to remove the need for encryption while minimizing latency.
 - Automatic HA with the default setting of three control-plane and two agents nodes.
 - Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
