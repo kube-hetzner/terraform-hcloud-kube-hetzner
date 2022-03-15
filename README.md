@@ -32,11 +32,11 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 ### Features
 
 - Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
-- Proper use of the underlying Hetzner private network to remove the need for encryption while minimizing latency.
-- Automatic HA with the default setting of three control-plane and two agents nodes.
+- Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
+- Automatic HA with the default setting of three control-plane nodes and two agent nodepools.
 - Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
-- (Optional) Out of the box config of Traefik with SSL certficate auto-generation.
+- Tons of flexible configuration options to suits all needs.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -174,6 +174,24 @@ In this case, we don't deploy an external load-balancer, but use [k3s service lo
 control_plane_count = 1
 allow_scheduling_on_control_plane = true
 agent_nodepools = []
+```
+
+</details>
+
+<details>
+
+<summary>Use as Terraform module</summary>
+
+It is easy to use Kube-Hetzner as a Terraform module. To do so:
+
+1. Clone it on your localhost.
+2. Declare a module, with the name of your choice, and choose `kube-hetzner` as its source.
+3. Copy your `terraform.tfvars` file to the module directory.
+
+``` terraform
+module "kh" {
+  source = "./kube-hetzner"
+}
 ```
 
 </details>
