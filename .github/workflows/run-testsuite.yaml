@@ -1,0 +1,33 @@
+name: Run Testsuite
+
+on:
+  push:
+    tags:
+      - 'test'
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.17
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+
+    - name: Setup SSH keys
+      run: |
+        mkdir -p $HOME/.ssh
+        umask 077
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > $HOME/.ssh/kube-hetzner
+        echo "${{ secrets.SSH_PUBLIC_KEY }}" > $HOME/.ssh/kube-hetzner.pub
+
+    - name: Run tests
+      run: cd test && go test -v
+      env:
+        TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
