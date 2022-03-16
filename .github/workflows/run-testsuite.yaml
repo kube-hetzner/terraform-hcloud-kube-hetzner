@@ -32,6 +32,6 @@ jobs:
         echo "${{ secrets.SSH_PUBLIC_KEY }}" > $HOME/.ssh/kube-hetzner.pub
 
     - name: Run tests
-      run: cd test && go test -v
+      run: cd test && go test
       env:
         TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
