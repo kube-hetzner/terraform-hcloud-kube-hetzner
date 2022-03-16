@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"testing"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
-	"github.com/gruntwork-io/terratest/modules/logger"
-	"github.com/gruntwork-io/terratest/modules/retry"
 	"github.com/gruntwork-io/terratest/modules/terraform"
-	"github.com/stretchr/testify/assert"
 	"time"
 )
 
@@ -46,20 +43,13 @@ func TestTerraformSingleNode(t *testing.T) {
 	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
 	terraform.InitAndApply(t, terraformOptions)
 
+	// Verify that we can reach traefik on the "load_balancer_ip", which is just the node itself
+	// for single-node clusters.
 	wwwEndpoint := terraform.OutputRequired(t, terraformOptions, "load_balancer_public_ipv4")
 	testURL(t, wwwEndpoint, "", 404, "page not found")
 }
 
 func testURL(t *testing.T, endpoint string, path string, expectedStatus int, expectedBody string) {
-   url := fmt.Sprintf("%s://%s/%s", "http", endpoint, path)
-   actionDescription := fmt.Sprintf("Calling %s", url)
-   output := retry.DoWithRetry(t, actionDescription, 10, 2 * time.Minute, func() (string, error) {
-      statusCode, body := http_helper.HttpGet(t, url, nil)
-      if statusCode == expectedStatus {
-         logger.Logf(t, "Got expected status code %d from URL %s", expectedStatus, url)
-         return body, nil
-      }
-      return "", fmt.Errorf("got status %d instead of the expected %d from %s", statusCode, expectedStatus, url)
-   })
-   assert.Contains(t, output, expectedBody, "Body should contain expected text")
+	url := fmt.Sprintf("%s://%s/%s", "http", endpoint, path)
+	http_helper.HttpGetWithRetry(t, url, nil, expectedStatus, expectedBody, 20, 6 * time.Second)
 }
