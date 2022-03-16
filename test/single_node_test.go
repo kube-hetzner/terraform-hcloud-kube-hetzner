@@ -1,11 +1,11 @@
 package test
 
 import (
-	"os"
 	"fmt"
-	"testing"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"os"
+	"testing"
 	"time"
 )
 
@@ -16,17 +16,17 @@ func TestTerraformSingleNode(t *testing.T) {
 		TerraformDir: "../",
 
 		// Variables to pass to our Terraform code using -var options
-		Vars: map[string]interface{} {
-			"cluster_name": "single-node-test",
-			"public_key": "~/.ssh/kube-hetzner.pub",
-			"private_key": "~/.ssh/kube-hetzner",
-			"location": "fsn1",
-			"network_region": "eu-central",
-			"load_balancer_type": "lb11",
-			"load_balancer_disable_ipv6": true,
-			"control_plane_count": 1,
-			"control_plane_server_type": "cpx11",
-			"agent_nodepools": []string{},
+		Vars: map[string]interface{}{
+			"cluster_name":                      "single-node-test",
+			"public_key":                        "~/.ssh/kube-hetzner.pub",
+			"private_key":                       "~/.ssh/kube-hetzner",
+			"location":                          "fsn1",
+			"network_region":                    "eu-central",
+			"load_balancer_type":                "lb11",
+			"load_balancer_disable_ipv6":        true,
+			"control_plane_count":               1,
+			"control_plane_server_type":         "cpx11",
+			"agent_nodepools":                   []string{},
 			"allow_scheduling_on_control_plane": true,
 		},
 		// Disable colors in Terraform commands so its easier to parse stdout/stderr
@@ -51,5 +51,5 @@ func TestTerraformSingleNode(t *testing.T) {
 
 func testURL(t *testing.T, endpoint string, path string, expectedStatus int, expectedBody string) {
 	url := fmt.Sprintf("%s://%s/%s", "http", endpoint, path)
-	http_helper.HttpGetWithRetry(t, url, nil, expectedStatus, expectedBody, 20, 6 * time.Second)
+	http_helper.HttpGetWithRetry(t, url, nil, expectedStatus, expectedBody, 20, 6*time.Second)
 }
