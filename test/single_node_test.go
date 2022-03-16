@@ -3,8 +3,10 @@ package test
 import (
 	"fmt"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -51,5 +53,15 @@ func TestTerraformSingleNode(t *testing.T) {
 
 func testURL(t *testing.T, endpoint string, path string, expectedStatus int, expectedBody string) {
 	url := fmt.Sprintf("%s://%s/%s", "http", endpoint, path)
-	http_helper.HttpGetWithRetry(t, url, nil, expectedStatus, expectedBody, 20, 6*time.Second)
+	http_helper.HttpGetWithRetryWithCustomValidation(t, url, nil, 20, 6*time.Second, func(statusCode int, body string) bool {
+		if statusCode != expectedStatus {
+			logger.Logf(t, "Got unexpected status code %d instead of %d from URL %s", statusCode, expectedStatus, url)
+			return false
+		}
+		if !strings.Contains(body, expectedBody) {
+			logger.Logf(t, "Body '%s' does not contain '%s' (in URL %s)", body, expectedBody, url)
+			return false
+		}
+		return true
+	})
 }
