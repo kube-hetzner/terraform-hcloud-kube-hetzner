@@ -19,6 +19,10 @@ jobs:
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
+      with:
+        # needed for terratest to work as expected in CI envs, see
+        # https://github.com/gruntwork-io/terratest/issues/706#issuecomment-733495166
+        terraform_wrapper: false
 
     - name: Setup SSH keys
       run: |
