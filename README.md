@@ -184,13 +184,11 @@ agent_nodepools = []
 
 It is easy to use Kube-Hetzner as a Terraform module. To do so:
 
-1. Clone it on your localhost.
-2. Declare a module, with the name of your choice, and choose `kube-hetzner` as its source.
-3. Copy your `terraform.tfvars` file to the module directory.
-
 ``` terraform
-module "kh" {
-  source = "./kube-hetzner"
+module "kube-hetzner" {
+  source  = "kube-hetzner/kube-hetzner/hcloud"
+  
+  # insert the required variables here found in terraform.tfvars.example
 }
 ```
 
