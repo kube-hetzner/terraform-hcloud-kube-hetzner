@@ -7,5 +7,3 @@ terraform.tfvars
 plans-custom.yaml
 traefik-custom.yaml
 kured-custom.yaml
-.github/workflows/publish-terraform.yaml
-.github/workflows/sync-with-upstream.yaml

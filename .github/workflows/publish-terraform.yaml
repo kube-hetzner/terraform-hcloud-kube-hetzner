@@ -1,0 +1,21 @@
+---
+name: Publish a new Github Release
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+      tags:
+        - '*'
+jobs:
+  Release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ncipollo/release-action@v1
+        with:
+          generateReleaseNotes: true
+          name: 'v${{ github.ref_name }}'
+          token: ${{ secrets.GITHUB_TOKEN }}
