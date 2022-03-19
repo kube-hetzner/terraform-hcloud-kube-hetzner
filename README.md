@@ -8,7 +8,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/mysticaltech/kube-hetzner">
-    <img src=".images/kube-hetzner-logo.png" alt="Logo" width="112" height="112">
+    <img src="https://github.com/kube-hetzner/kube-hetzner/raw/master/.images/kube-hetzner-logo.png" alt="Logo" width="112" height="112">
   </a>
 
   <h2 align="center">Kube-Hetzner</h2>
@@ -268,4 +268,4 @@ About code contributions, they are **greatly appreciated**.
 [issues-url]: https://github.com/mysticaltech/kube-hetzner/issues
 [license-shield]: https://img.shields.io/github/license/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [license-url]: https://github.com/mysticaltech/kube-hetzner/blob/master/LICENSE.txt
-[product-screenshot]: .images/kubectl-pod-all-17022022.png
+[product-screenshot]: https://github.com/kube-hetzner/kube-hetzner/raw/master/.images/kubectl-pod-all-17022022.png
