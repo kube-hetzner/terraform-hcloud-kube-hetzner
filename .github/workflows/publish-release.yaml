@@ -17,5 +17,5 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           generateReleaseNotes: true
-          name: 'v${{ github.ref_name }}'
+          name: ${{ github.ref_name }}
           token: ${{ secrets.GITHUB_TOKEN }}
