@@ -37,7 +37,6 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 - Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - Tons of flexible configuration options to suits all needs.
-- Can be used as a Terraform module.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
