@@ -62,7 +62,7 @@ load_balancer_type        = "lb11"
 # traefik_enabled = false
 
 # If you want to disable the metric server, you can! By defaults it is enabled.
-# metric_server_enabled = false
+# metrics_server_enabled = false
 
 # If you want to allow non-control-plane workloads to run on the control-plane nodes set "true" below. The default is "false".
 # Also good for single node clusters.
