@@ -37,6 +37,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 - Ability to add or remove as many nodes as you want while the cluster stays running.
 - Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - Tons of flexible configuration options to suits all needs.
+- Can be used as a Terraform module.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -67,6 +68,8 @@ gofish install hcloud
 3. Copy `terraform.tfvars.example` to `terraform.tfvars`, and replace the values from steps 1 and 2. ✅
 4. Make sure you have the latest Terraform version, ideally at least 1.1.0. You can check with `terraform -v`. ✅
 5. (Optional) There are other variables in `terraform.tfvars` that could be customized, like Hetzner region, and the node counts and sizes.
+
+_It can also be used as a Terraform module, see the [examples](#examples) section, but basically you just copy the content of terraform.tfvars to the module body. More on the [Kube-Hetzner Terraform module](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest) page._
 
 ### 🎯 Installation
 
