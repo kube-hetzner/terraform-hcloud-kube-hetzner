@@ -48,7 +48,7 @@ resource "null_resource" "control_planes" {
       server                   = "https://${element(module.control_planes.*.private_ipv4_address, count.index > 0 ? 0 : 1)}:6443"
       token                    = random_password.k3s_token.result
       disable-cloud-controller = true
-      disable                  = ["servicelb", "local-storage", "traefik", "metric-server"]
+      disable                  = ["servicelb", "local-storage", "traefik", "metrics-server"]
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[count.index].private_ipv4_address
