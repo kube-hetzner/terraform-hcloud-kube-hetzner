@@ -13,7 +13,7 @@ resource "null_resource" "first_control_plane" {
       token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
-      disable                  = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metrics_server_enabled ? [] : ["metrics-server"])
+      disable                  = local.disable_extras
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[0].private_ipv4_address
