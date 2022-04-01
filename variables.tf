@@ -93,7 +93,7 @@ variable "allow_scheduling_on_control_plane" {
   description = "Whether to allow non-control-plane workloads to run on the control-plane nodes"
 }
 
-variable "metric_server_enabled" {
+variable "metrics_server_enabled" {
   type        = bool
   default     = true
   description = "Whether to enable or disbale k3s mertric server"

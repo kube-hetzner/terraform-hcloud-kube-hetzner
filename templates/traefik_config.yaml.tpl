@@ -4,6 +4,7 @@ metadata:
   name: traefik
   namespace: kube-system
 spec:
+  failurePolicy: abort
   valuesContent: |-
     service:
       enabled: true

@@ -69,7 +69,7 @@ resource "hcloud_server" "server" {
   provisioner "remote-exec" {
     inline = [
       "set -ex",
-      "transactional-update pkg install -y k3s-selinux"
+      "transactional-update shell <<< 'rpm --import https://rpm.rancher.io/public.key;zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v0.5.stable.1/k3s-selinux-0.5-1.sle.noarch.rpm'"
     ]
   }
 

@@ -8,7 +8,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/mysticaltech/kube-hetzner">
-    <img src=".images/kube-hetzner-logo.png" alt="Logo" width="112" height="112">
+    <img src="https://github.com/kube-hetzner/kube-hetzner/raw/master/.images/kube-hetzner-logo.png" alt="Logo" width="112" height="112">
   </a>
 
   <h2 align="center">Kube-Hetzner</h2>
@@ -67,6 +67,8 @@ gofish install hcloud
 3. Copy `terraform.tfvars.example` to `terraform.tfvars`, and replace the values from steps 1 and 2. ✅
 4. Make sure you have the latest Terraform version, ideally at least 1.1.0. You can check with `terraform -v`. ✅
 5. (Optional) There are other variables in `terraform.tfvars` that could be customized, like Hetzner region, and the node counts and sizes.
+
+_It can also be used as a Terraform module, see the [examples](#examples) section, but basically you just copy the content of terraform.tfvars to the module body. More on the [Kube-Hetzner Terraform module](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest) page._
 
 ### 🎯 Installation
 
@@ -184,13 +186,11 @@ agent_nodepools = []
 
 It is easy to use Kube-Hetzner as a Terraform module. To do so:
 
-1. Clone it on your localhost.
-2. Declare a module, with the name of your choice, and choose `kube-hetzner` as its source.
-3. Copy your `terraform.tfvars` file to the module directory.
-
 ``` terraform
-module "kh" {
-  source = "./kube-hetzner"
+module "kube-hetzner" {
+  source  = "kube-hetzner/kube-hetzner/hcloud"
+  
+  # insert the required variables here found in terraform.tfvars.example
 }
 ```
 
@@ -268,4 +268,4 @@ About code contributions, they are **greatly appreciated**.
 [issues-url]: https://github.com/mysticaltech/kube-hetzner/issues
 [license-shield]: https://img.shields.io/github/license/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [license-url]: https://github.com/mysticaltech/kube-hetzner/blob/master/LICENSE.txt
-[product-screenshot]: .images/kubectl-pod-all-17022022.png
+[product-screenshot]: https://github.com/kube-hetzner/kube-hetzner/raw/master/.images/kubectl-pod-all-17022022.png
