@@ -144,3 +144,9 @@ variable "traefik_additional_options" {
   default = []
 
 }
+
+variable "cni_plugin" {
+  type        = string
+  default     = "flannel"
+  description = "CNI plugin for k3s"
+}

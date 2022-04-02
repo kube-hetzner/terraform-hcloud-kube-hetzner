@@ -43,19 +43,26 @@ resource "null_resource" "control_planes" {
 
   # Generating k3s server config file
   provisioner "file" {
-    content = yamlencode({
+    content = yamlencode(merge({
       node-name                = module.control_planes[count.index].name
       server                   = "https://${element(module.control_planes.*.private_ipv4_address, count.index > 0 ? 0 : 1)}:6443"
       token                    = random_password.k3s_token.result
       disable-cloud-controller = true
       disable                  = local.disable_extras
-      flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[count.index].private_ipv4_address
       advertise-address        = module.control_planes[count.index].private_ipv4_address
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
-    })
+      },
+      var.cni_plugin == "flannel" ? {
+        flannel-iface = "eth1"
+      } : {},
+      var.cni_plugin == "calico" ? {
+        flannel-backend             = "none",
+        disable-network-policy      = true,
+        kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins/nodeagent~uds",
+    } : {}))
     destination = "/tmp/config.yaml"
   }
 

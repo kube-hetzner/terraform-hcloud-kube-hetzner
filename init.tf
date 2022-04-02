@@ -8,19 +8,26 @@ resource "null_resource" "first_control_plane" {
 
   # Generating k3s master config file
   provisioner "file" {
-    content = yamlencode({
+    content = yamlencode(merge({
       node-name                = module.control_planes[0].name
       token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
       disable                  = local.disable_extras
-      flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[0].private_ipv4_address
       advertise-address        = module.control_planes[0].private_ipv4_address
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
-    })
+      },
+      var.cni_plugin == "flannel" ? {
+        flannel-iface = "eth1"
+      } : {},
+      var.cni_plugin == "calico" ? {
+        flannel-backend             = "none",
+        disable-network-policy      = true,
+        kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins/nodeagent~uds",
+    } : {}))
     destination = "/tmp/config.yaml"
   }
 
@@ -79,12 +86,13 @@ resource "null_resource" "kustomization" {
         "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
         "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-      ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik.yaml"] : []),
-      patchesStrategicMerge = [
+        ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik.yaml"] : []
+      , var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []),
+      patchesStrategicMerge = concat([
         file("${path.module}/kustomize/kured.yaml"),
         file("${path.module}/kustomize/ccm.yaml"),
         file("${path.module}/kustomize/system-upgrade-controller.yaml")
-      ]
+      ], var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico-coreos.yaml")] : [])
     })
     destination = "/tmp/post_install/kustomization.yaml"
   }
