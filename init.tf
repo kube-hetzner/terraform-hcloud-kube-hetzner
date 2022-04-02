@@ -92,7 +92,7 @@ resource "null_resource" "kustomization" {
         file("${path.module}/kustomize/kured.yaml"),
         file("${path.module}/kustomize/ccm.yaml"),
         file("${path.module}/kustomize/system-upgrade-controller.yaml")
-      ], var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico-coreos.yaml")] : [])
+      ], var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : [])
     })
     destination = "/tmp/post_install/kustomization.yaml"
   }
