@@ -14,7 +14,6 @@ private_key  = "/home/username/.ssh/id_ed25519"
 
 # These can be customized, or left with the default values
 # For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
-# For Hetzner server types see https://www.hetzner.com/cloud
 location         = "fsn1"       # change to `ash` for us-east Ashburn, Virginia location
 network_region   = "eu-central" # change to `us-east` if location is ash
 
@@ -31,15 +30,35 @@ control_plane_server_type = "cpx11"
 # For single node clusters set this equal to [] or just set the counts to 0.
 # IMPORTANT: Once the cluster is created, you can change the count, and even set it to 0, but do not remove a nodepool from the list. 
 # You can add others at the end of the list if you want.
+# For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
+# For Hetzner server types see https://www.hetzner.com/cloud
 agent_nodepools = [
   {
     name        = "agent-small",
     server_type = "cpx11",
+    location    = "fsn1",
+    labels      = [],
+    taints      = [],
     count       = 2
   },
   {
     name        = "agent-large",
     server_type = "cpx21",
+    location    = "fsn1",
+    labels      = [],
+    taints      = [],
+    count       = 1
+  },
+  {
+    name        = "storage",
+    server_type = "cpx21",
+    location    = "fsn1",
+    labels      = [
+      "node.kubernetes.io/server-usage=storage"
+    ],
+    taints      = [
+      "server-usage=storage:NoSchedule"
+    ],
     count       = 1
   }
 ]
@@ -81,7 +100,7 @@ load_balancer_type        = "lb11"
 # use_cluster_name_in_node_name = false
 
 # Adding extra firewall rules, like opening a port
-# In this example with allow port TCP 5432 for a Postgres service we will open via a nodeport
+# In this example with allow port TCP 5432 for a Postgres service we will open via a nodeport and allow outgoing SMTP traffic on port TCP 465
 # More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall
 # extra_firewall_rules = [
 #   {
@@ -89,6 +108,14 @@ load_balancer_type        = "lb11"
 #     protocol  = "tcp"
 #     port      = "5432"
 #     source_ips = [
+#       "0.0.0.0/0"
+#     ]
+#   },
+#   {
+#     direction = "out"
+#     protocol  = "tcp"
+#     port      = "465"
+#     destination_ips = [
 #       "0.0.0.0/0"
 #     ]
 #   },
