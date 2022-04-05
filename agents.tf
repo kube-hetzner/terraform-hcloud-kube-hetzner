@@ -10,7 +10,7 @@ module "agents" {
   additional_public_keys = var.additional_public_keys
   firewall_ids           = [hcloud_firewall.k3s.id]
   placement_group_id     = hcloud_placement_group.k3s.id
-  location               = var.location
+  location               = each.value.location
   server_type            = each.value.server_type
   ipv4_subnet_id         = hcloud_network_subnet.subnet[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + 2].id
 
@@ -51,7 +51,8 @@ resource "null_resource" "agents" {
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"
       node-ip       = module.agents[each.key].private_ipv4_address
-      node-label    = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
+      node-label    = each.value.labels
+      node-taint    = each.value.taints
     })
     destination = "/tmp/config.yaml"
   }

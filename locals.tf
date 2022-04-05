@@ -175,6 +175,9 @@ locals {
       format("%s-%s", nodepool_obj.name, index) => {
         nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
+        location : nodepool_obj.location,
+        labels : concat(local.default_labels, nodepool_obj.labels),
+        taints : nodepool_obj.taints,
         index : index
       }
     }
@@ -190,4 +193,7 @@ locals {
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metrics_server_enabled ? [] : ["metrics-server"])
 
+
+  # Default k3s node labels
+  default_labels = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
 }
