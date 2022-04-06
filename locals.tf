@@ -1,6 +1,6 @@
 locals {
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
-  is_single_node_cluster = var.control_plane_count + sum(concat([for v in var.agent_nodepools : v.count], [0])) == 1
+  is_single_node_cluster = sum(concat([for v in var.control_plane_nodepools : v.count], [0])) + sum(concat([for v in var.agent_nodepools : v.count], [0])) == 1
   ssh_public_key         = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
@@ -169,16 +169,30 @@ locals {
   install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"], local.apply_k3s_selinux)
   install_k3s_agent  = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"], local.apply_k3s_selinux)
 
-  agent_nodepools = merge([
-    for nodepool_obj in var.agent_nodepools : {
-      for index in range(nodepool_obj.count) :
-      format("%s-%s", nodepool_obj.name, index) => {
+  control_plane_nodepools = merge([
+    for pool_index, nodepool_obj in var.control_plane_nodepools : {
+      for node_index in range(nodepool_obj.count) :
+      format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
         nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
         location : nodepool_obj.location,
-        labels : concat(local.default_labels, nodepool_obj.labels),
+        labels : concat(local.default_control_plane_labels, nodepool_obj.labels),
         taints : nodepool_obj.taints,
-        index : index
+        index : node_index
+      }
+    }
+  ]...)
+
+  agent_nodepools = merge([
+    for pool_index, nodepool_obj in var.agent_nodepools : {
+      for node_index in range(nodepool_obj.count) :
+      format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
+        nodepool_name : nodepool_obj.name,
+        server_type : nodepool_obj.server_type,
+        location : nodepool_obj.location,
+        labels : concat(local.default_agent_labels, nodepool_obj.labels),
+        taints : nodepool_obj.taints,
+        index : node_index
       }
     }
   ]...)
@@ -193,7 +207,9 @@ locals {
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metrics_server_enabled ? [] : ["metrics-server"])
 
-
   # Default k3s node labels
-  default_labels = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+  default_agent_labels = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+  default_control_plane_labels = concat([], var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
+
+  first_control_plane = module.control_planes[keys(module.control_planes)[0]]
 }

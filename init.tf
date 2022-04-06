@@ -3,21 +3,21 @@ resource "null_resource" "first_control_plane" {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = module.control_planes[0].ipv4_address
+    host           = local.first_control_plane.ipv4_address
   }
 
   # Generating k3s master config file
   provisioner "file" {
     content = yamlencode({
-      node-name                = module.control_planes[0].name
+      node-name                = local.first_control_plane.name
       token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
       disable                  = local.disable_extras
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
-      node-ip                  = module.control_planes[0].private_ipv4_address
-      advertise-address        = module.control_planes[0].private_ipv4_address
+      node-ip                  = local.first_control_plane.private_ipv4_address
+      advertise-address        = local.first_control_plane.private_ipv4_address
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
@@ -66,7 +66,7 @@ resource "null_resource" "kustomization" {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = module.control_planes[0].ipv4_address
+    host           = local.first_control_plane.ipv4_address
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
@@ -97,7 +97,7 @@ resource "null_resource" "kustomization" {
         name                       = "${var.cluster_name}-traefik"
         load_balancer_disable_ipv6 = var.load_balancer_disable_ipv6
         load_balancer_type         = var.load_balancer_type
-        location                   = var.location
+        location                   = var.load_balancer_location
         traefik_acme_tls           = var.traefik_acme_tls
         traefik_acme_email         = var.traefik_acme_email
         traefik_additional_options = var.traefik_additional_options

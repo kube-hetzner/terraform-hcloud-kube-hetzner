@@ -4,7 +4,9 @@ output "cluster_name" {
 }
 
 output "control_planes_public_ipv4" {
-  value       = module.control_planes.*.ipv4_address
+  value = [
+    for obj in module.control_planes : obj.ipv4_address
+  ]
   description = "The public IPv4 addresses of the controlplane server."
 }
 
