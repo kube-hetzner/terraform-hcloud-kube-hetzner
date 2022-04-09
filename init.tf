@@ -3,21 +3,21 @@ resource "null_resource" "first_control_plane" {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = local.first_control_plane.ipv4_address
+    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
   }
 
   # Generating k3s master config file
   provisioner "file" {
     content = yamlencode({
-      node-name                = local.first_control_plane.name
+      node-name                = module.control_planes[keys(module.control_planes)[0]].name
       token                    = random_password.k3s_token.result
       cluster-init             = true
       disable-cloud-controller = true
       disable                  = local.disable_extras
       flannel-iface            = "eth1"
       kubelet-arg              = "cloud-provider=external"
-      node-ip                  = local.first_control_plane.private_ipv4_address
-      advertise-address        = local.first_control_plane.private_ipv4_address
+      node-ip                  = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+      advertise-address        = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
       node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
     })
@@ -66,7 +66,7 @@ resource "null_resource" "kustomization" {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = local.first_control_plane.ipv4_address
+    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.

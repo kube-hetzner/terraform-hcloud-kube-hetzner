@@ -1,7 +1,7 @@
 
 data "remote_file" "kubeconfig" {
   conn {
-    host        = local.first_control_plane.ipv4_address
+    host        = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port        = 22
     user        = "root"
     private_key = local.ssh_private_key
@@ -13,7 +13,7 @@ data "remote_file" "kubeconfig" {
 }
 
 locals {
-  kubeconfig_external = replace(data.remote_file.kubeconfig.content, "127.0.0.1", local.first_control_plane.ipv4_address)
+  kubeconfig_external = replace(data.remote_file.kubeconfig.content, "127.0.0.1", module.control_planes[keys(module.control_planes)[0]].ipv4_address)
   kubeconfig_parsed   = yamldecode(local.kubeconfig_external)
   kubeconfig_data = {
     host                   = local.kubeconfig_parsed["clusters"][0]["cluster"]["server"]

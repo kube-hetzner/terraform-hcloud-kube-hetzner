@@ -210,6 +210,4 @@ locals {
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
   default_control_plane_labels = concat([], var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
-
-  first_control_plane = module.control_planes[keys(module.control_planes)[0]]
 }

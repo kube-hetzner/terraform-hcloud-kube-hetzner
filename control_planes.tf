@@ -12,11 +12,11 @@ module "control_planes" {
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = each.value.location
   server_type            = each.value.server_type
-  ipv4_subnet_id         = hcloud_network_subnet.subnet[1].id
+  ipv4_subnet_id         = hcloud_network_subnet.subnet[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0] + 1].id
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
-  private_ipv4 = cidrhost(local.network_ipv4_subnets[1], length([for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name]) + each.value.index + 101)
+  private_ipv4 = cidrhost(local.network_ipv4_subnets[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0] + 1], each.value.index + 101)
 
   labels = {
     "provisioner" = "terraform",
@@ -46,7 +46,7 @@ resource "null_resource" "control_planes" {
   provisioner "file" {
     content = yamlencode({
       node-name                = module.control_planes[each.key].name
-      server                   = "https://${local.first_control_plane.private_ipv4_address}:6443"
+      server                   = "https://${module.control_planes[each.key].private_ipv4_address == "10.1.0.101" ? "10.1.0.102" : "10.1.0.101"}:6443"
       token                    = random_password.k3s_token.result
       disable-cloud-controller = true
       disable                  = local.disable_extras
