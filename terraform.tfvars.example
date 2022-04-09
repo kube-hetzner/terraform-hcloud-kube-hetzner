@@ -101,3 +101,7 @@ load_balancer_type        = "lb11"
 # If you want to configure a different CNI for k3s, use this flag
 # possible values: flannel (Default), calico
 # cni_plugin = "flannel"
+
+# If you want to disable the k3s default network policy controller, use this flag
+# Calico overrides this value to true automatically
+# disable_network_policy = false

@@ -145,6 +145,12 @@ variable "traefik_additional_options" {
 
 }
 
+variable "disable_network_policy" {
+  type        = bool
+  default     = false
+  description = "Disable k3s default network policy controller (default false, automatically true for calico)"
+}
+
 variable "cni_plugin" {
   type        = string
   default     = "flannel"
