@@ -46,7 +46,7 @@ resource "null_resource" "agents" {
   provisioner "file" {
     content = yamlencode({
       node-name     = module.agents[each.key].name
-      server        = "https://${module.control_planes[0].private_ipv4_address}:6443"
+      server        = "https://${local.first_control_plane.private_ipv4_address}:6443"
       token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"

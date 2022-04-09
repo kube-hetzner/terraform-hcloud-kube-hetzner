@@ -202,13 +202,13 @@ locals {
 
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
-  network_ipv4_subnets = [for index in range(length(var.agent_nodepools) + 2) : cidrsubnet(local.network_ipv4_cidr, 8, index)]
+  network_ipv4_subnets = [for index in range(length(var.control_plane_nodepools) + length(var.agent_nodepools) + 1) : cidrsubnet(local.network_ipv4_cidr, 8, index)]
 
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metrics_server_enabled ? [] : ["metrics-server"])
 
   # Default k3s node labels
-  default_agent_labels = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+  default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
   default_control_plane_labels = concat([], var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
 
   first_control_plane = module.control_planes[keys(module.control_planes)[0]]

@@ -14,23 +14,38 @@ private_key  = "/home/username/.ssh/id_ed25519"
 
 # These can be customized, or left with the default values
 # For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
-location         = "fsn1"       # change to `ash` for us-east Ashburn, Virginia location
 network_region   = "eu-central" # change to `us-east` if location is ash
 
 # At least 3 server nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
 # As per rancher docs, it must be always an odd number, never even! See https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
 # For instance, 1 is ok (non-HA), 2 not ok, 3 is ok (becomes HA).
-control_plane_count = 3
+# Of course, you can choose any number of node pools you want, with the location you want. The only contraint on the location is that you need to stay in the same network region, basically Europe or US, see above.
+# For the server type, # The type of control plane nodes, the minimum instance supported is cpx11 (just a few cents more than cx11), see https://www.hetzner.com/cloud.
+control_plane_nodepools = [
+  {
+    name        = "control-plane-fsn1",
+    server_type = "cpx11",
+    location    = "fsn1",
+    labels      = [],
+    taints      = [],
+    count       = 2
+  },
+  {
+    name        = "control-plane-nbg1",
+    server_type = "cpx11",
+    location    = "nbg1",
+    labels      = [],
+    taints      = [],
+    count       = 1
+  }
+]
 
-# The type of control plane nodes, see https://www.hetzner.com/cloud, the minimum instance supported is cpx11 (just a few cents more than cx11)
-control_plane_server_type = "cpx11"
 
 # As for the agent nodepools, below is just an example, if you do not want nodepools, just use one,
 # and change the name to what you want, it need not be "agent-big" or "agent-small", also give them the subnet prefer.
 # For single node clusters set this equal to [] or just set the counts to 0.
 # IMPORTANT: Once the cluster is created, you can change the count, and even set it to 0, but do not remove a nodepool from the list. 
-# You can add others at the end of the list if you want.
-# For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
+# You can add others at the end of the list if you want. For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
 # For Hetzner server types see https://www.hetzner.com/cloud
 agent_nodepools = [
   {
@@ -44,7 +59,7 @@ agent_nodepools = [
   {
     name        = "agent-large",
     server_type = "cpx21",
-    location    = "fsn1",
+    location    = "nbg1",
     labels      = [],
     taints      = [],
     count       = 1
@@ -53,18 +68,19 @@ agent_nodepools = [
     name        = "storage",
     server_type = "cpx21",
     location    = "fsn1",
-    labels      = [
+    labels = [
       "node.kubernetes.io/server-usage=storage"
     ],
-    taints      = [
+    taints = [
       "server-usage=storage:NoSchedule"
     ],
-    count       = 1
+    count = 1
   }
 ]
 
 # That will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
-load_balancer_type        = "lb11"
+load_balancer_type     = "lb11"
+load_balancer_location = "fsn1"
 
 ### The following values are fully optional
 
