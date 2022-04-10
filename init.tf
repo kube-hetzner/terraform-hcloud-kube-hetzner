@@ -24,7 +24,7 @@ resource "null_resource" "first_control_plane" {
       },
       var.cni_plugin == "calico" ? {
         flannel-backend             = "none"
-        kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins/nodeagent~uds"
+        kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
     } : {}))
     destination = "/tmp/config.yaml"
   }

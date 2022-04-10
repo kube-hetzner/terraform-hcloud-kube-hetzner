@@ -13,4 +13,4 @@ spec:
         - name: flexvol-driver-host
           hostPath:
             type: DirectoryOrCreate
-            path: /var/lib/kubelet/volumeplugins/nodeagent~uds/uds
+            path: /var/lib/kubelet/volumeplugins/nodeagent~uds
