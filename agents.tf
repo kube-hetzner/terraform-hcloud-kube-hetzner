@@ -44,19 +44,15 @@ resource "null_resource" "agents" {
 
   # Generating k3s agent config file
   provisioner "file" {
-    content = yamlencode(merge({
+    content = yamlencode({
       node-name     = module.agents[each.key].name
       server        = "https://${module.control_planes[0].private_ipv4_address}:6443"
       token         = random_password.k3s_token.result
-      kubelet-arg   = "cloud-provider=external"
+      kubelet-arg   = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
       flannel-iface = "eth1"
       node-ip       = module.agents[each.key].private_ipv4_address
       node-label    = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
-    },
-      var.cni_plugin == "calico" ? {
-        flannel-backend             = "none"
-        kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
-      } : {}))
+    })
     destination = "/tmp/config.yaml"
   }
 

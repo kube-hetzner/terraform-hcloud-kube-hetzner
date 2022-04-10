@@ -9,22 +9,22 @@ resource "null_resource" "first_control_plane" {
   # Generating k3s master config file
   provisioner "file" {
     content = yamlencode(merge({
-      node-name                = module.control_planes[0].name
-      token                    = random_password.k3s_token.result
-      cluster-init             = true
-      disable-cloud-controller = true
-      disable                  = local.disable_extras
-      flannel-iface            = "eth1"
-      kubelet-arg              = "cloud-provider=external"
-      node-ip                  = module.control_planes[0].private_ipv4_address
-      advertise-address        = module.control_planes[0].private_ipv4_address
-      node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
-      node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
-      disable-network-policy   = var.cni_plugin == "calico" ? true : var.disable_network_policy
+      node-name                   = module.control_planes[0].name
+      token                       = random_password.k3s_token.result
+      cluster-init                = true
+      disable-cloud-controller    = true
+      disable                     = local.disable_extras
+      flannel-iface               = "eth1"
+      kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+      kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+      node-ip                     = module.control_planes[0].private_ipv4_address
+      advertise-address           = module.control_planes[0].private_ipv4_address
+      node-taint                  = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
+      node-label                  = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
+      disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
       },
       var.cni_plugin == "calico" ? {
-        flannel-backend             = "none"
-        kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+        flannel-backend = "none"
     } : {}))
     destination = "/tmp/config.yaml"
   }
