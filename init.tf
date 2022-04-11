@@ -18,8 +18,8 @@ resource "null_resource" "first_control_plane" {
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       advertise-address        = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
-      node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
-      node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
+      node-taint               = local.control_plane_nodepools[keys(module.control_planes)[0]].taints
+      node-label               = local.control_plane_nodepools[keys(module.control_planes)[0]].labels
     })
     destination = "/tmp/config.yaml"
   }

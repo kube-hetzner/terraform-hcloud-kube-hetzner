@@ -177,7 +177,7 @@ locals {
         server_type : nodepool_obj.server_type,
         location : nodepool_obj.location,
         labels : concat(local.default_control_plane_labels, nodepool_obj.labels),
-        taints : nodepool_obj.taints,
+        taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
         index : node_index
       }
     }
@@ -209,5 +209,8 @@ locals {
 
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
-  default_control_plane_labels = concat([], var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
+  default_control_plane_labels = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+
+  # Default k3s node taints
+  default_control_plane_taints = concat([], var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
 }
