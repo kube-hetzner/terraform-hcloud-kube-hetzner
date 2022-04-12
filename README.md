@@ -21,6 +21,8 @@
 
 ## About The Project
 
+ℹ️ _For the moment this README is not synced with the current release, as we currently use the master branch for active development, please find the one that aligns with the latest stable release [here](https://argocd-image-updater.readthedocs.io/en/stable/)._
+
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
 The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot.
@@ -34,8 +36,9 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 - Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
 - Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
 - Automatic HA with the default setting of three control-plane nodes and two agent nodes.
-- Node pools for both control-plane and agent nodes. Different locations possible (super-HA).
-- Ability to add or remove as many nodes as you want while the cluster stays running.
+- Super-HA: Nodepools for both control-plane and agent nodes can be in different locations.
+- Possibility to have a single node cluster with a proper ingress controller (Traefik).
+- Ability to add nodes and nodepools when the cluster running.
 - Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - Tons of flexible configuration options to suits all needs.
 
@@ -97,6 +100,14 @@ _Once you start with Terraform, it's best not to change the state manually in He
 To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit your `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
 
 About nodepools, `terraform.tfvars.example` has clear example how to configure them.
+
+There are some limitations (to scaling down mainly) that you need to be aware of:
+
+_Once the cluster is created, you can change nodepool count, and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1), you can also rename a nodepool (if the count is taken to 0), but should not remove a nodepool from the list after the cluster is created. This is due to how IPs are allocated to the nodes, and how the Hetzner API works._
+
+_However when a cluster is already initialized, you cannot add more control plane nodepools (you can only add nodes to the already created control plane nodepools). As for the angent nodepools, you can freely add others agent nodepools the end of the list if you want._
+
+_Also, before decreasing the count of any nodepools to 0, it's important to drain and cordon it the nodes in question, otherwise it will leave your cluster in a bad state._
 
 ## High Availability
 
