@@ -18,6 +18,7 @@ resource "null_resource" "first_control_plane" {
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       advertise-address        = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+      tls-san                  = module.control_planes[keys(module.control_planes)[0]].ipv4_address
       node-taint               = local.control_plane_nodepools[keys(module.control_planes)[0]].taints
       node-label               = local.control_plane_nodepools[keys(module.control_planes)[0]].labels
     })

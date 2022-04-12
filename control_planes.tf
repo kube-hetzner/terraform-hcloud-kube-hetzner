@@ -3,7 +3,7 @@ module "control_planes" {
 
   for_each = local.control_plane_nodepools
 
-  name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}control-plane"
+  name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   ssh_keys               = [hcloud_ssh_key.k3s.id]
   public_key             = var.public_key
   private_key            = var.private_key
@@ -46,7 +46,7 @@ resource "null_resource" "control_planes" {
   provisioner "file" {
     content = yamlencode({
       node-name                = module.control_planes[each.key].name
-      server                   = "https://${module.control_planes[each.key].private_ipv4_address == "10.1.0.101" ? "10.1.0.102" : "10.1.0.101"}:6443"
+      server                   = "https://${module.control_planes[each.key].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address && length(module.control_planes) > 1 ? module.control_planes[keys(module.control_planes)[1]].private_ipv4_address : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token                    = random_password.k3s_token.result
       disable-cloud-controller = true
       disable                  = local.disable_extras
@@ -54,6 +54,7 @@ resource "null_resource" "control_planes" {
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[each.key].private_ipv4_address
       advertise-address        = module.control_planes[each.key].private_ipv4_address
+      tls-san                  = module.control_planes[each.key].ipv4_address
       node-label               = each.value.labels
       node-taint               = each.value.taints
     })
