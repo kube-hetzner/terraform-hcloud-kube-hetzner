@@ -21,7 +21,7 @@
 
 ## About The Project
 
-ℹ️ _For the moment this README is not synced with the current release, as we currently use the master branch for active development, please find the one that aligns with the latest stable release [here](https://argocd-image-updater.readthedocs.io/en/stable/)._
+ℹ️ _For the moment this README is not synced with the current release, as we currently use the master branch for active development, please find the one that aligns with the latest stable release [here](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/tree/v0.1.3)._
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
