@@ -23,9 +23,16 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 # Of course, you can choose any number of nodepools you want, with the location you want. The only contraint on the location is that you need to stay in the same network region, basically Europe or US, see above.
 # For the server type, # The type of control plane nodes, the minimum instance supported is cpx11 (just a few cents more than cx11), see https://www.hetzner.com/cloud.
 
-# IMPORTANT: Once the cluster is created, you can a nodepool count, and even set it to 0, even change its name (if the count is taken to 0), but do not remove a nodepool from the list. 
-# You can add others at the end of the list if you want. In the case of the first nodepool, it must have a minimum count of 1 always!
-# Also, before removing any nodes, it's important to drain and cordon it, otherwise it will leave your cluster in a bad state.
+# IMPORTANT: Once the cluster is created, you can change nodepool count, and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1),
+# You can also rename it (if the count is taken to 0), but do not remove a nodepool from the list after the cluster is created. This is due to how IPs are allocated.
+# You can freely add others nodepools the end of the list if you want, and increase the count of any.
+# Also, before decreasing the count of any nodepools to 0, it's important to drain and cordon it the nodes in question, otherwise it will leave your cluster in a bad state.
+
+# Before initializing the cluster, you can change all parameters and add or remove any nodepools. 
+# If you want to have a single node cluster, just have 1 control plane nodepools with a count of 1.
+
+# Example below:
+
 control_plane_nodepools = [
   {
     name        = "control-plane-fsn1",
@@ -45,14 +52,6 @@ control_plane_nodepools = [
   }
 ]
 
-
-# As for the agent nodepools, below is just an example, if you do not want nodepools, just use one,
-# and change the name to what you want, it need not be "agent-big" or "agent-small", also give them the subnet prefer.
-# For single node clusters set this equal to [] or just set the counts to 0.
-
-# IMPORTANT: Once the cluster is created, you can change the count, and even set it to 0, but do not remove a nodepool from the list. 
-# You can add others at the end of the list if you want.
-# Also, before removing any nodes, it's important to drain and cordon it, otherwise it will leave your cluster in a bad state.
 agent_nodepools = [
   {
     name        = "agent-small",
@@ -86,6 +85,7 @@ agent_nodepools = [
 
 # That will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
 load_balancer_type     = "lb11"
+
 load_balancer_location = "fsn1"
 
 ### The following values are fully optional
