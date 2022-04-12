@@ -16,11 +16,16 @@ private_key  = "/home/username/.ssh/id_ed25519"
 # For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
 network_region   = "eu-central" # change to `us-east` if location is ash
 
-# At least 3 server nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
+# For the control-planes, at least 3 nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
 # As per rancher docs, it must be always an odd number, never even! See https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
-# For instance, 1 is ok (non-HA), 2 not ok, 3 is ok (becomes HA).
-# Of course, you can choose any number of node pools you want, with the location you want. The only contraint on the location is that you need to stay in the same network region, basically Europe or US, see above.
+# For instance, 1 is ok (non-HA), 2 not ok, 3 is ok (becomes HA). It does not matter if they are in the same nodepool or not! So they can be in different locations, and of different types.
+
+# Of course, you can choose any number of nodepools you want, with the location you want. The only contraint on the location is that you need to stay in the same network region, basically Europe or US, see above.
 # For the server type, # The type of control plane nodes, the minimum instance supported is cpx11 (just a few cents more than cx11), see https://www.hetzner.com/cloud.
+
+# IMPORTANT: Once the cluster is created, you can a nodepool count, and even set it to 0, even change its name (if the count is taken to 0), but do not remove a nodepool from the list. 
+# You can add others at the end of the list if you want. In the case of the first nodepool, it must have a minimum count of 1 always!
+# Also, before removing any nodes, it's important to drain and cordon it, otherwise it will leave your cluster in a bad state.
 control_plane_nodepools = [
   {
     name        = "control-plane-fsn1",
@@ -44,9 +49,10 @@ control_plane_nodepools = [
 # As for the agent nodepools, below is just an example, if you do not want nodepools, just use one,
 # and change the name to what you want, it need not be "agent-big" or "agent-small", also give them the subnet prefer.
 # For single node clusters set this equal to [] or just set the counts to 0.
+
 # IMPORTANT: Once the cluster is created, you can change the count, and even set it to 0, but do not remove a nodepool from the list. 
-# You can add others at the end of the list if you want. For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
-# For Hetzner server types see https://www.hetzner.com/cloud
+# You can add others at the end of the list if you want.
+# Also, before removing any nodes, it's important to drain and cordon it, otherwise it will leave your cluster in a bad state.
 agent_nodepools = [
   {
     name        = "agent-small",
