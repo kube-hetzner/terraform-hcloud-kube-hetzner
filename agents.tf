@@ -12,11 +12,11 @@ module "agents" {
   placement_group_id     = hcloud_placement_group.k3s.id
   location               = each.value.location
   server_type            = each.value.server_type
-  ipv4_subnet_id         = hcloud_network_subnet.subnet[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + 2].id
+  ipv4_subnet_id         = hcloud_network_subnet.subnet[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + length(var.control_plane_nodepools) + 1].id
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
-  private_ipv4 = cidrhost(local.network_ipv4_subnets[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + 2], each.value.index + 101)
+  private_ipv4 = cidrhost(local.network_ipv4_subnets[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + length(var.control_plane_nodepools) + 1], each.value.index + 101)
 
   labels = {
     "provisioner" = "terraform",
@@ -46,7 +46,7 @@ resource "null_resource" "agents" {
   provisioner "file" {
     content = yamlencode({
       node-name     = module.agents[each.key].name
-      server        = "https://${module.control_planes[0].private_ipv4_address}:6443"
+      server        = "https://${module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token         = random_password.k3s_token.result
       kubelet-arg   = "cloud-provider=external"
       flannel-iface = "eth1"

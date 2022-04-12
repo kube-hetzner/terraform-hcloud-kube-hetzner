@@ -33,9 +33,10 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 
 - Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
 - Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
-- Automatic HA with the default setting of three control-plane nodes and two agent nodepools.
+- Automatic HA with the default setting of three control-plane nodes and two agent nodes.
+- Node pools for both control-plane and agent nodes. Different locations possible (super-HA).
 - Ability to add or remove as many nodes as you want while the cluster stays running.
-- Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
+- Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - Tons of flexible configuration options to suits all needs.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
@@ -169,14 +170,9 @@ spec:
 
 <summary>Single-node cluster</summary>
 
-Running a development cluster on a single node, without any high-availability is possible as well.
-In this case, we don't deploy an external load-balancer, but use [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall.
+Running a development cluster on a single node, without any high-availability is possible as well. You need one control plane nodepool with a count of 1, and one agent nodepool with a count of 0.
 
-``` terraform
-control_plane_count = 1
-allow_scheduling_on_control_plane = true
-agent_nodepools = []
-```
+In this case, we don't deploy an external load-balancer, but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
 
 </details>
 
