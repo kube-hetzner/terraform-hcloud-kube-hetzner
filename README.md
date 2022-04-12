@@ -33,9 +33,10 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 
 - Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
 - Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
-- Automatic HA with the default setting of three control-plane nodes and two agent nodepools.
+- Automatic HA with the default setting of three control-plane nodes and two agent nodes.
+- Node pools for both control-plane and agent nodes. Different locations possible (super-HA).
 - Ability to add or remove as many nodes as you want while the cluster stays running.
-- Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
+- Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - Tons of flexible configuration options to suits all needs.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
