@@ -46,7 +46,7 @@ resource "null_resource" "control_planes" {
   provisioner "file" {
     content = yamlencode({
       node-name                = module.control_planes[each.key].name
-      server                   = "https://${module.control_planes[each.key].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address && length(module.control_planes) > 1 ? module.control_planes[keys(module.control_planes)[1]].private_ipv4_address : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+      server                   = length(module.control_planes) == 1 ? null : "https://${module.control_planes[each.key].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ? module.control_planes[keys(module.control_planes)[1]].private_ipv4_address : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token                    = random_password.k3s_token.result
       disable-cloud-controller = true
       disable                  = local.disable_extras
@@ -54,7 +54,6 @@ resource "null_resource" "control_planes" {
       kubelet-arg              = "cloud-provider=external"
       node-ip                  = module.control_planes[each.key].private_ipv4_address
       advertise-address        = module.control_planes[each.key].private_ipv4_address
-      tls-san                  = module.control_planes[each.key].ipv4_address
       node-label               = each.value.labels
       node-taint               = each.value.taints
     })

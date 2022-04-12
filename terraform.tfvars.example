@@ -28,8 +28,9 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 # You can freely add others nodepools the end of the list if you want, and increase the count of any.
 # Also, before decreasing the count of any nodepools to 0, it's important to drain and cordon it the nodes in question, otherwise it will leave your cluster in a bad state.
 
-# Before initializing the cluster, you can change all parameters and add or remove any nodepools. 
-# If you want to have a single node cluster, just have 1 control plane nodepools with a count of 1.
+# Before initializing the cluster, you can change all parameters and add or remove any nodepools.
+
+# If you want to have a single node cluster, just have 1 control plane nodepools with a count of 1, and one agent nodepool with a count of 0.
 
 # Example below:
 
@@ -59,7 +60,7 @@ agent_nodepools = [
     location    = "fsn1",
     labels      = [],
     taints      = [],
-    count       = 2
+    count       = 1
   },
   {
     name        = "agent-large",
@@ -106,7 +107,7 @@ load_balancer_location = "fsn1"
 # metrics_server_enabled = false
 
 # If you want to allow non-control-plane workloads to run on the control-plane nodes set "true" below. The default is "false".
-# Also good for single node clusters.
+# True by default for single node clusters.
 # allow_scheduling_on_control_plane = true
 
 # If you want to disable automatic upgrade of k3s, you can set this to false, default is "true".
