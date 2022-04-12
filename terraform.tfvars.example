@@ -25,7 +25,7 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 
 # IMPORTANT: Once the cluster is created, you can change nodepool count, and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1),
 # You can also rename it (if the count is taken to 0), but do not remove a nodepool from the list after the cluster is created. This is due to how IPs are allocated.
-# You can freely add others nodepools the end of the list if you want, and increase the count of any.
+# Once the cluster is initialized, you cannot add more control plane nodepools. You can freely add others agent nodepools the end of the list if you want! 
 # Also, before decreasing the count of any nodepools to 0, it's important to drain and cordon it the nodes in question, otherwise it will leave your cluster in a bad state.
 
 # Before initializing the cluster, you can change all parameters and add or remove any nodepools.
