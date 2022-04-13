@@ -21,8 +21,6 @@
 
 ## About The Project
 
-ℹ️ _For the moment this README is not synced with the current release, as we currently use the master branch for active development, please find the one that aligns with the latest stable release [here](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/tree/v0.1.3)._
-
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
 The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot.
