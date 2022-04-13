@@ -138,5 +138,10 @@ variable "cluster_name" {
 variable "traefik_additional_options" {
   type    = list(string)
   default = []
+}
 
+variable "placement_group_disable" {
+  type        = bool
+  default     = false
+  description = "Whether to disable placement groups"
 }

@@ -84,9 +84,8 @@ agent_nodepools = [
   }
 ]
 
-# That will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
+# LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
 load_balancer_type     = "lb11"
-
 load_balancer_location = "fsn1"
 
 ### The following values are fully optional
@@ -147,3 +146,7 @@ load_balancer_location = "fsn1"
 # If you want to configure additional Arguments for traefik, enter them here as a list and in the form of traefik CLI arguments; see https://doc.traefik.io/traefik/reference/static-configuration/cli/
 # Example: traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
 # traefik_additional_options = []
+
+# If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/
+# That may be useful if you need to deploy more than 500 nodes! The default is "false".
+# placement_group_disable = true

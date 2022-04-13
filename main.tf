@@ -36,13 +36,16 @@ resource "hcloud_firewall" "k3s" {
   }
 }
 
-resource "hcloud_placement_group" "k3s" {
-  name = var.cluster_name
-  type = "spread"
-  labels = {
-    "provisioner" = "terraform",
-    "engine"      = "k3s"
-  }
+resource "hcloud_placement_group" "control_plane" {
+  count = ceil(local.control_plane_count / 10)
+  name  = "${var.cluster_name}-control-plane-${count.index + 1}"
+  type  = "spread"
+}
+
+resource "hcloud_placement_group" "agent" {
+  count = ceil(local.agent_count / 10)
+  name  = "${var.cluster_name}-agent-${count.index + 1}"
+  type  = "spread"
 }
 
 data "hcloud_load_balancer" "traefik" {
@@ -71,9 +74,10 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
     local_sensitive_file.kubeconfig,
     null_resource.control_planes[0],
     hcloud_network_subnet.subnet,
+    hcloud_placement_group.control_plane,
+    hcloud_placement_group.agent,
     hcloud_network.k3s,
     hcloud_firewall.k3s,
-    hcloud_placement_group.k3s,
     hcloud_ssh_key.k3s
   ]
 }
