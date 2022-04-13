@@ -13,8 +13,19 @@ resource "hcloud_network" "k3s" {
   ip_range = local.network_ipv4_cidr
 }
 
-resource "hcloud_network_subnet" "subnet" {
-  count        = length(local.network_ipv4_subnets)
+# We start from the end of the subnets cird array, 
+# as we would have fewer control plane nodepools, than angent ones.
+resource "hcloud_network_subnet" "control_plane" {
+  count        = length(local.control_plane_nodepools)
+  network_id   = hcloud_network.k3s.id
+  type         = "cloud"
+  network_zone = var.network_region
+  ip_range     = local.network_ipv4_subnets[255 - count.index]
+}
+
+# Here we start at the beginning of the subnets cird array
+resource "hcloud_network_subnet" "agent" {
+  count        = length(local.agent_nodepools)
   network_id   = hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
@@ -73,7 +84,8 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
   depends_on = [
     local_sensitive_file.kubeconfig,
     null_resource.control_planes[0],
-    hcloud_network_subnet.subnet,
+    hcloud_network_subnet.control_plane,
+    hcloud_network_subnet.agent,
     hcloud_placement_group.control_plane,
     hcloud_placement_group.agent,
     hcloud_network.k3s,

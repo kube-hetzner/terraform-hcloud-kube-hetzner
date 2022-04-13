@@ -12,11 +12,11 @@ module "control_planes" {
   placement_group_id     = var.placement_group_disable ? 0 : element(hcloud_placement_group.control_plane.*.id, ceil(each.value.index / 10))
   location               = each.value.location
   server_type            = each.value.server_type
-  ipv4_subnet_id         = hcloud_network_subnet.subnet[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0] + 1].id
+  ipv4_subnet_id         = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
-  private_ipv4 = cidrhost(local.network_ipv4_subnets[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0] + 1], each.value.index + 101)
+  private_ipv4 = cidrhost(hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
   labels = {
     "provisioner" = "terraform",
@@ -24,7 +24,7 @@ module "control_planes" {
   }
 
   depends_on = [
-    hcloud_network_subnet.subnet
+    hcloud_network_subnet.control_plane
   ]
 }
 
@@ -83,6 +83,6 @@ resource "null_resource" "control_planes" {
 
   depends_on = [
     null_resource.first_control_plane,
-    hcloud_network_subnet.subnet
+    hcloud_network_subnet.control_plane
   ]
 }

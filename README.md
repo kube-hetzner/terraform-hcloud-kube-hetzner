@@ -97,17 +97,13 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 ### Scaling Nodes
 
-To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit your `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
-
-About nodepools, `terraform.tfvars.example` has clear example how to configure them.
+Two things can be scaled, the number of nodepools or the count of nodes in these nodepools. You have two list of nodepools you can add to in terraform.tfvars, the control plane nodepool list and the agent nodepool list. Both combined cannot exceed 255 nodepools (you extremely unlikely to reach this limit). As for the count of nodes per nodepools, if you raise your limits in Hetzner, you can have up to 64,670 nodes per nodepool (also very unlikely to need that much).
 
 There are some limitations (to scaling down mainly) that you need to be aware of:
 
-_Once the cluster is created, you can change nodepool count, and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1), you can also rename a nodepool (if the count is taken to 0), but should not remove a nodepool from the list after the cluster is created. This is due to how IPs are allocated to the nodes, and how the Hetzner API works._
+_Once the cluster is created, you can change nodepool count, and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1), you can also rename a nodepool (if the count is taken to 0), but should not remove a nodepool from the list after the cluster is created. This is due to how subnets and IPs are allocated. The only nodepools you can remove are the ones at the end of each list of nodepools._
 
-_However when a cluster is already initialized, you cannot add more control plane nodepools (you can only add nodes to the already created control plane nodepools). As for the angent nodepools, you can freely add others agent nodepools the end of the list if you want._
-
-_Also, before decreasing the count of any nodepools to 0, it's important to drain and cordon it the nodes in question, otherwise it will leave your cluster in a bad state._
+_However you can freely add others nodepools the end of the list if you want, and of course increase the node count. You can also decrease the node count, but make sure you drain the node in question before, otherwise it will leave your cluster in a bad state. The only nodepool that needs at least to have a count of 1 always, is the first control-plane nodepool, for obvious reasons._
 
 ## High Availability
 
