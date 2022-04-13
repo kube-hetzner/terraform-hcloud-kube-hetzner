@@ -10,10 +10,11 @@ hcloud_token = "xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz"
 # * Your public key
 public_key   = "/home/username/.ssh/id_ed25519.pub"
 # * Your private key must be "private_key = null" when you want to use ssh-agent for a Yubikey-like device authentification or an SSH key-pair with a passphrase.
+# For more details on SSH see https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md
 private_key  = "/home/username/.ssh/id_ed25519"
 
 # These can be customized, or left with the default values
-# For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
+# * For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
 network_region   = "eu-central" # change to `us-east` if location is ash
 
 # For the control planes, at least three nodes are the minimum for HA. Otherwise, you need to turn off the automatic upgrade (see ReadMe).
@@ -36,7 +37,7 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 
 # If you want to have a single node cluster, have one control plane nodepools with a count of 1, and one agent nodepool with a count of 0.
 
-# Example below:
+# * Example below:
 
 control_plane_nodepools = [
   {
@@ -96,7 +97,7 @@ agent_nodepools = [
   }
 ]
 
-# LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
+# * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
 load_balancer_type     = "lb11"
 load_balancer_location = "fsn1"
 
