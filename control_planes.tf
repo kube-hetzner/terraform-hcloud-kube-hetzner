@@ -62,7 +62,7 @@ resource "null_resource" "control_planes" {
       var.cni_plugin == "calico" ? {
         flannel-backend = "none"
     } : {}))
-        
+
     destination = "/tmp/config.yaml"
   }
 
