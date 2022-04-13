@@ -12,11 +12,9 @@ module "agents" {
   placement_group_id     = var.placement_group_disable ? 0 : element(hcloud_placement_group.agent.*.id, ceil(each.value.index / 10))
   location               = each.value.location
   server_type            = each.value.server_type
-  ipv4_subnet_id         = hcloud_network_subnet.subnet[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + length(var.control_plane_nodepools) + 1].id
+  ipv4_subnet_id         = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + 1].id
 
-  # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
-  # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
-  private_ipv4 = cidrhost(local.network_ipv4_subnets[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + length(var.control_plane_nodepools) + 1], each.value.index + 101)
+  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + 1].ip_range, each.value.index + 101)
 
   labels = {
     "provisioner" = "terraform",
