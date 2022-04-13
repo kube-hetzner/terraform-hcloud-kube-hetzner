@@ -1,7 +1,7 @@
 module "control_planes" {
   source = "./modules/host"
 
-  for_each = local.control_plane_nodepools
+  for_each = local.control_plane_nodes
 
   name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   ssh_keys               = [hcloud_ssh_key.k3s.id]
@@ -29,7 +29,7 @@ module "control_planes" {
 }
 
 resource "null_resource" "control_planes" {
-  for_each = local.control_plane_nodepools
+  for_each = local.control_plane_nodes
 
   triggers = {
     control_plane_id = module.control_planes[each.key].id

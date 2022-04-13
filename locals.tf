@@ -172,7 +172,7 @@ locals {
   install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"], local.apply_k3s_selinux)
   install_k3s_agent  = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"], local.apply_k3s_selinux)
 
-  control_plane_nodepools = merge([
+  control_plane_nodes = merge([
     for pool_index, nodepool_obj in var.control_plane_nodepools : {
       for node_index in range(nodepool_obj.count) :
       format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
@@ -186,7 +186,7 @@ locals {
     }
   ]...)
 
-  agent_nodepools = merge([
+  agent_nodes = merge([
     for pool_index, nodepool_obj in var.agent_nodepools : {
       for node_index in range(nodepool_obj.count) :
       format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {

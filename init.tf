@@ -19,8 +19,8 @@ resource "null_resource" "first_control_plane" {
       kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
       node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
-      node-taint                  = local.control_plane_nodepools[keys(module.control_planes)[0]].taints
-      node-label                  = local.control_plane_nodepools[keys(module.control_planes)[0]].labels
+      node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
+      node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
       disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
       },
       var.cni_plugin == "calico" ? {

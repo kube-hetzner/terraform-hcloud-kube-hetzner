@@ -1,7 +1,7 @@
 module "agents" {
   source = "./modules/host"
 
-  for_each = local.agent_nodepools
+  for_each = local.agent_nodes
 
   name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   ssh_keys               = [hcloud_ssh_key.k3s.id]
@@ -27,7 +27,7 @@ module "agents" {
 }
 
 resource "null_resource" "agents" {
-  for_each = local.agent_nodepools
+  for_each = local.agent_nodes
 
   triggers = {
     agent_id = module.agents[each.key].id

@@ -27,7 +27,7 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 # Once the cluster is created, you can change nodepool count, and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1),
 # you can also rename it (if the count is taken to 0), but do not remove a nodepool from the list after the cluster is created. 
 
-# The only nodepools that are safe to remove from the list when you edit it, are the ones at the end of the lists. This is due to how IPs are allocated.
+# The only nodepools that are safe to remove from the list when you edit it, are the ones at the end of the lists. This is due to how subnets and IPs are allocated (FILO).
 # You can however freely add others nodepools the end of each list if you want! The maximum number of nodepools you can create, combined for both lists is 255.
 # Also, before decreasing the count of any nodepools to 0, it's important to drain and cordon it the nodes in question, otherwise it will leave your cluster in a bad state.
 
@@ -161,7 +161,7 @@ load_balancer_location = "fsn1"
 
 # If you want to configure a different CNI for k3s, use this flag
 # possible values: flannel (Default), calico
-# cni_plugin = "flannel"
+# cni_plugin = "calico"
 
 # If you want to disable the k3s default network policy controller, use this flag
 # Calico overrides this value to true automatically

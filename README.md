@@ -37,7 +37,7 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 - Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
 - Automatic HA with the default setting of three control-plane nodes and two agent nodes.
 - Super-HA: Nodepools for both control-plane and agent nodes can be in different locations.
-- Possibility to have a single node cluster with a proper ingress controller (Traefik).
+- Possibility to have a single node cluster with a proper ingress controller.
 - Ability to add nodes and nodepools when the cluster running.
 - Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - Tons of flexible configuration options to suits all needs.
