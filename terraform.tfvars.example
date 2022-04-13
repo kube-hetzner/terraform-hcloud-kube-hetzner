@@ -14,38 +14,91 @@ private_key  = "/home/username/.ssh/id_ed25519"
 
 # These can be customized, or left with the default values
 # For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
-# For Hetzner server types see https://www.hetzner.com/cloud
-location         = "fsn1"       # change to `ash` for us-east Ashburn, Virginia location
 network_region   = "eu-central" # change to `us-east` if location is ash
 
-# At least 3 server nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
+# For the control-planes, at least 3 nodes is recommended for HA, otherwise you need to turn off automatic upgrade (see ReadMe).
 # As per rancher docs, it must be always an odd number, never even! See https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
-# For instance, 1 is ok (non-HA), 2 not ok, 3 is ok (becomes HA).
-control_plane_count = 3
+# For instance, 1 is ok (non-HA), 2 not ok, 3 is ok (becomes HA). It does not matter if they are in the same nodepool or not! So they can be in different locations, and of different types.
 
-# The type of control plane nodes, see https://www.hetzner.com/cloud, the minimum instance supported is cpx11 (just a few cents more than cx11)
-control_plane_server_type = "cpx11"
+# Of course, you can choose any number of nodepools you want, with the location you want. The only contraint on the location is that you need to stay in the same network region, basically Europe or US, see above.
+# For the server type, # The type of control plane nodes, the minimum instance supported is cpx11 (just a few cents more than cx11), see https://www.hetzner.com/cloud.
 
-# As for the agent nodepools, below is just an example, if you do not want nodepools, just use one,
-# and change the name to what you want, it need not be "agent-big" or "agent-small", also give them the subnet prefer.
-# For single node clusters set this equal to [] or just set the counts to 0.
-# IMPORTANT: Once the cluster is created, you can change the count, and even set it to 0, but do not remove a nodepool from the list. 
-# You can add others at the end of the list if you want.
-agent_nodepools = [
+# IMPORTANT: Before the your cluster is created, you can do anything you want with the nodepools, but you need at least one of each control plane and agent. 
+# Once the cluster is created, you can change nodepool count, and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1),
+# you can also rename it (if the count is taken to 0), but do not remove a nodepool from the list after the cluster is created. 
+
+# The only nodepools that are safe to remove from the list when you edit it, are the ones at the end of the lists. This is due to how IPs are allocated.
+# You can however freely add others nodepools the end of each list if you want! The maximum number of nodepools you can create, combined for both lists is 255.
+# Also, before decreasing the count of any nodepools to 0, it's important to drain and cordon it the nodes in question, otherwise it will leave your cluster in a bad state.
+
+# Before initializing the cluster, you can change all parameters and add or remove any nodepools. You just need at least one nodepool of each kind, control plane and agent.
+# The nodepool names are fully arbitrary, you can choose whatever you want, but no special characters or underscore, only alphanumeric characters and dashes are allowed.
+
+# If you want to have a single node cluster, just have 1 control plane nodepools with a count of 1, and one agent nodepool with a count of 0.
+
+# Example below:
+
+control_plane_nodepools = [
   {
-    name        = "agent-small",
+    name        = "control-plane-fsn1",
     server_type = "cpx11",
-    count       = 2
+    location    = "fsn1",
+    labels      = [],
+    taints      = [],
+    count       = 1
   },
   {
-    name        = "agent-large",
-    server_type = "cpx21",
+    name        = "control-plane-nbg1",
+    server_type = "cpx11",
+    location    = "nbg1",
+    labels      = [],
+    taints      = [],
+    count       = 1
+  },
+  {
+    name        = "control-plane-hel1",
+    server_type = "cpx11",
+    location    = "hel1",
+    labels      = [],
+    taints      = [],
     count       = 1
   }
 ]
 
-# That will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
-load_balancer_type        = "lb11"
+agent_nodepools = [
+  {
+    name        = "agent-small",
+    server_type = "cpx11",
+    location    = "fsn1",
+    labels      = [],
+    taints      = [],
+    count       = 1
+  },
+  {
+    name        = "agent-large",
+    server_type = "cpx21",
+    location    = "nbg1",
+    labels      = [],
+    taints      = [],
+    count       = 1
+  },
+  {
+    name        = "storage",
+    server_type = "cpx21",
+    location    = "fsn1",
+    labels = [
+      "node.kubernetes.io/server-usage=storage"
+    ],
+    taints = [
+      "server-usage=storage:NoSchedule"
+    ],
+    count = 1
+  }
+]
+
+# LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
+load_balancer_type     = "lb11"
+load_balancer_location = "fsn1"
 
 ### The following values are fully optional
 
@@ -65,7 +118,7 @@ load_balancer_type        = "lb11"
 # metrics_server_enabled = false
 
 # If you want to allow non-control-plane workloads to run on the control-plane nodes set "true" below. The default is "false".
-# Also good for single node clusters.
+# True by default for single node clusters.
 # allow_scheduling_on_control_plane = true
 
 # If you want to disable automatic upgrade of k3s, you can set this to false, default is "true".
@@ -81,7 +134,7 @@ load_balancer_type        = "lb11"
 # use_cluster_name_in_node_name = false
 
 # Adding extra firewall rules, like opening a port
-# In this example with allow port TCP 5432 for a Postgres service we will open via a nodeport
+# In this example with allow port TCP 5432 for a Postgres service we will open via a nodeport and allow outgoing SMTP traffic on port TCP 465
 # More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall
 # extra_firewall_rules = [
 #   {
@@ -89,6 +142,14 @@ load_balancer_type        = "lb11"
 #     protocol  = "tcp"
 #     port      = "5432"
 #     source_ips = [
+#       "0.0.0.0/0"
+#     ]
+#   },
+#   {
+#     direction = "out"
+#     protocol  = "tcp"
+#     port      = "465"
+#     destination_ips = [
 #       "0.0.0.0/0"
 #     ]
 #   },
@@ -105,3 +166,7 @@ load_balancer_type        = "lb11"
 # If you want to disable the k3s default network policy controller, use this flag
 # Calico overrides this value to true automatically
 # disable_network_policy = false
+
+# If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/
+# That may be useful if you need to deploy more than 500 nodes! The default is "false".
+# placement_group_disable = true

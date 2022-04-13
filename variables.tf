@@ -20,24 +20,14 @@ variable "additional_public_keys" {
   default     = []
 }
 
-variable "location" {
-  description = "Default server location"
-  type        = string
-}
-
 variable "network_region" {
   description = "Default region for network"
   type        = string
 }
 
-variable "control_plane_server_type" {
-  description = "Default control plane server type"
+variable "load_balancer_location" {
+  description = "Default load balancer location"
   type        = string
-}
-
-variable "control_plane_count" {
-  description = "Number of control plane nodes."
-  type        = number
 }
 
 variable "load_balancer_type" {
@@ -49,6 +39,12 @@ variable "load_balancer_disable_ipv6" {
   description = "Disable ipv6 for the load balancer"
   type        = bool
   default     = false
+}
+
+variable "control_plane_nodepools" {
+  description = "Number of control plane nodes."
+  type        = list(any)
+  default     = []
 }
 
 variable "agent_nodepools" {
@@ -142,7 +138,12 @@ variable "cluster_name" {
 variable "traefik_additional_options" {
   type    = list(string)
   default = []
+}
 
+variable "placement_group_disable" {
+  type        = bool
+  default     = false
+  description = "Whether to disable placement groups"
 }
 
 variable "disable_network_policy" {

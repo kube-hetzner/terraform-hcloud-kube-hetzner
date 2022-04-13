@@ -21,6 +21,8 @@
 
 ## About The Project
 
+ℹ️ _For the moment this README is not synced with the current release, as we currently use the master branch for active development, please find the one that aligns with the latest stable release [here](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/tree/v0.1.3)._
+
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
 The goal of this project is to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure, and automatically upgrades. We aimed for functionality as close as possible to GKE's auto-pilot.
@@ -33,9 +35,11 @@ _Please note that we are not affiliated to Hetzner, this is just an open source 
 
 - Maintenance free with auto-upgrade to the latest version of MicroOS and k3s.
 - Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
-- Automatic HA with the default setting of three control-plane nodes and two agent nodepools.
-- Ability to add or remove as many nodes as you want while the cluster stays running.
-- Automatic Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
+- Automatic HA with the default setting of three control-plane nodes and two agent nodes.
+- Super-HA: Nodepools for both control-plane and agent nodes can be in different locations.
+- Possibility to have a single node cluster with a proper ingress controller (Traefik).
+- Ability to add nodes and nodepools when the cluster running.
+- Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
 - Tons of flexible configuration options to suits all needs.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
@@ -52,18 +56,18 @@ Follow those simple steps, and your world's cheapest Kube cluster will be up and
 
 First and foremost, you need to have a Hetzner Cloud account. You can sign up for free [here](https://hetzner.com/cloud/).
 
-Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli),  [kubectl](https://kubernetes.io/docs/tasks/tools/) cli, and [hcloud](<https://github.com/hetznercloud/cli>) the Hetzner cli. The easiest way is to use the [gofish](https://gofi.sh/#install) package manager to install them.
+Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli),  [kubectl](https://kubernetes.io/docs/tasks/tools/) cli, and [hcloud](<https://github.com/hetznercloud/cli>) the Hetzner cli. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem).
 
 ```sh
-gofish install terraform
-gofish install kubectl
-gofish install hcloud
+brew install terraform
+brew install kubectl
+brew install hcloud
 ```
 
 ### 💡 [Do not skip] Creating the terraform.tfvars file
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
-2. Either, generate a passphrase-less ed25519 SSH key-pair for your cluster, unless you already have one that you'd like to use. Take note of the respective paths of your private and public keys. Or, for a key-pair with passphrase or a device like a Yubikey, make sure you have have an SSH agent running and your key is loaded (`ssh-add -L` to verify) and set `private_key = null` in the following step. ✅
+2. Generate a passphrase-less ed25519 SSH key-pair for your cluster, take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md). ✅
 3. Copy `terraform.tfvars.example` to `terraform.tfvars`, and replace the values from steps 1 and 2. ✅
 4. Make sure you have the latest Terraform version, ideally at least 1.1.0. You can check with `terraform -v`. ✅
 5. (Optional) There are other variables in `terraform.tfvars` that could be customized, like Hetzner region, and the node counts and sizes.
@@ -93,9 +97,13 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 ### Scaling Nodes
 
-To scale the number of nodes up or down, just make sure to properly `kubectl drain` the nodes in question first if scaling down. Then just edit your `terraform.tfvars` and re-apply terraform with `terraform apply -auto-approve`.
+Two things can be scaled, the number of nodepools or the count of nodes in these nodepools. You have two list of nodepools you can add to in terraform.tfvars, the control plane nodepool list and the agent nodepool list. Both combined cannot exceed 255 nodepools (you extremely unlikely to reach this limit). As for the count of nodes per nodepools, if you raise your limits in Hetzner, you can have up to 64,670 nodes per nodepool (also very unlikely to need that much).
 
-About nodepools, `terraform.tfvars.example` has clear example how to configure them.
+There are some limitations (to scaling down mainly) that you need to be aware of:
+
+_Once the cluster is created, you can change nodepool count, and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1), you can also rename a nodepool (if the count is taken to 0), but should not remove a nodepool from the list after the cluster is created. This is due to how subnets and IPs are allocated. The only nodepools you can remove are the ones at the end of each list of nodepools._
+
+_However you can freely add others nodepools the end of the list if you want, and of course increase the node count. You can also decrease the node count, but make sure you drain the node in question before, otherwise it will leave your cluster in a bad state. The only nodepool that needs at least to have a count of 1 always, is the first control-plane nodepool, for obvious reasons._
 
 ## High Availability
 
@@ -169,14 +177,9 @@ spec:
 
 <summary>Single-node cluster</summary>
 
-Running a development cluster on a single node, without any high-availability is possible as well.
-In this case, we don't deploy an external load-balancer, but use [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall.
+Running a development cluster on a single node, without any high-availability is possible as well. You need one control plane nodepool with a count of 1, and one agent nodepool with a count of 0.
 
-``` terraform
-control_plane_count = 1
-allow_scheduling_on_control_plane = true
-agent_nodepools = []
-```
+In this case, we don't deploy an external load-balancer, but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
 
 </details>
 

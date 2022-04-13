@@ -1,6 +1,9 @@
 locals {
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
-  is_single_node_cluster = var.control_plane_count + sum(concat([for v in var.agent_nodepools : v.count], [0])) == 1
+  total_node_count       = sum(concat([for v in var.control_plane_nodepools : v.count], [0])) + sum(concat([for v in var.agent_nodepools : v.count], [0]))
+  control_plane_count    = sum(concat([for v in var.control_plane_nodepools : v.count], [0]))
+  agent_count            = sum(concat([for v in var.agent_nodepools : v.count], [0]))
+  is_single_node_cluster = local.total_node_count == 1
   ssh_public_key         = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
@@ -169,13 +172,30 @@ locals {
   install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"], local.apply_k3s_selinux)
   install_k3s_agent  = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"], local.apply_k3s_selinux)
 
-  agent_nodepools = merge([
-    for nodepool_obj in var.agent_nodepools : {
-      for index in range(nodepool_obj.count) :
-      format("%s-%s", nodepool_obj.name, index) => {
+  control_plane_nodepools = merge([
+    for pool_index, nodepool_obj in var.control_plane_nodepools : {
+      for node_index in range(nodepool_obj.count) :
+      format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
         nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
-        index : index
+        location : nodepool_obj.location,
+        labels : concat(local.default_control_plane_labels, nodepool_obj.labels),
+        taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
+        index : node_index
+      }
+    }
+  ]...)
+
+  agent_nodepools = merge([
+    for pool_index, nodepool_obj in var.agent_nodepools : {
+      for node_index in range(nodepool_obj.count) :
+      format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
+        nodepool_name : nodepool_obj.name,
+        server_type : nodepool_obj.server_type,
+        location : nodepool_obj.location,
+        labels : concat(local.default_agent_labels, nodepool_obj.labels),
+        taints : nodepool_obj.taints,
+        index : node_index
       }
     }
   ]...)
@@ -185,9 +205,17 @@ locals {
 
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
-  network_ipv4_subnets = [for index in range(length(var.agent_nodepools) + 2) : cidrsubnet(local.network_ipv4_cidr, 8, index)]
+  network_ipv4_subnets = [for index in range(256) : cidrsubnet(local.network_ipv4_cidr, 8, index)]
 
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metrics_server_enabled ? [] : ["metrics-server"])
 
+  # Default k3s node labels
+  default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+  default_control_plane_labels = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+
+  allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
+
+  # Default k3s node taints
+  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
 }

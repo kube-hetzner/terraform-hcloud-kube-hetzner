@@ -13,8 +13,19 @@ resource "hcloud_network" "k3s" {
   ip_range = local.network_ipv4_cidr
 }
 
-resource "hcloud_network_subnet" "subnet" {
-  count        = length(local.network_ipv4_subnets)
+# We start from the end of the subnets cird array, 
+# as we would have fewer control plane nodepools, than angent ones.
+resource "hcloud_network_subnet" "control_plane" {
+  count        = length(local.control_plane_nodepools)
+  network_id   = hcloud_network.k3s.id
+  type         = "cloud"
+  network_zone = var.network_region
+  ip_range     = local.network_ipv4_subnets[255 - count.index]
+}
+
+# Here we start at the beginning of the subnets cird array
+resource "hcloud_network_subnet" "agent" {
+  count        = length(local.agent_nodepools)
   network_id   = hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
@@ -36,13 +47,16 @@ resource "hcloud_firewall" "k3s" {
   }
 }
 
-resource "hcloud_placement_group" "k3s" {
-  name = var.cluster_name
-  type = "spread"
-  labels = {
-    "provisioner" = "terraform",
-    "engine"      = "k3s"
-  }
+resource "hcloud_placement_group" "control_plane" {
+  count = ceil(local.control_plane_count / 10)
+  name  = "${var.cluster_name}-control-plane-${count.index + 1}"
+  type  = "spread"
+}
+
+resource "hcloud_placement_group" "agent" {
+  count = ceil(local.agent_count / 10)
+  name  = "${var.cluster_name}-agent-${count.index + 1}"
+  type  = "spread"
 }
 
 data "hcloud_load_balancer" "traefik" {
@@ -70,10 +84,12 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
   depends_on = [
     local_sensitive_file.kubeconfig,
     null_resource.control_planes[0],
-    hcloud_network_subnet.subnet,
+    hcloud_network_subnet.control_plane,
+    hcloud_network_subnet.agent,
+    hcloud_placement_group.control_plane,
+    hcloud_placement_group.agent,
     hcloud_network.k3s,
     hcloud_firewall.k3s,
-    hcloud_placement_group.k3s,
     hcloud_ssh_key.k3s
   ]
 }
