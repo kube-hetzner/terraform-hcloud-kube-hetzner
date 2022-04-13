@@ -3,24 +3,30 @@ resource "null_resource" "first_control_plane" {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = module.control_planes[0].ipv4_address
+    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
   }
 
   # Generating k3s master config file
   provisioner "file" {
-    content = yamlencode({
-      node-name                = module.control_planes[0].name
-      token                    = random_password.k3s_token.result
-      cluster-init             = true
-      disable-cloud-controller = true
-      disable                  = local.disable_extras
-      flannel-iface            = "eth1"
-      kubelet-arg              = "cloud-provider=external"
-      node-ip                  = module.control_planes[0].private_ipv4_address
-      advertise-address        = module.control_planes[0].private_ipv4_address
-      node-taint               = var.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"]
-      node-label               = var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : []
-    })
+    content = yamlencode(merge({
+      node-name                   = module.control_planes[keys(module.control_planes)[0]].name
+      token                       = random_password.k3s_token.result
+      cluster-init                = true
+      disable-cloud-controller    = true
+      disable                     = local.disable_extras
+      flannel-iface               = "eth1"
+      kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+      kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+      node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+      advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+      node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
+      node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
+      disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
+      },
+      var.cni_plugin == "calico" ? {
+        flannel-backend = "none"
+    } : {}))
+
     destination = "/tmp/config.yaml"
   }
 
@@ -57,7 +63,7 @@ resource "null_resource" "first_control_plane" {
   }
 
   depends_on = [
-    hcloud_network_subnet.subnet["control_plane"]
+    hcloud_network_subnet.control_plane
   ]
 }
 
@@ -66,7 +72,7 @@ resource "null_resource" "kustomization" {
     user           = "root"
     private_key    = local.ssh_private_key
     agent_identity = local.ssh_identity
-    host           = module.control_planes[0].ipv4_address
+    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
@@ -79,12 +85,13 @@ resource "null_resource" "kustomization" {
         "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
         "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-      ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik.yaml"] : []),
-      patchesStrategicMerge = [
+        ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik.yaml"] : []
+      , var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []),
+      patchesStrategicMerge = concat([
         file("${path.module}/kustomize/kured.yaml"),
         file("${path.module}/kustomize/ccm.yaml"),
         file("${path.module}/kustomize/system-upgrade-controller.yaml")
-      ]
+      ], var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : [])
     })
     destination = "/tmp/post_install/kustomization.yaml"
   }
@@ -97,7 +104,7 @@ resource "null_resource" "kustomization" {
         name                       = "${var.cluster_name}-traefik"
         load_balancer_disable_ipv6 = var.load_balancer_disable_ipv6
         load_balancer_type         = var.load_balancer_type
-        location                   = var.location
+        location                   = var.load_balancer_location
         traefik_acme_tls           = var.traefik_acme_tls
         traefik_acme_email         = var.traefik_acme_email
         traefik_additional_options = var.traefik_additional_options
