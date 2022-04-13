@@ -56,7 +56,7 @@ First and foremost, you need to have a Hetzner Cloud account. You can sign up fo
 
 Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli),  [kubectl](https://kubernetes.io/docs/tasks/tools/) cli, and [hcloud](<https://github.com/hetznercloud/cli>) the Hetzner cli. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem).
 
-"`sh
+```sh
 brew install terraform
 brew install kubectl
 brew install hcloud
@@ -122,7 +122,7 @@ You can copy and modify the [one in the templates](https://github.com/kube-hetzn
 
 _If you wish to turn off automatic MicroOS upgrades on a specific node, you need to ssh into it and issue the following command:_
 
-"`sh
+```sh
 systemctl --now disable transactional-update.timer
 
 ```
@@ -141,12 +141,12 @@ kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 
 Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example:
 
-"`sh
+```sh
 kubectl apply -f examples/tls/.
 
 ```
 
-"`yml
+```yml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -211,7 +211,7 @@ First and foremost, it depends, but it's always good to have a quick look into H
 
 Then for the rest, you'll often need to login to your cluster via ssh, to do that, use:
 
-"`sh
+```sh
 ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
 
 ```
@@ -224,7 +224,7 @@ Last but not least, to see when the previous reboot took place, you can use both
 
 If you want to take down the cluster, you can proceed as follows:
 
-"`sh
+```sh
 terraform destroy -auto-approve
 ```
 
