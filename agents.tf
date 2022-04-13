@@ -9,7 +9,7 @@ module "agents" {
   private_key            = var.private_key
   additional_public_keys = var.additional_public_keys
   firewall_ids           = [hcloud_firewall.k3s.id]
-  placement_group_id     = hcloud_placement_group.k3s.id
+  placement_group_id     = element(hcloud_placement_group.control_plane.*.id, ceil(each.value.index / 10))
   location               = each.value.location
   server_type            = each.value.server_type
   ipv4_subnet_id         = hcloud_network_subnet.subnet[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + length(var.control_plane_nodepools) + 1].id

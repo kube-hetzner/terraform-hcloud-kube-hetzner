@@ -1,6 +1,9 @@
 locals {
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
-  is_single_node_cluster = sum(concat([for v in var.control_plane_nodepools : v.count], [0])) + sum(concat([for v in var.agent_nodepools : v.count], [0])) == 1
+  total_node_count       = sum(concat([for v in var.control_plane_nodepools : v.count], [0])) + sum(concat([for v in var.agent_nodepools : v.count], [0]))
+  control_plane_count    = sum(concat([for v in var.control_plane_nodepools : v.count], [0]))
+  agent_count            = sum(concat([for v in var.agent_nodepools : v.count], [0]))
+  is_single_node_cluster = local.total_node_count == 1
   ssh_public_key         = trimspace(file(var.public_key))
   # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
   ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
