@@ -24,7 +24,7 @@ module "control_planes" {
   }
 
   depends_on = [
-    hcloud_network_subnet.subnet
+    hcloud_network_subnet.control_plane
   ]
 }
 
@@ -83,6 +83,6 @@ resource "null_resource" "control_planes" {
 
   depends_on = [
     null_resource.first_control_plane,
-    hcloud_network_subnet.subnet
+    hcloud_network_subnet.control_plane
   ]
 }

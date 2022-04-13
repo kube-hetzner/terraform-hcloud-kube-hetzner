@@ -12,9 +12,9 @@ module "agents" {
   placement_group_id     = var.placement_group_disable ? 0 : element(hcloud_placement_group.agent.*.id, ceil(each.value.index / 10))
   location               = each.value.location
   server_type            = each.value.server_type
-  ipv4_subnet_id         = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + 1].id
+  ipv4_subnet_id         = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
 
-  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0] + 1].ip_range, each.value.index + 101)
+  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
   labels = {
     "provisioner" = "terraform",
@@ -22,7 +22,7 @@ module "agents" {
   }
 
   depends_on = [
-    hcloud_network_subnet.subnet
+    hcloud_network_subnet.agent
   ]
 }
 
@@ -78,6 +78,6 @@ resource "null_resource" "agents" {
 
   depends_on = [
     null_resource.first_control_plane,
-    hcloud_network_subnet.subnet
+    hcloud_network_subnet.agent
   ]
 }
