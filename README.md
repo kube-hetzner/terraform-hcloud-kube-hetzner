@@ -114,24 +114,37 @@ Otherwise, it's essential to turn off automatic OS upgrades (k3s can continue to
 
 ## Automatic Upgrade
 
+### The Default Setting
+
 By default, MicroOS gets upgraded automatically on each node and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
 As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default, it follows the k3s `stable` channel, but you can also change to the `latest` one if needed or specify a target version to upgrade to via the upgrade plan.
 
 You can copy and modify the [one in the templates](https://github.com/kube-hetzner/kube-hetzner/blob/master/templates/plans.yaml.tpl) for that! More on the subject in [k3s upgrades](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
-_If you wish to turn off automatic MicroOS upgrades on a specific node, you need to ssh into it and issue the following command:_
+### Turning Off Automatic Upgrade
+
+_If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup which requires at least 3 control-plane nodes), you need to ssh into each node and issue the following command:_
 
 ```sh
 systemctl --now disable transactional-update.timer
 
 ```
 
-_To turn off k3s upgrades, you can either set the `k3s_upgrade=true` label in the node you want or set it to `false`. To remove it, apply:_
+_To turn off k3s upgrades, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove it, apply:_
 
 ```sh
 kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 ```
+
+### Individual Components Upgrade
+
+Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `kubeconfig.yaml` at the root of your project.
+
+1. First create a duplicate of that file and name it `kustomization.yaml`, keeping the original file intact, in case you need to restore the old config.
+2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on Github, and replace.
+3. If present, remove any local reference to `traefik_config.yaml`, as Traefik is updated automatically by the system upgrade controller.
+4. Apply the the updated `kustomization.yaml` with `kubectl apply -k ./`.
 
 ## Examples
 

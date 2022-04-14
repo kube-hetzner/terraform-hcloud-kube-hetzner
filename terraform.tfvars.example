@@ -33,7 +33,7 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 # Also, before decreasing the count of any nodepools to 0, it's essential to drain and cordon the nodes in question. Otherwise, it will leave your cluster in a bad state.
 
 # Before initializing the cluster, you can change all parameters and add or remove any nodepools. You need at least one nodepool of each kind, control plane, and agent.
-# The nodepool names are entirely arbitrary, you can choose whatever you want, but no special characters or underscore; only alphanumeric characters and dashes are allowed.
+# The nodepool names are entirely arbitrary, you can choose whatever you want, but no special characters or underscore, and they must be unique; only alphanumeric characters and dashes are allowed.
 
 # If you want to have a single node cluster, have one control plane nodepools with a count of 1, and one agent nodepool with a count of 0.
 
@@ -108,11 +108,13 @@ load_balancer_location = "fsn1"
 # hetzner_csi_version = ""
 
 
-# If you want to use letsencrypt with tls Challenge, the email address is used to send you certificates expiration notices
+# We give you the possibility to use letsencrypt directly with Traefik because it's an easy setup, however it's not optimal,
+# as the free version of Traefik causes a little bit of downtime when when the certificates get renewed. For proper SSL management,
+# we instead recommend you to use cert-manager, that you can easily deploy with helm; see https://cert-manager.io/.
 # traefik_acme_tls = true
 # traefik_acme_email = "mail@example.com"
 
-# If you want to disable the Traefik ingress controller, you can. Default is "true".
+# If you want to disable the Traefik ingress controller, you can can set this to "false". Default is "true".
 # traefik_enabled = false
 
 # If you want to disable the metric server, you can! Default is "true".
@@ -162,6 +164,8 @@ load_balancer_location = "fsn1"
 
 # If you want to configure a different CNI for k3s, use this flag
 # possible values: flannel (Default), calico
+# Cilium or other would be easy to add, you can mirror how Calico was added. PRs are welcome!
+# CAVEATS: Calico is not supported for single node setups, because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
 # cni_plugin = "calico"
 
 # If you want to disable the k3s default network policy controller, use this flag

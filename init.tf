@@ -40,7 +40,7 @@ resource "null_resource" "first_control_plane" {
     inline = [
       "systemctl start k3s",
       # prepare the post_install directory
-      "mkdir -p /tmp/post_install",
+      "mkdir -p /var/post_install",
       # wait for k3s to become ready
       <<-EOT
       timeout 120 bash <<EOF
@@ -85,7 +85,7 @@ resource "null_resource" "kustomization" {
         "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
         "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-        ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik.yaml"] : []
+        ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : []
       , var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []),
       patchesStrategicMerge = concat([
         file("${path.module}/kustomize/kured.yaml"),
@@ -93,7 +93,7 @@ resource "null_resource" "kustomization" {
         file("${path.module}/kustomize/system-upgrade-controller.yaml")
       ], var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : [])
     })
-    destination = "/tmp/post_install/kustomization.yaml"
+    destination = "/var/post_install/kustomization.yaml"
   }
 
   # Upload traefik config
@@ -109,7 +109,7 @@ resource "null_resource" "kustomization" {
         traefik_acme_email         = var.traefik_acme_email
         traefik_additional_options = var.traefik_additional_options
     })
-    destination = "/tmp/post_install/traefik.yaml"
+    destination = "/var/post_install/traefik_config.yaml"
   }
 
   # Upload the system upgrade controller plans config
@@ -119,7 +119,7 @@ resource "null_resource" "kustomization" {
       {
         channel = var.initial_k3s_channel
     })
-    destination = "/tmp/post_install/plans.yaml"
+    destination = "/var/post_install/plans.yaml"
   }
 
   # Deploy secrets, logging is automatically disabled due to sensitive variables
@@ -143,11 +143,11 @@ resource "null_resource" "kustomization" {
       # replace lines like "- |3" by "- |" (yaml block syntax).
       # due to indendation this should not changes the embedded
       # manifests themselves
-      "sed -i 's/^- |[0-9]\\+$/- |/g' /tmp/post_install/kustomization.yaml",
-      "kubectl apply -k /tmp/post_install",
+      "sed -i 's/^- |[0-9]\\+$/- |/g' /var/post_install/kustomization.yaml",
+      "kubectl apply -k /var/post_install",
       "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
       "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
-      "kubectl -n system-upgrade apply -f /tmp/post_install/plans.yaml"
+      "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
       local.is_single_node_cluster || var.traefik_enabled == false ? [] : [<<-EOT
       timeout 120 bash <<EOF
