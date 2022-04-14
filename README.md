@@ -142,9 +142,8 @@ kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `kubeconfig.yaml` at the root of your project.
 
 1. First create a duplicate of that file and name it `kustomization.yaml`, keeping the original file intact, in case you need to restore the old config.
-2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on Github, and replace.
-3. If present, remove any local reference to `traefik_config.yaml`, as Traefik is updated automatically by the system upgrade controller.
-4. Apply the the updated `kustomization.yaml` with `kubectl apply -k ./`.
+2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on Github, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
+3. Apply the the updated `kustomization.yaml` with `kubectl apply -k ./`.
 
 ## Examples
 
