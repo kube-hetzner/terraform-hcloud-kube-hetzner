@@ -223,7 +223,7 @@ module "kube-hetzner" {
 
 <summary>Use in Terraform cloud</summary>
 
-To use Kube-Hetzner on Terraform cloud, use as a Terraform module as mentioned above, but also change the "execution-mode" from "remote" to "local".
+To use Kube-Hetzner on Terraform cloud, use as a Terraform module as mentioned above, but also change the execution mode from `remote` to `local`.
 
 </details>
 
