@@ -161,6 +161,24 @@ resource "null_resource" "kustomization" {
   }
 
   depends_on = [
-    null_resource.first_control_plane
+    null_resource.first_control_plane,
+    local_sensitive_file.kubeconfig
+  ]
+}
+
+resource "null_resource" "helm" {
+  # Install Helm charts
+  provisioner "local-exec" {
+    when       = create
+    command    = <<-EOT
+      export KUBECONFIG=$(readlink -f ${path.module}/kubeconfig.yaml)
+      helmfile -f ${path.module}/helm/helmfile.yaml apply
+    EOT
+    on_failure = continue
+  }
+
+  depends_on = [
+    null_resource.first_control_plane,
+    local_sensitive_file.kubeconfig
   ]
 }

@@ -1,0 +1,22 @@
+---
+helmDefaults:
+  timeout: 3600
+  wait: true
+  force: false
+  atomic: true
+
+repositories:
+  - name: longhorn
+    url: https://charts.longhorn.io
+
+releases:
+  - name: longhorn
+    namespace: longhorn
+    chart: longhorn/longhorn
+    values:
+      - persistence:
+          defaultClass: true
+          defaultFsType: ext4
+          defaultClassReplicaCount: 2
+      - defaultSettings:
+          defaultDataPath: /var/longhorn
