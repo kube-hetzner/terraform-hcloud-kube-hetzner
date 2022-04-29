@@ -118,7 +118,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/ccm.yaml.tpl",
       {
         cluster_cidr_ipv4 = local.cluster_cidr_ipv4
-      })
+    })
     destination = "/var/post_install/ccm.yaml"
   }
 
@@ -128,7 +128,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/calico.yaml.tpl",
       {
         cluster_cidr_ipv4 = local.cluster_cidr_ipv4
-      })
+    })
     destination = "/var/post_install/calico.yaml"
   }
 
