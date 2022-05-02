@@ -87,6 +87,7 @@ resource "null_resource" "kustomization" {
           "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
         ],
         var.disable_hetzner_csi ? [] : ["https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"],
+        var.enable_longhorn ? ["longhorn.yaml"] : [],
         local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : [],
         var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []
       ),
@@ -128,6 +129,16 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/plans.yaml"
   }
 
+  # Upload the Longhorn config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/longhorn.yaml.tpl",
+      {
+        disable_hetzner_csi = var.disable_hetzner_csi
+    })
+    destination = "/var/post_install/longhorn.yaml"
+  }
+
   # Deploy secrets, logging is automatically disabled due to sensitive variables
   provisioner "remote-exec" {
     inline = [
@@ -164,27 +175,6 @@ resource "null_resource" "kustomization" {
       EOF
       EOT
     ])
-  }
-
-  depends_on = [
-    null_resource.first_control_plane,
-    local_sensitive_file.kubeconfig
-  ]
-}
-
-resource "null_resource" "longhorn" {
-  # If longhorn isn't enabled, we don't want any Helm resources
-  count = var.enable_longhorn ? 1 : 0
-
-  # Install Helm charts
-  provisioner "local-exec" {
-    when       = create
-    command    = <<-EOT
-      export KUBECONFIG=$(readlink -f ${path.module}/kubeconfig.yaml)
-      export HETZNER_CSI_DISABLED=${var.disable_hetzner_csi ? "true" : "false"}
-      helmfile -f ${path.module}/helm/longhorn.yaml apply
-    EOT
-    on_failure = continue
   }
 
   depends_on = [
