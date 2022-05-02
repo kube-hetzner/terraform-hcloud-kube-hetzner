@@ -89,9 +89,9 @@ resource "null_resource" "kustomization" {
       , var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []),
       patchesStrategicMerge = concat([
         file("${path.module}/kustomize/kured.yaml"),
-        file("${path.module}/kustomize/ccm.yaml"),
-        file("${path.module}/kustomize/system-upgrade-controller.yaml")
-      ], var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : [])
+        file("${path.module}/kustomize/system-upgrade-controller.yaml"),
+        "ccm.yaml"
+      ], var.cni_plugin == "calico" ? ["calico.yaml"] : [])
     })
     destination = "/var/post_install/kustomization.yaml"
   }
@@ -110,6 +110,26 @@ resource "null_resource" "kustomization" {
         traefik_additional_options = var.traefik_additional_options
     })
     destination = "/var/post_install/traefik_config.yaml"
+  }
+
+  # Upload the CCM patch config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/ccm.yaml.tpl",
+      {
+        cluster_cidr_ipv4 = local.cluster_cidr_ipv4
+    })
+    destination = "/var/post_install/ccm.yaml"
+  }
+
+  # Upload the calico patch config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/calico.yaml.tpl",
+      {
+        cluster_cidr_ipv4 = local.cluster_cidr_ipv4
+    })
+    destination = "/var/post_install/calico.yaml"
   }
 
   # Upload the system upgrade controller plans config

@@ -14,4 +14,4 @@ spec:
             - "--leader-elect=false"
             - "--allow-untagged-cloud"
             - "--allocate-node-cidrs=true"
-            - "--cluster-cidr=10.42.0.0/16"
+            - "--cluster-cidr=${cluster_cidr_ipv4}"

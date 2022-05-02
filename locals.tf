@@ -87,6 +87,9 @@ locals {
   hetzner_metadata_service_ipv4 = "169.254.169.254/32"
   hetzner_cloud_api_ipv4        = "213.239.246.1/32"
 
+  # internal Pod CIDR, used for the controller and currently for calico
+  cluster_cidr_ipv4 = "10.42.0.0/16"
+
   whitelisted_ips = [
     local.network_ipv4_cidr,
     local.hetzner_metadata_service_ipv4,
