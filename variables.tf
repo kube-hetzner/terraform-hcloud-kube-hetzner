@@ -163,3 +163,15 @@ variable "cni_plugin" {
   default     = "flannel"
   description = "CNI plugin for k3s"
 }
+
+variable "enable_longhorn" {
+  type        = bool
+  default     = false
+  description = "Enable Longhorn"
+}
+
+variable "disable_hetzner_csi" {
+  type        = bool
+  default     = false
+  description = "Disable hetzner csi driver"
+}

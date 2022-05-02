@@ -80,18 +80,24 @@ resource "null_resource" "kustomization" {
     content = yamlencode({
       apiVersion = "kustomize.config.k8s.io/v1beta1"
       kind       = "Kustomization"
-      resources = concat([
-        "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
-        "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
-        "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
-        "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-        ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : []
-      , var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []),
-      patchesStrategicMerge = concat([
-        file("${path.module}/kustomize/kured.yaml"),
-        file("${path.module}/kustomize/ccm.yaml"),
-        file("${path.module}/kustomize/system-upgrade-controller.yaml")
-      ], var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : [])
+      resources = concat(
+        [
+          "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
+          "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
+          "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
+        ],
+        var.disable_hetzner_csi ? [] : ["https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"],
+        local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : [],
+        var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []
+      ),
+      patchesStrategicMerge = concat(
+        [
+          file("${path.module}/kustomize/kured.yaml"),
+          file("${path.module}/kustomize/ccm.yaml"),
+          file("${path.module}/kustomize/system-upgrade-controller.yaml")
+        ],
+        var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : []
+      )
     })
     destination = "/var/post_install/kustomization.yaml"
   }
@@ -161,6 +167,27 @@ resource "null_resource" "kustomization" {
   }
 
   depends_on = [
-    null_resource.first_control_plane
+    null_resource.first_control_plane,
+    local_sensitive_file.kubeconfig
+  ]
+}
+
+resource "null_resource" "longhorn" {
+  # If longhorn isn't enabled, we don't want any Helm resources
+  count = var.enable_longhorn ? 1 : 0
+
+  # Install Helm charts
+  provisioner "local-exec" {
+    when       = create
+    command    = <<-EOT
+      export KUBECONFIG=$(readlink -f ${path.module}/kubeconfig.yaml)
+      helmfile -f ${path.module}/helm/longhorn.yaml apply
+    EOT
+    on_failure = continue
+  }
+
+  depends_on = [
+    null_resource.first_control_plane,
+    local_sensitive_file.kubeconfig
   ]
 }
