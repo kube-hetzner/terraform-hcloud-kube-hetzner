@@ -127,7 +127,8 @@ load_balancer_location = "fsn1"
 # If you want to disable the automatic upgrade of k3s, you can set this to false. The default is "true".
 # automatically_upgrade_k3s = false
 
-# Allows you to specify either stable, latest, or testing (defaults to stable), see https://rancher.com/docs/k3s/latest/en/upgrades/basic/
+# Allows you to specify either stable, latest, testing or supported minor versions (defaults to stable)
+# see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
 # initial_k3s_channel = "latest"
 
 # The cluster name, by default "k3s"
