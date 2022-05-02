@@ -181,6 +181,7 @@ resource "null_resource" "longhorn" {
     when       = create
     command    = <<-EOT
       export KUBECONFIG=$(readlink -f ${path.module}/kubeconfig.yaml)
+      export HETZNER_CSI_DISABLED=${var.disable_hetzner_csi ? "true" : "false"}
       helmfile -f ${path.module}/helm/longhorn.yaml apply
     EOT
     on_failure = continue

@@ -15,7 +15,7 @@ releases:
     chart: longhorn/longhorn
     values:
       - persistence:
-          defaultClass: true
+          defaultClass: {{ requiredEnv "HETZNER_CSI_DISABLED" }}
           defaultFsType: ext4
           defaultClassReplicaCount: 2
       - defaultSettings:
