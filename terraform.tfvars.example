@@ -24,9 +24,9 @@ network_region   = "eu-central" # change to `us-east` if location is ash
 # Of course, you can choose any number of nodepools you want, with the location you want. The only constraint on the location is that you need to stay in the same network region, Europe, or the US.
 # For the server type, the minimum instance supported is cpx11 (just a few cents more than cx11); see https://www.hetzner.com/cloud.
 
-# IMPORTANT: Before you create your cluster, you can do anything you want with the nodepools, but you need at least one of each control plane and agent. 
+# IMPORTANT: Before you create your cluster, you can do anything you want with the nodepools, but you need at least one of each control plane and agent.
 # Once the cluster is up and running, you can change nodepool count and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1),
-# you can also rename it (if the count is 0), but do not remove a nodepool from the list. 
+# you can also rename it (if the count is 0), but do not remove a nodepool from the list.
 
 # The only nodepools that are safe to remove from the list when you edit it are at the end of the lists. That is due to how subnets and IPs get allocated (FILO).
 # You can, however, freely add other nodepools at the end of each list if you want! The maximum number of nodepools you can create combined for both lists is 255.
@@ -107,6 +107,8 @@ load_balancer_location = "fsn1"
 # hetzner_ccm_version = ""
 # hetzner_csi_version = ""
 
+# If you want to specify the Kured version, set it below - otherwise it'll use the latest version available
+# kured_version = ""
 
 # We give you the possibility to use letsencrypt directly with Traefik because it's an easy setup, however it's not optimal,
 # as the free version of Traefik causes a little bit of downtime when when the certificates get renewed. For proper SSL management,

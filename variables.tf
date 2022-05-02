@@ -65,6 +65,12 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud"
 }
 
+variable "kured_version" {
+  type        = string
+  default     = null
+  description = "Version of Kured"
+}
+
 variable "traefik_enabled" {
   type        = bool
   default     = true
