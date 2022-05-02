@@ -80,18 +80,25 @@ resource "null_resource" "kustomization" {
     content = yamlencode({
       apiVersion = "kustomize.config.k8s.io/v1beta1"
       kind       = "Kustomization"
-      resources = concat([
-        "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
-        "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml",
-        "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
-        "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-        ], local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : []
-      , var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []),
-      patchesStrategicMerge = concat([
-        file("${path.module}/kustomize/kured.yaml"),
-        file("${path.module}/kustomize/ccm.yaml"),
-        file("${path.module}/kustomize/system-upgrade-controller.yaml")
-      ], var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : [])
+      resources = concat(
+        [
+          "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
+          "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
+          "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
+        ],
+        var.disable_hetzner_csi ? [] : ["https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"],
+        var.enable_longhorn ? ["longhorn.yaml"] : [],
+        local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : [],
+        var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []
+      ),
+      patchesStrategicMerge = concat(
+        [
+          file("${path.module}/kustomize/kured.yaml"),
+          file("${path.module}/kustomize/ccm.yaml"),
+          file("${path.module}/kustomize/system-upgrade-controller.yaml")
+        ],
+        var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : []
+      )
     })
     destination = "/var/post_install/kustomization.yaml"
   }
@@ -120,6 +127,16 @@ resource "null_resource" "kustomization" {
         channel = var.initial_k3s_channel
     })
     destination = "/var/post_install/plans.yaml"
+  }
+
+  # Upload the Longhorn config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/longhorn.yaml.tpl",
+      {
+        disable_hetzner_csi = var.disable_hetzner_csi
+    })
+    destination = "/var/post_install/longhorn.yaml"
   }
 
   # Deploy secrets, logging is automatically disabled due to sensitive variables
@@ -161,6 +178,7 @@ resource "null_resource" "kustomization" {
   }
 
   depends_on = [
-    null_resource.first_control_plane
+    null_resource.first_control_plane,
+    local_sensitive_file.kubeconfig
   ]
 }

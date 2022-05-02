@@ -65,6 +65,12 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud"
 }
 
+variable "kured_version" {
+  type        = string
+  default     = null
+  description = "Version of Kured"
+}
+
 variable "traefik_enabled" {
   type        = bool
   default     = true
@@ -156,4 +162,16 @@ variable "cni_plugin" {
   type        = string
   default     = "flannel"
   description = "CNI plugin for k3s"
+}
+
+variable "enable_longhorn" {
+  type        = bool
+  default     = false
+  description = "Enable Longhorn"
+}
+
+variable "disable_hetzner_csi" {
+  type        = bool
+  default     = false
+  description = "Disable hetzner csi driver"
 }
