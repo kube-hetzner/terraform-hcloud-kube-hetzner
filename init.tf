@@ -95,8 +95,8 @@ resource "null_resource" "kustomization" {
       patchesStrategicMerge = concat(
         [
           file("${path.module}/kustomize/kured.yaml"),
-          file("${path.module}/kustomize/ccm.yaml"),
-          file("${path.module}/kustomize/system-upgrade-controller.yaml")
+          file("${path.module}/kustomize/system-upgrade-controller.yaml"),
+          "ccm.yaml",
         ],
         var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : []
       )
