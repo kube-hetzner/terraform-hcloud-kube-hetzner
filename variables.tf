@@ -195,7 +195,7 @@ variable "rancher_install_channel" {
 
   validation {
     condition     = contains(["stable", "latest", "alpha"], var.rancher_install_channel)
-    error_message = "The allowed values for the rancher install channel are stable, latest, or alpha."
+    error_message = "The allowed values for the Rancher install channel are stable, latest, or alpha."
   }
 }
 

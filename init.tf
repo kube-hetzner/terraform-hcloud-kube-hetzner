@@ -170,7 +170,7 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/cert-manager.yaml"
   }
 
-  # Upload the rancher config
+  # Upload the Rancher config
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/rancher.yaml.tpl",
