@@ -65,11 +65,12 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Install k3s-selinux (compatible version)
+  # Install k3s-selinux (compatible version) and open-iscsi
   provisioner "remote-exec" {
-    inline = [
-      "set -ex",
-      "transactional-update shell <<< 'rpm --import https://rpm.rancher.io/public.key;zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v0.5.stable.1/k3s-selinux-0.5-1.sle.noarch.rpm'"
+    inline = [<<-EOT
+      set -ex
+      transactional-update shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
+      EOT
     ]
   }
 
@@ -83,6 +84,17 @@ resource "hcloud_server" "server" {
         sleep 3
       done
     EOT
+  }
+
+  # Enable open-iscsi
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      set -ex
+      if [[ $(systemctl list-units --all -t service --full --no-legend "iscsid.service" | sed 's/^\s*//g' | cut -f1 -d' ') == iscsid.service ]]; then
+        systemctl enable --now iscsid
+      fi
+      EOT
+    ]
   }
 }
 

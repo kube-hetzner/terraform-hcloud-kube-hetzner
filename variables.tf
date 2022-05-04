@@ -65,6 +65,12 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud"
 }
 
+variable "kured_version" {
+  type        = string
+  default     = null
+  description = "Version of Kured"
+}
+
 variable "traefik_enabled" {
   type        = bool
   default     = true
@@ -101,7 +107,7 @@ variable "initial_k3s_channel" {
   description = "Allows you to specify an initial k3s channel"
 
   validation {
-    condition     = contains(["stable", "latest", "testing"], var.initial_k3s_channel)
+    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23"], var.initial_k3s_channel)
     error_message = "The initial k3s channel must be one of stable, latest or testing."
   }
 }
@@ -156,4 +162,16 @@ variable "cni_plugin" {
   type        = string
   default     = "flannel"
   description = "CNI plugin for k3s"
+}
+
+variable "enable_longhorn" {
+  type        = bool
+  default     = false
+  description = "Enable Longhorn"
+}
+
+variable "disable_hetzner_csi" {
+  type        = bool
+  default     = false
+  description = "Disable hetzner csi driver"
 }

@@ -38,6 +38,8 @@ _Please note that we are not affiliates of Hetzner; this is just an open-source 
 - Possibility to have a single node cluster with a proper ingress controller.
 - Ability to add nodes and nodepools when the cluster is running.
 - Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
+- Possibility to turn Longhorn on, and optionally also turn Hetzner CSI off.
+- Ability to switch to Calico as CNI, and Cilium can also be easily added.
 - Tons of flexible configuration options to suit all needs.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
@@ -54,7 +56,7 @@ Follow those simple steps, and your world's cheapest Kube cluster will be up and
 
 First and foremost, you need to have a Hetzner Cloud account. You can sign up for free [here](https://hetzner.com/cloud/).
 
-Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli),  [kubectl](https://kubernetes.io/docs/tasks/tools/) cli, and [hcloud](<https://github.com/hetznercloud/cli>) the Hetzner cli. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem).
+Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli),  [kubectl](https://kubernetes.io/docs/tasks/tools/) cli and [hcloud](<https://github.com/hetznercloud/cli>) the Hetzner cli. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem).
 
 ```sh
 brew install terraform
@@ -212,7 +214,7 @@ It is easy to use Kube-Hetzner as a Terraform module. To do so:
 ``` terraform
 module "kube-hetzner" {
   source  = "kube-hetzner/kube-hetzner/hcloud"
-  
+
   # insert the required variables here found in terraform.tfvars.example
 }
 ```

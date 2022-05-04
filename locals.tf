@@ -13,7 +13,7 @@ locals {
 
   ccm_version   = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm.release_tag
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
-  kured_version = data.github_release.kured.release_tag
+  kured_version = var.kured_version != null ? var.kured_version : data.github_release.kured.release_tag
 
   common_commands_install_k3s = [
     "set -ex",

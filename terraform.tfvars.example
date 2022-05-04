@@ -24,9 +24,9 @@ network_region = "eu-central" # change to `us-east` if location is ash
 # Of course, you can choose any number of nodepools you want, with the location you want. The only constraint on the location is that you need to stay in the same network region, Europe, or the US.
 # For the server type, the minimum instance supported is cpx11 (just a few cents more than cx11); see https://www.hetzner.com/cloud.
 
-# IMPORTANT: Before you create your cluster, you can do anything you want with the nodepools, but you need at least one of each control plane and agent. 
+# IMPORTANT: Before you create your cluster, you can do anything you want with the nodepools, but you need at least one of each control plane and agent.
 # Once the cluster is up and running, you can change nodepool count and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1),
-# you can also rename it (if the count is 0), but do not remove a nodepool from the list. 
+# you can also rename it (if the count is 0), but do not remove a nodepool from the list.
 
 # The only nodepools that are safe to remove from the list when you edit it are at the end of the lists. That is due to how subnets and IPs get allocated (FILO).
 # You can, however, freely add other nodepools at the end of each list if you want! The maximum number of nodepools you can create combined for both lists is 255.
@@ -103,10 +103,18 @@ load_balancer_location = "fsn1"
 
 ### The following values are entirely optional
 
-# If you want to use a specific Hetzner CCM and CSI version, set them below; otherwise, leave them as-is for the latest versions
+# To use local storage on the nodes, you can enable Longhorn, default is "false".
+# enable_longhorn = true
+
+# To disable Hetzner CSI storage, you can set the following to true, default is "false".
+# disable_hetzner_csi = true
+
+# If you want to use a specific Hetzner CCM and CSI version, set them below; otherwise, leave them as-is for the latest versions.
 # hetzner_ccm_version = ""
 # hetzner_csi_version = ""
 
+# If you want to specify the Kured version, set it below - otherwise it'll use the latest version available
+# kured_version = ""
 
 # We give you the possibility to use letsencrypt directly with Traefik because it's an easy setup, however it's not optimal,
 # as the free version of Traefik causes a little bit of downtime when when the certificates get renewed. For proper SSL management,
@@ -127,7 +135,8 @@ load_balancer_location = "fsn1"
 # If you want to disable the automatic upgrade of k3s, you can set this to false. The default is "true".
 # automatically_upgrade_k3s = false
 
-# Allows you to specify either stable, latest, or testing (defaults to stable), see https://rancher.com/docs/k3s/latest/en/upgrades/basic/
+# Allows you to specify either stable, latest, testing or supported minor versions (defaults to stable)
+# see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
 # initial_k3s_channel = "latest"
 
 # The cluster name, by default "k3s"
@@ -167,8 +176,8 @@ load_balancer_location = "fsn1"
 # CAVEATS: Calico is not supported for single node setups, because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
 # cni_plugin = "calico"
 
-# If you want to disable the k3s default network policy controller, use this flag
-# Calico overrides this value to true automatically
+# If you want to disable the k3s default network policy controller, use this flag!
+# Calico overrides this value to true automatically, the default is "false".
 # disable_network_policy = true
 
 # If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/
