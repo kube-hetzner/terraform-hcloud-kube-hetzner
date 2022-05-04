@@ -38,6 +38,8 @@ _Please note that we are not affiliates of Hetzner; this is just an open-source 
 - Possibility to have a single node cluster with a proper ingress controller.
 - Ability to add nodes and nodepools when the cluster is running.
 - Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
+- Possibility to turn Longhorn on, and optionally also turn Hetzner CSI off.
+- Ability to switch to Calico as CNI, and Cilium can also be easily added.
 - Tons of flexible configuration options to suit all needs.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
