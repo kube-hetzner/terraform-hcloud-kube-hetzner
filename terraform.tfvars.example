@@ -183,3 +183,23 @@ load_balancer_location = "fsn1"
 # If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/
 # That may be useful if you need to deploy more than 500 nodes! The default is "false".
 # placement_group_disable = true
+
+# You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "false".
+# enable_cert_manager = true
+
+# You can enable rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
+# When rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own certificates.
+# As for the number of replicas, it is set to the numbe of control plane nodes.
+# You can customized all of the above by creating and applying a HelmChartConfig to pass the helm chart values of your choice. 
+# See https://rancher.com/docs/k3s/latest/en/helm/ 
+# and https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/chart-options/
+# enable_rancher = true
+
+# When rancher is deployed, by default is uses the "stable" channel. But this can be customized.
+# The allowed values are "stable", "latest", and "alpha".
+# rancher_install_channel = "latest"
+
+# Set your rancher hostname, the default is "rancher.example.com".
+# It is a required value when using rancher, but up to you to point the DNS to it or not. 
+# You can also not point the DNS, and just port-forward locally via kubectl to get access to the dashboard.
+# rancher_hostname = "rancher.xyz.dev"
