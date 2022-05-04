@@ -103,13 +103,13 @@ load_balancer_location = "fsn1"
 
 ### The following values are entirely optional
 
-# To use local storage on the nodes, you can enable Longhorn, default is "false"
-# enable_longhorn = false
+# To use local storage on the nodes, you can enable Longhorn, default is "false".
+# enable_longhorn = true
 
-# To disable Hetzner CSI storage, you can set the following to true, default is "false"
-# disable_hetzner_csi = false
+# To disable Hetzner CSI storage, you can set the following to true, default is "false".
+# disable_hetzner_csi = true
 
-# If you want to use a specific Hetzner CCM and CSI version, set them below; otherwise, leave them as-is for the latest versions
+# If you want to use a specific Hetzner CCM and CSI version, set them below; otherwise, leave them as-is for the latest versions.
 # hetzner_ccm_version = ""
 # hetzner_csi_version = ""
 
@@ -176,8 +176,8 @@ load_balancer_location = "fsn1"
 # CAVEATS: Calico is not supported for single node setups, because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
 # cni_plugin = "calico"
 
-# If you want to disable the k3s default network policy controller, use this flag
-# Calico overrides this value to true automatically
+# If you want to disable the k3s default network policy controller, use this flag!
+# Calico overrides this value to true automatically, the default is "false".
 # disable_network_policy = true
 
 # If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/
