@@ -8,14 +8,14 @@
 # * Your Hetzner project API token
 hcloud_token = "xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz"
 # * Your public key
-public_key   = "/home/username/.ssh/id_ed25519.pub"
+public_key = "/home/username/.ssh/id_ed25519.pub"
 # * Your private key must be "private_key = null" when you want to use ssh-agent for a Yubikey-like device authentification or an SSH key-pair with a passphrase.
 # For more details on SSH see https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md
-private_key  = "/home/username/.ssh/id_ed25519"
+private_key = "/home/username/.ssh/id_ed25519"
 
 # These can be customized, or left with the default values
 # * For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
-network_region   = "eu-central" # change to `us-east` if location is ash
+network_region = "eu-central" # change to `us-east` if location is ash
 
 # For the control planes, at least three nodes are the minimum for HA. Otherwise, you need to turn off the automatic upgrade (see ReadMe).
 # As per rancher docs, it must always be an odd number, never even! See https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
@@ -146,25 +146,24 @@ load_balancer_location = "fsn1"
 # use_cluster_name_in_node_name = false
 
 # Adding extra firewall rules, like opening a port
-# In this example, we allow port TCP 5432 for a Postgres service that we will open via a node port and also allow outgoing SMTP traffic on port TCP 465
 # More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall
 # extra_firewall_rules = [
+#   # For Postgres
 #   {
-#     direction = "in"
-#     protocol  = "tcp"
-#     port      = "5432"
-#     source_ips = [
-#       "0.0.0.0/0"
-#     ]
+#     direction       = "in"
+#     protocol        = "tcp"
+#     port            = "5432"
+#     source_ips      = ["0.0.0.0/0", "::/0"]
+#     destination_ips = [] # Won't be used for this rule 
 #   },
+#   # To Allow ArgoCD access to resources via SSH
 #   {
-#     direction = "out"
-#     protocol  = "tcp"
-#     port      = "465"
-#     destination_ips = [
-#       "0.0.0.0/0"
-#     ]
-#   },
+#     direction       = "out"
+#     protocol        = "tcp"
+#     port            = "22"
+#     source_ips      = [] # Won't be used for this rule 
+#     destination_ips = ["0.0.0.0/0", "::/0"]
+#   }
 # ]
 
 # If you want to configure additional Arguments for traefik, enter them here as a list and in the form of traefik CLI arguments; see https://doc.traefik.io/traefik/reference/static-configuration/cli/

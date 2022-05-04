@@ -137,6 +137,13 @@ _To turn off k3s upgrades, you can either remove the `k3s_upgrade=true` label or
 kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 ```
 
+Alternatively, you can disable the k3s automatic upgrade without individually editing the labels on the nodes. Instead you can just delete the two system controller upgrade plans with:
+
+```sh
+kubectl delete plan k3s-agent -n system-upgrade
+kubectl delete plan k3s-server -n system-upgrade
+```
+
 ### Individual Components Upgrade
 
 Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `kubeconfig.yaml` at the root of your project.
@@ -209,6 +216,14 @@ module "kube-hetzner" {
   # insert the required variables here found in terraform.tfvars.example
 }
 ```
+
+</details>
+
+<details>
+
+<summary>Use in Terraform cloud</summary>
+
+To use Kube-Hetzner on Terraform cloud, use as a Terraform module as mentioned above, but also change the execution mode from `remote` to `local`.
 
 </details>
 

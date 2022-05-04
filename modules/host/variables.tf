@@ -62,3 +62,9 @@ variable "server_type" {
   description = "The server type"
   type        = string
 }
+
+variable "packages_to_install" {
+  description = "Packages to install"
+  type        = list(string)
+  default     = []
+}
