@@ -98,7 +98,7 @@ resource "null_resource" "kustomization" {
           file("${path.module}/kustomize/system-upgrade-controller.yaml"),
           "ccm.yaml",
         ],
-        var.cni_plugin == "calico" ? [file("${path.module}/kustomize/calico.yaml")] : []
+        var.cni_plugin == "calico" ? ["calico.yaml"] : []
       )
     })
     destination = "/var/post_install/kustomization.yaml"
