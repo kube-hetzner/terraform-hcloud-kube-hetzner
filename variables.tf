@@ -107,7 +107,7 @@ variable "initial_k3s_channel" {
   description = "Allows you to specify an initial k3s channel"
 
   validation {
-    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23"], var.initial_k3s_channel)
+    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24"], var.initial_k3s_channel)
     error_message = "The initial k3s channel must be one of stable, latest or testing."
   }
 }
@@ -174,4 +174,33 @@ variable "disable_hetzner_csi" {
   type        = bool
   default     = false
   description = "Disable hetzner csi driver"
+}
+
+variable "enable_cert_manager" {
+  type        = bool
+  default     = false
+  description = "Enable cert manager"
+}
+
+variable "enable_rancher" {
+  type        = bool
+  default     = false
+  description = "Enable rancher"
+}
+
+variable "rancher_install_channel" {
+  type        = string
+  default     = "stable"
+  description = "Rancher install channel"
+
+  validation {
+    condition     = contains(["stable", "latest", "alpha"], var.rancher_install_channel)
+    error_message = "The allowed values for the Rancher install channel are stable, latest, or alpha."
+  }
+}
+
+variable "rancher_hostname" {
+  type        = string
+  default     = "rancher.example.com"
+  description = "Enable rancher"
 }

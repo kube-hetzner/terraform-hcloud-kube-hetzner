@@ -229,6 +229,29 @@ To use Kube-Hetzner on Terraform cloud, use as a Terraform module as mentioned a
 
 </details>
 
+<details>
+
+<summary>Configure add-ons with HelmChartConfig</summary>
+
+For instance, to customize the Rancher install, if you choose to enable it, you can create and apply the following `HelmChartConfig`:
+
+```yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rancher
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    **values.yaml content you want to customize**
+```
+
+The helm options for Rancher can be seen here <https://github.com/rancher/rancher/blob/release/v2.6/chart/values.yaml>.
+
+Same goes for all add-ons, like Longhorn, Cert-manager, and Traefik.
+
+</details>
+
 ## Debugging
 
 First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without logging in to the UI. That is where the `hcloud` cli comes in.

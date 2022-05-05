@@ -88,9 +88,11 @@ resource "null_resource" "kustomization" {
           "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
         ],
         var.disable_hetzner_csi ? [] : ["https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"],
-        var.enable_longhorn ? ["longhorn.yaml"] : [],
         local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : [],
-        var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : []
+        var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : [],
+        var.enable_longhorn ? ["longhorn.yaml"] : [],
+        var.enable_cert_manager || var.enable_rancher ? ["cert-manager.yaml"] : [],
+        var.enable_rancher ? ["rancher.yaml"] : [],
       ),
       patchesStrategicMerge = concat(
         [
@@ -158,6 +160,26 @@ resource "null_resource" "kustomization" {
         disable_hetzner_csi = var.disable_hetzner_csi
     })
     destination = "/var/post_install/longhorn.yaml"
+  }
+
+  # Upload the cert-manager config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/cert-manager.yaml.tpl",
+    {})
+    destination = "/var/post_install/cert-manager.yaml"
+  }
+
+  # Upload the Rancher config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/rancher.yaml.tpl",
+      {
+        rancher_install_channel    = var.rancher_install_channel
+        rancher_hostname           = var.rancher_hostname
+        number_control_plane_nodes = length(local.control_plane_nodes)
+    })
+    destination = "/var/post_install/rancher.yaml"
   }
 
   # Deploy secrets, logging is automatically disabled due to sensitive variables
