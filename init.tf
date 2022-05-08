@@ -93,6 +93,7 @@ resource "null_resource" "kustomization" {
         var.enable_longhorn ? ["longhorn.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert-manager.yaml"] : [],
         var.enable_rancher ? ["rancher.yaml"] : [],
+        var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
       ),
       patchesStrategicMerge = concat(
         [
