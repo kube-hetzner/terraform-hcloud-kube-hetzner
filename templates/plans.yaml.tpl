@@ -16,6 +16,11 @@ spec:
       - {key: k3s_upgrade, operator: NotIn, values: ["disabled", "false"]}
       - {key: node-role.kubernetes.io/master, operator: NotIn, values: ["true"]}
   serviceAccountName: system-upgrade
+  tolerations:
+  - effect: NoSchedule
+    key: server-usage
+    operator: Equal
+    value: storage
   prepare:
     image: rancher/k3s-upgrade
     args: ["prepare", "k3s-server"]
