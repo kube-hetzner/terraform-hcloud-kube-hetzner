@@ -59,6 +59,7 @@ resource "null_resource" "control_planes" {
       node-label                  = each.value.labels
       node-taint                  = each.value.taints
       disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
+      write-kubeconfig-mode       = "0644" # needed for import into rancher
       },
       var.cni_plugin == "calico" ? {
         flannel-backend = "none"

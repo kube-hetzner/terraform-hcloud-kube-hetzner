@@ -204,3 +204,9 @@ variable "rancher_hostname" {
   default     = "rancher.example.com"
   description = "Enable rancher"
 }
+
+variable "rancher_registration_manifest_url" {
+  type        = string
+  description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)"
+  default     = ""
+}
