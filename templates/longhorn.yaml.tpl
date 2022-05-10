@@ -1,3 +1,4 @@
+---
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -6,7 +7,7 @@ metadata:
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: longhorn
+  name: longhorn-crd
   namespace: kube-system
 spec:
   chart: longhorn-crd
