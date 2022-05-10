@@ -170,10 +170,16 @@ load_balancer_location = "fsn1"
 # Example: traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
 # traefik_additional_options = []
 
+# Use the klipper LB, instead of the default Hetzner one, that has an advantage of dropping the cost of the setup,
+# but you would need to point your DNS to every schedulable IPs in your cluster (usually agents). The default is "false".
+# Automatically "true" in the case of single node cluster.
+# use_klipper_lb = "true"
+
 # If you want to configure a different CNI for k3s, use this flag
 # possible values: flannel (Default), calico
 # Cilium or other would be easy to add, you can mirror how Calico was added. PRs are welcome!
-# CAVEATS: Calico is not supported for single node setups, because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
+# CAVEATS: Calico is not supported when not using the Hetzner LB (like when use_klipper_lb is set to true or when using a single node cluster),
+# because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
 # cni_plugin = "calico"
 
 # If you want to disable the k3s default network policy controller, use this flag!

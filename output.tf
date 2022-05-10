@@ -19,7 +19,7 @@ output "agents_public_ipv4" {
 
 output "load_balancer_public_ipv4" {
   description = "The public IPv4 address of the Hetzner load balancer"
-  value = local.is_single_node_cluster ? [
+  value = local.using_klipper_lb ? [
     for obj in module.control_planes : obj.ipv4_address
   ][0] : var.traefik_enabled == false ? null : data.hcloud_load_balancer.traefik[0].ipv4
 }

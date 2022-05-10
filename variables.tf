@@ -210,3 +210,9 @@ variable "rancher_registration_manifest_url" {
   description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)"
   default     = ""
 }
+
+variable "use_klipper_lb" {
+  type        = bool
+  default     = false
+  description = "Use klipper load balancer"
+}

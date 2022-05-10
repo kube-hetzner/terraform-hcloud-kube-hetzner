@@ -68,16 +68,18 @@ locals {
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
   agent_count            = sum([for v in var.agent_nodepools : v.count])
-  is_single_node_cluster = local.control_plane_count + local.agent_count == 1
+  is_single_node_cluster = (local.control_plane_count + local.agent_count) == 1
+
+  using_klipper_lb = var.use_klipper_lb || local.is_single_node_cluster
 
   # disable k3s extras
-  disable_extras = concat(["local-storage"], local.is_single_node_cluster ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metrics_server_enabled ? [] : ["metrics-server"])
+  disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metrics_server_enabled ? [] : ["metrics-server"])
 
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
   default_control_plane_labels = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
 
-  allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
+  allow_scheduling_on_control_plane = local.using_klipper_lb ? true : var.allow_scheduling_on_control_plane
 
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
@@ -201,7 +203,7 @@ locals {
         "0.0.0.0/0"
       ]
     }
-    ], !local.is_single_node_cluster ? [] : [
+    ], !local.using_klipper_lb ? [] : [
     # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
     # not an external load-balancer.
     {

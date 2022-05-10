@@ -88,7 +88,7 @@ resource "null_resource" "kustomization" {
           "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
         ],
         var.disable_hetzner_csi ? [] : ["https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"],
-        local.is_single_node_cluster ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : [],
+        local.using_klipper_lb ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : [],
         var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : [],
         var.enable_longhorn ? ["longhorn.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert-manager.yaml"] : [],
@@ -109,7 +109,7 @@ resource "null_resource" "kustomization" {
 
   # Upload traefik config
   provisioner "file" {
-    content = local.is_single_node_cluster || var.traefik_enabled == false ? "" : templatefile(
+    content = local.using_klipper_lb || var.traefik_enabled == false ? "" : templatefile(
       "${path.module}/templates/traefik_config.yaml.tpl",
       {
         name                       = "${var.cluster_name}-traefik"
@@ -196,6 +196,7 @@ resource "null_resource" "kustomization" {
   provisioner "remote-exec" {
     inline = concat([
       "set -ex",
+
       # This ugly hack is here, because terraform serializes the
       # embedded yaml files with "- |2", when there is more than
       # one yamldocument in the embedded file. Kustomize does not understand
@@ -205,12 +206,27 @@ resource "null_resource" "kustomization" {
       # due to indendation this should not changes the embedded
       # manifests themselves
       "sed -i 's/^- |[0-9]\\+$/- |/g' /var/post_install/kustomization.yaml",
+
+      # Wait for k3s to become ready (we check one more time) because in some edge cases, 
+      # the cluster had become unvailable for a few seconds, at this very instant.
+      <<-EOT
+      timeout 120 bash <<EOF
+        until [[ "\$(kubectl get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
+          echo "Waiting for the cluster to become ready..."
+          sleep 2
+        done
+      EOF
+      EOT
+      ,
+
+      # Ready, set, go for the kustomization
       "kubectl apply -k /var/post_install",
       "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
       "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
       "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
-      local.is_single_node_cluster || var.traefik_enabled == false ? [] : [<<-EOT
+
+      local.using_klipper_lb || var.traefik_enabled == false ? [] : [<<-EOT
       timeout 120 bash <<EOF
       until [ -n "\$(kubectl get -n kube-system service/traefik --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
