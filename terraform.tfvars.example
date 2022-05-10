@@ -196,6 +196,7 @@ load_balancer_location = "fsn1"
 # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
 # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own certificates.
 # As for the number of replicas, it is set to the numbe of control plane nodes.
+# IMPORTANT: Rancher's install is quite memory intensive, you will require at least 8GB or RAM, meaning cx21 nodes (for your control plane).
 # You can customized all of the above by creating and applying a HelmChartConfig to pass the helm chart values of your choice. 
 # See https://rancher.com/docs/k3s/latest/en/helm/ 
 # and https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/chart-options/
@@ -210,7 +211,7 @@ load_balancer_location = "fsn1"
 # You can also not point the DNS, and just port-forward locally via kubectl to get access to the dashboard.
 # rancher_hostname = "rancher.xyz.dev"
 
-# You can import this cluster on an existing rancher server. For this it is necessary to
+# Separate from the above Rancher config (only use one or the other). You can import this cluster on an existing rancher server. For this it is necessary to
 # create a new cluster at the rancher server and enter the registration url here.
 # The registered manifest is then applied against the created cluster via kubectl apply,
 # which then triggers the registration. After a few minutes the cluster should appear in
