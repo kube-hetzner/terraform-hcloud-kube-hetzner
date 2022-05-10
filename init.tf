@@ -225,7 +225,6 @@ resource "null_resource" "kustomization" {
       "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
       "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
-
       local.using_klipper_lb || var.traefik_enabled == false ? [] : [<<-EOT
       timeout 120 bash <<EOF
       until [ -n "\$(kubectl get -n kube-system service/traefik --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
