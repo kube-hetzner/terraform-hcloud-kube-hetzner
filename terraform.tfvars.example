@@ -196,7 +196,7 @@ load_balancer_location = "fsn1"
 # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
 # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own certificates.
 # As for the number of replicas, it is set to the numbe of control plane nodes.
-# IMPORTANT: Rancher's install is quite memory intensive, you will require at least 8GB or RAM, meaning cx21 nodes (for your control plane).
+# IMPORTANT: Rancher's install is quite memory intensive, you will require at least 4GB if RAM, meaning cx21 server type (for your control plane).
 # You can customized all of the above by creating and applying a HelmChartConfig to pass the helm chart values of your choice. 
 # See https://rancher.com/docs/k3s/latest/en/helm/ 
 # and https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/chart-options/
