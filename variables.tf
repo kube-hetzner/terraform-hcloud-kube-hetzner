@@ -23,16 +23,19 @@ variable "additional_public_keys" {
 variable "network_region" {
   description = "Default region for network"
   type        = string
+  default     = "eu-central"
 }
 
 variable "load_balancer_location" {
   description = "Default load balancer location"
   type        = string
+  default     = "fsn1"
 }
 
 variable "load_balancer_type" {
   description = "Default load balancer server type"
   type        = string
+  default     = "cpx11"
 }
 
 variable "load_balancer_disable_ipv6" {
