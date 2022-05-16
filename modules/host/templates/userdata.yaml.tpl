@@ -15,6 +15,7 @@ write_files:
     MaxAuthTries 2
     AllowTcpForwarding no
     AllowAgentForwarding no
+    PubkeyAcceptedKeyTypes=+ssh-rsa
     AuthorizedKeysFile .ssh/authorized_keys
   path: /etc/ssh/sshd_config.d/kube-hetzner.conf
 
