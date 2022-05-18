@@ -76,7 +76,7 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
   provisioner "local-exec" {
     when       = destroy
     command    = <<-EOT
-      kubectl -n kube-system delete service traefik --kubeconfig ${path.module}/kubeconfig.yaml
+      kubectl -n kube-system delete service traefik --kubeconfig kubeconfig.yaml
     EOT
     on_failure = continue
   }
