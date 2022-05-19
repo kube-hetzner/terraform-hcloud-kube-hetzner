@@ -69,11 +69,9 @@ brew install hcloud
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
 2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md). ✅
-3. Copy `terraform.tfvars.example` to `terraform.tfvars`, and replace the values from steps 1 and 2. ✅
-4. Make sure you have the latest Terraform version, ideally at least 1.1.0. You can check with `terraform -v`. ✅
-5. (Optional) Other variables in `terraform.tfvars` can be customized, like the Hetzner region and the node counts and sizes.
-
-_One of the easiest ways to use this project is as a Terraform module; see the [examples](#examples) section or the [Kube-Hetzner Terraform module](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest) page._
+3. Prepare the module by copying `kube.tf.example` to `kube.tf` **in a new folder**, and replace the values from steps 1 and 2. ✅
+4. (Optional) Many variables in `kube.tf` can be customized to suit your needs, you can do so if you want. ✅
+5. Make sure you have the latest Terraform version, ideally at least 1.2.0. You can check with `terraform -v`. ✅
 
 ### 🎯 Installation
 
@@ -193,6 +191,8 @@ spec:
 
 ```
 
+_Please note, that even though that example uses Traefik to automatically generate the TLS certificate, we advise using **cert-manager** instead, as it is a more robust solution that does not incur any downtime during the automatic certificate renewal._
+
 </details>
 
 <details>
@@ -204,32 +204,6 @@ Running a development cluster on a single node without any high availability is 
 In this case, we don't deploy an external load-balancer but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
 
 </details>
-
-<details>
-
-<summary>Use as Terraform module</summary>
-
-It is easy to use Kube-Hetzner as a Terraform module. To do so:
-
-``` terraform
-module "kube-hetzner" {
-  source  = "kube-hetzner/kube-hetzner/hcloud"
-
-  # insert the required variables here found in terraform.tfvars.example
-}
-```
-
-</details>
-
-<details>
-
-<summary>Use in Terraform cloud</summary>
-
-To use Kube-Hetzner on Terraform cloud, use as a Terraform module as mentioned above, but also change the execution mode from `remote` to `local`.
-
-</details>
-
-<details>
 
 <summary>Configure add-ons with HelmChartConfig</summary>
 

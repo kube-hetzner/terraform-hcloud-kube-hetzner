@@ -1,6 +1,10 @@
 module "agents" {
   source = "./modules/host"
 
+  providers = {
+    hcloud = hcloud,
+  }
+
   for_each = local.agent_nodes
 
   name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"

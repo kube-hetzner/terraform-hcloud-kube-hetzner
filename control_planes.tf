@@ -1,6 +1,10 @@
 module "control_planes" {
   source = "./modules/host"
 
+  providers = {
+    hcloud = hcloud,
+  }
+
   for_each = local.control_plane_nodes
 
   name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
