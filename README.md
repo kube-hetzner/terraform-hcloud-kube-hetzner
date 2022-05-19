@@ -205,6 +205,8 @@ In this case, we don't deploy an external load-balancer but use the default [k3s
 
 </details>
 
+<details>
+
 <summary>Configure add-ons with HelmChartConfig</summary>
 
 For instance, to customize the Rancher install, if you choose to enable it, you can create and apply the following `HelmChartConfig`:
