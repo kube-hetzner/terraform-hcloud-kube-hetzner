@@ -207,6 +207,14 @@ In this case, we don't deploy an external load-balancer but use the default [k3s
 
 <details>
 
+<summary>Use in Terraform cloud</summary>
+
+To use Kube-Hetzner on Terraform cloud, use as a Terraform module as mentioned above, but also change the execution mode from `remote` to `local`.
+
+</details>
+
+<details>
+
 <summary>Configure add-ons with HelmChartConfig</summary>
 
 For instance, to customize the Rancher install, if you choose to enable it, you can create and apply the following `HelmChartConfig`:
