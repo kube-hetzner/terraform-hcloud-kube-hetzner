@@ -67,6 +67,7 @@ data "hcloud_load_balancer" "traefik" {
 }
 
 resource "null_resource" "destroy_traefik_loadbalancer" {
+
   # this only gets triggered before total destruction of the cluster, but when the necessary elements to run the commands are still available
   triggers = {
     kustomization_id = null_resource.kustomization.id
@@ -75,10 +76,12 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
   # Important when issuing terraform destroy, otherwise the LB will not let the network get deleted
   provisioner "local-exec" {
     when       = destroy
-    command    = <<-EOT
-      kubectl -n kube-system delete service traefik --kubeconfig kubeconfig.yaml
-    EOT
+    command    = "kubectl -n kube-system delete service traefik --kubeconfig ${self.triggers.cluster_name}_kubeconfig.yaml"
     on_failure = continue
+
+    environment = {
+      kubeconfig_prefix = self.triggers.kubeconfig_prefix
+     }
   }
 
   depends_on = [

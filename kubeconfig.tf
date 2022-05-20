@@ -25,6 +25,6 @@ locals {
 
 resource "local_sensitive_file" "kubeconfig" {
   content         = local.kubeconfig_external
-  filename        = "kubeconfig.yaml"
+  filename        = "${var.cluster_name}_kubeconfig.yaml"
   file_permission = "600"
 }
