@@ -81,7 +81,7 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
 
     environment = {
       kubeconfig_prefix = self.triggers.kubeconfig_prefix
-     }
+    }
   }
 
   depends_on = [
