@@ -158,6 +158,45 @@ Rarely needed, but can be handy in the long run. During the installation, we aut
 
 <summary>Ingress with TLS</summary>
 
+You have two solutions, the first is to use `Cert-Manager` to take care of the certificates, and the second is to let `Traefik` take care of the certificates.
+
+_We advise you to use the first one, as it supports HA setups without requiring you to use the enterprise version of Traefik. The reason for that is that according to Traefik themselves, Traefik CE (community edition) is stateless, and it's not possible to run multiple instance of Traefik CE with LetsEncrypt enabled. Meaning, you cannot have your ingress be HA with Traefik if you use the community edition and have activated the LetsEncrypt resolver. You could however use Traefik EE (enterprise edition) to achieve that. Long story short, if you are going to use Traefik CE (like most of us), you should use cert-manager to generate the certificates. Source [here](https://doc.traefik.io/traefik/v2.0/providers/kubernetes-crd/)._
+
+### Via Cert-Manager (recommended)
+
+In your module variables, set `enable_cert_manager` to `true`, and just create your issuers as decribed here <https://cert-manager.io/docs/configuration/acme/>.
+
+Then in your ingress definition, just mentioning the issuer as an annotation and giving a secret name will take care of instructing cert-manager to generate a certificate for it! It simpler than the alternative, you just have to configure your issuer(s) first with the method of your choice.
+
+Ingress example:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  tls:
+  - hosts:
+    - '*.example.com'
+    secretName: example-com-letsencrypt-tls
+  rules:
+  - host: '*.example.com'
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-service
+            port:
+              number: 80
+```
+
+### Via Traefik CE (not recommended)
+
 Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example:
 
 ```sh
@@ -169,7 +208,7 @@ kubectl apply -f examples/tls/.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: Nginx-ingress
+  name: my-ingress
   annotations:
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.tls.certresolver: le
@@ -185,13 +224,11 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: nginx-service
+                name: my-service
                 port:
                   number: 80
 
 ```
-
-_Please note, that even though that example uses Traefik to automatically generate the TLS certificate, we advise using **cert-manager** instead, as it is a more robust solution that does not incur any downtime during the automatic certificate renewal._
 
 </details>
 
