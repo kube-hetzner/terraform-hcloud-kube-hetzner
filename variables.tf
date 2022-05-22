@@ -203,8 +203,8 @@ variable "rancher_install_channel" {
 }
 
 variable "enable_rancher_import" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Enable import of cluster into rancher"
 }
 
