@@ -65,7 +65,7 @@ brew install hcloud
 
 ```
 
-### 💡 [Do not skip] Creating the terraform.tfvars file
+### 💡 [Do not skip] Creating your kube.tf file
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
 2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md). ✅
