@@ -202,16 +202,16 @@ variable "rancher_install_channel" {
   }
 }
 
+variable "enable_rancher_import" {
+  type = bool
+  default = false
+  description = "Enable import of cluster into rancher"
+}
+
 variable "rancher_hostname" {
   type        = string
   default     = "rancher.example.com"
   description = "Enable rancher"
-}
-
-variable "rancher_registration_manifest_url" {
-  type        = string
-  description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)"
-  default     = ""
 }
 
 variable "use_klipper_lb" {

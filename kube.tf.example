@@ -5,7 +5,8 @@ locals {
 
 module "kube-hetzner" {
   providers = {
-    hcloud = hcloud
+    hcloud   = hcloud
+    rancher2 = rancher2
   }
   hcloud_token = local.hcloud_token
 
@@ -228,16 +229,24 @@ module "kube-hetzner" {
   # rancher_hostname = "rancher.xyz.dev"
 
   # Separate from the above Rancher config (only use one or the other). You can import this cluster directly on an
-  # an already active Rancher install. By clicking "import cluster" choosing "generic", giving it a name and pasting
-  # the cluster registration url below. However, you can also ignore that and apply the url via kubectl as instructed
-  # by Rancher in the wizard, and that would register your cluster too.
+  # an already active Rancher install. Setting `rancher_hostname`, `enable_rancher_import` and enabling the rancher2-provider
+  # with your credentials will automatically import the cluster.
+  # However, you can also ignore that and apply the url via kubectl as instructed by Rancher in the wizard, and that would register your cluster too.
   # More information about the registration can be found here https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/
-  # rancher_registration_manifest_url = "https://rancher.xyz.dev/v3/import/xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz.yaml"
+  enable_rancher_import = true
 }
 
 provider "hcloud" {
   token = local.hcloud_token
 }
+
+#provider "rancher2" {
+#  api_url    = "https://${local.rancher_hostname}"
+#  access_key = ""xxxxxxxxxxxxxxxxYYYYYYYYYYzzzzzzzzzzzzzzzzz"
+#  secret_key = ""xxxxxxxxxxxxxxxxYYYYYYYYYYzzzzzzzzzzzzzzzzz"
+#  insecure   = false
+#}
+
 
 terraform {
   required_providers {
@@ -245,5 +254,10 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = ">= 1.0.0"
     }
+    rancher2 = {
+      source  = "rancher/rancher2"
+      version = ">= 1.23.0"
+    }
+
   }
 }

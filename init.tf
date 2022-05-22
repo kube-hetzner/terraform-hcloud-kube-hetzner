@@ -67,6 +67,15 @@ resource "null_resource" "first_control_plane" {
   ]
 }
 
+# create the cluster in rancher
+resource "rancher2_cluster" "downstream_cluster" {
+  count = var.enable_rancher_import ? 1 : 0
+
+  provider    = rancher2
+  name        = var.cluster_name
+  description = "imported via terraform"
+}
+
 resource "null_resource" "kustomization" {
   connection {
     user           = "root"
@@ -93,7 +102,7 @@ resource "null_resource" "kustomization" {
         var.enable_longhorn ? ["longhorn.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert-manager.yaml"] : [],
         var.enable_rancher ? ["rancher.yaml"] : [],
-        var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
+        var.enable_rancher_import ? [resource.rancher2_cluster.downstream_cluster[0].cluster_registration_token.0.manifest_url] : [],
       ),
       patchesStrategicMerge = concat(
         [
@@ -183,6 +192,7 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/rancher.yaml"
   }
 
+
   # Deploy secrets, logging is automatically disabled due to sensitive variables
   provisioner "remote-exec" {
     inline = [
@@ -242,3 +252,4 @@ resource "null_resource" "kustomization" {
     local_sensitive_file.kubeconfig
   ]
 }
+
