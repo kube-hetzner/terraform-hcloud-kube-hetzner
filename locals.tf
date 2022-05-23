@@ -84,6 +84,8 @@ locals {
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
 
+  packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client"] : [], [])
+
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
   hetzner_metadata_service_ipv4 = "169.254.169.254/32"
