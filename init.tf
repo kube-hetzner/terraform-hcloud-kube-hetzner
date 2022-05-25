@@ -1,8 +1,8 @@
 resource "null_resource" "first_control_plane" {
   connection {
     user           = "root"
-    private_key    = local.ssh_private_key
-    agent_identity = local.ssh_identity
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
   }
 
@@ -70,8 +70,8 @@ resource "null_resource" "first_control_plane" {
 resource "null_resource" "kustomization" {
   connection {
     user           = "root"
-    private_key    = local.ssh_private_key
-    agent_identity = local.ssh_identity
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
   }
 

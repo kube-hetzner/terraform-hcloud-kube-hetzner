@@ -3,17 +3,17 @@ variable "name" {
   type        = string
 }
 
-variable "public_key" {
+variable "ssh_public_key" {
   description = "SSH public Key."
   type        = string
 }
 
-variable "private_key" {
+variable "ssh_private_key" {
   description = "SSH private Key."
   type        = string
 }
 
-variable "additional_public_keys" {
+variable "additional_ssh_public_keys" {
   description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes"
   type        = list(string)
   default     = []

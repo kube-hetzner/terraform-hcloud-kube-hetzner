@@ -5,7 +5,7 @@ resource "random_password" "k3s_token" {
 
 resource "hcloud_ssh_key" "k3s" {
   name       = var.cluster_name
-  public_key = local.ssh_public_key
+  public_key = var.ssh_public_key
 }
 
 resource "hcloud_network" "k3s" {

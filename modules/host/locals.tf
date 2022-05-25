@@ -1,19 +1,16 @@
 locals {
-  # ssh public key
-  ssh_public_key = trimspace(file(var.public_key))
-  # ssh_private_key is either the contents of var.private_key or null to use a ssh agent.
-  ssh_private_key = var.private_key == null ? null : trimspace(file(var.private_key))
-
-  # ssh_identity is not set if the private key is passed directly, but if ssh agent is used, the public key tells ssh agent which private key to use.
+  # ssh_agent_identity is not set if the private key is passed directly, but if ssh agent is used, the public key tells ssh agent which private key to use.
   # For terraforms provisioner.connection.agent_identity, we need the public key as a string.
-  ssh_identity = var.private_key == null ? local.ssh_public_key : null
+  ssh_agent_identity = var.ssh_private_key == null ? var.ssh_public_key : null
+  # shared flags for ssh to ignore host keys for all connections during provisioning.
+  ssh_args = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
-  # ssh_identity_file is used for ssh "-i" flag, its the private key if that is set, or a public key file
+  # ssh_client_identity is used for ssh "-i" flag, its the private key if that is set, or a public key
   # if an ssh agent is used.
-  ssh_identity_file = var.private_key == null ? var.public_key : var.private_key
-
-  # shared flags for ssh to ignore host keys, to use our ssh identity file for all connections during provisioning.
-  ssh_args = "-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ${local.ssh_identity_file}"
+  ssh_client_identity = var.ssh_private_key == null ? var.ssh_public_key : var.ssh_private_key
+  # ssh_client_identity_file is used to (temporary) store identity informations (from ssh_client_identity),
+  # used by the ssh client.
+  ssh_client_identity_file = "/tmp/${local.name}-ssh-identity"
 
   # Final list of packages to install
   needed_packages = join(" ", concat(["k3s-selinux"], var.packages_to_install))

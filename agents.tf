@@ -7,17 +7,17 @@ module "agents" {
 
   for_each = local.agent_nodes
 
-  name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
-  ssh_keys               = [hcloud_ssh_key.k3s.id]
-  public_key             = var.public_key
-  private_key            = var.private_key
-  additional_public_keys = var.additional_public_keys
-  firewall_ids           = [hcloud_firewall.k3s.id]
-  placement_group_id     = var.placement_group_disable ? 0 : element(hcloud_placement_group.agent.*.id, ceil(each.value.index / 10))
-  location               = each.value.location
-  server_type            = each.value.server_type
-  ipv4_subnet_id         = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  packages_to_install    = local.packages_to_install
+  name                       = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
+  ssh_keys                   = [hcloud_ssh_key.k3s.id]
+  ssh_public_key             = var.ssh_public_key
+  ssh_private_key            = var.ssh_private_key
+  additional_ssh_public_keys = var.additional_ssh_public_keys
+  firewall_ids               = [hcloud_firewall.k3s.id]
+  placement_group_id         = var.placement_group_disable ? 0 : element(hcloud_placement_group.agent.*.id, ceil(each.value.index / 10))
+  location                   = each.value.location
+  server_type                = each.value.server_type
+  ipv4_subnet_id             = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
+  packages_to_install        = local.packages_to_install
 
   private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
@@ -40,8 +40,8 @@ resource "null_resource" "agents" {
 
   connection {
     user           = "root"
-    private_key    = local.ssh_private_key
-    agent_identity = local.ssh_identity
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
     host           = module.agents[each.key].ipv4_address
   }
 

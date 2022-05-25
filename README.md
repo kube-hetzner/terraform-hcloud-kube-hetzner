@@ -71,7 +71,7 @@ brew install hcloud
 2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md). ✅
 3. Prepare the module by copying `kube.tf.example` to `kube.tf` **in a new folder** which you cd into, then replace the values from steps 1 and 2. ✅
 4. (Optional) Many variables in `kube.tf` can be customized to suit your needs, you can do so if you want. ✅
-5. Make sure you have the latest Terraform version, ideally at least 1.2.0. You can check with `terraform -v`. ✅
+5. Make sure you have the latest Terraform version, at least 1.2.0. You can check with `terraform -v`. ✅
 6. At this stage you should be in your new folder, with a fresh `kube.tf` file, if it is so, you can proceed forward! ✅
 
 _It's important to realize that you do not even need to clone this git repo, as the module by default will be fetched from the Terraform registry. All you need, is to use the [kube.tf.example](https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example) file to make sure you get the format of your `kube.tf` file right._

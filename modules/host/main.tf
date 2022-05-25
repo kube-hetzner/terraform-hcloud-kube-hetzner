@@ -37,9 +37,17 @@ resource "hcloud_server" "server" {
 
   connection {
     user           = "root"
-    private_key    = local.ssh_private_key
-    agent_identity = local.ssh_identity
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
     host           = self.ipv4_address
+  }
+
+  # Prepare ssh identity file 
+  provisioner "local-exec" {
+    command = <<-EOT
+      install -b -m 600 /dev/null ${local.ssh_client_identity_file}
+      echo "${local.ssh_client_identity}" > ${local.ssh_client_identity_file}
+    EOT
   }
 
   # Install MicroOS
@@ -56,8 +64,8 @@ resource "hcloud_server" "server" {
   # Issue a reboot command and wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
     command = <<-EOT
-      ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
+      ssh ${local.ssh_args} -i ${local.ssh_client_identity_file} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      until ssh ${local.ssh_args} -i ${local.ssh_client_identity_file} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 3
@@ -77,12 +85,19 @@ resource "hcloud_server" "server" {
   # Issue a reboot command and wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
     command = <<-EOT
-      ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
+      ssh ${local.ssh_args} -i ${local.ssh_client_identity_file} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      until ssh ${local.ssh_args} -i ${local.ssh_client_identity_file} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 3
       done
+    EOT
+  }
+
+  # Cleanup ssh identity file 
+  provisioner "local-exec" {
+    command = <<-EOT
+      rm ${local.ssh_client_identity_file}
     EOT
   }
 
@@ -116,7 +131,7 @@ data "cloudinit_config" "config" {
       "${path.module}/templates/userdata.yaml.tpl",
       {
         hostname          = local.name
-        sshAuthorizedKeys = concat([local.ssh_public_key], var.additional_public_keys)
+        sshAuthorizedKeys = concat([var.ssh_public_key], var.additional_ssh_public_keys)
       }
     )
   }
