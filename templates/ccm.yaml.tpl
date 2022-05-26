@@ -15,3 +15,4 @@ spec:
             - "--allow-untagged-cloud"
             - "--allocate-node-cidrs=true"
             - "--cluster-cidr=${cluster_cidr_ipv4}"
+            %{ if allow_scheduling_on_control_plane ~}- "--feature-gates=LegacyNodeRoleBehavior=false"%{ endif ~}
