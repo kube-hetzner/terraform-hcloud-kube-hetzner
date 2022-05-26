@@ -15,7 +15,7 @@ variable "ssh_private_key" {
   sensitive   = true
 }
 
-variable "additional_ssh_public_keys" {
+variable "ssh_additional_public_keys" {
   description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes"
   type        = list(string)
   default     = []

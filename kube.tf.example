@@ -29,7 +29,7 @@ module "kube-hetzner" {
   # For more details on SSH see https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md
   ssh_private_key = file("/home/username/.ssh/id_ed25519")
   # You can add additional SSH public Keys to grant other team members root access to your cluster nodes.
-  # additional_ssh_public_keys = []
+  # ssh_additional_public_keys = []
 
   # These can be customized, or left with the default values
   # * For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/

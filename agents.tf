@@ -11,7 +11,7 @@ module "agents" {
   ssh_keys                   = [hcloud_ssh_key.k3s.id]
   ssh_public_key             = var.ssh_public_key
   ssh_private_key            = var.ssh_private_key
-  additional_ssh_public_keys = var.additional_ssh_public_keys
+  ssh_additional_public_keys = var.ssh_additional_public_keys
   firewall_ids               = [hcloud_firewall.k3s.id]
   placement_group_id         = var.placement_group_disable ? 0 : element(hcloud_placement_group.agent.*.id, ceil(each.value.index / 10))
   location                   = each.value.location

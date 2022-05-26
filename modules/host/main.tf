@@ -131,7 +131,7 @@ data "cloudinit_config" "config" {
       "${path.module}/templates/userdata.yaml.tpl",
       {
         hostname          = local.name
-        sshAuthorizedKeys = concat([var.ssh_public_key], var.additional_ssh_public_keys)
+        sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
       }
     )
   }
