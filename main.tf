@@ -77,7 +77,7 @@ resource "null_resource" "destroy_traefik_loadbalancer" {
   # Important when issuing terraform destroy, otherwise the LB will not let the network get deleted
   provisioner "local-exec" {
     when       = destroy
-    command    = "kubectl -n kube-system delete service traefik --kubeconfig ${self.triggers.cluster_name}_kubeconfig.yaml"
+    command    = "kubectl -n kube-system delete service traefik --kubeconfig kubeconfig.yaml"
     on_failure = continue
   }
 
