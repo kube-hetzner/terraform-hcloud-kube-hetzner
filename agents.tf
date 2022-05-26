@@ -8,7 +8,7 @@ module "agents" {
   for_each = local.agent_nodes
 
   name                       = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
-  ssh_keys                   = [hcloud_ssh_key.k3s.id]
+  ssh_keys                   = [local.hcloud_ssh_key_id]
   ssh_public_key             = var.ssh_public_key
   ssh_private_key            = var.ssh_private_key
   ssh_additional_public_keys = var.ssh_additional_public_keys

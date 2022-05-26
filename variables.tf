@@ -21,6 +21,12 @@ variable "ssh_additional_public_keys" {
   default     = []
 }
 
+variable "hcloud_ssh_key_id" {
+  description = "If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module."
+  type        = string
+  default     = null
+}
+
 variable "network_region" {
   description = "Default region for network"
   type        = string
