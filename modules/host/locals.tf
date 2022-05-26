@@ -8,10 +8,7 @@ locals {
   # ssh_client_identity is used for ssh "-i" flag, its the private key if that is set, or a public key
   # if an ssh agent is used.
   ssh_client_identity = var.ssh_private_key == null ? var.ssh_public_key : var.ssh_private_key
-  # ssh_client_identity_file is used to (temporary) store identity informations (from ssh_client_identity),
-  # used by the ssh client.
-  ssh_client_identity_file = "/tmp/${local.name}-ssh-identity"
-
+ 
   # Final list of packages to install
   needed_packages = join(" ", concat(["k3s-selinux"], var.packages_to_install))
 
