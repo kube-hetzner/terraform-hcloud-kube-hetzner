@@ -65,15 +65,16 @@ brew install hcloud
 
 ```
 
-### 💡 [Do not skip] Creating the terraform.tfvars file
+### 💡 [Do not skip] Creating your kube.tf file
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
 2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md). ✅
-3. Copy `terraform.tfvars.example` to `terraform.tfvars`, and replace the values from steps 1 and 2. ✅
-4. Make sure you have the latest Terraform version, ideally at least 1.1.0. You can check with `terraform -v`. ✅
-5. (Optional) Other variables in `terraform.tfvars` can be customized, like the Hetzner region and the node counts and sizes.
+3. Prepare the module by copying `kube.tf.example` to `kube.tf` **in a new folder** which you cd into, then replace the values from steps 1 and 2. ✅
+4. (Optional) Many variables in `kube.tf` can be customized to suit your needs, you can do so if you want. ✅
+5. Make sure you have the latest Terraform version, ideally at least 1.2.0. You can check with `terraform -v`. ✅
+6. At this stage you should be in your new folder, with a fresh `kube.tf` file, if it is so, you can proceed forward! ✅
 
-_One of the easiest ways to use this project is as a Terraform module; see the [examples](#examples) section or the [Kube-Hetzner Terraform module](https://registry.terraform.io/modules/kube-hetzner/kube-hetzner/hcloud/latest) page._
+_It's important to realize that you do not even need to clone this git repo, as the module by default will be fetched from the Terraform registry. All you need, is to use the [kube.tf.example](https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example) file to make sure you get the format of your `kube.tf` file right._
 
 ### 🎯 Installation
 
@@ -88,10 +89,10 @@ It will take around 5 minutes to complete, and then you should see a green outpu
 
 When your brand new cluster is up and running, the sky is your limit! 🎉
 
-You can immediately kubectl into it (using the `kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `kubeconfig.yaml` by running `pwd`):
+You can immediately kubectl into it (using the `${cluster_name}_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig ${cluster_name}_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `${cluster_name}_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `${cluster_name}_kubeconfig.yaml` by running `pwd`):
 
 ```sh
-export KUBECONFIG=/<path-to>/kubeconfig.yaml
+export KUBECONFIG=/<path-to>/${cluster_name}_kubeconfig.yaml
 ```
 
 _Once you start with Terraform, it's best not to change the state manually in Hetzner; otherwise, you'll get an error when you try to scale up or down or even destroy the cluster._
@@ -148,7 +149,7 @@ kubectl delete plan k3s-server -n system-upgrade
 
 ### Individual Components Upgrade
 
-Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `kubeconfig.yaml` at the root of your project.
+Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `${cluster_name}_kubeconfig.yaml` at the root of your project.
 
 1. First create a duplicate of that file and name it `kustomization.yaml`, keeping the original file intact, in case you need to restore the old config.
 2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on Github, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
@@ -159,6 +160,45 @@ Rarely needed, but can be handy in the long run. During the installation, we aut
 <details>
 
 <summary>Ingress with TLS</summary>
+
+You have two solutions, the first is to use `Cert-Manager` to take care of the certificates, and the second is to let `Traefik` bear this responsability.
+
+_We advise you to use the first one, as it supports HA setups without requiring you to use the enterprise version of Traefik. The reason for that is that according to Traefik themselves, Traefik CE (community edition) is stateless, and it's not possible to run multiple instance of Traefik CE with LetsEncrypt enabled. Meaning, you cannot have your ingress be HA with Traefik if you use the community edition and have activated the LetsEncrypt resolver. You could however use Traefik EE (enterprise edition) to achieve that. Long story short, if you are going to use Traefik CE (like most of us), you should use cert-manager to generate the certificates. Source [here](https://doc.traefik.io/traefik/v2.0/providers/kubernetes-crd/)._
+
+### Via Cert-Manager (recommended)
+
+In your module variables, set `enable_cert_manager` to `true`, and just create your issuers as decribed here <https://cert-manager.io/docs/configuration/acme/>.
+
+Then in your Ingress definition, just mentioning the issuer as an annotation and giving a secret name will take care of instructing cert-manager to generate a certificate for it! It simpler than the alternative, you just have to configure your issuer(s) first with the method of your choice.
+
+Ingress example:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  tls:
+  - hosts:
+    - '*.example.com'
+    secretName: example-com-letsencrypt-tls
+  rules:
+  - host: '*.example.com'
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-service
+            port:
+              number: 80
+```
+
+### Via Traefik CE (not recommended)
 
 Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example:
 
@@ -171,7 +211,7 @@ kubectl apply -f examples/tls/.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: Nginx-ingress
+  name: my-ingress
   annotations:
     traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.tls.certresolver: le
@@ -187,7 +227,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: nginx-service
+                name: my-service
                 port:
                   number: 80
 
@@ -202,22 +242,6 @@ spec:
 Running a development cluster on a single node without any high availability is also possible. You need one control plane nodepool with a count of 1 and one agent nodepool with a count of 0.
 
 In this case, we don't deploy an external load-balancer but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
-
-</details>
-
-<details>
-
-<summary>Use as Terraform module</summary>
-
-It is easy to use Kube-Hetzner as a Terraform module. To do so:
-
-``` terraform
-module "kube-hetzner" {
-  source  = "kube-hetzner/kube-hetzner/hcloud"
-
-  # insert the required variables here found in terraform.tfvars.example
-}
-```
 
 </details>
 

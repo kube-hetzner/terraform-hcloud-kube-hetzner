@@ -1,11 +1,12 @@
 .terraform*
 *.tfstate*
 crash.log
-kubeconfig.yaml
-kubeconfig.yaml-e
+*_kubeconfig.yaml
+*_kubeconfig.yaml-e
 terraform.tfvars
 plans-custom.yaml
 traefik-custom.yaml
 kured-custom.yaml
 kustomization.yaml
 *kustomization_backup.yaml
+kube.tf

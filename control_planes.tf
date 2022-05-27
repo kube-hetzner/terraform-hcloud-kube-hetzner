@@ -1,6 +1,10 @@
 module "control_planes" {
   source = "./modules/host"
 
+  providers = {
+    hcloud = hcloud,
+  }
+
   for_each = local.control_plane_nodes
 
   name                   = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
@@ -13,7 +17,7 @@ module "control_planes" {
   location               = each.value.location
   server_type            = each.value.server_type
   ipv4_subnet_id         = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  packages_to_install    = concat(var.enable_longhorn ? ["open-iscsi"] : [], [])
+  packages_to_install    = local.packages_to_install
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
