@@ -8,4 +8,4 @@ plans-custom.yaml
 traefik-custom.yaml
 kured-custom.yaml
 kustomization.yaml
-kustomization_backup.yaml
+*kustomization_backup.yaml

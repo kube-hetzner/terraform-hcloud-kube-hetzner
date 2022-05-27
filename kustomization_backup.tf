@@ -13,6 +13,6 @@ data "remote_file" "kustomization_backup" {
 
 resource "local_file" "kustomization_backup" {
   content         = data.remote_file.kustomization_backup.content
-  filename        = "kustomization_backup.yaml"
+  filename        = "${var.cluster_name}_kustomization_backup.yaml"
   file_permission = "600"
 }
