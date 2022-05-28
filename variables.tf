@@ -4,20 +4,27 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
-variable "public_key" {
+variable "ssh_public_key" {
   description = "SSH public Key."
   type        = string
 }
 
-variable "private_key" {
+variable "ssh_private_key" {
   description = "SSH private Key."
   type        = string
+  sensitive   = true
 }
 
-variable "additional_public_keys" {
+variable "ssh_additional_public_keys" {
   description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes"
   type        = list(string)
   default     = []
+}
+
+variable "hcloud_ssh_key_id" {
+  description = "If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module."
+  type        = string
+  default     = null
 }
 
 variable "network_region" {
@@ -212,6 +219,7 @@ variable "rancher_registration_manifest_url" {
   type        = string
   description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)"
   default     = ""
+  sensitive   = true
 }
 
 variable "use_klipper_lb" {

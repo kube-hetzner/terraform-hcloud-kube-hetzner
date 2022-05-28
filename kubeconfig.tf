@@ -4,8 +4,8 @@ data "remote_file" "kubeconfig" {
     host        = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port        = 22
     user        = "root"
-    private_key = local.ssh_private_key
-    agent       = var.private_key == null
+    private_key = var.ssh_private_key
+    agent       = var.ssh_private_key == null
   }
   path = "/etc/rancher/k3s/k3s.yaml"
 
