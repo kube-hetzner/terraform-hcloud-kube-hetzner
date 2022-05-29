@@ -1,20 +1,16 @@
 formatter: "markdown table"
 
-version: ">= 0.16.0"
-
 recursive:
   enabled: false
   path: modules
-
-sections:
-  hide: []
-  show: []
-
-content: ""
  
 output:
   file: docs/terraform.md
-  mode: replace
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
 
 output-values:
   enabled: false
