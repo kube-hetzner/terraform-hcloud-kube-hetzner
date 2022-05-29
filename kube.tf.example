@@ -234,6 +234,15 @@ module "kube-hetzner" {
   # You can also not point the DNS, and just port-forward locally via kubectl to get access to the dashboard.
   # rancher_hostname = "rancher.xyz.dev"
 
+  # set your Rancher TLS source for the https-certificate.
+  # The default is rancher, other value is "letsEncrypt" which is recommended for production systems, when DNS is already working.
+  # rancher_tls_source = "rancher"
+
+  # set a bootstrap-password for your rancher-instance.
+  # This is needed for initial setup of rancher. Default is a random 48-character string.
+  # Can be used py another rancher2-provider to continue setup of rancher outside this module.
+  # rancher_bootstrap_password = ""
+
   # Separate from the above Rancher config (only use one or the other). You can import this cluster directly on an
   # an already active Rancher install. By clicking "import cluster" choosing "generic", giving it a name and pasting
   # the cluster registration url below. However, you can also ignore that and apply the url via kubectl as instructed

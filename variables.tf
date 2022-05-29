@@ -222,6 +222,19 @@ variable "rancher_registration_manifest_url" {
   sensitive   = true
 }
 
+variable "rancher_tls_source" {
+  type        = string
+  default     = "rancher"
+  description = "Which CA to use for the rancher-certificate ('rancher' or 'letsEncrypt')"
+}
+
+variable "rancher_bootstrap_password" {
+  type        = string
+  default     = null
+  description = "Rancher bootstrap password"
+  sensitive   = true
+}
+
 variable "use_klipper_lb" {
   type        = bool
   default     = false
