@@ -76,7 +76,7 @@ brew install hcloud
 
 _It's important to realize that you do not even need to clone this git repo, as the module by default will be fetched from the Terraform registry. All you need, is to use the [kube.tf.example](https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example) file to make sure you get the format of your `kube.tf` file right._
 
-_A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/docs/terraform.md) file._
+_A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
 
 ### 🎯 Installation
 
