@@ -235,7 +235,7 @@ module "kube-hetzner" {
   # rancher_hostname = "rancher.xyz.dev"
 
   # set your Rancher TLS source for the https-certificate.
-  # The default is rancher, other value is "letsEncrypt" which is recommended for production systems, when DNS is already working.
+  # The default is rancher, other values are "secret"(which you have to deploy on your own) or "letsEncrypt" which is recommended for production systems, when DNS is already working.
   # rancher_tls_source = "rancher"
 
   # set a bootstrap-password for your rancher-instance.
