@@ -1,9 +1,3 @@
-resource "random_password" "rancher_bootstrap" {
-  count   = var.rancher_bootstrap_password != null ? 1 : 0
-  length  = 48
-  special = false
-}
-
 resource "null_resource" "first_control_plane" {
   connection {
     user           = "root"
@@ -179,13 +173,18 @@ resource "null_resource" "kustomization" {
   }
 
   # Upload the Rancher config
+  resource "random_password" "rancher_bootstrap" {
+    count   = length(var.rancher_bootstrap_password) == 0 ? 1 : 0
+    length  = 48
+    special = false
+  }
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/rancher.yaml.tpl",
       {
         rancher_install_channel    = var.rancher_install_channel
         rancher_hostname           = var.rancher_hostname
-        rancher_bootstrap_password = var.rancher_bootstrap_password == null ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password
+        rancher_bootstrap_password = length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password
         rancher_tls_source         = var.rancher_tls_source
         number_control_plane_nodes = length(local.control_plane_nodes)
     })
