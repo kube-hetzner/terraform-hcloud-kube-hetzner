@@ -42,3 +42,4 @@ kured-custom.yaml
 kustomization.yaml
 *kustomization_backup.yaml
 kube.tf
+.terraform.lock.hcl
