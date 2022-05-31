@@ -188,7 +188,7 @@ resource "null_resource" "kustomization" {
       {
         rancher_install_channel    = var.rancher_install_channel
         rancher_hostname           = var.rancher_hostname
-        rancher_bootstrap_password = length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap.result : var.rancher_bootstrap_password
+        rancher_bootstrap_password = length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password
         rancher_tls_source         = var.rancher_tls_source
         number_control_plane_nodes = length(local.control_plane_nodes)
     })
