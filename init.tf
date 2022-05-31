@@ -67,6 +67,15 @@ resource "null_resource" "first_control_plane" {
   ]
 }
 
+# Needed for rancher setup
+resource "random_password" "rancher_bootstrap" {
+  count   = length(var.rancher_bootstrap_password) == 0 ? 1 : 0
+  length  = 48
+  special = false
+}
+
+
+# This is where all the setup of Kubernetes components happen
 resource "null_resource" "kustomization" {
   connection {
     user           = "root"
@@ -150,9 +159,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/plans.yaml.tpl",
       {
         channel = var.initial_k3s_channel
-    })
-    destination = "/var/post_install/plans.yaml"
-  }
+    })rancher_bootstrap
 
   # Upload the Longhorn config
   provisioner "file" {
@@ -173,18 +180,13 @@ resource "null_resource" "kustomization" {
   }
 
   # Upload the Rancher config
-  resource "random_password" "rancher_bootstrap" {
-    count   = length(var.rancher_bootstrap_password) == 0 ? 1 : 0
-    length  = 48
-    special = false
-  }
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/rancher.yaml.tpl",
       {
         rancher_install_channel    = var.rancher_install_channel
         rancher_hostname           = var.rancher_hostname
-        rancher_bootstrap_password = length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password
+        rancher_bootstrap_password = length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap.result : var.rancher_bootstrap_password
         rancher_tls_source         = var.rancher_tls_source
         number_control_plane_nodes = length(local.control_plane_nodes)
     })
@@ -248,5 +250,6 @@ resource "null_resource" "kustomization" {
   depends_on = [
     null_resource.first_control_plane,
     local_sensitive_file.kubeconfig
+    random_password.rancher_bootstrap
   ]
 }
