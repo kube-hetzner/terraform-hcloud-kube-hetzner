@@ -159,7 +159,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/plans.yaml.tpl",
       {
         channel = var.initial_k3s_channel
-    })rancher_bootstrap
+    })
 
   # Upload the Longhorn config
   provisioner "file" {
