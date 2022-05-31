@@ -222,6 +222,29 @@ variable "rancher_registration_manifest_url" {
   sensitive   = true
 }
 
+variable "rancher_tls_source" {
+  type        = string
+  default     = "rancher"
+  description = "Which CA to use for the rancher-certificate (rancher, letsEncrypt or secret)"
+
+  validation {
+    condition     = contains(["rancher", "letsEncrypt", "secret"], var.rancher_tls_source)
+    error_message = "The allowed values for the Rancher TLS source are either rancher, letsEncrypt or secret!"
+  }
+}
+
+variable "rancher_bootstrap_password" {
+  type        = string
+  default     = ""
+  description = "Rancher bootstrap password"
+  sensitive   = true
+
+  validation {
+    condition     = (length(var.rancher_bootstrap_password) >= 48) || (length(var.rancher_bootstrap_password) == 0)
+    error_message = "The Rancher bootstrap password must be at least 48 characters long."
+  }
+}
+
 variable "use_klipper_lb" {
   type        = bool
   default     = false
