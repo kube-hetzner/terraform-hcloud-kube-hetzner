@@ -160,6 +160,7 @@ resource "null_resource" "kustomization" {
       {
         channel = var.initial_k3s_channel
     })
+    destination = "/var/post_install/plans.yaml"
   }
 
   # Upload the Longhorn config
