@@ -96,10 +96,10 @@ resource "null_resource" "kustomization" {
           "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
         ],
         var.disable_hetzner_csi ? [] : ["https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"],
-        local.using_klipper_lb ? [] : var.traefik_enabled ? ["traefik_config.yaml"] : [],
+        var.traefik_enabled ? ["traefik_config.yaml"] : [],
         var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : [],
         var.enable_longhorn ? ["longhorn.yaml"] : [],
-        var.enable_cert_manager || var.enable_rancher ? ["cert-manager.yaml"] : [],
+        var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
         var.enable_rancher ? ["rancher.yaml"] : [],
         var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
       ),
@@ -127,6 +127,7 @@ resource "null_resource" "kustomization" {
         traefik_acme_tls           = var.traefik_acme_tls
         traefik_acme_email         = var.traefik_acme_email
         traefik_additional_options = var.traefik_additional_options
+        using_hetzner_lb           = !local.using_klipper_lb
     })
     destination = "/var/post_install/traefik_config.yaml"
   }
@@ -175,9 +176,9 @@ resource "null_resource" "kustomization" {
   # Upload the cert-manager config
   provisioner "file" {
     content = templatefile(
-      "${path.module}/templates/cert-manager.yaml.tpl",
+      "${path.module}/templates/cert_manager.yaml.tpl",
     {})
-    destination = "/var/post_install/cert-manager.yaml"
+    destination = "/var/post_install/cert_manager.yaml"
   }
 
   # Upload the Rancher config
