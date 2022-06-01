@@ -67,6 +67,15 @@ resource "null_resource" "first_control_plane" {
   ]
 }
 
+# Needed for rancher setup
+resource "random_password" "rancher_bootstrap" {
+  count   = length(var.rancher_bootstrap_password) == 0 ? 1 : 0
+  length  = 48
+  special = false
+}
+
+
+# This is where all the setup of Kubernetes components happen
 resource "null_resource" "kustomization" {
   connection {
     user           = "root"
@@ -179,6 +188,8 @@ resource "null_resource" "kustomization" {
       {
         rancher_install_channel    = var.rancher_install_channel
         rancher_hostname           = var.rancher_hostname
+        rancher_bootstrap_password = length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password
+        rancher_tls_source         = var.rancher_tls_source
         number_control_plane_nodes = length(local.control_plane_nodes)
     })
     destination = "/var/post_install/rancher.yaml"
@@ -240,6 +251,7 @@ resource "null_resource" "kustomization" {
 
   depends_on = [
     null_resource.first_control_plane,
-    local_sensitive_file.kubeconfig
+    local_sensitive_file.kubeconfig,
+    random_password.rancher_bootstrap
   ]
 }

@@ -16,6 +16,7 @@ spec:
   valuesContent: |-
     ingress:
       tls:
-        source: rancher
+        source: ${rancher_tls_source}
     hostname: ${rancher_hostname}
     replicas: ${number_control_plane_nodes}
+    bootstrapPassword: ${rancher_bootstrap_password}

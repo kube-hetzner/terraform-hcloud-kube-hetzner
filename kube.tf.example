@@ -229,10 +229,20 @@ module "kube-hetzner" {
   # The allowed values are "stable", "latest", and "alpha".
   # rancher_install_channel = "latest"
 
-  # Set your Rancher hostname, the default is "rancher.example.com".
+  # Here you can set the Rancher hostname, the default is "rancher.example.com".
   # It is a required value when using rancher, but up to you to point the DNS to it or not. 
   # You can also not point the DNS, and just port-forward locally via kubectl to get access to the dashboard.
   # rancher_hostname = "rancher.xyz.dev"
+
+  # Here you can specify the Rancher TLS source for the HTTPS certificate.
+  # The allowed values are "rancher", "letsEncrypt", "secret", the default is "rancher". 
+  # More details on this here https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
+  # rancher_tls_source = "letsEncrypt"
+
+  # Finally, you can specify a bootstrap-password for your rancher instance. Minimum 48 characters long!
+  # If you leave empty, one will be generated for you.
+  # Can be used by another rancher2 provider to continue setup of rancher outside this module.
+  # rancher_bootstrap_password = ""
 
   # Separate from the above Rancher config (only use one or the other). You can import this cluster directly on an
   # an already active Rancher install. By clicking "import cluster" choosing "generic", giving it a name and pasting
