@@ -217,12 +217,14 @@ module "kube-hetzner" {
   # enable_cert_manager = true
 
   # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
-  # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own certificates.
+  # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own self-signed certificates.
+  # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
+  # The easiest thing is to leave everything as is (using the default rancher self-signed certificate) and put Cloudflare in front of it.
   # As for the number of replicas, it is set to the numbe of control plane nodes.
-  # IMPORTANT: Rancher's install is quite memory intensive, you will require at least 4GB if RAM, meaning cx21 server type (for your control plane).
-  # You can customized all of the above by creating and applying a HelmChartConfig to pass the helm chart values of your choice. 
+  # You can customized all of the above by creating and applying a HelmChartConfig to pass the helm chart values of your choice.
   # See https://rancher.com/docs/k3s/latest/en/helm/ 
   # and https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/chart-options/
+  # IMPORTANT: Rancher's install is quite memory intensive, you will require at least 4GB if RAM, meaning cx21 server type (for your control plane).
   # enable_rancher = true
 
   # When Rancher is deployed, by default is uses the "stable" channel. But this can be customized.
@@ -234,14 +236,9 @@ module "kube-hetzner" {
   # You can also not point the DNS, and just port-forward locally via kubectl to get access to the dashboard.
   # rancher_hostname = "rancher.xyz.dev"
 
-  # Here you can specify the Rancher TLS source for the HTTPS certificate.
-  # The allowed values are "rancher", "letsEncrypt", "secret", the default is "rancher". 
-  # More details on this here https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
-  # rancher_tls_source = "letsEncrypt"
-
   # Finally, you can specify a bootstrap-password for your rancher instance. Minimum 48 characters long!
   # If you leave empty, one will be generated for you.
-  # Can be used by another rancher2 provider to continue setup of rancher outside this module.
+  # (Can be used by another rancher2 provider to continue setup of rancher outside this module.)
   # rancher_bootstrap_password = ""
 
   # Separate from the above Rancher config (only use one or the other). You can import this cluster directly on an

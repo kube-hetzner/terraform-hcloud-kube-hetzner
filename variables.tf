@@ -222,17 +222,6 @@ variable "rancher_registration_manifest_url" {
   sensitive   = true
 }
 
-variable "rancher_tls_source" {
-  type        = string
-  default     = "rancher"
-  description = "Which CA to use for the rancher-certificate (rancher, letsEncrypt or secret)"
-
-  validation {
-    condition     = contains(["rancher", "letsEncrypt", "secret"], var.rancher_tls_source)
-    error_message = "The allowed values for the Rancher TLS source are either rancher, letsEncrypt or secret!"
-  }
-}
-
 variable "rancher_bootstrap_password" {
   type        = string
   default     = ""
