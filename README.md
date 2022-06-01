@@ -91,10 +91,10 @@ It will take around 5 minutes to complete, and then you should see a green outpu
 
 When your brand new cluster is up and running, the sky is your limit! 🎉
 
-You can immediately kubectl into it (using the `${cluster_name}_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig ${cluster_name}_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `${cluster_name}_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `${cluster_name}_kubeconfig.yaml` by running `pwd`):
+You can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
 ```sh
-export KUBECONFIG=/<path-to>/${cluster_name}_kubeconfig.yaml
+export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
 ```
 
 _Once you start with Terraform, it's best not to change the state manually in Hetzner; otherwise, you'll get an error when you try to scale up or down or even destroy the cluster._
@@ -151,7 +151,7 @@ kubectl delete plan k3s-server -n system-upgrade
 
 ### Individual Components Upgrade
 
-Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `${cluster_name}_kubeconfig.yaml` at the root of your project.
+Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `clustername_kubeconfig.yaml` at the root of your project.
 
 1. First create a duplicate of that file and name it `kustomization.yaml`, keeping the original file intact, in case you need to restore the old config.
 2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on Github, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
