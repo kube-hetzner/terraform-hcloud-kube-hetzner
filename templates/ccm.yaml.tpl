@@ -16,3 +16,10 @@ spec:
             - "--allocate-node-cidrs=true"
             - "--cluster-cidr=${cluster_cidr_ipv4}"
             %{ if allow_scheduling_on_control_plane ~}- "--feature-gates=LegacyNodeRoleBehavior=false"%{ endif ~}
+          %{if length(ccm_extra_env) > 0  }
+          env:
+          %{ for key,value in ccm_extra_env ~}
+            - name: ${key}
+              value: ${value}
+          %{ endfor ~}
+          %{ endif }
