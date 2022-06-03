@@ -139,6 +139,7 @@ resource "null_resource" "kustomization" {
       {
         cluster_cidr_ipv4                 = local.cluster_cidr_ipv4
         allow_scheduling_on_control_plane = local.allow_scheduling_on_control_plane
+        default_lb_location               = var.load_balancer_location
     })
     destination = "/var/post_install/ccm.yaml"
   }
@@ -218,7 +219,7 @@ resource "null_resource" "kustomization" {
       # manifests themselves
       "sed -i 's/^- |[0-9]\\+$/- |/g' /var/post_install/kustomization.yaml",
 
-      # Wait for k3s to become ready (we check one more time) because in some edge cases, 
+      # Wait for k3s to become ready (we check one more time) because in some edge cases,
       # the cluster had become unvailable for a few seconds, at this very instant.
       <<-EOT
       timeout 120 bash <<EOF
