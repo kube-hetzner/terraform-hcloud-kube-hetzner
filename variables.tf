@@ -239,7 +239,3 @@ variable "use_klipper_lb" {
   default     = false
   description = "Use klipper load balancer"
 }
-
-variable "ccm_extra_env" {
-  default = {}
-}

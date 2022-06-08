@@ -139,7 +139,7 @@ resource "null_resource" "kustomization" {
       {
         cluster_cidr_ipv4                 = local.cluster_cidr_ipv4
         allow_scheduling_on_control_plane = local.allow_scheduling_on_control_plane
-        ccm_extra_env                     = var.ccm_extra_env
+        default_lb_location               = var.load_balancer_location
     })
     destination = "/var/post_install/ccm.yaml"
   }
