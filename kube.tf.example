@@ -59,6 +59,8 @@ module "kube-hetzner" {
   # The nodepool names are entirely arbitrary, you can choose whatever you want, but no special characters or underscore, and they must be unique; only alphanumeric characters and dashes are allowed.
 
   # If you want to have a single node cluster, have one control plane nodepools with a count of 1, and one agent nodepool with a count of 0.
+  
+  # Please note that changing labels and taints after the first run will have no effect. If needed, you will need to do that through Kubernetes directly.
 
   # * Example below:
 
@@ -124,7 +126,7 @@ module "kube-hetzner" {
   load_balancer_type     = "lb11"
   load_balancer_location = "fsn1"
 
-  ### The following values are entirely optional
+  ### The following values are entirely optional (and can be removed from this if unused)
 
   # To use local storage on the nodes, you can enable Longhorn, default is "false".
   # enable_longhorn = true
