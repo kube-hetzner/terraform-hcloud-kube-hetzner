@@ -71,7 +71,7 @@ resource "null_resource" "first_control_plane" {
 resource "random_password" "rancher_bootstrap" {
   count   = length(var.rancher_bootstrap_password) == 0 ? 1 : 0
   length  = 48
-  special = true
+  special = false
 }
 
 # This is where all the setup of Kubernetes components happen

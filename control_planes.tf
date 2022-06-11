@@ -8,6 +8,7 @@ module "control_planes" {
   for_each = local.control_plane_nodes
 
   name                       = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
+  base_domain                = var.base_domain
   ssh_keys                   = [local.hcloud_ssh_key_id]
   ssh_public_key             = var.ssh_public_key
   ssh_private_key            = var.ssh_private_key

@@ -3,13 +3,18 @@ variable "name" {
   type        = string
 }
 
+variable "base_domain" {
+  description = "Base domain used for reverse dns"
+  type        = string
+}
+
 variable "ssh_public_key" {
-  description = "SSH public Key."
+  description = "SSH public Key"
   type        = string
 }
 
 variable "ssh_private_key" {
-  description = "SSH private Key."
+  description = "SSH private Key"
   type        = string
 }
 

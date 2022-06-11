@@ -128,6 +128,9 @@ module "kube-hetzner" {
 
   ### The following values are entirely optional (and can be removed from this if unused)
 
+  # You can refine a base domain name to be use in this form of nodename.base_domain for setting the reserve dns inside Hetzner
+  # base_domain = mycluster.example.com
+
   # To use local storage on the nodes, you can enable Longhorn, default is "false".
   # enable_longhorn = true
 

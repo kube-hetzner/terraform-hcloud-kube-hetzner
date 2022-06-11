@@ -20,8 +20,7 @@ resource "random_string" "identity_file" {
 }
 
 resource "hcloud_server" "server" {
-  name = local.name
-
+  name               = local.name
   image              = "ubuntu-20.04"
   rescue             = "linux64"
   server_type        = var.server_type
@@ -119,6 +118,13 @@ resource "hcloud_server" "server" {
       EOT
     ]
   }
+}
+
+resource "hcloud_rdns" "server" {
+  count      = var.base_domain != "" ? 1 : 0
+  server_id  = hcloud_server.server.id
+  ip_address = hcloud_server.server.ipv4_address
+  dns_ptr    = format("%s.%s", local.name, var.base_domain)
 }
 
 resource "hcloud_server_network" "server" {
