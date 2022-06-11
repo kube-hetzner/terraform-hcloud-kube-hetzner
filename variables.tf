@@ -151,6 +151,17 @@ variable "cluster_name" {
   }
 }
 
+variable "base_domain" {
+  type        = string
+  default     = ""
+  description = "Base domain of the cluster, used for reserve dns"
+
+  validation {
+    condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.base_domain)) || var.base_domain == ""
+    error_message = "It must be a valid domain name (FQDN)."
+  }
+}
+
 variable "traefik_additional_options" {
   type    = list(string)
   default = []
