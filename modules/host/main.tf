@@ -2,7 +2,7 @@ resource "random_string" "server" {
   length  = 3
   lower   = true
   special = false
-  number  = false
+  numeric  = false
   upper   = false
 
   keepers = {
@@ -15,7 +15,7 @@ resource "random_string" "identity_file" {
   length  = 20
   lower   = true
   special = false
-  number  = true
+  numeric  = true
   upper   = false
 }
 
