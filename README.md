@@ -82,6 +82,7 @@ _A complete reference of all inputs, outputs, modules etc. can be found in the [
 
 ```sh
 terraform init --upgrade
+terraform validate
 terraform apply -auto-approve
 ```
 
