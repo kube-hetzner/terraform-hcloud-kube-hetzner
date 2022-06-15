@@ -107,7 +107,7 @@ There are some limitations (to scaling down mainly) that you need to be aware of
 
 _Once the cluster is up; you can change any nodepool count and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1); you can also rename a nodepool (if the count is to 0), but should not remove a nodepool from the list after once the cluster is up. That is due to how subnets and IPs get allocated. The only nodepools you can remove are those at the end of each list of nodepools._
 
-_However, you can freely add other nodepools at the end of the list, increasing the node count. You can also decrease the node count, but make sure you drain the node in question before; otherwise, it will leave your cluster in a bad state. For obvious reasons, the only nodepool that needs at least to have a count of 1 always is the first control-plane nodepool._
+_However, you can freely add other nodepools at the end of each list. And for each nodepools, you can freely increase or decrease the node count (if you want to decrease a nodepool node count make sure you drain the nodes in question before, you can use `terraform show` to identify the node names at the end of the nodepool list, otherwise, if you do not drain the nodes before removing them, it could leave your cluster in a bad state). The only nodepool that needs to have always at least a count of 1 is the first control-plane nodepool._
 
 ## High Availability
 
