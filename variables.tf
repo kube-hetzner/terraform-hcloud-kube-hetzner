@@ -250,3 +250,9 @@ variable "use_klipper_lb" {
   default     = false
   description = "Use klipper load balancer"
 }
+
+variable "extra_packages_to_install" {
+  description = "Extra packages to install"
+  type        = list(string)
+  default     = []
+}
