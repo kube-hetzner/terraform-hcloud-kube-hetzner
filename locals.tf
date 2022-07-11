@@ -49,8 +49,9 @@ locals {
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
         taints : nodepool_obj.taints,
-        index : node_index
-      }
+        index : node_index,
+        longhorn_volume_size : nodepool_obj.longhorn_volume_size
+  }
     }
   ]...)
 

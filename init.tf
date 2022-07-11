@@ -170,6 +170,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/longhorn.yaml.tpl",
       {
         disable_hetzner_csi = var.disable_hetzner_csi
+        rancher_enabled = var.enable_rancher
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -252,6 +253,7 @@ resource "null_resource" "kustomization" {
   depends_on = [
     null_resource.first_control_plane,
     local_sensitive_file.kubeconfig,
-    random_password.rancher_bootstrap
+    random_password.rancher_bootstrap,
+    hcloud_volume.volume
   ]
 }
