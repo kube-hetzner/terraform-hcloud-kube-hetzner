@@ -89,11 +89,11 @@ resource "null_resource" "agents" {
 }
 
 resource "hcloud_volume" "volume" {
-  for_each = { for key,val in local.agent_nodes : key => val if val.longhorn_volume_size >= 10 }
+  for_each = { for key, val in local.agent_nodes : key => val if val.longhorn_volume_size >= 10 }
 
   labels = {
     provisioner = "terraform"
-    scope = "longhorn"
+    scope       = "longhorn"
   }
   name      = "longhorn-${module.agents[each.key].name}"
   size      = local.agent_nodes[each.key].longhorn_volume_size
@@ -103,7 +103,7 @@ resource "hcloud_volume" "volume" {
 }
 
 resource "null_resource" "configure_volumes" {
-  for_each = { for key,val in local.agent_nodes : key => val if val.longhorn_volume_size >= 10 }
+  for_each = { for key, val in local.agent_nodes : key => val if val.longhorn_volume_size >= 10 }
 
   triggers = {
     agent_id = module.agents[each.key].id

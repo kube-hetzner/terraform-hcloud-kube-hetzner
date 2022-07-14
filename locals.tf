@@ -51,7 +51,7 @@ locals {
         taints : nodepool_obj.taints,
         index : node_index,
         longhorn_volume_size : nodepool_obj.longhorn_volume_size
-  }
+      }
     }
   ]...)
 

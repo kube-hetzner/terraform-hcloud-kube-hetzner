@@ -170,7 +170,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/longhorn.yaml.tpl",
       {
         disable_hetzner_csi = var.disable_hetzner_csi
-        rancher_enabled = var.enable_rancher
+        rancher_enabled     = var.enable_rancher
     })
     destination = "/var/post_install/longhorn.yaml"
   }
