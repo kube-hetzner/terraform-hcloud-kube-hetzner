@@ -140,6 +140,7 @@ resource "null_resource" "kustomization" {
         cluster_cidr_ipv4                 = local.cluster_cidr_ipv4
         allow_scheduling_on_control_plane = local.allow_scheduling_on_control_plane
         default_lb_location               = var.load_balancer_location
+        using_hetzner_lb                  = !local.using_klipper_lb
     })
     destination = "/var/post_install/ccm.yaml"
   }
