@@ -42,7 +42,7 @@ variable "load_balancer_location" {
 variable "load_balancer_type" {
   description = "Default load balancer server type"
   type        = string
-  default     = "cpx11"
+  default     = "lb11"
 }
 
 variable "load_balancer_disable_ipv6" {
