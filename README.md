@@ -71,12 +71,11 @@ brew install hcloud
 2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md). ✅
 3. Prepare the module by copying `kube.tf.example` to `kube.tf` **in a new folder** which you cd into, then replace the values from steps 1 and 2. ✅
 4. (Optional) Many variables in `kube.tf` can be customized to suit your needs, you can do so if you want. ✅
-5. Make sure you have the latest Terraform version, at least 1.2.0. You can check with `terraform -v`. ✅
-6. At this stage you should be in your new folder, with a fresh `kube.tf` file, if it is so, you can proceed forward! ✅
-
-_It's important to realize that you do not even need to clone this git repo, as the module by default will be fetched from the Terraform registry. All you need, is to use the [kube.tf.example](https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example) file to make sure you get the format of your `kube.tf` file right._
+5. At this stage you should be in your new folder, with a fresh `kube.tf` file, if it is so, you can proceed forward! ✅
 
 _A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
+
+_It's important to realize that you do not even need to clone this git repo, as the module by default will be fetched from the Terraform registry. All you need, is to use the [kube.tf.example](https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example) file to make sure you get the format of your `kube.tf` file right._
 
 ### 🎯 Installation
 
@@ -86,7 +85,7 @@ terraform validate
 terraform apply -auto-approve
 ```
 
-It will take around 5 minutes to complete, and then you should see a green output with the IP addresses of the nodes.
+It will take around 5 minutes to complete, and then you should see a green output confirming a successful deployment.
 
 ## Usage
 
@@ -102,13 +101,13 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 ### Scaling Nodes
 
-Two things can be scaled: the number of nodepools or the number of nodes in these nodepools. You have two lists of nodepools you can add to in `terraform.tfvars`, the control plane nodepool and the agent nodepool list. Combined, they cannot exceed 255 nodepools (you are extremely unlikely to reach this limit). As for the count of nodes per nodepools, if you raise your limits in Hetzner, you can have up to 64,670 nodes per nodepool (also very unlikely to need that much).
+Two things can be scaled: the number of nodepools or the number of nodes in these nodepools. You have two lists of nodepools you can add to your `kube.tf`, the control plane nodepool and the agent nodepool list. Combined, they cannot exceed 255 nodepools (you are extremely unlikely to reach this limit). As for the count of nodes per nodepools, if you raise your limits in Hetzner, you can have up to 64,670 nodes per nodepool (also very unlikely to need that much).
 
 There are some limitations (to scaling down mainly) that you need to be aware of:
 
 _Once the cluster is up; you can change any nodepool count and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1); you can also rename a nodepool (if the count is to 0), but should not remove a nodepool from the list after once the cluster is up. That is due to how subnets and IPs get allocated. The only nodepools you can remove are those at the end of each list of nodepools._
 
-_However, you can freely add other nodepools at the end of the list, increasing the node count. You can also decrease the node count, but make sure you drain the node in question before; otherwise, it will leave your cluster in a bad state. For obvious reasons, the only nodepool that needs at least to have a count of 1 always is the first control-plane nodepool._
+_However, you can freely add other nodepools at the end of each list. And for each nodepools, you can freely increase or decrease the node count (if you want to decrease a nodepool node count make sure you drain the nodes in question before, you can use `terraform show` to identify the node names at the end of the nodepool list, otherwise, if you do not drain the nodes before removing them, it could leave your cluster in a bad state). The only nodepool that needs to have always at least a count of 1 is the first control-plane nodepool._
 
 ## High Availability
 
@@ -321,7 +320,7 @@ There is also a branch where openSUSE MicroOS came preinstalled with the k3s RPM
 
 ## Contributing
 
-🌱 This project currently installs openSUSE MicroOS via the Hetzner rescue mode, making things a few minutes slower. If you could **take a few minutes to send a support request to Hetzner, asking them to please add openSUSE MicroOS as a default image**, not just an ISO. The more requests they receive, the likelier they are to add support for it, and if they do, that will cut the deployment time by half. The official link to openSUSE MicroOS is <https://get.opensuse.org/microos>, and their `OpenStack Cloud` image has full support for Cloud-init, which would probably suit the Hetzner Ops team!
+🌱 This project currently installs openSUSE MicroOS via the Hetzner rescue mode, making things a few minutes slower. To help with that, you could **take a few minutes to send a support request to Hetzner, asking them to please add openSUSE MicroOS as a default image**, not just an ISO. The more requests they receive, the likelier they are to add support for it, and if they do, that will cut the deployment time by half. The official link to openSUSE MicroOS is <https://get.opensuse.org/microos>, and their `OpenStack Cloud` image has full support for Cloud-init, which would probably very much suit the Hetzner Ops team!
 
 Code contributions are very much **welcome**.
 
