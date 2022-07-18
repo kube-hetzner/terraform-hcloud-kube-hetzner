@@ -23,3 +23,5 @@ spec:
               value: "${default_lb_location}"
             - name: "HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP"
               value: "true"
+            - name: "HCLOUD_LOAD_BALANCERS_ENABLED"
+              value: "${using_hetzner_lb}"
