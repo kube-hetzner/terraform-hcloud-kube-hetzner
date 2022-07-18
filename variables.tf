@@ -250,3 +250,9 @@ variable "use_klipper_lb" {
   default     = false
   description = "Use klipper load balancer"
 }
+
+variable "block_icmp_ping_in" {
+  type        = bool
+  default     = false
+  description = "Block ICMP ping in"
+}
