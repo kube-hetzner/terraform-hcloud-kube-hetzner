@@ -3,6 +3,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: longhorn-system
+%{ if rancher_enabled ~}
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -14,6 +15,7 @@ spec:
   # Using this repo makes it compatible with Rancher
   repo: https://charts.rancher.io
   targetNamespace: longhorn-system
+%{ endif ~}
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -23,7 +25,7 @@ metadata:
 spec:
   chart: longhorn
   # Using this repo makes it compatible with Rancher
-  repo: https://charts.rancher.io
+  repo: https://charts.%{ if rancher_enabled ~}rancher%{ else ~}longhorn%{ endif ~}.io
   targetNamespace: longhorn-system
   valuesContent: |-
     defaultSettings:

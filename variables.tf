@@ -256,3 +256,9 @@ variable "block_icmp_ping_in" {
   default     = false
   description = "Block ICMP ping in"
 }
+
+variable "extra_packages_to_install" {
+  description = "Extra packages to install"
+  type        = list(string)
+  default     = []
+}
