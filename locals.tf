@@ -23,8 +23,12 @@ locals {
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
 
-  install_k3s_server = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"], local.apply_k3s_selinux)
-  install_k3s_agent  = concat(local.common_commands_install_k3s, ["curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"], local.apply_k3s_selinux)
+  install_k3s_server = concat(local.common_commands_install_k3s, [
+    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"
+  ], local.apply_k3s_selinux)
+  install_k3s_agent = concat(local.common_commands_install_k3s, [
+    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"
+  ], local.apply_k3s_selinux)
 
   control_plane_nodes = merge([
     for pool_index, nodepool_obj in var.control_plane_nodepools : {
@@ -69,7 +73,9 @@ locals {
   using_klipper_lb = var.use_klipper_lb || local.is_single_node_cluster
 
   # disable k3s extras
-  disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], var.traefik_enabled ? [] : ["traefik"], var.metrics_server_enabled ? [] : ["metrics-server"])
+  disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], var.traefik_enabled ? [] : [
+    "traefik"
+  ], var.metrics_server_enabled ? [] : ["metrics-server"])
 
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
@@ -237,4 +243,29 @@ locals {
   labels_agent_node = {
     role = "agent_node"
   }
+
+  cni_install_resources = {
+    "calico" = ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"]
+    "cilium" = ["cilium.yaml"]
+  }
+
+  cni_install_resource_patches = {
+    "calico" = ["calico.yaml"]
+  }
+
+  cni_k3s_settings = {
+    "flannel" = {
+      flannel-iface          = "eth1"
+      disable-network-policy = var.disable_network_policy
+    }
+    "calico" = {
+      flannel-backend        = "none"
+      disable-network-policy = true
+    }
+    "cilium" = {
+      flannel-backend        = "none"
+      disable-network-policy = true
+    }
+  }
 }
+

@@ -14,19 +14,17 @@ resource "null_resource" "first_control_plane" {
       cluster-init                = true
       disable-cloud-controller    = true
       disable                     = local.disable_extras
-      flannel-iface               = "eth1"
       kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
       kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
       node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
       node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
-      disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
       },
-      var.cni_plugin == "calico" ? {
-        flannel-backend = "none"
-      } : {},
-    var.use_control_plane_lb ? { tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]] } : {}))
+      lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+      var.use_control_plane_lb ? {
+        tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
+    } : {}))
 
     destination = "/tmp/config.yaml"
   }
@@ -100,7 +98,7 @@ resource "null_resource" "kustomization" {
           "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"
         ],
         var.traefik_enabled ? ["traefik_config.yaml"] : [],
-        var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : [],
+        lookup(local.cni_install_resources, var.cni_plugin, []),
         var.enable_longhorn ? ["longhorn.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
         var.enable_rancher ? ["rancher.yaml"] : [],
@@ -112,7 +110,7 @@ resource "null_resource" "kustomization" {
           file("${path.module}/kustomize/system-upgrade-controller.yaml"),
           "ccm.yaml",
         ],
-        var.cni_plugin == "calico" ? ["calico.yaml"] : []
+        lookup(local.cni_install_resource_patches, var.cni_plugin, [])
       )
     })
     destination = "/var/post_install/kustomization.yaml"
@@ -156,6 +154,16 @@ resource "null_resource" "kustomization" {
         cluster_cidr_ipv4 = local.cluster_cidr_ipv4
     })
     destination = "/var/post_install/calico.yaml"
+  }
+
+  # Upload the cilium install file
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/cilium.yaml.tpl",
+      {
+        cluster_cidr_ipv4 = local.cluster_cidr_ipv4
+    })
+    destination = "/var/post_install/cilium.yaml"
   }
 
   # Upload the system upgrade controller plans config
