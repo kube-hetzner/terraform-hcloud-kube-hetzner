@@ -73,3 +73,8 @@ variable "packages_to_install" {
   type        = list(string)
   default     = []
 }
+
+variable "dns_servers" {
+  type        = list(string)
+  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner"
+}

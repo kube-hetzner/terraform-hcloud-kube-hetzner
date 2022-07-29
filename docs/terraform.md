@@ -97,6 +97,7 @@
 | <a name="input_traefik_enabled"></a> [traefik\_enabled](#input\_traefik\_enabled) | Whether to enable or disbale k3s traefik installation | `bool` | `true` | no |
 | <a name="input_use_cluster_name_in_node_name"></a> [use\_cluster\_name\_in\_node\_name](#input\_use\_cluster\_name\_in\_node\_name) | Whether to use the cluster name in the node name | `bool` | `true` | no |
 | <a name="input_use_klipper_lb"></a> [use\_klipper\_lb](#input\_use\_klipper\_lb) | Use klipper load balancer | `bool` | `false` | no |
+| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner | `list(string)` | `["1.1.1.1", " 1.0.0.1", "8.8.8.8"]` | no |
 
 ### Outputs
 
