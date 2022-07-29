@@ -146,6 +146,7 @@ data "cloudinit_config" "config" {
       {
         hostname          = local.name
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        dnsServers = var.dns_servers
       }
     )
   }

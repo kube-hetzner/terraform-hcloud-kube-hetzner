@@ -256,3 +256,9 @@ variable "block_icmp_ping_in" {
   default     = false
   description = "Block ICMP ping in"
 }
+
+variable "dns_servers" {
+  type        = list(string)
+  default     = ["1.1.1.1", " 1.0.0.1", "8.8.8.8"]
+  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner"
+}
