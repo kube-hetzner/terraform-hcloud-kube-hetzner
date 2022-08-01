@@ -64,10 +64,10 @@ resource "null_resource" "control_planes" {
       advertise-address           = module.control_planes[each.key].private_ipv4_address
       node-label                  = each.value.labels
       node-taint                  = each.value.taints
-      disable-network-policy      = var.cni_plugin != "flannel" ? true : var.disable_network_policy
+      disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
       write-kubeconfig-mode       = "0644" # needed for import into rancher
       },
-      var.cni_plugin != "flannel" ? {
+      var.cni_plugin == "calico" ? {
         flannel-backend = "none"
     } : {}))
 
