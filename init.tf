@@ -26,7 +26,7 @@ resource "null_resource" "first_control_plane" {
       var.cni_plugin == "calico" ? {
         flannel-backend = "none"
       } : {},
-    var.use_control_plane_lb ? { tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip] } : {}))
+    var.use_control_plane_lb ? { tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]] } : {}))
 
     destination = "/tmp/config.yaml"
   }
