@@ -257,6 +257,12 @@ variable "block_icmp_ping_in" {
   description = "Block ICMP ping in"
 }
 
+variable "use_control_plane_lb" {
+  type        = bool
+  default     = false
+  description = "When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability"
+}
+
 variable "dns_servers" {
   type        = list(string)
   default     = ["1.1.1.1", " 1.0.0.1", "8.8.8.8"]
