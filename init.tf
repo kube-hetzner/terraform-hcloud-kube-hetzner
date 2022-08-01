@@ -21,9 +21,9 @@ resource "null_resource" "first_control_plane" {
       advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
       node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
-      disable-network-policy      = var.cni_plugin != "flannel" ? true : var.disable_network_policy
+      disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
       },
-      var.cni_plugin != "flannel" ? {
+      var.cni_plugin == "calico" ? {
         flannel-backend = "none"
     } : {}))
 
@@ -62,11 +62,6 @@ resource "null_resource" "first_control_plane" {
     ]
   }
 
-  # Deploy the CNI
-  provisioner "remote-exec" {
-    inline = lookup(local.cni_install_scripts, var.cni_plugin, [])
-  }
-
   depends_on = [
     hcloud_network_subnet.control_plane
   ]
@@ -102,7 +97,7 @@ resource "null_resource" "kustomization" {
         ],
         var.disable_hetzner_csi ? [] : ["https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"],
         var.traefik_enabled ? ["traefik_config.yaml"] : [],
-        lookup(local.cni_install_manifest_path, var.cni_plugin, []),
+        var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : [],
         var.enable_longhorn ? ["longhorn.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
         var.enable_rancher ? ["rancher.yaml"] : [],
@@ -114,7 +109,7 @@ resource "null_resource" "kustomization" {
           file("${path.module}/kustomize/system-upgrade-controller.yaml"),
           "ccm.yaml",
         ],
-        lookup(local.cni_install_manifest_patches, var.cni_plugin, []),
+        var.cni_plugin == "calico" ? ["calico.yaml"] : []
       )
     })
     destination = "/var/post_install/kustomization.yaml"

@@ -176,18 +176,13 @@ variable "placement_group_disable" {
 variable "disable_network_policy" {
   type        = bool
   default     = false
-  description = "Disable k3s default network policy controller (default false, automatically true for calico and cilium)"
+  description = "Disable k3s default network policy controller (default false, automatically true for calico)"
 }
 
 variable "cni_plugin" {
   type        = string
   default     = "flannel"
   description = "CNI plugin for k3s"
-
-  validation {
-    condition     = contains(["flannel", "calico", "cilium"], var.cni_plugin)
-    error_message = "cni_plugin must be one of \"flannel\", \"calico\", or \"cilium\""
-  }
 }
 
 variable "enable_longhorn" {
