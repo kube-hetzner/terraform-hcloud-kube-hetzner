@@ -99,6 +99,7 @@
 | <a name="input_use_klipper_lb"></a> [use\_klipper\_lb](#input\_use\_klipper\_lb) | Use klipper load balancer | `bool` | `false` | no |
 | <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner | `list(string)` | `["1.1.1.1", " 1.0.0.1", "8.8.8.8"]` | no |
 | <a name="input_use_control_plane_lb"></a> [use\_control\_plane\_lb](#input\_use\_control\_plane\_lb) | When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability | `bool` | `false` | no |
+| <a name="input_extra_packages_to_install"></a> [extra\_packages\_to\_install](#input\_extra\_packages\_to\_install) | A list of additional packages to install on nodes | `list(string)` | `[]` | no |
 
 ### Outputs
 

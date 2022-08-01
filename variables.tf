@@ -268,3 +268,9 @@ variable "dns_servers" {
   default     = ["1.1.1.1", " 1.0.0.1", "8.8.8.8"]
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner"
 }
+
+variable "extra_packages_to_install" {
+  type        = list(string)
+  default     = []
+  description = "A list of additional packages to install on nodes"
+}
