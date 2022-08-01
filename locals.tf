@@ -87,7 +87,7 @@ locals {
   hetzner_metadata_service_ipv4 = "169.254.169.254/32"
   hetzner_cloud_api_ipv4        = "213.239.246.1/32"
 
-  # internal Pod CIDR, used for the controller and currently for calico
+  # internal Pod CIDR, used for the controller and currently for the cni
   cluster_cidr_ipv4 = "10.42.0.0/16"
 
   whitelisted_ips = [
@@ -220,4 +220,16 @@ locals {
       ]
     }
   ])
+
+  cni_install_manifest_path = {
+    "calico" = ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"],
+  }
+  cni_install_manifest_patches = {
+    "calico" = ["calico.yaml"],
+  }
+  cni_install_scripts = {
+    "cilium" = [templatefile("${path.module}/templates/cilium.sh.tpl", { "cluster_cidr_ipv4" = local.cluster_cidr_ipv4 })
+    ],
+  }
 }
+
