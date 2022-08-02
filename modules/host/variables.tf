@@ -53,9 +53,9 @@ variable "location" {
   type        = string
 }
 
-variable "ipv4_subnet_id" {
+variable "ipv4_subnet" {
   description = "The subnet id"
-  type        = string
+  type        = object({ id : string, network_id : string })
 }
 
 variable "private_ipv4" {
@@ -77,4 +77,18 @@ variable "packages_to_install" {
 variable "dns_servers" {
   type        = list(string)
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner"
+}
+
+variable "disable_public_interface" {
+  type    = bool
+  default = false
+}
+
+variable "rebootmgr_mode" {
+  type    = string
+  default = "disabled"
+  validation {
+    condition     = contains(["disabled", "immediate"], var.rebootmgr_mode)
+    error_message = "Set the mode of the reboot manager, typically for nodes this is handled by kured, and should be disabled"
+  }
 }

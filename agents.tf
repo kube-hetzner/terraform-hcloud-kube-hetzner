@@ -17,9 +17,10 @@ module "agents" {
   placement_group_id         = var.placement_group_disable ? 0 : element(hcloud_placement_group.agent.*.id, ceil(each.value.index / 10))
   location                   = each.value.location
   server_type                = each.value.server_type
-  ipv4_subnet_id             = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
+  ipv4_subnet                = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]]
   packages_to_install        = local.packages_to_install
   dns_servers                = var.dns_servers
+  disable_public_interface   = var.topology == "bastion"
 
   private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 

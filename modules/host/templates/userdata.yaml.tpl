@@ -68,4 +68,6 @@ runcmd:
 - [sed, '-i', 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g', /etc/snapper/configs/root]
 
 # Disables unneeded services
+%{ if rebootmgrMode == "disabled" }
 - [systemctl, disable, '--now', 'rebootmgr.service']
+%{ endif }

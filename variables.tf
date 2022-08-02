@@ -117,7 +117,9 @@ variable "initial_k3s_channel" {
   description = "Allows you to specify an initial k3s channel"
 
   validation {
-    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24"], var.initial_k3s_channel)
+    condition = contains([
+      "stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24"
+    ], var.initial_k3s_channel)
     error_message = "The initial k3s channel must be one of stable, latest or testing."
   }
 }
@@ -273,4 +275,21 @@ variable "extra_packages_to_install" {
   type        = list(string)
   default     = []
   description = "A list of additional packages to install on nodes"
+}
+
+variable "topology" {
+  type    = string
+  default = "public"
+  validation {
+    condition     = contains(["public", "bastion"], var.topology)
+    error_message = "Set the topology to use, \"public\" for all nodes provisioned with public IPs, \"bastion\" for adding a bastion server to route everything through"
+  }
+}
+
+variable "bastion_location" {
+  default = "fsn1"
+}
+
+variable "bastion_server_type" {
+  default = "cpx11"
 }

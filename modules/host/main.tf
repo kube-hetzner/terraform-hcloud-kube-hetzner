@@ -30,6 +30,16 @@ resource "hcloud_server" "server" {
   placement_group_id = var.placement_group_id
   user_data          = data.cloudinit_config.config.rendered
 
+  network {
+    ip         = var.private_ipv4
+    network_id = var.ipv4_subnet.network_id
+  }
+
+  public_net {
+    ipv4_enabled = !var.disable_public_interface
+    ipv6_enabled = !var.disable_public_interface
+  }
+
   labels = var.labels
 
   # Prevent destroying the whole cluster if the user changes
@@ -49,7 +59,7 @@ resource "hcloud_server" "server" {
     host           = self.ipv4_address
   }
 
-  # Prepare ssh identity file 
+  # Prepare ssh identity file
   provisioner "local-exec" {
     command = <<-EOT
       install -b -m 600 /dev/null /tmp/${random_string.identity_file.id}
@@ -82,7 +92,8 @@ resource "hcloud_server" "server" {
 
   # Install k3s-selinux (compatible version) and open-iscsi
   provisioner "remote-exec" {
-    inline = [<<-EOT
+    inline = [
+      <<-EOT
       set -ex
       transactional-update shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       EOT
@@ -101,7 +112,7 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Cleanup ssh identity file 
+  # Cleanup ssh identity file
   provisioner "local-exec" {
     command = <<-EOT
       rm /tmp/${random_string.identity_file.id}
@@ -110,7 +121,8 @@ resource "hcloud_server" "server" {
 
   # Enable open-iscsi
   provisioner "remote-exec" {
-    inline = [<<-EOT
+    inline = [
+      <<-EOT
       set -ex
       if [[ $(systemctl list-units --all -t service --full --no-legend "iscsid.service" | sed 's/^\s*//g' | cut -f1 -d' ') == iscsid.service ]]; then
         systemctl enable --now iscsid
@@ -130,7 +142,7 @@ resource "hcloud_rdns" "server" {
 resource "hcloud_server_network" "server" {
   ip        = var.private_ipv4
   server_id = hcloud_server.server.id
-  subnet_id = var.ipv4_subnet_id
+  subnet_id = var.ipv4_subnet.id
 }
 
 data "cloudinit_config" "config" {
@@ -147,6 +159,7 @@ data "cloudinit_config" "config" {
         hostname          = local.name
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         dnsServers        = var.dns_servers
+        rebootmgrMode     = var.rebootmgr_mode
       }
     )
   }

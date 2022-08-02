@@ -237,4 +237,7 @@ locals {
   labels_agent_node = {
     role = "agent_node"
   }
+  labels_bastion = {
+    role = "bastion"
+  }
 }

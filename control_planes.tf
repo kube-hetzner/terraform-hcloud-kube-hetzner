@@ -17,9 +17,10 @@ module "control_planes" {
   placement_group_id         = var.placement_group_disable ? 0 : element(hcloud_placement_group.control_plane.*.id, ceil(each.value.index / 10))
   location                   = each.value.location
   server_type                = each.value.server_type
-  ipv4_subnet_id             = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
+  ipv4_subnet                = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]]
   packages_to_install        = local.packages_to_install
   dns_servers                = var.dns_servers
+  disable_public_interface   = var.topology == "bastion"
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
