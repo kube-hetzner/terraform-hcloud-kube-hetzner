@@ -8,7 +8,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/mysticaltech/kube-hetzner">
-    <img src="https://github.com/kube-hetzner/kube-hetzner/raw/master/.images/kube-hetzner-logo.png" alt="Logo" width="112" height="112">
+    <img src="https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/master/.images/kube-hetzner-logo.png" alt="Logo" width="112" height="112">
   </a>
 
   <h2 align="center">Kube-Hetzner</h2>
@@ -68,7 +68,7 @@ brew install hcloud
 ### 💡 [Do not skip] Creating your kube.tf file
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
-2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md). ✅
+2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/ssh.md). ✅
 3. Prepare the module by copying `kube.tf.example` to `kube.tf` **in a new folder** which you cd into, then replace the values from steps 1 and 2. ✅
 4. (Optional) Many variables in `kube.tf` can be customized to suit your needs, you can do so if you want. ✅
 5. At this stage you should be in your new folder, with a fresh `kube.tf` file, if it is so, you can proceed forward! ✅
@@ -99,6 +99,12 @@ export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
 
 _Once you start with Terraform, it's best not to change the state manually in Hetzner; otherwise, you'll get an error when you try to scale up or down or even destroy the cluster._
 
+## CNI
+
+The default is flannel, but you can also choose Calico or Cilium, by setting the cni_plugin variable in `kube.tf` to `calico` or `cilium`. For both, you can create a HelmChartConfig to edit their respective configuration post cluster deploy! Read more about HelmChartConfig [here](https://rancher.com/docs/k3s/latest/en/helm/#customizing-packaged-components-with-helmchartconfig).
+
+As Cilium has a lot of interesting and powerful configurations possibility. We give you the possibiliy to add a `cilium_values.yaml` file to the root of your module before you deploy your cluster, the same place where you have your `kube.tf` file. This file must be of the same format as the [Cilium values.yaml file](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml), but with the values you want to modify. You can also find the default values that we use in the [cilium.yaml.tpl][https://github.com/kube-hetzner/kube-hetzner/blob/master/templates/cilium.yaml.tpl] file. During the deploy, Terraform will test to see if this file is present and if so will use those values to deploy the Cilium Helm chart.
+
 ### Scaling Nodes
 
 Two things can be scaled: the number of nodepools or the number of nodes in these nodepools. You have two lists of nodepools you can add to your `kube.tf`, the control plane nodepool and the agent nodepool list. Combined, they cannot exceed 255 nodepools (you are extremely unlikely to reach this limit). As for the count of nodes per nodepools, if you raise your limits in Hetzner, you can have up to 64,670 nodes per nodepool (also very unlikely to need that much).
@@ -125,7 +131,7 @@ By default, MicroOS gets upgraded automatically on each node and reboot safely v
 
 As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default, it follows the k3s `stable` channel, but you can also change to the `latest` one if needed or specify a target version to upgrade to via the upgrade plan.
 
-You can copy and modify the [one in the templates](https://github.com/kube-hetzner/kube-hetzner/blob/master/templates/plans.yaml.tpl) for that! More on the subject in [k3s upgrades](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
+You can copy and modify the [one in the templates](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/templates/plans.yaml.tpl) for that! More on the subject in [k3s upgrades](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
 ### Turning Off Automatic Upgrade
 
@@ -160,6 +166,31 @@ Rarely needed, but can be handy in the long run. During the installation, we aut
 ## Examples
 
 <details>
+
+With Kube-Hetzner, you have the possibility to use Cilium as a CNI. It's very powerful and has great observability features. Below you will find a few useful commands.
+
+### Useful Cilium commands
+
+- Check the status of cilium with the following commands (get the cilium pod name first and replace it in the command):
+
+```sh
+kubectl -n kube-system exec --stdin --tty cilium-xxxx -- cilium status
+kubectl -n kube-system exec --stdin --tty cilium-xxxx -- cilium status --verbose
+```
+
+- Monitor cluster traffic with:
+
+```sh
+kubectl -n kube-system exec --stdin --tty cilium-xxxx -- cilium monitor
+```
+
+- See the list of kube services with:
+
+```sh
+kubectl -n kube-system exec --stdin --tty cilium-xxxx -- cilium service list
+```
+
+_For more cilium commands, please refer to their corresponding [Documentation](https://docs.cilium.io/en/latest/cheatsheet)._
 
 <summary>Ingress with TLS</summary>
 
@@ -314,9 +345,9 @@ _Also, if you had a full-blown cluster in use, it would be best to delete the wh
 
 ## History
 
-This project has tried two other OS flavors before settling on MicroOS. Fedora Server, and k3OS. The latter, k3OS, is now defunct! However, our code base for it lives on in the [k3os branch](https://github.com/kube-hetzner/kube-hetzner/tree/k3os). Do not hesitate to check it out, it should still work.
+This project has tried two other OS flavors before settling on MicroOS. Fedora Server, and k3OS. The latter, k3OS, is now defunct! However, our code base for it lives on in the [k3os branch](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/tree/k3os). Do not hesitate to check it out, it should still work.
 
-There is also a branch where openSUSE MicroOS came preinstalled with the k3s RPM from devel:kubic/k3s, but we moved away from that solution as the k3s version was rarely getting updates. See the [microOS-k3s-rpm](https://github.com/kube-hetzner/kube-hetzner/tree/microOS-k3s-rpm) branch for more.
+There is also a branch where openSUSE MicroOS came preinstalled with the k3s RPM from devel:kubic/k3s, but we moved away from that solution as the k3s version was rarely getting updates. See the [microOS-k3s-rpm](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/tree/microOS-k3s-rpm) branch for more.
 
 ## Contributing
 
@@ -351,4 +382,4 @@ Code contributions are very much **welcome**.
 [issues-url]: https://github.com/mysticaltech/kube-hetzner/issues
 [license-shield]: https://img.shields.io/github/license/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [license-url]: https://github.com/mysticaltech/kube-hetzner/blob/master/LICENSE.txt
-[product-screenshot]: https://github.com/kube-hetzner/kube-hetzner/raw/master/.images/kubectl-pod-all-17022022.png
+[product-screenshot]: https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/master/.images/kubectl-pod-all-17022022.png

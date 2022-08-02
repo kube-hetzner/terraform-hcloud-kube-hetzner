@@ -9,7 +9,4 @@ spec:
   targetNamespace: kube-system
   bootstrap: true
   valuesContent: |-
-    ipam:
-      operator:
-        clusterPoolIPv4PodCIDRList:
-          - ${cluster_cidr_ipv4}
+    ${values}

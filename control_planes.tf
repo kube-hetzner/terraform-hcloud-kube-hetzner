@@ -96,6 +96,7 @@ resource "null_resource" "control_planes" {
       disable                     = local.disable_extras
       kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
       kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+      flannel-iface               = "eth1"
       node-ip                     = module.control_planes[each.key].private_ipv4_address
       advertise-address           = module.control_planes[each.key].private_ipv4_address
       node-label                  = each.value.labels
@@ -103,6 +104,9 @@ resource "null_resource" "control_planes" {
       write-kubeconfig-mode       = "0644" # needed for import into rancher
       },
       lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+      var.use_control_plane_lb ? {
+        tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
+      } : {}
     ))
 
     destination = "/tmp/config.yaml"

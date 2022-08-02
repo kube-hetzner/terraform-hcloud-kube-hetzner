@@ -255,17 +255,24 @@ locals {
 
   cni_k3s_settings = {
     "flannel" = {
-      flannel-iface          = "eth1"
       disable-network-policy = var.disable_network_policy
     }
     "calico" = {
-      flannel-backend        = "none"
       disable-network-policy = true
+      flannel-backend        = "none"
     }
     "cilium" = {
-      flannel-backend        = "none"
       disable-network-policy = true
+      flannel-backend        = "none"
     }
   }
+
+  default_cilium_values = <<EOT
+ipam:
+ operator:
+  clusterPoolIPv4PodCIDRList:
+   - ${local.cluster_cidr_ipv4}
+devices: "eth1"
+EOT
 }
 

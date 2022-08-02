@@ -16,6 +16,7 @@ resource "null_resource" "first_control_plane" {
       disable                     = local.disable_extras
       kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
       kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+      flannel-iface               = "eth1"
       node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
@@ -161,7 +162,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        cluster_cidr_ipv4 = local.cluster_cidr_ipv4
+        values = indent(4, trimspace(fileexists("cilium_values.yaml") ? file("cilium_values.yaml") : local.default_cilium_values))
     })
     destination = "/var/post_install/cilium.yaml"
   }
@@ -234,7 +235,7 @@ resource "null_resource" "kustomization" {
       # Wait for k3s to become ready (we check one more time) because in some edge cases,
       # the cluster had become unvailable for a few seconds, at this very instant.
       <<-EOT
-      timeout 120 bash <<EOF
+      timeout 180 bash <<EOF
         until [[ "\$(kubectl get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
           echo "Waiting for the cluster to become ready..."
           sleep 2
@@ -246,7 +247,8 @@ resource "null_resource" "kustomization" {
       # Ready, set, go for the kustomization
       "kubectl apply -k /var/post_install",
       "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
-      "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
+      "kubectl -n system-upgrade wait --for=condition=available --timeout=180s deployment/system-upgrade-controller",
+      "sleep 5", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
       "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
       local.using_klipper_lb || var.traefik_enabled == false ? [] : [
