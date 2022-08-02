@@ -19,19 +19,53 @@ module "control_planes" {
   server_type                = each.value.server_type
   ipv4_subnet_id             = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
   packages_to_install        = local.packages_to_install
+  dns_servers                = var.dns_servers
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
   private_ipv4 = cidrhost(hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
-  labels = {
-    "provisioner" = "terraform",
-    "engine"      = "k3s"
-  }
+  labels = merge(local.labels, local.labels_control_plane_node)
 
   depends_on = [
     hcloud_network_subnet.control_plane
   ]
+}
+
+resource "hcloud_load_balancer" "control_plane" {
+  count = var.use_control_plane_lb ? 1 : 0
+
+  load_balancer_type = var.load_balancer_type
+  name               = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}control-plane"
+  location           = var.load_balancer_location
+
+  labels = merge(local.labels, local.labels_control_plane_lb)
+}
+
+resource "hcloud_load_balancer_network" "control_plane" {
+  count = var.use_control_plane_lb ? 1 : 0
+
+  load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]
+  subnet_id        = hcloud_network_subnet.control_plane.*.id[0]
+}
+
+resource "hcloud_load_balancer_target" "load_balancer_target" {
+  count = var.use_control_plane_lb ? 1 : 0
+
+  depends_on       = [hcloud_load_balancer_network.control_plane]
+  type             = "label_selector"
+  load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]
+  label_selector   = join(",", [for k, v in merge(local.labels, local.labels_control_plane_node) : "${k}=${v}"])
+  use_private_ip   = true
+}
+
+resource "hcloud_load_balancer_service" "load_balancer_service" {
+  count = var.use_control_plane_lb ? 1 : 0
+
+  load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]
+  protocol         = "tcp"
+  destination_port = "6443"
+  listen_port      = "6443"
 }
 
 resource "null_resource" "control_planes" {
@@ -51,8 +85,12 @@ resource "null_resource" "control_planes" {
   # Generating k3s server config file
   provisioner "file" {
     content = yamlencode(merge({
-      node-name                   = module.control_planes[each.key].name
-      server                      = length(module.control_planes) == 1 ? null : "https://${module.control_planes[each.key].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ? module.control_planes[keys(module.control_planes)[1]].private_ipv4_address : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+      node-name = module.control_planes[each.key].name
+      server = length(module.control_planes) == 1 ? null : "https://${
+        var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] :
+        module.control_planes[each.key].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
+        module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
+      module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token                       = random_password.k3s_token.result
       disable-cloud-controller    = true
       disable                     = local.disable_extras

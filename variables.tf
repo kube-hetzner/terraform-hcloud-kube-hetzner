@@ -211,12 +211,12 @@ variable "enable_rancher" {
 
 variable "rancher_install_channel" {
   type        = string
-  default     = "stable"
+  default     = "latest"
   description = "Rancher install channel"
 
   validation {
-    condition     = contains(["stable", "latest", "alpha"], var.rancher_install_channel)
-    error_message = "The allowed values for the Rancher install channel are stable, latest, or alpha."
+    condition     = contains(["stable", "latest"], var.rancher_install_channel)
+    error_message = "The allowed values for the Rancher install channel are stable or latest."
   }
 }
 
@@ -257,8 +257,20 @@ variable "block_icmp_ping_in" {
   description = "Block ICMP ping in"
 }
 
+variable "use_control_plane_lb" {
+  type        = bool
+  default     = false
+  description = "When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability"
+}
+
+variable "dns_servers" {
+  type        = list(string)
+  default     = ["1.1.1.1", " 1.0.0.1", "8.8.8.8"]
+  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner"
+}
+
 variable "extra_packages_to_install" {
-  description = "Extra packages to install"
   type        = list(string)
   default     = []
+  description = "A list of additional packages to install on nodes"
 }

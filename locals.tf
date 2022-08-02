@@ -79,9 +79,9 @@ locals {
   allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
 
   # Default k3s node taints
-  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/master:NoSchedule"])
+  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
 
-  packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client"] : [], [], var.extra_packages_to_install)
+  packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client"] : [], var.extra_packages_to_install)
 
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
@@ -221,4 +221,21 @@ locals {
       ]
     }
   ])
+
+  labels = {
+    "provisioner" = "terraform",
+    "engine"      = "k3s"
+    "cluster"     = var.cluster_name
+  }
+
+  labels_control_plane_node = {
+    role = "control_plane_node"
+  }
+  labels_control_plane_lb = {
+    role = "control_plane_lb"
+  }
+
+  labels_agent_node = {
+    role = "agent_node"
+  }
 }

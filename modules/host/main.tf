@@ -2,7 +2,7 @@ resource "random_string" "server" {
   length  = 3
   lower   = true
   special = false
-  numeric  = false
+  numeric = false
   upper   = false
 
   keepers = {
@@ -15,7 +15,7 @@ resource "random_string" "identity_file" {
   length  = 20
   lower   = true
   special = false
-  numeric  = true
+  numeric = true
   upper   = false
 }
 
@@ -146,6 +146,7 @@ data "cloudinit_config" "config" {
       {
         hostname          = local.name
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        dnsServers        = var.dns_servers
       }
     )
   }

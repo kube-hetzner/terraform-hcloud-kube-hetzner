@@ -19,13 +19,11 @@ module "agents" {
   server_type                = each.value.server_type
   ipv4_subnet_id             = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
   packages_to_install        = local.packages_to_install
+  dns_servers                = var.dns_servers
 
   private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
-  labels = {
-    "provisioner" = "terraform",
-    "engine"      = "k3s"
-  }
+  labels = merge(local.labels, local.labels_agent_node)
 
   depends_on = [
     hcloud_network_subnet.agent
@@ -50,7 +48,7 @@ resource "null_resource" "agents" {
   provisioner "file" {
     content = yamlencode({
       node-name     = module.agents[each.key].name
-      server        = "https://${module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+      server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token         = random_password.k3s_token.result
       kubelet-arg   = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
       flannel-iface = "eth1"

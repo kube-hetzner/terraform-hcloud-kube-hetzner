@@ -15,7 +15,7 @@ spec:
     matchExpressions:
       - {key: k3s_upgrade, operator: Exists}
       - {key: k3s_upgrade, operator: NotIn, values: ["disabled", "false"]}
-      - {key: node-role.kubernetes.io/master, operator: NotIn, values: ["true"]}
+      - {key: node-role.kubernetes.io/control-plane, operator: NotIn, values: ["true"]}
   tolerations:
     - {key: server-usage, effect: NoSchedule, operator: Equal, value: storage}
   prepare:
@@ -43,9 +43,9 @@ spec:
     matchExpressions:
       - {key: k3s_upgrade, operator: Exists}
       - {key: k3s_upgrade, operator: NotIn, values: ["disabled", "false"]}
-      - {key: node-role.kubernetes.io/master, operator: In, values: ["true"]}
+      - {key: node-role.kubernetes.io/control-plane, operator: In, values: ["true"]}
   tolerations:
-    - {key: node-role.kubernetes.io/master, effect: NoSchedule, operator: Exists}
+    - {key: node-role.kubernetes.io/control-plane, effect: NoSchedule, operator: Exists}
     - {key: CriticalAddonsOnly, effect: NoExecute, operator: Exists}
   cordon: true
   upgrade:
