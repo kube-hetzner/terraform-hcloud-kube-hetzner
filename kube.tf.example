@@ -204,14 +204,14 @@ module "kube-hetzner" {
   # use_klipper_lb = "true"
 
   # If you want to configure a different CNI for k3s, use this flag
-  # possible values: flannel (Default), calico
-  # Cilium or other would be easy to add, you can mirror how Calico was added. PRs are welcome!
+  # possible values: flannel (Default), calico, and cilium
   # CAVEATS: Calico is not supported when not using the Hetzner LB (like when use_klipper_lb is set to true or when using a single node cluster),
   # because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
-  # cni_plugin = "calico"
+  # As for Cilium, we allow infinite configurations, please check the CNI section of the readme over at https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/#cni.
+  # cni_plugin = "cilium"
 
   # If you want to disable the k3s default network policy controller, use this flag!
-  # Calico overrides this value to true automatically, the default is "false".
+  # Both Calico and Ciliun cni_plugin values override this value to true automatically, the default is "false".
   # disable_network_policy = true
 
   # If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/
