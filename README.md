@@ -101,7 +101,7 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 ## CNI
 
-The default is flannel, but you can also choose Calico or Cilium, by setting the cni_plugin variable in `kube.tf` to `calico` or `cilium`. For both, you can create a HelmChartConfig to edit their respective configuration post cluster deploy!
+The default is flannel, but you can also choose Calico or Cilium, by setting the cni_plugin variable in `kube.tf` to `calico` or `cilium`.
 
 As Cilium has a lot of interesting and powerful configurations possibility. We give you the possibiliy to add a `cilium_values.yaml` file to the root of your module before you deploy your cluster, the same place where you have your `kube.tf` file. This file must be of the same format as the Cilium Helm [values.yaml](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml) file, but with the values you want to modify. You can also find the default values that we use in the [cilium.yaml.tpl](https://github.com/kube-hetzner/kube-hetzner/blob/master/templates/cilium.yaml.tpl) file. During the deploy, Terraform will test to see if this file is present and if so will use those values to deploy the Cilium Helm chart.
 
