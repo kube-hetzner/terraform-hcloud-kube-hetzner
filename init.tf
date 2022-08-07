@@ -183,7 +183,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/longhorn.yaml.tpl",
       {
         disable_hetzner_csi = var.disable_hetzner_csi,
-        longhorn_fstype = var.longhorn_fstype == null ? "ext4" : var.longhorn_fstype
+        longhorn_fstype = var.longhorn_fstype == null ? "ext4" : var.longhorn_fstype,
         longhorn_replica_count = var.longhorn_replica_count == null ? 3 : var.longhorn_replica_count
     })
     destination = "/var/post_install/longhorn.yaml"
