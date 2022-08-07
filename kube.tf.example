@@ -134,6 +134,12 @@ module "kube-hetzner" {
   # To use local storage on the nodes, you can enable Longhorn, default is "false".
   # enable_longhorn = true
 
+  # file system for longhorn, if enabled (ext4 is the default, otherwise you can choose xfs)
+  # longhorn_fstype = "xfs"
+
+  # how many replica volumes should longhorn create? (default is 3)
+  # longhorn_replica_count = 1
+
   # To disable Hetzner CSI storage, you can set the following to true, default is "false".
   # disable_hetzner_csi = true
 

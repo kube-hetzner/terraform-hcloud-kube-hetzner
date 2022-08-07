@@ -196,6 +196,18 @@ variable "enable_longhorn" {
   description = "Enable Longhorn"
 }
 
+variable "longhorn_fstype" {
+  type        = string
+  default     = false
+  description = "ext4 or xfs longhorn fstype"
+}
+
+variable "longhorn_replica_count" {
+  type        = number
+  default     = 3
+  description = "Number of replicas per longhorn volume"
+}
+
 variable "disable_hetzner_csi" {
   type        = bool
   default     = false
