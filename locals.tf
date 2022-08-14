@@ -248,7 +248,6 @@ locals {
 
   cni_install_resources = {
     "calico" = ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"]
-    "cilium" = ["cilium.yaml"]
   }
 
   cni_install_resource_patches = {
@@ -269,8 +268,6 @@ locals {
     }
   }
 
-  # ToDo: The cilium.yaml file after it has been copied to the server currently has wrong indentation causing the helm template to fail.
-  # After manually correcting the file on the server the installation works fine and the taint is removed as planned, so fixing the indentation is up next.
   default_cilium_values = <<EOT
 ipam:
  operator:

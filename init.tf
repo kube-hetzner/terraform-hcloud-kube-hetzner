@@ -162,7 +162,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        values = indent(4, trimspace(fileexists("cilium_values.yaml") ? file("cilium_values.yaml") : local.default_cilium_values))
+        values = trimspace(fileexists("cilium_values.yaml") ? file("cilium_values.yaml") : local.default_cilium_values)
     })
     destination = "/tmp/cilium.yaml"
   }
@@ -249,6 +249,7 @@ resource "null_resource" "kustomization" {
       # We can't use the HelmChart custom resource to install cilium due to the fact that it does not tolerate the cilium taint.
       # ToDo: See ToDo in locals.tf. Also: Refactor - e.g. do not install helm by pipe to bash, pin cilium chart version etc.
       # Use something like this (the example below is non working) after apply instead of sleep to check until cilium has removed the taint from all nodes
+      # Might not even be required due to pods from the remaining kustomization pending until taint is removed? Needs testing.
       # timeout 300 bash <<EOF
       #   until [[ -n "\$(kubectl get nodes -o jsonpath=’{.items[].spec.taints[?(@.effect==“NoExecute”)].effect}{"\t"}{.items[].metadata.name}’)" ]]; do
       #     echo "Waiting for the cluster to become ready..."
@@ -260,7 +261,7 @@ resource "null_resource" "kustomization" {
         curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
         helm repo add cilium https://helm.cilium.io/
         helm template cilium cilium/cilium --namespace kube-system --values /tmp/cilium.yaml --include-crds | kubectl apply -f -
-        sleep 60
+        sleep 30
         rm -rf /tmp/cilium.yaml
         EOT
       ] : []
