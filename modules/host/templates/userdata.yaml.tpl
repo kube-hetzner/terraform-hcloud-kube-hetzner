@@ -10,6 +10,7 @@ write_files:
 
 # Disable ssh password authentication
 - content: |
+    Port ${sshPort}
     PasswordAuthentication no
     X11Forwarding no
     MaxAuthTries 2
