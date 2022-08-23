@@ -8,6 +8,11 @@ variable "base_domain" {
   type        = string
 }
 
+variable "ssh_port" {
+  description = "SSH port"
+  type        = string
+}
+
 variable "ssh_public_key" {
   description = "SSH public Key"
   type        = string
