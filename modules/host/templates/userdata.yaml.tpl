@@ -51,6 +51,8 @@ preserve_hostname: true
 
 runcmd:
 
+- [sed, '-i', '/Port /d', /etc/ssh/sshd_config]
+
 # As above, make sure the hostname is not reset
 - [sed, '-i', 's/NETCONFIG_NIS_SETDOMAINNAME="yes"/NETCONFIG_NIS_SETDOMAINNAME="no"/g', /etc/sysconfig/network/config]
 - [sed, '-i', 's/DHCLIENT_SET_HOSTNAME="yes"/DHCLIENT_SET_HOSTNAME="no"/g', /etc/sysconfig/network/dhcp]
