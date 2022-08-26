@@ -4,6 +4,12 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "ssh_port" {
+  description = "SSH port."
+  type        = string
+  default     = 22
+}
+
 variable "ssh_public_key" {
   description = "SSH public Key."
   type        = string
