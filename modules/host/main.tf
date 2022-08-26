@@ -47,10 +47,9 @@ resource "hcloud_server" "server" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = self.ipv4_address
-    port           = var.ssh_port
   }
 
-  # Prepare ssh identity file
+  # Prepare ssh identity file 
   provisioner "local-exec" {
     command = <<-EOT
       install -b -m 600 /dev/null /tmp/${random_string.identity_file.id}
@@ -60,17 +59,6 @@ resource "hcloud_server" "server" {
 
   # Install MicroOS
   provisioner "remote-exec" {
-    connection {
-      user           = "root"
-      private_key    = var.ssh_private_key
-      agent_identity = local.ssh_agent_identity
-      host           = self.ipv4_address
-
-      # We cannot use different ports here as this runs inside Hetzner Rescue image and thus uses the
-      # standard 22 TCP port.
-      #port = var.ssh_port
-    }
-
     inline = [
       "set -ex",
       "apt-get update",
@@ -80,17 +68,11 @@ resource "hcloud_server" "server" {
     ]
   }
 
-  # Issue a reboot command.
+  # Issue a reboot command and wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
     command = <<-EOT
       ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
-    EOT
-  }
-
-  # Wait for MicroOS to reboot and be ready.
-  provisioner "local-exec" {
-    command = <<-EOT
-      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
+      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 3
@@ -100,14 +82,6 @@ resource "hcloud_server" "server" {
 
   # Install k3s-selinux (compatible version) and open-iscsi
   provisioner "remote-exec" {
-    connection {
-      user           = "root"
-      private_key    = var.ssh_private_key
-      agent_identity = local.ssh_agent_identity
-      host           = self.ipv4_address
-      port           = var.ssh_port
-    }
-
     inline = [<<-EOT
       set -ex
       transactional-update shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
@@ -115,17 +89,11 @@ resource "hcloud_server" "server" {
     ]
   }
 
-  # Issue a reboot command.
+  # Issue a reboot command and wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
     command = <<-EOT
-      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -p ${var.ssh_port} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
-    EOT
-  }
-
-  # Wait for MicroOS to reboot and be ready
-  provisioner "local-exec" {
-    command = <<-EOT
-      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
+      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 3
@@ -177,7 +145,6 @@ data "cloudinit_config" "config" {
       "${path.module}/templates/userdata.yaml.tpl",
       {
         hostname          = local.name
-        sshPort           = var.ssh_port
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         dnsServers        = var.dns_servers
       }

@@ -133,19 +133,11 @@ locals {
       ]
     },
 
-    # Allow all traffic to the ssh ports
+    # Allow all traffic to the ssh port
     {
       direction = "in"
       protocol  = "tcp"
       port      = "22"
-      source_ips = [
-        "0.0.0.0/0"
-      ]
-    },
-    {
-      direction = "in"
-      protocol  = "tcp"
-      port      = var.ssh_port
       source_ips = [
         "0.0.0.0/0"
       ]

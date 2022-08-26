@@ -2,7 +2,7 @@
 data "remote_file" "kubeconfig" {
   conn {
     host        = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port        = var.ssh_port
+    port        = 22
     user        = "root"
     private_key = var.ssh_private_key
     agent       = var.ssh_private_key == null
