@@ -10,7 +10,6 @@ write_files:
 
 # Disable ssh password authentication
 - content: |
-    Port ${sshPort}
     PasswordAuthentication no
     X11Forwarding no
     MaxAuthTries 2
@@ -50,8 +49,6 @@ hostname: ${hostname}
 preserve_hostname: true
 
 runcmd:
-
-- [sed, '-i', '/Port /d', /etc/ssh/sshd_config]
 
 # As above, make sure the hostname is not reset
 - [sed, '-i', 's/NETCONFIG_NIS_SETDOMAINNAME="yes"/NETCONFIG_NIS_SETDOMAINNAME="no"/g', /etc/sysconfig/network/config]
