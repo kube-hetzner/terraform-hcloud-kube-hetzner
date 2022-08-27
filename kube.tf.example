@@ -23,8 +23,8 @@ module "kube-hetzner" {
   # This is to keep Terraform from re-provisioning all nodes at once, which would lose data. If you want to update
   # those, you should instead change the value here and manually re-provision each node. Grep for "lifecycle".
 
-  # Port intended for SSH use.
-  ssh_port = 22
+  # Customize the SSH port (by default 22)
+  # ssh_port = 2222
 
   # * Your ssh public key
   ssh_public_key = file("/home/username/.ssh/id_ed25519.pub")
