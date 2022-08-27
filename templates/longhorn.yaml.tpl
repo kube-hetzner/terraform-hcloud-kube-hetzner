@@ -29,6 +29,6 @@ spec:
     defaultSettings:
       defaultDataPath: /var/longhorn
     persistence:
-      defaultFsType: ext4
-      defaultClassReplicaCount: 3
+      defaultFsType: ${longhorn_fstype}
+      defaultClassReplicaCount: ${longhorn_replica_count}
       %{ if disable_hetzner_csi ~}defaultClass: true%{ else ~}defaultClass: false%{ endif ~}
