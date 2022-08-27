@@ -52,7 +52,7 @@ locals {
         server_type : nodepool_obj.server_type,
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
-        taints : nodepool_obj.taints,
+        taints : concat(local.default_agent_taints, nodepool_obj.taints),
         index : node_index
       }
     }
@@ -84,7 +84,9 @@ locals {
   allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
 
   # Default k3s node taints
-  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
+  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
+  default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
+
 
   packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client"] : [], var.extra_packages_to_install)
 
@@ -254,7 +256,6 @@ locals {
 
   cni_install_resources = {
     "calico" = ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"]
-    "cilium" = ["cilium.yaml"]
   }
 
   cni_install_resource_patches = {
