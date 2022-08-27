@@ -37,7 +37,9 @@ write_files:
     gpgkey=https://rpm.rancher.io/public.key
   path: /etc/zypp/repos.d/rancher-k3s-common.repo
 
-# Create the sshd_t.pp file
+# Create the sshd_t.pp file, that allows in SELinux custom SSH ports via "semodule -i",
+# the encoding is binary in base64, created on a test machine with "audit2allow -a -M sshd_t",
+# it is only applied when the port is different then 22, see below in the runcmd section.
 - content: !!binary |
     j/98+QEAAAABAAAAEAAAAI3/fPkPAAAAU0UgTGludXggTW9kdWxlAgAAABUAAAABAAAACAAAAAAA
     AAAGAAAAc3NoZF90AwAAADEuMEAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAIAAAAKAAAAAAAAAAIA
