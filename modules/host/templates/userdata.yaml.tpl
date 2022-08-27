@@ -81,9 +81,10 @@ preserve_hostname: true
 
 runcmd:
 
+%{ if sshPort != 22 }
 # SELinux permission for the SSH alternative port.
-- [semodule, '-i', /etc/selinux/sshd_t.pp]
-- [sleep, '10']
+- [semodule, '-vi', '/etc/selinux/sshd_t.pp']
+%{ endif }
 
 # As above, make sure the hostname is not reset
 - [sed, '-i', 's/NETCONFIG_NIS_SETDOMAINNAME="yes"/NETCONFIG_NIS_SETDOMAINNAME="no"/g', /etc/sysconfig/network/config]
@@ -103,4 +104,5 @@ runcmd:
 - [sed, '-i', 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g', /etc/snapper/configs/root]
 
 # Disables unneeded services
+- [systemctl, 'restart', 'sshd']
 - [systemctl, disable, '--now', 'rebootmgr.service']
