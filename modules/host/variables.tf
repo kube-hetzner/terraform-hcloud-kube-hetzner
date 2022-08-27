@@ -8,6 +8,16 @@ variable "base_domain" {
   type        = string
 }
 
+variable "ssh_port" {
+  description = "SSH port"
+  type        = number
+
+  validation {
+    condition     = var.ssh_port >= 0 && var.ssh_port <= 65535
+    error_message = "The ssh_port must use a valid range from 0 to 65535.."
+  }
+}
+
 variable "ssh_public_key" {
   description = "SSH public Key"
   type        = string
