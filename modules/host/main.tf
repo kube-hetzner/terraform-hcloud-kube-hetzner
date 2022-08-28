@@ -35,6 +35,8 @@ resource "hcloud_server" "server" {
   # Prevent destroying the whole cluster if the user changes
   # any of the attributes that force to recreate the servers.
   lifecycle {
+    create_before_destroy = true
+
     ignore_changes = [
       location,
       ssh_keys,

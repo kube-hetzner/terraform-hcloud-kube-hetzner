@@ -185,8 +185,8 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/longhorn.yaml.tpl",
       {
         disable_hetzner_csi    = var.disable_hetzner_csi,
-        longhorn_fstype        = var.longhorn_fstype == null ? "ext4" : var.longhorn_fstype,
-        longhorn_replica_count = var.longhorn_replica_count == null ? 3 : var.longhorn_replica_count
+        longhorn_fstype        = var.longhorn_fstype,
+        longhorn_replica_count = var.longhorn_replica_count
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -272,12 +272,12 @@ resource "null_resource" "kustomization" {
       ,
 
       [
-      # Ready, set, go for the kustomization
-      "kubectl apply -k /var/post_install",
-      "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
-      "kubectl -n system-upgrade wait --for=condition=available --timeout=180s deployment/system-upgrade-controller",
-      "sleep 5", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
-      "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
+        # Ready, set, go for the kustomization
+        "kubectl apply -k /var/post_install",
+        "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
+        "kubectl -n system-upgrade wait --for=condition=available --timeout=180s deployment/system-upgrade-controller",
+        "sleep 5", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
+        "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
       local.using_klipper_lb || var.traefik_enabled == false ? [] : [
         <<-EOT

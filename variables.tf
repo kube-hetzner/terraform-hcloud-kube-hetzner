@@ -11,7 +11,7 @@ variable "ssh_port" {
 
   validation {
     condition     = var.ssh_port >= 0 && var.ssh_port <= 65535
-    error_message = "The ssh_port must use a valid range from 0 to 65535.."
+    error_message = "The SSH port must use a valid range from 0 to 65535."
   }
 }
 
@@ -209,9 +209,15 @@ variable "enable_longhorn" {
 
 variable "longhorn_fstype" {
   type        = string
-  default     = false
-  description = "ext4 or xfs longhorn fstype"
+  default     = "ext4"
+  description = "The longhorn fstype"
+
+  validation {
+    condition     = contains(["ext4", "xfs"], var.longhorn_fstype)
+    error_message = "Must be one of \"ext4\" or \"xfs\""
+  }
 }
+
 
 variable "longhorn_replica_count" {
   type        = number
