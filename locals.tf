@@ -84,8 +84,8 @@ locals {
   allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
 
   # Default k3s node taints
-  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["CriticalAddonsOnly=true:NoSchedule"], var.cni_plugin == "cilium" ? ["node.kubernetes.io/not-ready:NoSchedule"] : [])
-  default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["CriticalAddonsOnly=true:NoSchedule"] : [])
+  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
+  default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
 
   packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client"] : [], var.extra_packages_to_install)
@@ -292,7 +292,6 @@ ipam:
   clusterPoolIPv4PodCIDRList:
    - ${local.cluster_cidr_ipv4}
 devices: "eth1"
-agent-not-ready-taint-key: "CriticalAddonsOnly"
 EOT
 }
 
