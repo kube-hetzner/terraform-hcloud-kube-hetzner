@@ -87,7 +87,7 @@
 | <a name="input_load_balancer_disable_ipv6"></a> [load\_balancer\_disable\_ipv6](#input\_load\_balancer\_disable\_ipv6) | Disable ipv6 for the load balancer | `bool` | `false` | no |
 | <a name="input_load_balancer_location"></a> [load\_balancer\_location](#input\_load\_balancer\_location) | Default load balancer location | `string` | `"fsn1"` | no |
 | <a name="input_load_balancer_type"></a> [load\_balancer\_type](#input\_load\_balancer\_type) | Default load balancer server type | `string` | `"lb11"` | no |
-| <a name="input_longhorn_fstype"></a> [longhorn\_fstype](#input\_longhorn\_fstype) | ext4 or xfs longhorn fstype | `string` | `false` | no |
+| <a name="input_longhorn_fstype"></a> [longhorn\_fstype](#input\_longhorn\_fstype) | The longhorn fstype | `string` | `"ext4"` | no |
 | <a name="input_longhorn_replica_count"></a> [longhorn\_replica\_count](#input\_longhorn\_replica\_count) | Number of replicas per longhorn volume | `number` | `3` | no |
 | <a name="input_metrics_server_enabled"></a> [metrics\_server\_enabled](#input\_metrics\_server\_enabled) | Whether to enable or disbale k3s mertric server | `bool` | `true` | no |
 | <a name="input_network_region"></a> [network\_region](#input\_network\_region) | Default region for network | `string` | `"eu-central"` | no |
