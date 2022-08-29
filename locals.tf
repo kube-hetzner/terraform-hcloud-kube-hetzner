@@ -84,8 +84,8 @@ locals {
   allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
 
   # Default k3s node taints
-  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
-  default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
+  default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["CriticalAddonsOnly=true:NoSchedule"], var.cni_plugin == "cilium" ? ["node.kubernetes.io/not-ready:NoSchedule"] : [])
+  default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["CriticalAddonsOnly=true:NoSchedule"] : [])
 
 
   packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client"] : [], var.extra_packages_to_install)
@@ -235,6 +235,15 @@ locals {
         "0.0.0.0/0"
       ]
     }
+    ], var.cni_plugin != "cilium" ? [] : [
+    {
+      direction = "in"
+      protocol  = "tcp"
+      port      = "4244-4245"
+      source_ips = [
+        "0.0.0.0/0"
+      ]
+    }
   ])
 
   labels = {
@@ -256,6 +265,7 @@ locals {
 
   cni_install_resources = {
     "calico" = ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"]
+    "cilium" = ["cilium.yaml"]
   }
 
   cni_install_resource_patches = {
@@ -282,6 +292,7 @@ ipam:
   clusterPoolIPv4PodCIDRList:
    - ${local.cluster_cidr_ipv4}
 devices: "eth1"
+agent-not-ready-taint-key: "CriticalAddonsOnly"
 EOT
 }
 
