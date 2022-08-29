@@ -272,6 +272,7 @@ resource "null_resource" "kustomization" {
   depends_on = [
     null_resource.first_control_plane,
     local_sensitive_file.kubeconfig,
-    random_password.rancher_bootstrap
+    random_password.rancher_bootstrap,
+    hcloud_volume.volume
   ]
 }
