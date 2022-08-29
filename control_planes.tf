@@ -10,6 +10,7 @@ module "control_planes" {
   name                       = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   base_domain                = var.base_domain
   ssh_keys                   = [local.hcloud_ssh_key_id]
+  ssh_port                   = var.ssh_port
   ssh_public_key             = var.ssh_public_key
   ssh_private_key            = var.ssh_private_key
   ssh_additional_public_keys = var.ssh_additional_public_keys
@@ -80,6 +81,7 @@ resource "null_resource" "control_planes" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[each.key].ipv4_address
+    port           = var.ssh_port
   }
 
   # Generating k3s server config file
@@ -94,19 +96,20 @@ resource "null_resource" "control_planes" {
       token                       = random_password.k3s_token.result
       disable-cloud-controller    = true
       disable                     = local.disable_extras
-      flannel-iface               = "eth1"
       kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
       kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+      flannel-iface               = "eth1"
       node-ip                     = module.control_planes[each.key].private_ipv4_address
       advertise-address           = module.control_planes[each.key].private_ipv4_address
       node-label                  = each.value.labels
       node-taint                  = each.value.taints
-      disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
       write-kubeconfig-mode       = "0644" # needed for import into rancher
       },
-      var.cni_plugin == "calico" ? {
-        flannel-backend = "none"
-    } : {}))
+      lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+      var.use_control_plane_lb ? {
+        tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
+      } : {}
+    ))
 
     destination = "/tmp/config.yaml"
   }

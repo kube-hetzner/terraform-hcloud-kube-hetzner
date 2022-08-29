@@ -4,6 +4,17 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "ssh_port" {
+  description = "SSH port."
+  type        = number
+  default     = 22
+
+  validation {
+    condition     = var.ssh_port >= 0 && var.ssh_port <= 65535
+    error_message = "The SSH port must use a valid range from 0 to 65535."
+  }
+}
+
 variable "ssh_public_key" {
   description = "SSH public Key."
   type        = string
@@ -176,19 +187,42 @@ variable "placement_group_disable" {
 variable "disable_network_policy" {
   type        = bool
   default     = false
-  description = "Disable k3s default network policy controller (default false, automatically true for calico)"
+  description = "Disable k3s default network policy controller (default false, automatically true for calico and cilium)"
 }
 
 variable "cni_plugin" {
   type        = string
   default     = "flannel"
   description = "CNI plugin for k3s"
+
+  validation {
+    condition     = contains(["flannel", "calico", "cilium"], var.cni_plugin)
+    error_message = "cni_plugin must be one of \"flannel\", \"calico\", or \"cilium\""
+  }
 }
 
 variable "enable_longhorn" {
   type        = bool
   default     = false
   description = "Enable Longhorn"
+}
+
+variable "longhorn_fstype" {
+  type        = string
+  default     = "ext4"
+  description = "The longhorn fstype"
+
+  validation {
+    condition     = contains(["ext4", "xfs"], var.longhorn_fstype)
+    error_message = "Must be one of \"ext4\" or \"xfs\""
+  }
+}
+
+
+variable "longhorn_replica_count" {
+  type        = number
+  default     = 3
+  description = "Number of replicas per longhorn volume"
 }
 
 variable "disable_hetzner_csi" {

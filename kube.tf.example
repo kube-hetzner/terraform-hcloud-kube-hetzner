@@ -23,6 +23,9 @@ module "kube-hetzner" {
   # This is to keep Terraform from re-provisioning all nodes at once, which would lose data. If you want to update
   # those, you should instead change the value here and manually re-provision each node. Grep for "lifecycle".
 
+  # Customize the SSH port (by default 22)
+  # ssh_port = 2222
+
   # * Your ssh public key
   ssh_public_key = file("/home/username/.ssh/id_ed25519.pub")
   # * Your private key must be "ssh_private_key = null" when you want to use ssh-agent for a Yubikey-like device authentification or an SSH key-pair with a passphrase.
@@ -134,6 +137,12 @@ module "kube-hetzner" {
   # To use local storage on the nodes, you can enable Longhorn, default is "false".
   # enable_longhorn = true
 
+  # The file system type for Longhorn, if enabled (ext4 is the default, otherwise you can choose xfs)
+  # longhorn_fstype = "xfs"
+
+  # how many replica volumes should longhorn create (default is 3)
+  # longhorn_replica_count = 1
+
   # To disable Hetzner CSI storage, you can set the following to true, default is "false".
   # disable_hetzner_csi = true
 
@@ -204,14 +213,14 @@ module "kube-hetzner" {
   # use_klipper_lb = "true"
 
   # If you want to configure a different CNI for k3s, use this flag
-  # possible values: flannel (Default), calico
-  # Cilium or other would be easy to add, you can mirror how Calico was added. PRs are welcome!
+  # possible values: flannel (Default), calico, and cilium
   # CAVEATS: Calico is not supported when not using the Hetzner LB (like when use_klipper_lb is set to true or when using a single node cluster),
   # because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
-  # cni_plugin = "calico"
+  # As for Cilium, we allow infinite configurations, please check the CNI section of the readme over at https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/#cni.
+  # cni_plugin = "cilium"
 
   # If you want to disable the k3s default network policy controller, use this flag!
-  # Calico overrides this value to true automatically, the default is "false".
+  # Both Calico and Ciliun cni_plugin values override this value to true automatically, the default is "false".
   # disable_network_policy = true
 
   # If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/

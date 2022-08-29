@@ -10,6 +10,7 @@ module "agents" {
   name                       = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   base_domain                = var.base_domain
   ssh_keys                   = [local.hcloud_ssh_key_id]
+  ssh_port                   = var.ssh_port
   ssh_public_key             = var.ssh_public_key
   ssh_private_key            = var.ssh_private_key
   ssh_additional_public_keys = var.ssh_additional_public_keys
@@ -42,6 +43,7 @@ resource "null_resource" "agents" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.agents[each.key].ipv4_address
+    port           = var.ssh_port
   }
 
   # Generating k3s agent config file
