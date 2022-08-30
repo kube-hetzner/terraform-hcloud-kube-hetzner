@@ -115,6 +115,7 @@ module "kube-hetzner" {
       name        = "storage",
       server_type = "cpx21",
       location    = "fsn1",
+      # Fully optional, just a demo
       labels = [
         "node.kubernetes.io/server-usage=storage"
       ],
@@ -122,6 +123,9 @@ module "kube-hetzner" {
         "server-usage=storage:NoSchedule"
       ],
       count = 1
+      # In the case of using Longhorn, you can use Hetzner volumes instead of using the node's own storage by specifying a value from 10 to 10000 (in GB)
+      # It will create one volume per node in the nodepool, and configure Longhorn to use them.
+      # longhorn_volume_size = 20
     }
   ]
 
@@ -142,6 +146,15 @@ module "kube-hetzner" {
 
   # how many replica volumes should longhorn create (default is 3)
   # longhorn_replica_count = 1
+
+  # When you enable Longhorn, you can go with the default settings and just modify the above two variables OR you can copy the longhorn_values.yaml.example
+  # file to longhorn_value.yaml and put it at the base of your own module, next to your kube.tf, this is Longhorn's own helm values file, 
+  # all possible values can be found here https://github.com/longhorn/longhorn/blob/master/chart/values.yaml. If that file is present, the system will use it
+  # during the deploy, if not it will use the default values with the two variable above that can be customized.
+
+  # Also, you choose to create a hetzner volume to be used with Longhorn. By default, it will use the nodes own storage space, BUT if you an attribute of
+  # longhorn_volume_size with a value of 10 to 10000 GB to your agent nodepool definition, it will create and use the volume in question.
+  # See the agent nodepool section for an example of how to do that.
 
   # To disable Hetzner CSI storage, you can set the following to true, default is "false".
   # disable_hetzner_csi = true
@@ -283,7 +296,7 @@ terraform {
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.33.2"
+      version = ">= 1.35.1"
     }
   }
 }

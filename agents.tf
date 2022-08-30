@@ -87,3 +87,47 @@ resource "null_resource" "agents" {
     hcloud_network_subnet.agent
   ]
 }
+
+resource "hcloud_volume" "longhorn_volume" {
+  for_each = { for k, v in local.agent_nodes : k => v if lookup(v, "longhorn_volume_size", 0) >= 10 && lookup(v, "longhorn_volume_size", 0) <= 10000 }
+
+  labels = {
+    provisioner = "terraform"
+    scope       = "longhorn"
+  }
+  name      = "longhorn-${module.agents[each.key].name}"
+  size      = lookup(local.agent_nodes[each.key], "longhorn_volume_size", 0)
+  server_id = module.agents[each.key].id
+  automount = true
+  format    = var.longhorn_fstype
+}
+
+resource "null_resource" "configure_longhorn_volume" {
+  for_each = { for k, v in local.agent_nodes : k => v if lookup(v, "longhorn_volume_size", 0) >= 10 && lookup(v, "longhorn_volume_size", 0) <= 10000 }
+
+  triggers = {
+    agent_id = module.agents[each.key].id
+  }
+
+  # Start the k3s agent and wait for it to have started
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir /var/longhorn >/dev/null 2>&1",
+      "mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn",
+      var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs" + " ${hcloud_volume.longhorn_volume[each.key].linux_device}",
+      "echo '${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
+    ]
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = module.agents[each.key].ipv4_address
+    port           = var.ssh_port
+  }
+
+  depends_on = [
+    hcloud_volume.longhorn_volume
+  ]
+}

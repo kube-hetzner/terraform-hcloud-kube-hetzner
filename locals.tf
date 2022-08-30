@@ -293,5 +293,14 @@ ipam:
    - ${local.cluster_cidr_ipv4}
 devices: "eth1"
 EOT
+
+  default_longhorn_values = <<EOT
+defaultSettings:
+  defaultDataPath: /var/longhorn
+persistence:
+  defaultFsType: ${var.longhorn_fstype}
+  defaultClassReplicaCount: ${var.longhorn_replica_count}
+  %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
+  EOT
 }
 
