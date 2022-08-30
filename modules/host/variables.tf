@@ -8,6 +8,11 @@ variable "base_domain" {
   type        = string
 }
 
+variable "ssh_port" {
+  description = "SSH port"
+  type        = number
+}
+
 variable "ssh_public_key" {
   description = "SSH public Key"
   type        = string
@@ -82,13 +87,4 @@ variable "dns_servers" {
 variable "disable_public_interface" {
   type    = bool
   default = false
-}
-
-variable "rebootmgr_mode" {
-  type    = string
-  default = "disabled"
-  validation {
-    condition     = contains(["disabled", "immediate"], var.rebootmgr_mode)
-    error_message = "Set the mode of the reboot manager, typically for nodes this is handled by kured, and should be disabled"
-  }
 }

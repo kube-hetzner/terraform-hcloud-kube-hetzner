@@ -4,6 +4,7 @@ resource "null_resource" "first_control_plane" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    port           = var.ssh_port
   }
 
   # Generating k3s master config file
@@ -14,19 +15,18 @@ resource "null_resource" "first_control_plane" {
       cluster-init                = true
       disable-cloud-controller    = true
       disable                     = local.disable_extras
-      flannel-iface               = "eth1"
       kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
       kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+      flannel-iface               = "eth1"
       node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
       node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
       node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
-      disable-network-policy      = var.cni_plugin == "calico" ? true : var.disable_network_policy
       },
-      var.cni_plugin == "calico" ? {
-        flannel-backend = "none"
-      } : {},
-    var.use_control_plane_lb ? { tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]] } : {}))
+      lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+      var.use_control_plane_lb ? {
+        tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
+    } : {}))
 
     destination = "/tmp/config.yaml"
   }
@@ -82,6 +82,7 @@ resource "null_resource" "kustomization" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    port           = var.ssh_port
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
@@ -100,7 +101,7 @@ resource "null_resource" "kustomization" {
           "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"
         ],
         var.traefik_enabled ? ["traefik_config.yaml"] : [],
-        var.cni_plugin == "calico" ? ["https://projectcalico.docs.tigera.io/manifests/calico.yaml"] : [],
+        lookup(local.cni_install_resources, var.cni_plugin, []),
         var.enable_longhorn ? ["longhorn.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
         var.enable_rancher ? ["rancher.yaml"] : [],
@@ -112,7 +113,7 @@ resource "null_resource" "kustomization" {
           file("${path.module}/kustomize/system-upgrade-controller.yaml"),
           "ccm.yaml",
         ],
-        var.cni_plugin == "calico" ? ["calico.yaml"] : []
+        lookup(local.cni_install_resource_patches, var.cni_plugin, [])
       )
     })
     destination = "/var/post_install/kustomization.yaml"
@@ -158,6 +159,16 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/calico.yaml"
   }
 
+  # Upload the cilium install file
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/cilium.yaml.tpl",
+      {
+        values = indent(4, trimspace(fileexists("cilium_values.yaml") ? file("cilium_values.yaml") : local.default_cilium_values))
+    })
+    destination = "/var/post_install/cilium.yaml"
+  }
+
   # Upload the system upgrade controller plans config
   provisioner "file" {
     content = templatefile(
@@ -173,7 +184,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/longhorn.yaml.tpl",
       {
-        disable_hetzner_csi = var.disable_hetzner_csi
+        values = indent(4, trimspace(fileexists("longhorn_values.yaml") ? file("longhorn_values.yaml") : local.default_longhorn_values))
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -226,20 +237,23 @@ resource "null_resource" "kustomization" {
       # Wait for k3s to become ready (we check one more time) because in some edge cases,
       # the cluster had become unvailable for a few seconds, at this very instant.
       <<-EOT
-      timeout 120 bash <<EOF
+      timeout 180 bash <<EOF
         until [[ "\$(kubectl get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
           echo "Waiting for the cluster to become ready..."
           sleep 2
         done
       EOF
       EOT
+      ]
       ,
 
-      # Ready, set, go for the kustomization
-      "kubectl apply -k /var/post_install",
-      "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
-      "kubectl -n system-upgrade wait --for=condition=available --timeout=120s deployment/system-upgrade-controller",
-      "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
+      [
+        # Ready, set, go for the kustomization
+        "kubectl apply -k /var/post_install",
+        "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
+        "kubectl -n system-upgrade wait --for=condition=available --timeout=180s deployment/system-upgrade-controller",
+        "sleep 5", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
+        "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
       local.using_klipper_lb || var.traefik_enabled == false ? [] : [
         <<-EOT
@@ -256,6 +270,7 @@ resource "null_resource" "kustomization" {
   depends_on = [
     null_resource.first_control_plane,
     local_sensitive_file.kubeconfig,
-    random_password.rancher_bootstrap
+    random_password.rancher_bootstrap,
+    hcloud_volume.longhorn_volume
   ]
 }

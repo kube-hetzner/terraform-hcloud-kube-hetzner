@@ -26,9 +26,4 @@ spec:
   repo: https://charts.rancher.io
   targetNamespace: longhorn-system
   valuesContent: |-
-    defaultSettings:
-      defaultDataPath: /var/longhorn
-    persistence:
-      defaultFsType: ext4
-      defaultClassReplicaCount: 3
-      %{ if disable_hetzner_csi ~}defaultClass: true%{ else ~}defaultClass: false%{ endif ~}
+    ${values}

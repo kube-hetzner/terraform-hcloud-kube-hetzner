@@ -1,0 +1,8 @@
+# All Longhorn helm values can be found at https://github.com/longhorn/longhorn/blob/master/chart/values.yaml
+
+defaultSettings:
+  defaultDataPath: /var/longhorn
+persistence:
+  defaultFsType: ext4
+  defaultClassReplicaCount: 3
+  defaultClass: true
