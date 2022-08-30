@@ -88,22 +88,22 @@ resource "null_resource" "agents" {
   ]
 }
 
-resource "hcloud_volume" "volume" {
-  for_each = { for key, val in local.agent_nodes : key => val if val.longhorn_volume_size >= 10 }
+resource "hcloud_volume" "longhorn_volume" {
+  for_each = { for k, v in local.agent_nodes : k => v if lookup(v, "longhorn_volume_size", 0) >= 10 && lookup(v, "longhorn_volume_size", 0) <= 10000 }
 
   labels = {
     provisioner = "terraform"
     scope       = "longhorn"
   }
   name      = "longhorn-${module.agents[each.key].name}"
-  size      = local.agent_nodes[each.key].longhorn_volume_size
+  size      = lookup(local.agent_nodes[each.key], "longhorn_volume_size", 0)
   server_id = module.agents[each.key].id
   automount = true
-  format    = "ext4"
+  format    = var.longhorn_fstype
 }
 
-resource "null_resource" "configure_volumes" {
-  for_each = { for key, val in local.agent_nodes : key => val if val.longhorn_volume_size >= 10 }
+resource "null_resource" "configure_longhorn_volume" {
+  for_each = { for k, v in local.agent_nodes : k => v if lookup(v, "longhorn_volume_size", 0) >= 10 && lookup(v, "longhorn_volume_size", 0) <= 10000 }
 
   triggers = {
     agent_id = module.agents[each.key].id
@@ -113,9 +113,9 @@ resource "null_resource" "configure_volumes" {
   provisioner "remote-exec" {
     inline = [
       "mkdir /var/longhorn >/dev/null 2>&1",
-      "mount -o discard,defaults ${hcloud_volume.volume[each.key].linux_device} /var/longhorn",
-      "resize2fs ${hcloud_volume.volume[each.key].linux_device}",
-      "echo '${hcloud_volume.volume[each.key].linux_device} /var/longhorn ext4 discard,nofail,defaults 0 0' >> /etc/fstab"
+      "mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn",
+      var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs" + " ${hcloud_volume.longhorn_volume[each.key].linux_device}",
+      "echo '${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
     ]
   }
 
@@ -124,9 +124,10 @@ resource "null_resource" "configure_volumes" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.agents[each.key].ipv4_address
+    port           = var.ssh_port
   }
 
   depends_on = [
-    hcloud_volume.volume
+    hcloud_volume.longhorn_volume
   ]
 }

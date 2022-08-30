@@ -184,9 +184,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/longhorn.yaml.tpl",
       {
-        disable_hetzner_csi    = var.disable_hetzner_csi,
-        longhorn_fstype        = var.longhorn_fstype,
-        longhorn_replica_count = var.longhorn_replica_count
+        values = indent(4, trimspace(fileexists("longhorn_values.yaml") ? file("longhorn_values.yaml") : local.default_longhorn_values))
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -273,6 +271,6 @@ resource "null_resource" "kustomization" {
     null_resource.first_control_plane,
     local_sensitive_file.kubeconfig,
     random_password.rancher_bootstrap,
-    hcloud_volume.volume
+    hcloud_volume.longhorn_volume
   ]
 }
