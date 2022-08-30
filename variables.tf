@@ -128,8 +128,8 @@ variable "initial_k3s_channel" {
   description = "Allows you to specify an initial k3s channel"
 
   validation {
-    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24"], var.initial_k3s_channel)
-    error_message = "The initial k3s channel must be one of stable, latest or testing."
+    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25"], var.initial_k3s_channel)
+    error_message = "The initial k3s channel must be one of stable, latest or testing, or any of the minor kube versions like v1.22."
   }
 }
 
