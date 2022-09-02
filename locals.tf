@@ -50,6 +50,7 @@ locals {
       format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
         nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
+        longhorn_volume_size : lookup(nodepool_obj, "longhorn_volume_size", 0),
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
