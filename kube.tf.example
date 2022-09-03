@@ -169,8 +169,8 @@ module "kube-hetzner" {
   # If you want to enable the Nginx ingress controller instead of Traefik, you can set this to "true". Default is "false". 
   # FOR THIS TO NOT BE IGNORED, you also need to set "enable_traefik = false".
   # By the default we load an optimal Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
-  # we allow you to add a nginx_values.yaml file to the root of your module, next to the kube.tf file, it is simply a helm values config file.
-  # See the nginx_values.yaml.example located at the root of this project.
+  # we allow you to add a nginx_ingress_values.yaml file to the root of your module, next to the kube.tf file, it is simply a helm values config file.
+  # See the nginx_ingress_values.yaml.example located at the root of this project.
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # enable_nginx = true
 
