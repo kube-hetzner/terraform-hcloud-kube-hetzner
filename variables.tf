@@ -1,11 +1,11 @@
 variable "hcloud_token" {
-  description = "Hetzner Cloud API Token"
+  description = "Hetzner Cloud API Token."
   type        = string
   sensitive   = true
 }
 
 variable "ssh_port" {
-  description = "SSH port."
+  description = "The main SSH port to connect to the nodes."
   type        = number
   default     = 22
 
@@ -27,7 +27,7 @@ variable "ssh_private_key" {
 }
 
 variable "ssh_additional_public_keys" {
-  description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes"
+  description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes."
   type        = list(string)
   default     = []
 }
@@ -39,25 +39,25 @@ variable "hcloud_ssh_key_id" {
 }
 
 variable "network_region" {
-  description = "Default region for network"
+  description = "Default region for network."
   type        = string
   default     = "eu-central"
 }
 
 variable "load_balancer_location" {
-  description = "Default load balancer location"
+  description = "Default load balancer location."
   type        = string
   default     = "fsn1"
 }
 
 variable "load_balancer_type" {
-  description = "Default load balancer server type"
+  description = "Default load balancer server type."
   type        = string
   default     = "lb11"
 }
 
 variable "load_balancer_disable_ipv6" {
-  description = "Disable ipv6 for the load balancer"
+  description = "Disable ipv6 for the load balancer."
   type        = bool
   default     = false
 }
@@ -77,13 +77,13 @@ variable "agent_nodepools" {
 variable "hetzner_ccm_version" {
   type        = string
   default     = null
-  description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud"
+  description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud."
 }
 
 variable "hetzner_csi_version" {
   type        = string
   default     = null
-  description = "Version of Container Storage Interface driver for Hetzner Cloud"
+  description = "Version of Container Storage Interface driver for Hetzner Cloud."
 }
 
 variable "kured_version" {
@@ -92,40 +92,58 @@ variable "kured_version" {
   description = "Version of Kured"
 }
 
-variable "traefik_enabled" {
+variable "enable_nginx" {
+  type        = bool
+  default     = false
+  description = "Whether to enable or disbale the installation of the Nginx Ingress Controller."
+}
+
+variable "enable_klipper_metal_lb" {
+  type        = bool
+  default     = false
+  description = "Use klipper load balancer."
+}
+
+variable "enable_traefik" {
   type        = bool
   default     = true
-  description = "Whether to enable or disbale k3s traefik installation"
+  description = "Whether to enable or disable the installation of the Traefik Ingress Controller."
 }
 
 variable "traefik_acme_tls" {
   type        = bool
   default     = false
-  description = "Whether to include the TLS configuration with the Traefik configuration"
+  description = "Whether to include the TLS configuration with the Traefik configuration."
 }
 
 variable "traefik_acme_email" {
   type        = string
-  default     = false
-  description = "Email used to recieved expiration notice for certificate"
+  default     = ""
+  description = "Email used to recieved expiration notice for certificate."
+}
+
+variable "traefik_additional_options" {
+  type        = list(string)
+  default     = []
+  description = "Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file."
 }
 
 variable "allow_scheduling_on_control_plane" {
   type        = bool
   default     = false
-  description = "Whether to allow non-control-plane workloads to run on the control-plane nodes"
+  description = "Whether to allow non-control-plane workloads to run on the control-plane nodes."
 }
 
-variable "metrics_server_enabled" {
+variable "enable_metrics_server" {
   type        = bool
   default     = true
-  description = "Whether to enable or disbale k3s mertric server"
+  description = "Whether to enable or disbale k3s mertric server."
 }
 
 variable "initial_k3s_channel" {
   type        = string
   default     = "stable"
-  description = "Allows you to specify an initial k3s channel"
+  description = "Allows you to specify an initial k3s channel."
 
   validation {
     condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25"], var.initial_k3s_channel)
@@ -136,25 +154,25 @@ variable "initial_k3s_channel" {
 variable "automatically_upgrade_k3s" {
   type        = bool
   default     = true
-  description = "Whether to automatically upgrade k3s based on the selected channel"
+  description = "Whether to automatically upgrade k3s based on the selected channel."
 }
 
 variable "extra_firewall_rules" {
   type        = list(any)
   default     = []
-  description = "Additional firewall rules to apply to the cluster"
+  description = "Additional firewall rules to apply to the cluster."
 }
 
 variable "use_cluster_name_in_node_name" {
   type        = bool
   default     = true
-  description = "Whether to use the cluster name in the node name"
+  description = "Whether to use the cluster name in the node name."
 }
 
 variable "cluster_name" {
   type        = string
   default     = "k3s"
-  description = "Name of the cluster"
+  description = "Name of the cluster."
 
   validation {
     condition     = can(regex("^[a-z1-9\\-]+$", var.cluster_name))
@@ -165,7 +183,7 @@ variable "cluster_name" {
 variable "base_domain" {
   type        = string
   default     = ""
-  description = "Base domain of the cluster, used for reserve dns"
+  description = "Base domain of the cluster, used for reserve dns."
 
   validation {
     condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.base_domain)) || var.base_domain == ""
@@ -173,44 +191,39 @@ variable "base_domain" {
   }
 }
 
-variable "traefik_additional_options" {
-  type    = list(string)
-  default = []
-}
-
 variable "placement_group_disable" {
   type        = bool
   default     = false
-  description = "Whether to disable placement groups"
+  description = "Whether to disable placement groups."
 }
 
 variable "disable_network_policy" {
   type        = bool
   default     = false
-  description = "Disable k3s default network policy controller (default false, automatically true for calico and cilium)"
+  description = "Disable k3s default network policy controller (default false, automatically true for calico and cilium)."
 }
 
 variable "cni_plugin" {
   type        = string
   default     = "flannel"
-  description = "CNI plugin for k3s"
+  description = "CNI plugin for k3s."
 
   validation {
     condition     = contains(["flannel", "calico", "cilium"], var.cni_plugin)
-    error_message = "cni_plugin must be one of \"flannel\", \"calico\", or \"cilium\""
+    error_message = "The cni_plugin must be one of \"flannel\", \"calico\", or \"cilium\"."
   }
 }
 
 variable "enable_longhorn" {
   type        = bool
   default     = false
-  description = "Enable Longhorn"
+  description = "Whether of not to enable Longhorn."
 }
 
 variable "longhorn_fstype" {
   type        = string
   default     = "ext4"
-  description = "The longhorn fstype"
+  description = "The longhorn fstype."
 
   validation {
     condition     = contains(["ext4", "xfs"], var.longhorn_fstype)
@@ -222,31 +235,31 @@ variable "longhorn_fstype" {
 variable "longhorn_replica_count" {
   type        = number
   default     = 3
-  description = "Number of replicas per longhorn volume"
+  description = "Number of replicas per longhorn volume."
 }
 
 variable "disable_hetzner_csi" {
   type        = bool
   default     = false
-  description = "Disable hetzner csi driver"
+  description = "Disable hetzner csi driver."
 }
 
 variable "enable_cert_manager" {
   type        = bool
   default     = false
-  description = "Enable cert manager"
+  description = "Enable cert manager."
 }
 
 variable "enable_rancher" {
   type        = bool
   default     = false
-  description = "Enable rancher"
+  description = "Enable rancher."
 }
 
 variable "rancher_install_channel" {
   type        = string
-  default     = "latest"
-  description = "Rancher install channel"
+  default     = "stable"
+  description = "The rancher installation channel."
 
   validation {
     condition     = contains(["stable", "latest"], var.rancher_install_channel)
@@ -256,13 +269,18 @@ variable "rancher_install_channel" {
 
 variable "rancher_hostname" {
   type        = string
-  default     = "rancher.example.com"
-  description = "Enable rancher"
+  default     = ""
+  description = "The rancher hostname."
+
+  validation {
+    condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.rancher_hostname)) || var.rancher_hostname == ""
+    error_message = "It must be a valid domain name (FQDN)."
+  }
 }
 
 variable "rancher_registration_manifest_url" {
   type        = string
-  description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)"
+  description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)."
   default     = ""
   sensitive   = true
 }
@@ -270,7 +288,7 @@ variable "rancher_registration_manifest_url" {
 variable "rancher_bootstrap_password" {
   type        = string
   default     = ""
-  description = "Rancher bootstrap password"
+  description = "Rancher bootstrap password."
   sensitive   = true
 
   validation {
@@ -279,32 +297,26 @@ variable "rancher_bootstrap_password" {
   }
 }
 
-variable "use_klipper_lb" {
-  type        = bool
-  default     = false
-  description = "Use klipper load balancer"
-}
-
 variable "block_icmp_ping_in" {
   type        = bool
   default     = false
-  description = "Block ICMP ping in"
+  description = "Block entering ICMP ping."
 }
 
 variable "use_control_plane_lb" {
   type        = bool
   default     = false
-  description = "When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability"
+  description = "When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability."
 }
 
 variable "dns_servers" {
   type        = list(string)
   default     = ["1.1.1.1", " 1.0.0.1", "8.8.8.8"]
-  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner"
+  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner."
 }
 
 variable "extra_packages_to_install" {
   type        = list(string)
   default     = []
-  description = "A list of additional packages to install on nodes"
+  description = "A list of additional packages to install on nodes."
 }
