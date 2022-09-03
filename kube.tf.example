@@ -148,9 +148,9 @@ module "kube-hetzner" {
   # longhorn_replica_count = 1
 
   # When you enable Longhorn, you can go with the default settings and just modify the above two variables OR you can copy the longhorn_values.yaml.example
-  # file to longhorn_value.yaml and put it at the base of your own module, next to your kube.tf, this is Longhorn's own helm values file, 
-  # all possible values can be found here https://github.com/longhorn/longhorn/blob/master/chart/values.yaml. If that file is present, the system will use it
-  # during the deploy, if not it will use the default values with the two variable above that can be customized.
+  # file to longhorn_value.yaml and put it at the base of your own module, next to your kube.tf, this is Longhorn's own helm values file. 
+  # If that file is present, the system will use it during the deploy, if not it will use the default values with the two variable above that can be customized.
+  # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
 
   # Also, you choose to create a hetzner volume to be used with Longhorn. By default, it will use the nodes own storage space, BUT if you an attribute of
   # longhorn_volume_size with a value of 10 to 10000 GB to your agent nodepool definition, it will create and use the volume in question.
@@ -163,8 +163,24 @@ module "kube-hetzner" {
   # hetzner_ccm_version = ""
   # hetzner_csi_version = ""
 
-  # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available
+  # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available.
   # kured_version = ""
+
+  # If you want to enable the Nginx ingress controller instead of Traefik, you can set this to "true". Default is "false". 
+  # FOR THIS TO NOT BE IGNORED, you also need to set "enable_traefik = false".
+  # By the default we load an optimal Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
+  # we allow you to add a nginx_values.yaml file to the root of your module, next to the kube.tf file, it is simply a helm values config file.
+  # See the nginx_values.yaml.example located at the root of this project.
+  # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
+  # enable_nginx = true
+
+  # If you want to disable the Traefik ingress controller, to use the Nginx ingress controller for instance, you can can set this to "false". Default is "true".
+  # enable_traefik = false
+  
+  # Use the klipper LB, instead of the default Hetzner one, that has an advantage of dropping the cost of the setup,
+  # Automatically "true" in the case of single node cluster.
+  # It can work with any ingress controller that you choose to deploy.
+  # enable_klipper_metal_lb = "true"
 
   # We give you the possibility to use letsencrypt directly with Traefik because it's an easy setup, however it's not optimal,
   # as the free version of Traefik causes a little bit of downtime when when the certificates get renewed. For proper SSL management,
@@ -172,11 +188,13 @@ module "kube-hetzner" {
   # traefik_acme_tls = true
   # traefik_acme_email = "mail@example.com"
 
-  # If you want to disable the Traefik ingress controller, you can can set this to "false". Default is "true".
-  # traefik_enabled = false
+  # If you want to configure additional Arguments for traefik, enter them here as a list and in the form of traefik CLI arguments; see https://doc.traefik.io/traefik/reference/static-configuration/cli/
+  # They are the options that go into the additionalArguments section of the Traefik helm values file.
+  # Example: traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
+  # traefik_additional_options = []
 
   # If you want to disable the metric server, you can! Default is "true".
-  # metrics_server_enabled = false
+  # enable_metrics_server = false
 
   # If you want to allow non-control-plane workloads to run on the control-plane nodes, set "true" below. The default is "false".
   # True by default for single node clusters.
@@ -216,18 +234,9 @@ module "kube-hetzner" {
   #   }
   # ]
 
-  # If you want to configure additional Arguments for traefik, enter them here as a list and in the form of traefik CLI arguments; see https://doc.traefik.io/traefik/reference/static-configuration/cli/
-  # Example: traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
-  # traefik_additional_options = []
-
-  # Use the klipper LB, instead of the default Hetzner one, that has an advantage of dropping the cost of the setup,
-  # but you would need to point your DNS to every schedulable IPs in your cluster (usually agents). The default is "false".
-  # Automatically "true" in the case of single node cluster.
-  # use_klipper_lb = "true"
-
   # If you want to configure a different CNI for k3s, use this flag
   # possible values: flannel (Default), calico, and cilium
-  # CAVEATS: Calico is not supported when not using the Hetzner LB (like when use_klipper_lb is set to true or when using a single node cluster),
+  # CAVEATS: Calico is not supported when not using the Hetzner LB (like when enable_klipper_metal_lb is set to true or when using a single node cluster),
   # because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
   # As for Cilium, we allow infinite configurations, please check the CNI section of the readme over at https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/#cni.
   # cni_plugin = "cilium"
@@ -258,21 +267,21 @@ module "kube-hetzner" {
   # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own self-signed certificates.
   # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
   # The easiest thing is to leave everything as is (using the default rancher self-signed certificate) and put Cloudflare in front of it.
-  # As for the number of replicas, it is set to the numbe of control plane nodes.
-  # You can customized all of the above by creating and applying a HelmChartConfig to pass the helm chart values of your choice.
-  # See https://rancher.com/docs/k3s/latest/en/helm/ 
-  # and https://rancher.com/docs/rancher/v2.6/en/installation/install-rancher-on-k8s/chart-options/
+  # As for the number of replicas, by default it is set to the numbe of control plane nodes.
+  # You can customized all of the above by adding a rancher_values.yaml file at the root of your module, which is just a helm values file. 
+  # See the rancher_values.yaml.example file located at the root of the project.
+  # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # IMPORTANT: Rancher's install is quite memory intensive, you will require at least 4GB if RAM, meaning cx21 server type (for your control plane).
+  # ALSO, in order for Rancher to successfully deploy, you have to set the "rancher_hostname".
   # enable_rancher = true
+
+  # If using Rancher you can set the Rancher hostname, it must be unique hostname even if you do not use it.
+  # If not pointing the DNS, you can just port-forward locally via kubectl to get access to the dashboard.
+  # rancher_hostname = "rancher.xyz.dev"
 
   # When Rancher is deployed, by default is uses the "latest" channel. But this can be customized.
   # The allowed values are "stable" or "latest".
   # rancher_install_channel = "stable"
-
-  # Here you can set the Rancher hostname, the default is "rancher.example.com".
-  # It is a required value when using rancher, but up to you to point the DNS to it or not. 
-  # You can also not point the DNS, and just port-forward locally via kubectl to get access to the dashboard.
-  # rancher_hostname = "rancher.xyz.dev"
 
   # Finally, you can specify a bootstrap-password for your rancher instance. Minimum 48 characters long!
   # If you leave empty, one will be generated for you.

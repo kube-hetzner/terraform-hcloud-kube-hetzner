@@ -1,0 +1,8 @@
+# All Rancher helm values can be found at https://rancher.com/docs/rancher/v2.5/en/installation/install-rancher-on-k8s/chart-options/
+
+ingress:
+  tls:
+    source: "rancher"
+hostname: "rancher.example.com"
+replicas: 1
+bootstrapPassword: "supermario"

@@ -24,10 +24,12 @@ spec:
         "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
 %{ endif ~}
     additionalArguments:
+%{ if using_hetzner_lb ~}
       - "--entryPoints.web.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
       - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
+%{ endif ~}
 %{ for option in traefik_additional_options ~}
       - "${option}"
 %{ endfor ~}

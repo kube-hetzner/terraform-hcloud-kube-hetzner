@@ -71,12 +71,12 @@ locals {
   agent_count            = sum([for v in var.agent_nodepools : v.count])
   is_single_node_cluster = (local.control_plane_count + local.agent_count) == 1
 
-  using_klipper_lb = var.use_klipper_lb || local.is_single_node_cluster
+  using_klipper_lb = var.enable_klipper_metal_lb || local.is_single_node_cluster
 
   # disable k3s extras
-  disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], var.traefik_enabled ? [] : [
+  disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], var.enable_traefik ? [] : [
     "traefik"
-  ], var.metrics_server_enabled ? [] : ["metrics-server"])
+  ], var.enable_metrics_server ? [] : ["metrics-server"])
 
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
@@ -287,13 +287,24 @@ locals {
     }
   }
 
+  ingress_controller = var.enable_traefik ? "traefik" : var.enable_nginx ? "nginx" : "none"
+  ingress_controller_service_names = {
+    "traefik" = "traefik"
+    "nginx"   = "ngx-nginx-ingress"
+  }
+
+  ingress_controller_install_resources = {
+    "traefik" = ["traefik_config.yaml"]
+    "nginx"   = ["nginx_ingress.yaml"]
+  }
+
   default_cilium_values = <<EOT
 ipam:
  operator:
   clusterPoolIPv4PodCIDRList:
    - ${local.cluster_cidr_ipv4}
 devices: "eth1"
-EOT
+  EOT
 
   default_longhorn_values = <<EOT
 defaultSettings:
@@ -302,6 +313,29 @@ persistence:
   defaultFsType: ${var.longhorn_fstype}
   defaultClassReplicaCount: ${var.longhorn_replica_count}
   %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
+  EOT
+
+  default_nginx_ingress_values = <<EOT
+controller:
+  config:
+    "use-forwarded-headers": "true"
+    "compute-full-forwarded-for": "true"
+    "use-proxy-protocol": "true"
+  service:
+    annotations:
+      "load-balancer.hetzner.cloud/name": "${var.cluster_name}"
+      "load-balancer.hetzner.cloud/use-private-ip": "true"
+      "load-balancer.hetzner.cloud/disable-private-ingress": "true"
+      "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
+      "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
+      "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
+      "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+  EOT
+
+  default_rancher_values = <<EOT
+hostname: "${var.rancher_hostname}"
+replicas: ${length(local.control_plane_nodes)}
+bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
   EOT
 }
 
