@@ -14,7 +14,7 @@
   <h2 align="center">Kube-Hetzner</h2>
 
   <p align="center">
-    An optimal, easy-to-use, auto-upgradable, HA-default & Load-Balanced, Kubernetes cluster powered by k3s on MicroOS and deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 🚀
+    A highly optimized, easy-to-use, auto-upgradable, HA-default & Load-Balanced, Kubernetes cluster powered by k3s-on-MicroOS and deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 🚀
   </p>
   <hr />
 </p>
