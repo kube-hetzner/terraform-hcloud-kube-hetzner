@@ -120,7 +120,7 @@ resource "hcloud_server" "server" {
   # Issue a reboot command.
   provisioner "local-exec" {
     command = <<-EOT
-      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -p ${var.ssh_port} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -p ${var.ssh_port} root@${self.ipv4_address} '(sleep 3; reboot)&'; sleep 3
     EOT
   }
 
