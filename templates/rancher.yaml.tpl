@@ -14,9 +14,4 @@ spec:
   repo: https://releases.rancher.com/server-charts/${rancher_install_channel}
   targetNamespace: cattle-system
   valuesContent: |-
-    ingress:
-      tls:
-        source: rancher
-    hostname: ${rancher_hostname}
-    replicas: ${number_control_plane_nodes}
-    bootstrapPassword: ${rancher_bootstrap_password}
+    ${values}

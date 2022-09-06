@@ -100,7 +100,7 @@ resource "null_resource" "kustomization" {
         var.disable_hetzner_csi ? [] : [
           "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"
         ],
-        var.traefik_enabled ? ["traefik_config.yaml"] : [],
+        lookup(local.ingress_controller_install_resources, local.ingress_controller, []),
         lookup(local.cni_install_resources, var.cni_plugin, []),
         var.enable_longhorn ? ["longhorn.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
@@ -121,10 +121,10 @@ resource "null_resource" "kustomization" {
 
   # Upload traefik config
   provisioner "file" {
-    content = local.using_klipper_lb || var.traefik_enabled == false ? "" : templatefile(
+    content = templatefile(
       "${path.module}/templates/traefik_config.yaml.tpl",
       {
-        name                       = "${var.cluster_name}-traefik"
+        name                       = var.cluster_name
         load_balancer_disable_ipv6 = var.load_balancer_disable_ipv6
         load_balancer_type         = var.load_balancer_type
         location                   = var.load_balancer_location
@@ -134,6 +134,16 @@ resource "null_resource" "kustomization" {
         using_hetzner_lb           = !local.using_klipper_lb
     })
     destination = "/var/post_install/traefik_config.yaml"
+  }
+
+  # Upload nginx ingress controller config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/nginx_ingress.yaml.tpl",
+      {
+        values = indent(4, trimspace(fileexists("nginx_ingress_values.yaml") ? file("nginx_ingress_values.yaml") : local.default_nginx_ingress_values))
+    })
+    destination = "/var/post_install/nginx_ingress.yaml"
   }
 
   # Upload the CCM patch config
@@ -202,10 +212,8 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/rancher.yaml.tpl",
       {
-        rancher_install_channel    = var.rancher_install_channel
-        rancher_hostname           = var.rancher_hostname
-        rancher_bootstrap_password = length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password
-        number_control_plane_nodes = length(local.control_plane_nodes)
+        rancher_install_channel = var.rancher_install_channel
+        values                  = indent(4, trimspace(fileexists("rancher_values.yaml") ? file("rancher_values.yaml") : local.default_rancher_values))
     })
     destination = "/var/post_install/rancher.yaml"
   }
@@ -255,10 +263,10 @@ resource "null_resource" "kustomization" {
         "sleep 5", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
         "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
-      local.using_klipper_lb || var.traefik_enabled == false ? [] : [
+      local.using_klipper_lb || local.ingress_controller == "none" ? [] : [
         <<-EOT
-      timeout 120 bash <<EOF
-      until [ -n "\$(kubectl get -n kube-system service/traefik --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
+      timeout 180 bash <<EOF
+      until [ -n "\$(kubectl get -n kube-system service/${lookup(local.ingress_controller_service_names, local.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
           sleep 2
       done

@@ -14,7 +14,7 @@
   <h2 align="center">Kube-Hetzner</h2>
 
   <p align="center">
-    A highly optimized and auto-upgradable, HA-default & Load-Balanced, Kubernetes cluster powered by k3s-on-MicroOS and deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 🚀
+    A highly optimized, easy-to-use, auto-upgradable, HA-default & Load-Balanced, Kubernetes cluster powered by k3s-on-MicroOS and deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑 🚀
   </p>
   <hr />
 </p>
@@ -23,23 +23,24 @@
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
-This project aims to create an optimal and highly optimized Kubernetes installation that is easily maintained, secure and automatic upgrades. We aimed for functionality as close as possible to GKE's auto-pilot.
+This project aims to create a highly optimized Kubernetes installation that is easy to maintain, secure and automatically upgrades both the nodes and Kubernetes. We aimed for functionality as close as possible to GKE's Auto-Pilot.
 
-To achieve this, we built it on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the Kubernetes engine.
+To achieve this, we built it on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
 
 _Please note that we are not affiliates of Hetzner; this is just an open-source project striving to be an optimal solution for deploying and maintaining Kubernetes on Hetzner Cloud._
 
 ### Features
 
-- Maintenance-free with auto-upgrade to the latest version of MicroOS and k3s.
+- Maintenance-free with auto-upgrades to the latest version of MicroOS and k3s.
 - Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
+- Traefik or Nginx as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
 - Automatic HA with the default setting of three control-plane nodes and two agent nodes.
 - Super-HA: Nodepools for both control-plane and agent nodes can be in different locations.
 - Possibility to have a single node cluster with a proper ingress controller.
+- Can use Klipper as an "on-metal" LB instead of the Hetzner LB.
 - Ability to add nodes and nodepools when the cluster is running.
-- Traefik ingress controller attached to a Hetzner load balancer with proxy protocol turned on.
-- Possibility to turn Longhorn on, and optionally also turn Hetzner CSI off.
-- Ability to switch from Flannel to Calico or Cilium as CNI.
+- Possibility to turn Longhorn (using either Hetzner volumes or node storage), and/or Hetzner CSI.
+- Choose between Flannel (default), Calico, or Cilium as CNI.
 - Tons of flexible configuration options to suit all needs.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
@@ -101,9 +102,9 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 ## CNI
 
-The default is flannel, but you can also choose Calico or Cilium, by setting the cni_plugin variable in `kube.tf` to `calico` or `cilium`. For both, you can create a HelmChartConfig to edit their respective configuration post cluster deploy! Read more about HelmChartConfig [here](https://rancher.com/docs/k3s/latest/en/helm/#customizing-packaged-components-with-helmchartconfig).
+The default is Flannel, but you can also choose Calico or Cilium, by setting the `cni_plugin` variable in `kube.tf` to "calico" or "cilium".
 
-As Cilium has a lot of interesting and powerful configurations possibility. We give you the possibiliy to add a `cilium_values.yaml` file to the root of your module before you deploy your cluster, the same place where you have your `kube.tf` file. This file must be of the same format as the [Cilium values.yaml file](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml), but with the values you want to modify. You can also find the default values that we use in the [cilium.yaml.tpl][https://github.com/kube-hetzner/kube-hetzner/blob/master/templates/cilium.yaml.tpl] file. During the deploy, Terraform will test to see if this file is present and if so will use those values to deploy the Cilium Helm chart.
+As Cilium has a lot of interesting and powerful configurations possibility. We give you the possibiliy to add a `cilium_values.yaml` file to the root of your module before you deploy your cluster, the same place where you have your `kube.tf` file. This file must be of the same format as the Cilium [values.yaml file](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml), but with the values you want to modify. During the deploy, Terraform will test to see if this file is present and if so will use those values to deploy the Cilium Helm chart.
 
 ### Scaling Nodes
 
@@ -121,7 +122,7 @@ By default, we have three control planes and three agents configured, with autom
 
 If you want to remain HA (no downtime), it's essential to **keep a count of control planes nodes of at least three** (two minimum to maintain quorum when one goes down for automated upgrades and reboot), see [Rancher's doc on HA](https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/).
 
-Otherwise, it's essential to turn off automatic OS upgrades (k3s can continue to update without issue) for the control-plane nodes (when two or fewer control-plane nodes) and do the maintenance yourself.
+Otherwise, it is essential to turn off automatic OS upgrades (k3s can continue to update without issue) for the control-plane nodes (when two or fewer control-plane nodes) and do the maintenance yourself.
 
 ## Automatic Upgrade
 
@@ -162,6 +163,24 @@ Rarely needed, but can be handy in the long run. During the installation, we aut
 1. First create a duplicate of that file and name it `kustomization.yaml`, keeping the original file intact, in case you need to restore the old config.
 2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on Github, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
 3. Apply the the updated `kustomization.yaml` with `kubectl apply -k ./`.
+
+## Customizing the Cluster Components
+
+Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Chart](https://rancher.com/docs/k3s/latest/en/helm/) yaml definition and managed by the Helm Controller inside of k3s.
+
+By default, we strive to give you optimal defaults, but if you with to customize them, you can do so.
+
+### Before deploying
+
+In the case of Traefik, Rancher, and Longhorn, we provide you with variables to configure everything you need.
+
+On top of the above, for Nginx, Rancher, Cilium and Longhorn, for maximum flexibility, we give you the ability to add a Helm values.yaml file (for instance, `cilium_values.yaml`) to the root of your module, the same place where you have your `kube.tf` file. _You can find a `_values.yaml.example` value file for each listed component at the root of this project._
+
+### After deploying
+
+Once the Cluster is up and running, you can easily customize many components like Traefik, Nginx, Rancher, Cilium, Cert-Manager and Longhorn by using HelmChartConfig definitions. See the [examples](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples) section, for more information.
+
+For other components like Calico and Kured (which uses manifests), we automatically save a `kustomization_backup.yaml` file in the root of your module during the deploy, so you can use that as a starting point. This is also useful when creating the HelmChartConfig definitions, as both HelmChart and HelmChartConfig definitions are very similar.
 
 ## Examples
 
