@@ -1,4 +1,5 @@
 # All Nginx Ingress helm values can be found at https://github.com/kubernetes/ingress-nginx/blob/main/charts/ingress-nginx/values.yaml
+# You can also have a look at https://kubernetes.github.io/ingress-nginx/, to understand how it works, and all the options at your disposal.
 
 controller:
   # These options can be found here https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/

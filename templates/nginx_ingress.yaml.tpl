@@ -4,8 +4,8 @@ metadata:
   name: ngx
   namespace: kube-system
 spec:
-  chart: nginx-ingress
-  repo: https://helm.nginx.com/stable
+  chart: ingress-nginx
+  repo: https://kubernetes.github.io/ingress-nginx
   targetNamespace: kube-system
   bootstrap: true
   valuesContent: |-

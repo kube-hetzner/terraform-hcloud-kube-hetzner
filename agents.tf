@@ -89,7 +89,7 @@ resource "null_resource" "agents" {
 }
 
 resource "hcloud_volume" "longhorn_volume" {
-  for_each = { for k, v in local.agent_nodes : k => v if lookup(v, "longhorn_volume_size", 0) >= 10 && lookup(v, "longhorn_volume_size", 0) <= 10000 }
+  for_each = { for k, v in local.agent_nodes : k => v if((lookup(v, "longhorn_volume_size", 0) >= 10) && (lookup(v, "longhorn_volume_size", 0) <= 10000) && var.enable_longhorn) }
 
   labels = {
     provisioner = "terraform"
@@ -103,7 +103,7 @@ resource "hcloud_volume" "longhorn_volume" {
 }
 
 resource "null_resource" "configure_longhorn_volume" {
-  for_each = { for k, v in local.agent_nodes : k => v if lookup(v, "longhorn_volume_size", 0) >= 10 && lookup(v, "longhorn_volume_size", 0) <= 10000 }
+  for_each = { for k, v in local.agent_nodes : k => v if((lookup(v, "longhorn_volume_size", 0) >= 10) && (lookup(v, "longhorn_volume_size", 0) <= 10000) && var.enable_longhorn) }
 
   triggers = {
     agent_id = module.agents[each.key].id
@@ -114,7 +114,7 @@ resource "null_resource" "configure_longhorn_volume" {
     inline = [
       "mkdir /var/longhorn >/dev/null 2>&1",
       "mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn",
-      var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs" + " ${hcloud_volume.longhorn_volume[each.key].linux_device}",
+      "${var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
       "echo '${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
     ]
   }
