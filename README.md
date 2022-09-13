@@ -356,7 +356,7 @@ If you want to take down the cluster, you can proceed as follows:
 terraform destroy -auto-approve
 ```
 
-And if the network is slow to delete, just issue `hcloud load-balancer delete clustername-traefik` to speed things up! As the load-balancer is usually the ressoure that is the slowest to get deleted on its own.
+And if the network is slow to delete, just issue `hcloud load-balancer delete clustername` to speed things up! As the load-balancer is usually the ressoure that is the slowest to get deleted on its own.
 
 _Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation._
 
