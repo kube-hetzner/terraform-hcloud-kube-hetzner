@@ -317,6 +317,9 @@ persistence:
 
   default_nginx_ingress_values = <<EOT
 controller:
+  watchIngressWithoutClass: "true"
+  kind: "Deployment"
+  replicaCount: ${(local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1}
   config:
     "use-forwarded-headers": "true"
     "compute-full-forwarded-for": "true"
