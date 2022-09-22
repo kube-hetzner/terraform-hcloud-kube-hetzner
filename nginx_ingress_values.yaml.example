@@ -3,6 +3,8 @@
 
 controller:
   # These options can be found here https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/
+  watchIngressWithoutClass: "true"
+  kind: "DaemonSet"
   config:
     "use-forwarded-headers": "true"
     "compute-full-forwarded-for": "true"
