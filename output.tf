@@ -19,7 +19,12 @@ output "agents_public_ipv4" {
 
 output "load_balancer_public_ipv4" {
   description = "The public IPv4 address of the Hetzner load balancer"
-  value       = local.using_klipper_lb || local.ingress_controller == "none" ? null : data.hcloud_load_balancer.cluster[0].ipv4
+  value       = (local.using_klipper_lb || local.ingress_controller == "none") ? null : data.hcloud_load_balancer.cluster[0].ipv4
+}
+
+output "load_balancer_public_ipv6" {
+  description = "The public IPv6 address of the Hetzner load balancer"
+  value       = (local.using_klipper_lb || local.ingress_controller == "none" || var.load_balancer_disable_ipv6) ? null : data.hcloud_load_balancer.cluster[0].ipv6
 }
 
 output "kubeconfig_file" {
