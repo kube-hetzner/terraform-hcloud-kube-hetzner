@@ -106,12 +106,12 @@ resource "null_resource" "control_planes" {
           node-label                  = each.value.labels
           node-taint                  = each.value.taints
           write-kubeconfig-mode       = "0644" # needed for import into rancher
-          tls-san = []
+          tls-san                     = []
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
         var.use_control_plane_lb ? {
           tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
-        } : {
+          } : {
           tls-san = [
             module.control_planes[each.key].ipv4_address
           ]

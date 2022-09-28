@@ -28,7 +28,7 @@ resource "null_resource" "first_control_plane" {
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
         var.use_control_plane_lb ? {
           tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
-        } : {
+          } : {
           tls-san = [module.control_planes[keys(module.control_planes)[0]].ipv4_address]
         }
       )
