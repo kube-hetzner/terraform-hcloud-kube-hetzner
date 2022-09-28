@@ -9,24 +9,30 @@ resource "null_resource" "first_control_plane" {
 
   # Generating k3s master config file
   provisioner "file" {
-    content = yamlencode(merge({
-      node-name                   = module.control_planes[keys(module.control_planes)[0]].name
-      token                       = random_password.k3s_token.result
-      cluster-init                = true
-      disable-cloud-controller    = true
-      disable                     = local.disable_extras
-      kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
-      kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
-      flannel-iface               = "eth1"
-      node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
-      advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
-      node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
-      node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
-      },
-      lookup(local.cni_k3s_settings, var.cni_plugin, {}),
-      var.use_control_plane_lb ? {
-        tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
-    } : {}))
+    content = yamlencode(
+      merge(
+        {
+          node-name                   = module.control_planes[keys(module.control_planes)[0]].name
+          token                       = random_password.k3s_token.result
+          cluster-init                = true
+          disable-cloud-controller    = true
+          disable                     = local.disable_extras
+          kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+          kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+          flannel-iface               = "eth1"
+          node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+          advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+          node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
+          node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
+        },
+        lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+        var.use_control_plane_lb ? {
+          tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
+        } : {
+          tls-san = [module.control_planes[keys(module.control_planes)[0]].ipv4_address]
+        }
+      )
+    )
 
     destination = "/tmp/config.yaml"
   }
