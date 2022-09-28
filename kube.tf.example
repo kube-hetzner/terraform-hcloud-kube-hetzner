@@ -296,6 +296,13 @@ module "kube-hetzner" {
   # by Rancher in the wizard, and that would register your cluster too.
   # More information about the registration can be found here https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/
   # rancher_registration_manifest_url = "https://rancher.xyz.dev/v3/import/xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz.yaml"
+
+
+  # You can provide custom manifests for k3s to be automatically installed. See https://rancher.com/docs/k3s/latest/en/advanced/#auto-deploying-manifests
+  # IMPORTANT: When enabeld, a directory `extra-manifests` must exist beside the kube.tf file. 
+  # You can add any manifest files to this directory, this can be 
+  # `HelmChart`s or any other kubernetes resource. 
+  # extra_manifests_directory = true
 }
 
 provider "hcloud" {
