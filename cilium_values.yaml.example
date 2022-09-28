@@ -11,13 +11,6 @@ ipam:
 # program. When not specified, probing will automatically detect devices.
 devices: "eth1"
 
-# -- Configure the encapsulation configuration for communication between nodes.
-# Possible values:
-#   - disabled (native routing works, however it feels that geneve is more stable, but we may be wrong)
-#   - vxlan
-#   - geneve (it's basically a better version of vxlan)
-tunnel: geneve
-
 # -- Configure Kubernetes specific configuration
 k8s:
   # -- requireIPv4PodCIDR enables waiting for Kubernetes to provide the PodCIDR

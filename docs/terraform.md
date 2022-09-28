@@ -121,4 +121,5 @@
 | <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Structured kubeconfig data to supply to other providers |
 | <a name="output_kubeconfig_file"></a> [kubeconfig\_file](#output\_kubeconfig\_file) | Kubeconfig file content with external IP address |
 | <a name="output_load_balancer_public_ipv4"></a> [load\_balancer\_public\_ipv4](#output\_load\_balancer\_public\_ipv4) | The public IPv4 address of the Hetzner load balancer |
+| <a name="output_load_balancer_public_ipv6"></a> [load\_balancer\_public\_ipv6](#output\_load\_balancer\_public\_ipv6) | The public IPv6 address of the Hetzner load balancer |
 <!-- END_TF_DOCS -->

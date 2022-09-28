@@ -4,7 +4,7 @@ Kube-Hetzner requires you to have a recent version of OpenSSH (>=6.5) installed 
 - rsa-sha2-512
 - rsa-sha2-256
 
-If your key-pair is of the `ssh-ed25519` sort, and without of passphrase, you do not need to do anything else. Just set `public_key` and `private_key` to their respective path values in your terraform.tfvars.
+If your key-pair is of the `ssh-ed25519` sort, and without of passphrase, you do not need to do anything else. Just set `public_key` and `private_key` to their respective path values in your kube.tf file.
 
 ---
 
@@ -21,4 +21,4 @@ Verify it is loaded with:
 ssh-add -l
 ```
 
-Then set `private_key = null` in your terraform.tfvars, as it will be read from the ssh-agent automatically.
+Then set `private_key = null` in your kube.tf file, as it will be read from the ssh-agent automatically.
