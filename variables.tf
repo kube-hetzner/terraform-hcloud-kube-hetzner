@@ -321,7 +321,7 @@ variable "extra_packages_to_install" {
   description = "A list of additional packages to install on nodes."
 }
 
-variable "extra_manifests" {
+variable "extra_manifests_directory" {
   type = bool
   default = false
   description = "When this is enabled, all files from the `extra-manifests` directory will be auto-deployed via k3s"
