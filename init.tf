@@ -281,6 +281,18 @@ resource "null_resource" "kustomization" {
     ])
   }
 
+  provisioner "remote-exec" {
+      inline = [
+        "echo 'Create manifests dir'",
+        "mkdir -p /var/lib/rancher/k3s/server/manifests"
+      ]
+  }
+
+  provisioner "file" {
+    source = var.extra_manifests ? "extra-manifests/" : "${path.module}/extra-manifests/"
+    destination = "/var/lib/rancher/k3s/server/manifests"
+  }
+
   depends_on = [
     null_resource.first_control_plane,
     local_sensitive_file.kubeconfig,
