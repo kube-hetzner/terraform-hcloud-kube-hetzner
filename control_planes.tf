@@ -119,6 +119,7 @@ resource "null_resource" "control_planes" {
       )
     )
 
+    destination = "/tmp/config.yaml"
   }
 
   # Install k3s server
