@@ -153,7 +153,7 @@ module "kube-hetzner" {
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
 
   # Also, you choose to create a hetzner volume to be used with Longhorn. By default, it will use the nodes own storage space, BUT if you an attribute of
-  # longhorn_volume_size with a value of 10 to 10000 GB to your agent nodepool definition, it will create and use the volume in question.
+  # longhorn_volume_size (⚠️ not a variable, just a possible agent nodepool attribute) with a value of 10 to 10000 GB to your agent nodepool definition, it will create and use the volume in question.
   # See the agent nodepool section for an example of how to do that.
 
   # To disable Hetzner CSI storage, you can set the following to true, default is "false".
