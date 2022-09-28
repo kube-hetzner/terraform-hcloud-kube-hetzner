@@ -289,7 +289,7 @@ resource "null_resource" "kustomization" {
   }
 
   provisioner "file" {
-    source = var.extra_manifests ? "extra-manifests/" : "${path.module}/extra-manifests/"
+    source = var.extra_manifests_directory ? "extra-manifests/" : "${path.module}/extra-manifests/"
     destination = "/var/lib/rancher/k3s/server/manifests"
   }
 
