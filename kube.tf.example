@@ -298,11 +298,8 @@ module "kube-hetzner" {
   # rancher_registration_manifest_url = "https://rancher.xyz.dev/v3/import/xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz.yaml"
 
 
-  # You can provide custom manifests for k3s to be automatically installed. See https://rancher.com/docs/k3s/latest/en/advanced/#auto-deploying-manifests
-  # IMPORTANT: When enabeld, a directory `extra-manifests` must exist beside the kube.tf file. 
-  # You can add any manifest files to this directory, this can be 
-  # `HelmChart`s or any other kubernetes resource. 
-  # extra_manifests_directory = true
+  # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
+  # extra_kustomize_parameters={}
 }
 
 provider "hcloud" {

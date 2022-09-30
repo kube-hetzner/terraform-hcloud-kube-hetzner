@@ -321,8 +321,8 @@ variable "extra_packages_to_install" {
   description = "A list of additional packages to install on nodes."
 }
 
-variable "extra_manifests_directory" {
-  type = bool
-  default = false
-  description = "When this is enabled, all files from the `extra-manifests` directory will be auto-deployed via k3s"
+variable "extra_kustomize_parameters" {
+  type = map
+  default = {}
+  description = "All values will be passed to the `kustomization.tmp.yml` template."
 }
