@@ -296,6 +296,10 @@ module "kube-hetzner" {
   # by Rancher in the wizard, and that would register your cluster too.
   # More information about the registration can be found here https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/
   # rancher_registration_manifest_url = "https://rancher.xyz.dev/v3/import/xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz.yaml"
+
+
+  # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
+  # extra_kustomize_parameters={}
 }
 
 provider "hcloud" {

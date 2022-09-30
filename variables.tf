@@ -320,3 +320,9 @@ variable "extra_packages_to_install" {
   default     = []
   description = "A list of additional packages to install on nodes."
 }
+
+variable "extra_kustomize_parameters" {
+  type        = map(any)
+  default     = {}
+  description = "All values will be passed to the `kustomization.tmp.yml` template."
+}
