@@ -3,7 +3,7 @@ locals {
   user_kustomization_files  = toset([for p in fileset("extra-manifests", "**") : p if p != "kustomization.yaml.tpl"])
 }
 
-resource "null_resource" "kustomization_user_mkdir" {
+resource "null_resource" "kustomization_user" {
   count = local.user_kustomization_exists ? 1 : 0
   connection {
     user           = "root"
