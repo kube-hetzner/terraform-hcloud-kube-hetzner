@@ -182,7 +182,7 @@ Once the Cluster is up and running, you can easily customize many components lik
 
 For other components like Calico and Kured (which uses manifests), we automatically save a `kustomization_backup.yaml` file in the root of your module during the deploy, so you can use that as a starting point. This is also useful when creating the HelmChartConfig definitions, as both HelmChart and HelmChartConfig definitions are very similar.
 
-## Kustomization - Adding Extras
+## Adding Extras
 
 If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory besides your `kube.tf`. 
 
@@ -190,7 +190,7 @@ This file needs to be a valid `Kustomization` manifest, but it supports terrafor
 
 All files in the `extra-manifests` directory including the rendered version of `kustomization.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
-You can use that to pass all kinds of kubenertes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s).
+_You can use the above to pass all kinds of kubenertes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
 
 ## Examples
 
