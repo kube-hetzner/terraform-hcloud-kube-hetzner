@@ -322,7 +322,7 @@ variable "extra_packages_to_install" {
 }
 
 variable "extra_kustomize_parameters" {
-  type = map
-  default = {}
+  type        = map(any)
+  default     = {}
   description = "All values will be passed to the `kustomization.tmp.yml` template."
 }
