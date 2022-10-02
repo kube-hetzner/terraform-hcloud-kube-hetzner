@@ -24,6 +24,7 @@ resource "null_resource" "first_control_plane" {
           advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
           node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
+          disable-kube-proxy          = var.disable_kube_proxy
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
         var.use_control_plane_lb ? {
@@ -130,14 +131,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/traefik_config.yaml.tpl",
       {
-        name                       = var.cluster_name
-        load_balancer_disable_ipv6 = var.load_balancer_disable_ipv6
-        load_balancer_type         = var.load_balancer_type
-        location                   = var.load_balancer_location
-        traefik_acme_tls           = var.traefik_acme_tls
-        traefik_acme_email         = var.traefik_acme_email
-        traefik_additional_options = var.traefik_additional_options
-        using_hetzner_lb           = !local.using_klipper_lb
+        values = indent(4, trimspace(local.traefik_ingress_values))
     })
     destination = "/var/post_install/traefik_config.yaml"
   }
@@ -147,7 +141,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
-        values = indent(4, trimspace(fileexists("nginx_ingress_values.yaml") ? file("nginx_ingress_values.yaml") : local.default_nginx_ingress_values))
+        values = indent(4, trimspace(local.nginx_ingress_values))
     })
     destination = "/var/post_install/nginx_ingress.yaml"
   }
@@ -179,7 +173,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        values = indent(4, trimspace(fileexists("cilium_values.yaml") ? file("cilium_values.yaml") : local.default_cilium_values))
+        values = indent(4, trimspace(local.cilium_values))
     })
     destination = "/var/post_install/cilium.yaml"
   }
@@ -199,7 +193,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/longhorn.yaml.tpl",
       {
-        values = indent(4, trimspace(fileexists("longhorn_values.yaml") ? file("longhorn_values.yaml") : local.default_longhorn_values))
+        values = indent(4, trimspace(local.longhorn_values))
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -208,7 +202,9 @@ resource "null_resource" "kustomization" {
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/cert_manager.yaml.tpl",
-    {})
+    {
+      values = indent(4, trimspace(local.cert-manager_values))
+    })
     destination = "/var/post_install/cert_manager.yaml"
   }
 
@@ -218,7 +214,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/rancher.yaml.tpl",
       {
         rancher_install_channel = var.rancher_install_channel
-        values                  = indent(4, trimspace(fileexists("rancher_values.yaml") ? file("rancher_values.yaml") : local.default_rancher_values))
+        values                  = indent(4, trimspace(local.rancher_values))
     })
     destination = "/var/post_install/rancher.yaml"
   }

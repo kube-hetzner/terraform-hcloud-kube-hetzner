@@ -14,4 +14,14 @@ spec:
   repo: https://charts.jetstack.io
   targetNamespace: cert-manager
   valuesContent: |-
+    installCRDs: true
+
     ${values}
+
+    replicaCount: 3
+
+    webhook:
+      replicaCount: 3
+
+    cainjector:
+      replicaCount: 3
