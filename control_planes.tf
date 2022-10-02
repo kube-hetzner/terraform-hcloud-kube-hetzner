@@ -15,7 +15,7 @@ module "control_planes" {
   ssh_private_key            = var.ssh_private_key
   ssh_additional_public_keys = var.ssh_additional_public_keys
   firewall_ids               = [hcloud_firewall.k3s.id]
-  placement_group_id         = var.placement_group_disable ? 0 : element(hcloud_placement_group.control_plane.*.id, ceil(each.value.index / 10))
+  placement_group_id         = var.placement_group_disable ? 0 : hcloud_placement_group.control_plane[floor(each.value.index / 10)].id
   location                   = each.value.location
   server_type                = each.value.server_type
   ipv4_subnet_id             = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
