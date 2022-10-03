@@ -175,7 +175,7 @@ variable "cluster_name" {
   description = "Name of the cluster."
 
   validation {
-    condition     = can(regex("^[a-z1-9\\-]+$", var.cluster_name))
+    condition     = can(regex("^[a-z0-9\\-]+$", var.cluster_name))
     error_message = "The cluster name must be in the form of lowercase alphanumeric characters and/or dashes."
   }
 }
