@@ -73,6 +73,8 @@ locals {
 
   using_klipper_lb = var.enable_klipper_metal_lb || local.is_single_node_cluster
 
+  has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
+
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], var.enable_traefik ? [] : [
     "traefik"

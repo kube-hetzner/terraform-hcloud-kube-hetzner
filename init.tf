@@ -269,7 +269,7 @@ resource "null_resource" "kustomization" {
         "sleep 5", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
         "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
-      local.using_klipper_lb || local.ingress_controller == "none" ? [] : [
+      local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 180 bash <<EOF
       until [ -n "\$(kubectl get -n kube-system service/${lookup(local.ingress_controller_service_names, local.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
