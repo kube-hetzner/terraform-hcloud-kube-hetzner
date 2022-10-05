@@ -157,6 +157,12 @@ variable "automatically_upgrade_k3s" {
   description = "Whether to automatically upgrade k3s based on the selected channel."
 }
 
+variable "automatically_upgrade_os" {
+  type        = bool
+  default     = true
+  description = "Whether to enable or disable automatic os updates. Defaults to true. Should be disabled for single-node clusters"
+}
+
 variable "extra_firewall_rules" {
   type        = list(any)
   default     = []
