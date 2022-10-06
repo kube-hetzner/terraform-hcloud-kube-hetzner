@@ -13,7 +13,7 @@ module "kube-hetzner" {
   # could adapt them to your needs.
 
   # * For local dev, path to the git repo
-  # source = "../../kube-hetzner/" 
+  # source = "../../kube-hetzner/"
   # For normal use, this is the path to the terraform registry
   source = "kube-hetzner/kube-hetzner/hcloud"
   # you can optionally specify a version number
@@ -33,10 +33,10 @@ module "kube-hetzner" {
   ssh_private_key = file("/home/username/.ssh/id_ed25519")
   # You can add additional SSH public Keys to grant other team members root access to your cluster nodes.
   # ssh_additional_public_keys = []
-  
+
   # If you want to use an ssh key that is already registered within hetzner cloud, you can pass its id.
   # If no id is passed, a new ssh key will be registered within hetzner cloud.
-  # It is important that exactly this key is passed via `ssh_public_key` & `ssh_private_key` vars. 
+  # It is important that exactly this key is passed via `ssh_public_key` & `ssh_private_key` vars.
   # hcloud_ssh_key_id = ""
 
   # These can be customized, or left with the default values
@@ -62,7 +62,7 @@ module "kube-hetzner" {
   # The nodepool names are entirely arbitrary, you can choose whatever you want, but no special characters or underscore, and they must be unique; only alphanumeric characters and dashes are allowed.
 
   # If you want to have a single node cluster, have one control plane nodepools with a count of 1, and one agent nodepool with a count of 0.
-  
+
   # Please note that changing labels and taints after the first run will have no effect. If needed, you will need to do that through Kubernetes directly.
 
   # * Example below:
@@ -148,7 +148,7 @@ module "kube-hetzner" {
   # longhorn_replica_count = 1
 
   # When you enable Longhorn, you can go with the default settings and just modify the above two variables OR you can copy the longhorn_values.yaml.example
-  # file to longhorn_value.yaml and put it at the base of your own module, next to your kube.tf, this is Longhorn's own helm values file. 
+  # file to longhorn_value.yaml and put it at the base of your own module, next to your kube.tf, this is Longhorn's own helm values file.
   # If that file is present, the system will use it during the deploy, if not it will use the default values with the two variable above that can be customized.
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
 
@@ -166,7 +166,7 @@ module "kube-hetzner" {
   # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available.
   # kured_version = ""
 
-  # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "true". Default is "false". 
+  # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "true". Default is "false".
   # FOR THIS TO NOT BE IGNORED, you also need to set "enable_traefik = false".
   # By the default we load an optimal Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
   # we allow you to add a nginx_ingress_values.yaml file to the root of your module, next to the kube.tf file, it is simply a helm values config file.
@@ -176,7 +176,7 @@ module "kube-hetzner" {
 
   # If you want to disable the Traefik ingress controller, to use the Nginx ingress controller for instance, you can can set this to "false". Default is "true".
   # enable_traefik = false
-  
+
   # Use the klipper LB, instead of the default Hetzner one, that has an advantage of dropping the cost of the setup,
   # Automatically "true" in the case of single node cluster.
   # It can work with any ingress controller that you choose to deploy.
@@ -205,6 +205,12 @@ module "kube-hetzner" {
   # If you want to disable the automatic upgrade of k3s, you can set this to false. The default is "true".
   # automatically_upgrade_k3s = false
 
+
+  # If you want to disable the automatic upgrade of MicroOS, you can set this to false. The default is "true".
+  # This is recommend for non-HA clusters, because the nodes can't be drained properly and thus the reboot will fail.
+  # IMPORTANT: This is a security risk!
+  # automatically_upgrade_os = false
+
   # Allows you to specify either stable, latest, testing or supported minor versions (defaults to stable)
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # initial_k3s_channel = "latest"
@@ -224,14 +230,14 @@ module "kube-hetzner" {
   #     protocol        = "tcp"
   #     port            = "5432"
   #     source_ips      = ["0.0.0.0/0", "::/0"]
-  #     destination_ips = [] # Won't be used for this rule 
+  #     destination_ips = [] # Won't be used for this rule
   #   },
   #   # To Allow ArgoCD access to resources via SSH
   #   {
   #     direction       = "out"
   #     protocol        = "tcp"
   #     port            = "22"
-  #     source_ips      = [] # Won't be used for this rule 
+  #     source_ips      = [] # Won't be used for this rule
   #     destination_ips = ["0.0.0.0/0", "::/0"]
   #   }
   # ]
@@ -270,7 +276,7 @@ module "kube-hetzner" {
   # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
   # The easiest thing is to leave everything as is (using the default rancher self-signed certificate) and put Cloudflare in front of it.
   # As for the number of replicas, by default it is set to the numbe of control plane nodes.
-  # You can customized all of the above by adding a rancher_values.yaml file at the root of your module, which is just a helm values file. 
+  # You can customized all of the above by adding a rancher_values.yaml file at the root of your module, which is just a helm values file.
   # See the rancher_values.yaml.example file located at the root of the project.
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # IMPORTANT: Rancher's install is quite memory intensive, you will require at least 4GB if RAM, meaning cx21 server type (for your control plane).

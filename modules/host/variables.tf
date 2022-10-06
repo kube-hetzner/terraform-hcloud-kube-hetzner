@@ -83,3 +83,8 @@ variable "dns_servers" {
   type        = list(string)
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner"
 }
+
+variable "automatically_upgrade_os" {
+  type    = bool
+  default = true
+}

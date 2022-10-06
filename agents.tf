@@ -26,6 +26,8 @@ module "agents" {
 
   labels = merge(local.labels, local.labels_agent_node)
 
+  automatically_upgrade_os = var.automatically_upgrade_os
+
   depends_on = [
     hcloud_network_subnet.agent
   ]
