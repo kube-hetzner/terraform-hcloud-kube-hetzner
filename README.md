@@ -305,8 +305,9 @@ spec:
 
 <summary>Single-node cluster</summary>
 
-Running a development cluster on a single node without any high availability is also possible. You need one control plane nodepool with a count of 1 and one agent nodepool with a count of 0. Also set the variable `hetzner_ccm_version="v1.12.1"` which will ensure that workloads can be executed on the control plane and prevent some errors.
-Additionally `automatically_upgrade_os` should be set to `false`, especially with attached volumes the automatic reboots won't work properly.
+Running a development cluster on a single node without any high availability is also possible.
+
+When doing so, `automatically_upgrade_os` should be set to `false`, especially with attached volumes the automatic reboots won't work properly.
 In this case, we don't deploy an external load-balancer but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
 
 </details>

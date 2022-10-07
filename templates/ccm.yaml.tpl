@@ -15,9 +15,6 @@ spec:
             - "--allow-untagged-cloud"
             - "--allocate-node-cidrs=true"
             - "--cluster-cidr=${cluster_cidr_ipv4}"
-%{ if allow_scheduling_on_control_plane ~}
-            - "--feature-gates=LegacyNodeRoleBehavior=false" 
-%{ endif ~}
           env:
             - name: "HCLOUD_LOAD_BALANCERS_LOCATION"
               value: "${default_lb_location}"
