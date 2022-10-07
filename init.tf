@@ -157,10 +157,9 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/ccm.yaml.tpl",
       {
-        cluster_cidr_ipv4                 = local.cluster_cidr_ipv4
-        allow_scheduling_on_control_plane = local.allow_scheduling_on_control_plane
-        default_lb_location               = var.load_balancer_location
-        using_hetzner_lb                  = !local.using_klipper_lb
+        cluster_cidr_ipv4   = local.cluster_cidr_ipv4
+        default_lb_location = var.load_balancer_location
+        using_hetzner_lb    = !local.using_klipper_lb
     })
     destination = "/var/post_install/ccm.yaml"
   }
