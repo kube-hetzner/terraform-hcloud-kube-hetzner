@@ -1,4 +1,3 @@
-
 data "remote_file" "kubeconfig" {
   conn {
     host        = module.control_planes[keys(module.control_planes)[0]].ipv4_address

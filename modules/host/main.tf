@@ -113,6 +113,7 @@ resource "hcloud_server" "server" {
     inline = [<<-EOT
       set -ex
       transactional-update shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
+      sleep 1 && udevadm settle
       EOT
     ]
   }
@@ -155,11 +156,11 @@ resource "hcloud_server" "server" {
 
   provisioner "remote-exec" {
     inline = var.automatically_upgrade_os ? [<<-EOT
-      echo "Automatic updates stay enabled"
+      echo "Automatic OS updates are enabled"
       EOT
       ] : [
       <<-EOT
-      echo "Automatic updates are disabled"
+      echo "Automatic OS updates are disabled"
       systemctl --now disable transactional-update.timer
       EOT
     ]

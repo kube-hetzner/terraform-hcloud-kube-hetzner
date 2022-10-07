@@ -108,7 +108,6 @@ resource "null_resource" "control_planes" {
           node-label                  = each.value.labels
           node-taint                  = each.value.taints
           write-kubeconfig-mode       = "0644" # needed for import into rancher
-          tls-san                     = []
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
         var.use_control_plane_lb ? {
@@ -138,7 +137,7 @@ resource "null_resource" "control_planes" {
         until systemctl status k3s > /dev/null; do
           systemctl start k3s 2> /dev/null
           echo "Waiting for the k3s server to start..."
-          sleep 2
+          sleep 3
         done
       EOF
       EOT
