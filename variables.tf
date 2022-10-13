@@ -332,3 +332,15 @@ variable "extra_kustomize_parameters" {
   default     = {}
   description = "All values will be passed to the `kustomization.tmp.yml` template."
 }
+
+variable "max_number_nodes_autoscaler" {
+  type        = number
+  default     = 0
+  description = "Max number of nodes to scale up to"
+}
+
+variable "min_number_nodes_autoscaler" {
+  type        = number
+  default     = 0
+  description = "Min number of nodes to scale down to"
+}

@@ -36,7 +36,7 @@ variable "ssh_keys" {
 }
 
 variable "firewall_ids" {
-  description = "Set of firewal IDs"
+  description = "Set of firewall IDs"
   type        = set(number)
   nullable    = true
 }
@@ -87,4 +87,16 @@ variable "dns_servers" {
 variable "automatically_upgrade_os" {
   type    = bool
   default = true
+}
+
+variable "max_number_nodes_autoscaler" {
+  type        = number
+  default     = 0
+  description = "Max number of nodes to scale up to"
+}
+
+variable "min_number_nodes_autoscaler" {
+  type        = number
+  default     = 0
+  description = "Min number of nodes to scale down to"
 }
