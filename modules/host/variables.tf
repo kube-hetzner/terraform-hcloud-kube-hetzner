@@ -88,15 +88,3 @@ variable "automatically_upgrade_os" {
   type    = bool
   default = true
 }
-
-variable "max_number_nodes_autoscaler" {
-  type        = number
-  default     = 0
-  description = "Max number of nodes to scale up to"
-}
-
-variable "min_number_nodes_autoscaler" {
-  type        = number
-  default     = 0
-  description = "Min number of nodes to scale down to"
-}

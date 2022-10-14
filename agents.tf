@@ -133,3 +133,37 @@ resource "null_resource" "configure_longhorn_volume" {
     hcloud_volume.longhorn_volume
   ]
 }
+
+resource "null_resource" "configure_autoscaling" {
+  count = var.max_number_nodes_autoscaler ? 1 : 0
+
+  provisioner "hcloud_snapshot" "autoscale_image"{
+    server_id = hcloud_server.service.id
+    description = "Initial snapshot used for autoscaling"
+    labels = {
+      autoscaler="true"
+    }
+  }
+  # Create autoscaling configfile
+  provisioner "file" {
+    content = templatefile(
+      "templates/hetzner_autoscaler_config.yaml.tpl",
+      {
+        cloudinit_config = data.cloudinit_config
+        nodepool_name = var.name
+        server_type = var.server_type
+        location = var.location
+        ipv4_subnet_id = var.ipv4_subnet_id
+        snapshot_id = hcloud_snapshot.autoscale_image.id
+        min_number_nodes_autoscaler = var.min_number_nodes_autoscaler
+        max_number_nodes_autoscaler = var.max_number_nodes_autoscaler
+    })
+    destination = "/tmp/autoscaler.yaml"
+  }
+  # Start the autoscaler
+  provisioner "remote-exec" {
+    inline = [
+        "kubectl apply -f /tmp/autoscaler.yaml",
+    ]
+  }
+}

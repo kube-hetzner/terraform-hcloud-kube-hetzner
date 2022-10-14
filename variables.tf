@@ -341,6 +341,6 @@ variable "max_number_nodes_autoscaler" {
 
 variable "min_number_nodes_autoscaler" {
   type        = number
-  default     = 0
+  default     = 3
   description = "Min number of nodes to scale down to"
 }
