@@ -152,7 +152,7 @@ spec:
                   - key: node-role.kubernetes.io/master
                     operator: Exists
       containers:
-        - image: k8s.gcr.io/autoscaling/cluster-autoscaler:latest
+        - image: bitnami/cluster-autoscaler:latest
           name: cluster-autoscaler
           resources:
             limits:
@@ -165,21 +165,19 @@ spec:
             - ./cluster-autoscaler
             - --cloud-provider=hetzner
             - --stderrthreshold=info
-            - --nodes=${min_number_nodes_autoscaler}:${max_number_nodes_autoscaler}:${server_type}:${location}:${nodepool_name}
+            - --nodes=${min_number_nodes_autoscaler}:${max_number_nodes_autoscaler}:${server_type}:${location}:${name}
           env:
           - name: HCLOUD_TOKEN
             valueFrom:
                 secretKeyRef:
                   name: hcloud
                   key: token
-          - name: HCLOUD_CLOUD_INIT
-            value: ${cloudinit_config}
 #         - name: HCLOUD_SSH_KEY
 #            value: <optional SSH Key Name or ID>
           - name: HCLOUD_NETWORK
             value: ${ipv4_subnet_id}
           - name: HCLOUD_IMAGE
-            value: ${snapshot_id}
+            value: ${snapshot_label}
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs/ca-certificates.crt
