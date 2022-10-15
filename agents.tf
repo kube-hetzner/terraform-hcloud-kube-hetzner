@@ -137,11 +137,11 @@ resource "null_resource" "configure_longhorn_volume" {
 resource "null_resource" "configure_autoscaling" {
   count = var.max_number_nodes_autoscaler ? 1 : 0
 
-  provisioner "hcloud_snapshot" "autoscale_image"{
-    server_id = hcloud_server.service.id
+  provisioner "hcloud_snapshot" "autoscale_image" {
+    server_id   = module.agents[0].id
     description = "Initial snapshot used for autoscaling"
     labels = {
-      autoscaler="true"
+      autoscaler = "true"
     }
   }
   # Create autoscaling configfile
@@ -149,12 +149,12 @@ resource "null_resource" "configure_autoscaling" {
     content = templatefile(
       "templates/hetzner_autoscaler_config.yaml.tpl",
       {
-        cloudinit_config = data.cloudinit_config
-        nodepool_name = var.name
-        server_type = var.server_type
-        location = var.location
-        ipv4_subnet_id = var.ipv4_subnet_id
-        snapshot_id = hcloud_snapshot.autoscale_image.id
+        cloudinit_config            = data.cloudinit_config
+        nodepool_name               = "autoscaling"
+        server_type                 = local.agent_nodes[0].server_type
+        location                    = local.agent_nodes[0].location
+        ipv4_subnet_id              = hcloud_network_subnet.autoscaling.id
+        snapshot_id                 = hcloud_snapshot.autoscale_image.id
         min_number_nodes_autoscaler = var.min_number_nodes_autoscaler
         max_number_nodes_autoscaler = var.max_number_nodes_autoscaler
     })
@@ -163,7 +163,12 @@ resource "null_resource" "configure_autoscaling" {
   # Start the autoscaler
   provisioner "remote-exec" {
     inline = [
-        "kubectl apply -f /tmp/autoscaler.yaml",
+      "kubectl apply -f /tmp/autoscaler.yaml",
     ]
   }
+
+  depends_on = [
+    null_resource.agents,
+    hcloud_network_subnet.autoscaling,
+  ]
 }
