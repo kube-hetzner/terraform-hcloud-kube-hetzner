@@ -4,6 +4,10 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "use_autoscaling_nodes" {
+    type    = bool
+    default = false
+}
 variable "ssh_port" {
   description = "The main SSH port to connect to the nodes."
   type        = number
@@ -157,6 +161,12 @@ variable "automatically_upgrade_k3s" {
   description = "Whether to automatically upgrade k3s based on the selected channel."
 }
 
+variable "automatically_upgrade_os" {
+  type        = bool
+  default     = true
+  description = "Whether to enable or disable automatic os updates. Defaults to true. Should be disabled for single-node clusters"
+}
+
 variable "extra_firewall_rules" {
   type        = list(any)
   default     = []
@@ -175,7 +185,7 @@ variable "cluster_name" {
   description = "Name of the cluster."
 
   validation {
-    condition     = can(regex("^[a-z1-9\\-]+$", var.cluster_name))
+    condition     = can(regex("^[a-z0-9\\-]+$", var.cluster_name))
     error_message = "The cluster name must be in the form of lowercase alphanumeric characters and/or dashes."
   }
 }
