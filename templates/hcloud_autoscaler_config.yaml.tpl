@@ -140,7 +140,10 @@ spec:
       serviceAccountName: cluster-autoscaler
       tolerations:
         - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+        - effect: NoSchedule
           key: node-role.kubernetes.io/master
+
       # Node affinity is used to force cluster-autoscaler to stick
       # to the master node. This allows the cluster to reliably downscale
       # to zero worker nodes when needed.
@@ -178,9 +181,9 @@ spec:
 #         - name: HCLOUD_SSH_KEY
 #            value: <optional SSH Key Name or ID>
           - name: HCLOUD_NETWORK
-            value: ${ipv4_subnet_id}
+            value: '${ipv4_subnet_id}'
           - name: HCLOUD_IMAGE
-            value: ${snapshot_id}
+            value: '${snapshot_id}'
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs/ca-certificates.crt

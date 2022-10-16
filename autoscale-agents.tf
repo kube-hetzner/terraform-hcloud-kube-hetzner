@@ -26,7 +26,7 @@ resource "null_resource" "configure_autoscaling" {
       "${path.module}/templates/hcloud_autoscaler_config.yaml.tpl",
       {
         cloudinit_config = base64encode(data.cloudinit_config.autoscale-config[0].rendered)
-        ipv4_subnet_id = hcloud_network_subnet.agent-autoscaler[0].network_id
+        ipv4_subnet_id = hcloud_network_subnet.agent-autoscaler[0].id
         snapshot_id = hcloud_snapshot.autoscale_image[0].id
     })
     destination = "/var/post_install/hcloud_autoscaler_config.yaml"
@@ -48,7 +48,7 @@ resource "hcloud_network_subnet" "agent-autoscaler" {
   network_id   = hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
-  ip_range     = "10.10.10.0/24"
+  ip_range     = local.network_ipv4_subnets[255]
 }
 
 resource "hcloud_server" "autoscaler" {
@@ -62,17 +62,20 @@ resource "hcloud_server" "autoscaler" {
   firewall_ids       = [hcloud_firewall.k3s.id]
 #   placement_group_id = var.placement_group_id
   user_data          = data.cloudinit_config.autoscale-config[0].rendered
-
-  network {
-    network_id = hcloud_network_subnet.agent-autoscaler[0].network_id
-  }
-
  lifecycle {
     ignore_changes = [
       location,
       ssh_keys,
     ]
  }
+}
+
+resource "hcloud_server_network" "autoscaler" {
+  count = var.use_autoscaling_nodes ? 1 : 0
+
+  ip        = "10.255.0.100"
+  server_id = hcloud_server.autoscaler[0].id
+  subnet_id = hcloud_network_subnet.agent-autoscaler[0].id
 }
 
 data "cloudinit_config" "autoscale-config" {
