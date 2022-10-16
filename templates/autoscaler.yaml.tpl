@@ -140,7 +140,7 @@ spec:
       serviceAccountName: cluster-autoscaler
       tolerations:
         - effect: NoSchedule
-          key: node-role.kubernetes.io/master
+          key: node-role.kubernetes.io/control-plane
       # Node affinity is used to force cluster-autoscaler to stick
       # to the master node. This allows the cluster to reliably downscale
       # to zero worker nodes when needed.
@@ -149,7 +149,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: node-role.kubernetes.io/master
+                  - key: node-role.kubernetes.io/control-plane
                     operator: Exists
       containers:
         - image: bitnami/cluster-autoscaler:latest
@@ -178,12 +178,14 @@ spec:
             value: ${ipv4_subnet_id}
           - name: HCLOUD_IMAGE
             value: ${snapshot_label}
+          - name: HCLOUD_CLOUD_INIT
+            value: Iwo=
           volumeMounts:
             - name: ssl-certs
-              mountPath: /etc/ssl/certs/ca-certificates.crt
+              mountPath: /etc/ssl/certs
               readOnly: true
           imagePullPolicy: "Always"
       volumes:
         - name: ssl-certs
           hostPath:
-            path: "/etc/ssl/certs/ca-certificates.crt"
+            path: "/etc/ssl/certs"
