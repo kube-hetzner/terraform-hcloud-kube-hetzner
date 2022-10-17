@@ -113,6 +113,7 @@ resource "hcloud_server" "server" {
     inline = [<<-EOT
       set -ex
       transactional-update shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
+      sleep 1 && udevadm settle
       EOT
     ]
   }
@@ -135,7 +136,7 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Cleanup ssh identity file 
+  # Cleanup ssh identity file
   provisioner "local-exec" {
     command = <<-EOT
       rm /tmp/${random_string.identity_file.id}
@@ -149,6 +150,18 @@ resource "hcloud_server" "server" {
       if [[ $(systemctl list-units --all -t service --full --no-legend "iscsid.service" | sed 's/^\s*//g' | cut -f1 -d' ') == iscsid.service ]]; then
         systemctl enable --now iscsid
       fi
+      EOT
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = var.automatically_upgrade_os ? [<<-EOT
+      echo "Automatic OS updates are enabled"
+      EOT
+      ] : [
+      <<-EOT
+      echo "Automatic OS updates are disabled"
+      systemctl --now disable transactional-update.timer
       EOT
     ]
   }

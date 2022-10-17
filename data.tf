@@ -18,7 +18,7 @@ data "github_release" "kured" {
 }
 
 data "hcloud_load_balancer" "cluster" {
-  count = local.using_klipper_lb ? 0 : local.ingress_controller == "none" ? 0 : 1
+  count = local.has_external_load_balancer ? 0 : 1
   name  = var.cluster_name
 
   depends_on = [null_resource.kustomization]

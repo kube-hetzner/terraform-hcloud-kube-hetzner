@@ -157,10 +157,9 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/ccm.yaml.tpl",
       {
-        cluster_cidr_ipv4                 = local.cluster_cidr_ipv4
-        allow_scheduling_on_control_plane = local.allow_scheduling_on_control_plane
-        default_lb_location               = var.load_balancer_location
-        using_hetzner_lb                  = !local.using_klipper_lb
+        cluster_cidr_ipv4   = local.cluster_cidr_ipv4
+        default_lb_location = var.load_balancer_location
+        using_hetzner_lb    = !local.using_klipper_lb
     })
     destination = "/var/post_install/ccm.yaml"
   }
@@ -269,7 +268,7 @@ resource "null_resource" "kustomization" {
         "sleep 5", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
         "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
-      local.using_klipper_lb || local.ingress_controller == "none" ? [] : [
+      local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 180 bash <<EOF
       until [ -n "\$(kubectl get -n kube-system service/${lookup(local.ingress_controller_service_names, local.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
