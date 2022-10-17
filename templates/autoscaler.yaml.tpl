@@ -141,6 +141,9 @@ spec:
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+
       # Node affinity is used to force cluster-autoscaler to stick
       # to the master node. This allows the cluster to reliably downscale
       # to zero worker nodes when needed.
@@ -149,10 +152,10 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: node-role.kubernetes.io/control-plane
+                  - key: node-role.kubernetes.io/master
                     operator: Exists
       containers:
-        - image: bitnami/cluster-autoscaler:latest
+        - image: k8s.gcr.io/autoscaling/cluster-autoscaler:v1.25.0
           name: cluster-autoscaler
           resources:
             limits:
@@ -163,6 +166,7 @@ spec:
               memory: 300Mi
           command:
             - ./cluster-autoscaler
+            - --v=5
             - --cloud-provider=hetzner
             - --stderrthreshold=info
             - --nodes=${min_number_nodes_autoscaler}:${max_number_nodes_autoscaler}:${server_type}:${location}:${name}
@@ -172,14 +176,14 @@ spec:
                 secretKeyRef:
                   name: hcloud
                   key: token
-#         - name: HCLOUD_SSH_KEY
-#            value: <optional SSH Key Name or ID>
-          - name: HCLOUD_NETWORK
-            value: ${ipv4_subnet_id}
-          - name: HCLOUD_IMAGE
-            value: ${snapshot_label}
           - name: HCLOUD_CLOUD_INIT
-            value: Iwo=
+            value: ${cloudinit_config}
+          - name: HCLOUD_SSH_KEY
+            value: '${ssh_key}'
+          - name: HCLOUD_NETWORK
+            value: '${ipv4_subnet_id}'
+          - name: HCLOUD_IMAGE
+            value: '${snapshot_id}'
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs
@@ -188,4 +192,4 @@ spec:
       volumes:
         - name: ssl-certs
           hostPath:
-            path: "/etc/ssl/certs"
+            path: "/etc/ssl/certs" # right place on MicroOS?

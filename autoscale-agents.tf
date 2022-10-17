@@ -1,17 +1,33 @@
 resource "hcloud_snapshot" "autoscale_image" {
-    count = var.use_autoscaling_nodes ? 1 : 0
+  count = var.max_number_nodes_autoscaler != 0 ? 1 : 0
 
-    # using control_plane here as this one is always available
-    server_id = values(module.control_planes)[0].id
-    description = "Initial snapshot used for autoscaling"
-    labels = {
-        autoscaler="true"
-    }
+  # using control_plane here as this one is always available
+  server_id   = values(module.control_planes)[0].id
+  description = "Initial snapshot used for autoscaling"
+  labels = {
+    autoscaler = "true"
+  }
 }
 
 resource "null_resource" "configure_autoscaling" {
-  count = var.use_autoscaling_nodes ? 1 : 0
+  count = var.max_number_nodes_autoscaler != 0 ? 1 : 0
 
+  triggers = {
+    template = templatefile(
+      "${path.module}/templates/autoscaler.yaml.tpl",
+      {
+        #cloudinit_config - we have to check if this is necessary, if so we need to recreate it, or somehow extract it from server module, up to a higher level
+        cloudinit_config            = base64encode(data.cloudinit_config.autoscale-config[0].rendered)
+        name                        = "autoscaling"
+        server_type                 = "CPX21"
+        location                    = "FSN1"
+        ssh_key                     = local.hcloud_ssh_key_id
+        ipv4_subnet_id              = hcloud_network_subnet.autoscaling.network_id # cannot reference subnet-ids in autoscaler
+        snapshot_id                 = hcloud_snapshot.autoscale_image[0].id
+        min_number_nodes_autoscaler = var.min_number_nodes_autoscaler
+        max_number_nodes_autoscaler = var.max_number_nodes_autoscaler
+    })
+  }
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
@@ -23,63 +39,40 @@ resource "null_resource" "configure_autoscaling" {
   # Upload the Rancher config
   provisioner "file" {
     content = templatefile(
-      "${path.module}/templates/hcloud_autoscaler_config.yaml.tpl",
+      "${path.module}/templates/autoscaler.yaml.tpl",
       {
-        cloudinit_config = base64encode(data.cloudinit_config.autoscale-config[0].rendered)
-        ipv4_subnet_id = hcloud_network_subnet.agent-autoscaler[0].id
-        snapshot_id = hcloud_snapshot.autoscale_image[0].id
+        #cloudinit_config - we have to check if this is necessary, if so we need to recreate it, or somehow extract it from server module, up to a higher level
+        cloudinit_config            = base64encode(data.cloudinit_config.autoscale-config[0].rendered)
+        name                        = "autoscaling"
+        server_type                 = "CPX21"
+        location                    = "FSN1"
+        ssh_key                     = local.hcloud_ssh_key_id
+        ipv4_subnet_id              = hcloud_network_subnet.autoscaling.network_id # cannot reference subnet-ids in autoscaler
+        snapshot_id                 = hcloud_snapshot.autoscale_image[0].id
+        min_number_nodes_autoscaler = var.min_number_nodes_autoscaler
+        max_number_nodes_autoscaler = var.max_number_nodes_autoscaler
     })
-    destination = "/var/post_install/hcloud_autoscaler_config.yaml"
+    destination = "/tmp/autoscaler.yaml"
   }
 
   # Deploy secrets, logging is automatically disabled due to sensitive variables
   provisioner "remote-exec" {
     inline = [
       "set -ex",
-      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
-      "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
+      "kubectl apply -f /tmp/autoscaler.yaml",
+      # do we remove that also again? 
     ]
   }
-}
 
-resource "hcloud_network_subnet" "agent-autoscaler" {
-  count = var.use_autoscaling_nodes ? 1 : 0
-
-  network_id   = hcloud_network.k3s.id
-  type         = "cloud"
-  network_zone = var.network_region
-  ip_range     = local.network_ipv4_subnets[255]
-}
-
-resource "hcloud_server" "autoscaler" {
-  count = var.use_autoscaling_nodes ? 1 : 0
-
-  name        = "server"
-  server_type = "cx21" # disk must be same or bigger than the image disk!
-  image       = hcloud_snapshot.autoscale_image[0].id
-  location    = "fsn1" # if not the same region, initial creation could take longer as the snapshot image has to be copied to the other region
-  ssh_keys    = [local.hcloud_ssh_key_id]
-  firewall_ids       = [hcloud_firewall.k3s.id]
-#   placement_group_id = var.placement_group_id
-  user_data          = data.cloudinit_config.autoscale-config[0].rendered
- lifecycle {
-    ignore_changes = [
-      location,
-      ssh_keys,
-    ]
- }
-}
-
-resource "hcloud_server_network" "autoscaler" {
-  count = var.use_autoscaling_nodes ? 1 : 0
-
-  ip        = "10.255.0.100"
-  server_id = hcloud_server.autoscaler[0].id
-  subnet_id = hcloud_network_subnet.agent-autoscaler[0].id
+  depends_on = [
+    null_resource.first_control_plane,
+    hcloud_network_subnet.autoscaling,
+    hcloud_snapshot.autoscale_image
+  ]
 }
 
 data "cloudinit_config" "autoscale-config" {
-  count = var.use_autoscaling_nodes ? 1 : 0
+  count = var.max_number_nodes_autoscaler != 0 ? 1 : 0
 
   gzip          = true
   base64_encode = true
@@ -92,17 +85,17 @@ data "cloudinit_config" "autoscale-config" {
       "${path.module}/templates/autoscale-cloudinit.yaml.tpl",
       {
         hostname          = "letstry"
-        sshPort           = 22
+        sshPort           = var.ssh_port
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         dnsServers        = var.dns_servers
-        k3s_channel = var.initial_k3s_channel
+        k3s_channel       = var.initial_k3s_channel
         k3s_config = yamlencode({
-            server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-            token         = random_password.k3s_token.result
-            kubelet-arg   = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
-            flannel-iface = "eth1"
-            node-label    = local.default_agent_labels
-            node-taint    = local.default_agent_taints
+          server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+          token         = random_password.k3s_token.result
+          kubelet-arg   = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+          flannel-iface = "eth1"
+          node-label    = local.default_agent_labels
+          node-taint    = local.default_agent_taints
         })
       }
     )

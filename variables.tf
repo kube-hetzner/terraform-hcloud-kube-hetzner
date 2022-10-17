@@ -4,10 +4,6 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
-variable "use_autoscaling_nodes" {
-    type    = bool
-    default = false
-}
 variable "ssh_port" {
   description = "The main SSH port to connect to the nodes."
   type        = number

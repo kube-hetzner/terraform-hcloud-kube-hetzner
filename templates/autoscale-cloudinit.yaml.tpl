@@ -134,5 +134,5 @@ runcmd:
 # install k3s
 - [/bin/sh, /root/install-k3s-agent.sh]
 
-# start service
+# start k3s-agent service
 - [systemctl, 'start', 'k3s-agent']
