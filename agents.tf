@@ -90,6 +90,15 @@ resource "null_resource" "agents" {
   ]
 }
 
+resource "hcloud_snapshot" "autoscale_image" {
+  count       = var.max_number_nodes_autoscaler != 0 ? 1 : 0
+  server_id   = module.agents[keys(module.agents)[0]].id
+  description = "Initial snapshot used for autoscaling"
+  labels = {
+    autoscaler = "true"
+  }
+}
+
 resource "hcloud_volume" "longhorn_volume" {
   for_each = { for k, v in local.agent_nodes : k => v if((lookup(v, "longhorn_volume_size", 0) >= 10) && (lookup(v, "longhorn_volume_size", 0) <= 10000) && var.enable_longhorn) }
 
@@ -131,5 +140,48 @@ resource "null_resource" "configure_longhorn_volume" {
 
   depends_on = [
     hcloud_volume.longhorn_volume
+  ]
+}
+
+resource "null_resource" "configure_autoscaling" {
+  count = var.max_number_nodes_autoscaler != 0 ? 1 : 0
+
+  # Create autoscaling configfile
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/autoscaler.yaml.tpl",
+      {
+        #cloudinit_config - we have to check if this is necessary, if so we need to recreate it, or somehow extract it from server module, up to a higher level
+        name                        = "autoscaling"
+        server_type                 = local.agent_nodes[keys(module.agents)[0]].server_type
+        location                    = local.agent_nodes[keys(module.agents)[0]].location
+        ipv4_subnet_id              = hcloud_network_subnet.autoscaling.id
+        snapshot_label              = "autoscaler=true"
+        min_number_nodes_autoscaler = var.min_number_nodes_autoscaler
+        max_number_nodes_autoscaler = var.max_number_nodes_autoscaler
+    })
+    destination = "/tmp/autoscaler.yaml"
+  }
+
+  # Start the autoscaler
+  provisioner "remote-exec" {
+    inline = [
+      "kubectl apply -f /tmp/autoscaler.yaml",
+    ]
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    port           = var.ssh_port
+  }
+
+  depends_on = [
+    null_resource.agents,
+    null_resource.first_control_plane,
+    hcloud_network_subnet.autoscaling,
+    local.agent_nodes,
   ]
 }

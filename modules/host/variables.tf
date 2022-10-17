@@ -36,7 +36,7 @@ variable "ssh_keys" {
 }
 
 variable "firewall_ids" {
-  description = "Set of firewal IDs"
+  description = "Set of firewall IDs"
   type        = set(number)
   nullable    = true
 }

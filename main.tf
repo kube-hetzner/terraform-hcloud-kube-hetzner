@@ -15,7 +15,15 @@ resource "hcloud_network" "k3s" {
 }
 
 # We start from the end of the subnets cird array, 
-# as we would have fewer control plane nodepools, than angent ones.
+# First the the autoscaling subnet, then the control planes subnets
+# And finally starting from the beginning of the array, the agents subnets
+resource "hcloud_network_subnet" "autoscaling" {
+  network_id   = hcloud_network.k3s.id
+  type         = "cloud"
+  network_zone = var.network_region
+  ip_range     = local.network_ipv4_subnets[255]
+}
+
 resource "hcloud_network_subnet" "control_plane" {
   count        = length(var.control_plane_nodepools)
   network_id   = hcloud_network.k3s.id
