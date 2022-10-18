@@ -237,7 +237,6 @@ variable "longhorn_fstype" {
   }
 }
 
-
 variable "longhorn_replica_count" {
   type        = number
   default     = 3
@@ -333,14 +332,25 @@ variable "extra_kustomize_parameters" {
   description = "All values will be passed to the `kustomization.tmp.yml` template."
 }
 
-variable "max_number_nodes_autoscaler" {
+variable "autoscaler_max_nodes" {
   type        = number
   default     = 0
   description = "Max number of nodes to scale up to"
 }
 
-variable "min_number_nodes_autoscaler" {
+variable "autoscaler_min_nodes" {
   type        = number
   default     = 0
   description = "Min number of nodes to scale down to"
+}
+
+variable "autoscaler_server_location" {
+  description = "location for autoscaler nodes"
+  type        = string
+  default     = "fsn1"
+}
+variable "autoscaler_server_type" {
+  description = "Server type for autoscaler nodes"
+  type        = string
+  default     = "cpx21"
 }

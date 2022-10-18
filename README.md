@@ -35,6 +35,7 @@ _Please note that we are not affiliates of Hetzner; this is just an open-source 
 - Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
 - Traefik or Nginx as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
 - Automatic HA with the default setting of three control-plane nodes and two agent nodes.
+- Autoscaling nodes by supporting the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
 - Super-HA: Nodepools for both control-plane and agent nodes can be in different locations.
 - Possibility to have a single node cluster with a proper ingress controller.
 - Can use Klipper as an "on-metal" LB instead of the Hetzner LB.
@@ -92,7 +93,7 @@ It will take around 5 minutes to complete, and then you should see a green outpu
 
 When your brand new cluster is up and running, the sky is your limit! 🎉
 
-You can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
+You can immediately *kubectl* into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
 ```sh
 export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
@@ -116,6 +117,25 @@ _Once the cluster is up; you can change any nodepool count and even set it to 0 
 
 _However, you can freely add other nodepools at the end of each list. And for each nodepools, you can freely increase or decrease the node count (if you want to decrease a nodepool node count make sure you drain the nodes in question before, you can use `terraform show` to identify the node names at the end of the nodepool list, otherwise, if you do not drain the nodes before removing them, it could leave your cluster in a bad state). The only nodepool that needs to have always at least a count of 1 is the first control-plane nodepool._
 
+### Autoscaling Nodes
+
+We are supporting autoscaling nodes by deploying the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
+By default this feature is disabled. You can control the feature via adjusting the following variables in `kube.tf`:
+
+```terraform
+autoscaler_max_nodes = 5
+autoscaler_min_nodes = 0
+autoscaler_server_type = "fsn1"
+autoscaler_server_location = "cxp21" # must be same or better than the control_plane server type (regarding disk size)!
+```
+
+By setting `autoscaler_max_nodes` higher than 0 the feature will be enabled.
+The nodes are booted based on a snapshot that is created from the initial control_plane.
+So please ensure that the disk of your chosen server type is at least the same size as the one of the control_plane.
+
+See the *autoscaler* documentation for more configuration options. 
+
+Currently we support only one node pool for autoscaling.
 ## High Availability
 
 By default, we have three control planes and three agents configured, with automatic upgrades and reboots of the nodes.
@@ -136,7 +156,7 @@ You can copy and modify the [one in the templates](https://github.com/kube-hetzn
 
 ### Turning Off Automatic Upgrade
 
-_If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup which requires at least 3 control-plane nodes), you need to set:_ 
+_If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup which requires at least 3 control-plane nodes), you need to set:_
 ```terraform
 automatically_upgrade_os = false
 ```
