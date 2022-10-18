@@ -119,7 +119,7 @@ _However, you can freely add other nodepools at the end of each list. And for ea
 
 ### Autoscaling Nodes
 
-We are supporting autoscaling nodes by deploying the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
+We are supporting autoscaling nodes by deploying the [k8s cluster autoscaler (CA)](https://github.com/kubernetes/autoscaler).
 By default this feature is disabled. You can control the feature via adjusting the following variables in `kube.tf`:
 
 ```terraform
@@ -133,7 +133,7 @@ By setting `autoscaler_max_nodes` higher than 0 the feature will be enabled.
 The nodes are booted based on a snapshot that is created from the initial control_plane.
 So please ensure that the disk of your chosen server type is at least the same size as the one of the control_plane.
 
-See the *autoscaler* documentation for more configuration options. 
+See the _CA_ documentation for more configuration options. 
 
 Currently we support only one node pool for autoscaling.
 ## High Availability
