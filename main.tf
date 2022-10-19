@@ -84,7 +84,6 @@ resource "null_resource" "destroy_cluster_loadbalancer" {
   }
 
   depends_on = [
-    local_sensitive_file.kubeconfig,
     null_resource.control_planes[0],
     hcloud_network_subnet.control_plane,
     hcloud_network_subnet.agent,
