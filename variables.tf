@@ -332,3 +332,15 @@ variable "extra_kustomize_parameters" {
   default     = {}
   description = "All values will be passed to the `kustomization.tmp.yml` template."
 }
+
+variable "create_kubeconfig" {
+  type        = bool
+  default     = true
+  description = "Create the kubeconfig as a local file resource. Should be disabled for automatic runs."
+}
+
+variable "create_kustomization" {
+  type        = bool
+  default     = true
+  description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
+}
