@@ -4,11 +4,11 @@ locals {
     {
       #cloudinit_config - we have to check if this is necessary, if so we need to recreate it, or somehow extract it from server module, up to a higher level
       cloudinit_config            = base64encode(data.cloudinit_config.autoscale-config[0].rendered)
-      name                        = "autoscaling"
+      name                        = "autoscaler"
       server_type                 = var.autoscaler_server_type
       location                    = var.autoscaler_server_location
       ssh_key                     = local.hcloud_ssh_key_id
-      ipv4_subnet_id              = hcloud_network_subnet.autoscaling.network_id # cannot reference subnet-ids in autoscaler
+      ipv4_subnet_id              = hcloud_network.k3s.id # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
       snapshot_id                 = hcloud_snapshot.autoscale_image[0].id
       min_number_nodes_autoscaler = var.autoscaler_min_nodes
       max_number_nodes_autoscaler = var.autoscaler_max_nodes
@@ -20,13 +20,13 @@ resource "hcloud_snapshot" "autoscale_image" {
 
   # using control_plane here as this one is always available
   server_id   = values(module.control_planes)[0].id
-  description = "Initial snapshot used for autoscaling"
+  description = "Initial snapshot used for autoscaler"
   labels = {
     autoscaler = "true"
   }
 }
 
-resource "null_resource" "configure_autoscaling" {
+resource "null_resource" "configure_autoscaler" {
   count = var.autoscaler_max_nodes != 0 ? 1 : 0
 
   triggers = {
@@ -56,7 +56,6 @@ resource "null_resource" "configure_autoscaling" {
 
   depends_on = [
     null_resource.first_control_plane,
-    hcloud_network_subnet.autoscaling,
     hcloud_snapshot.autoscale_image
   ]
 }
@@ -72,7 +71,7 @@ data "cloudinit_config" "autoscale-config" {
     filename     = "init.cfg"
     content_type = "text/cloud-config"
     content = templatefile(
-      "${path.module}/templates/autoscale-cloudinit.yaml.tpl",
+      "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
         sshPort           = var.ssh_port
