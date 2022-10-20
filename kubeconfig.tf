@@ -13,6 +13,7 @@ data "remote_file" "kubeconfig" {
 
 locals {
   kubeconfig_external = replace(data.remote_file.kubeconfig.content, "127.0.0.1", var.use_control_plane_lb ? hcloud_load_balancer.control_plane.*.ipv4[0] : module.control_planes[keys(module.control_planes)[0]].ipv4_address)
+  kubeconfig_final    = replace(local.kubeconfig_external, "default", var.cluster_name)
   kubeconfig_parsed   = yamldecode(local.kubeconfig_external)
   kubeconfig_data = {
     host                   = var.cluster_name
@@ -24,7 +25,7 @@ locals {
 
 resource "local_sensitive_file" "kubeconfig" {
   count           = var.create_kubeconfig ? 1 : 0
-  content         = local.kubeconfig_external
+  content         = local.kubeconfig_final
   filename        = "${var.cluster_name}_kubeconfig.yaml"
   file_permission = "600"
 }
