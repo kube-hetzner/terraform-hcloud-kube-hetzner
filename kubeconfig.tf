@@ -20,6 +20,7 @@ locals {
     client_certificate     = base64decode(local.kubeconfig_parsed["users"][0]["user"]["client-certificate-data"])
     client_key             = base64decode(local.kubeconfig_parsed["users"][0]["user"]["client-key-data"])
     cluster_ca_certificate = base64decode(local.kubeconfig_parsed["clusters"][0]["cluster"]["certificate-authority-data"])
+    cluster_name           = var.cluster_name
   }
 }
 
