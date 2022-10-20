@@ -354,3 +354,15 @@ variable "autoscaler_server_type" {
   type        = string
   default     = "cpx21"
 }
+
+variable "create_kubeconfig" {
+  type        = bool
+  default     = true
+  description = "Create the kubeconfig as a local file resource. Should be disabled for automatic runs."
+}
+
+variable "create_kustomization" {
+  type        = bool
+  default     = true
+  description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
+}
