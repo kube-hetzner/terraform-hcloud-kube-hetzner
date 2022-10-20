@@ -219,10 +219,10 @@ _You can use the above to pass all kinds of kubenertes YAML configs, including H
 ## Examples
 
 <details>
+  
+<summary>Useful Cilium commands</summary>
 
 With Kube-Hetzner, you have the possibility to use Cilium as a CNI. It's very powerful and has great observability features. Below you will find a few useful commands.
-
-### Useful Cilium commands
 
 - Check the status of cilium with the following commands (get the cilium pod name first and replace it in the command):
 
@@ -244,6 +244,10 @@ kubectl -n kube-system exec --stdin --tty cilium-xxxx -- cilium service list
 ```
 
 _For more cilium commands, please refer to their corresponding [Documentation](https://docs.cilium.io/en/latest/cheatsheet)._
+  
+</details>
+
+<details>
 
 <summary>Ingress with TLS</summary>
 
@@ -283,6 +287,10 @@ spec:
             port:
               number: 80
 ```
+  
+_⚠️ In case of using Ingress-Nginx as ingress controller, if you choose to use the HTTP challenge method you need to do an additional step of adding this annotation `load-balancer.hetzner.cloud/hostname` to the Nginx service definition. And you set it equal to a FQDN that points to your LB address._ 
+  
+_This is to circumvent this known issue https://github.com/cert-manager/cert-manager/issues/466, also see https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/354. Otherwise, you can just use the DNS challenge, which does not require any additional tweaks to work._
 
 ### Via Traefik CE (not recommended)
 
