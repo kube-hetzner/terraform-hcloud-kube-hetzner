@@ -155,7 +155,7 @@ spec:
                   - key: node-role.kubernetes.io/master
                     operator: Exists
       containers:
-        - image: k8s.gcr.io/autoscaling/cluster-autoscaler:v1.25.0
+        - image: ${ca_image}:${ca_version}
           name: cluster-autoscaler
           resources:
             limits:

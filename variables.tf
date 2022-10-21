@@ -74,6 +74,17 @@ variable "agent_nodepools" {
   default     = []
 }
 
+variable "cluster_autoscaler_image" {
+  type        = string
+  default     = "k8s.gcr.io/autoscaling/cluster-autoscaler"
+  description = "Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used."
+}
+variable "cluster_autoscaler_version" {
+  type        = string
+  default     = "v1.25.0"
+  description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
+}
+
 variable "hetzner_ccm_version" {
   type        = string
   default     = null
