@@ -4,8 +4,9 @@ resource "random_password" "k3s_token" {
 }
 
 resource "hcloud_ssh_key" "k3s" {
+  count      = var.hcloud_ssh_key_id == null ? 1 : 0
   name       = var.cluster_name
-  public_key = local.ssh_public_key
+  public_key = var.ssh_public_key
 }
 
 resource "hcloud_network" "k3s" {
@@ -59,30 +60,22 @@ resource "hcloud_placement_group" "agent" {
   type  = "spread"
 }
 
-data "hcloud_load_balancer" "traefik" {
-  count = local.is_single_node_cluster ? 0 : var.traefik_enabled == false ? 0 : 1
-  name  = "${var.cluster_name}-traefik"
+resource "null_resource" "destroy_cluster_loadbalancer" {
 
-  depends_on = [null_resource.kustomization]
-}
-
-resource "null_resource" "destroy_traefik_loadbalancer" {
   # this only gets triggered before total destruction of the cluster, but when the necessary elements to run the commands are still available
   triggers = {
     kustomization_id = null_resource.kustomization.id
+    cluster_name     = var.cluster_name
   }
 
   # Important when issuing terraform destroy, otherwise the LB will not let the network get deleted
   provisioner "local-exec" {
     when       = destroy
-    command    = <<-EOT
-      kubectl -n kube-system delete service traefik --kubeconfig ${path.module}/kubeconfig.yaml
-    EOT
+    command    = "kubectl -n kube-system delete service traefik --kubeconfig kubeconfig.yaml"
     on_failure = continue
   }
 
   depends_on = [
-    local_sensitive_file.kubeconfig,
     null_resource.control_planes[0],
     hcloud_network_subnet.control_plane,
     hcloud_network_subnet.agent,

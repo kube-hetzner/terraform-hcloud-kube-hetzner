@@ -10,12 +10,14 @@ metadata:
 spec:
   concurrency: 1
   channel: https://update.k3s.io/v1-release/channels/${channel}
+  serviceAccountName: system-upgrade
   nodeSelector:
     matchExpressions:
       - {key: k3s_upgrade, operator: Exists}
       - {key: k3s_upgrade, operator: NotIn, values: ["disabled", "false"]}
-      - {key: node-role.kubernetes.io/master, operator: NotIn, values: ["true"]}
-  serviceAccountName: system-upgrade
+      - {key: node-role.kubernetes.io/control-plane, operator: NotIn, values: ["true"]}
+  tolerations:
+    - {key: server-usage, effect: NoSchedule, operator: Equal, value: storage}
   prepare:
     image: rancher/k3s-upgrade
     args: ["prepare", "k3s-server"]
@@ -36,15 +38,15 @@ metadata:
 spec:
   concurrency: 1
   channel: https://update.k3s.io/v1-release/channels/${channel}
+  serviceAccountName: system-upgrade
   nodeSelector:
     matchExpressions:
       - {key: k3s_upgrade, operator: Exists}
       - {key: k3s_upgrade, operator: NotIn, values: ["disabled", "false"]}
-      - {key: node-role.kubernetes.io/master, operator: In, values: ["true"]}
+      - {key: node-role.kubernetes.io/control-plane, operator: In, values: ["true"]}
   tolerations:
-    - {key: node-role.kubernetes.io/master, effect: NoSchedule, operator: Exists}
+    - {key: node-role.kubernetes.io/control-plane, effect: NoSchedule, operator: Exists}
     - {key: CriticalAddonsOnly, effect: NoExecute, operator: Exists}
-  serviceAccountName: system-upgrade
   cordon: true
   upgrade:
     image: rancher/k3s-upgrade

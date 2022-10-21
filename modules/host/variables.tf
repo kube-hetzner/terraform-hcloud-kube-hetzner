@@ -3,17 +3,27 @@ variable "name" {
   type        = string
 }
 
-variable "public_key" {
-  description = "SSH public Key."
+variable "base_domain" {
+  description = "Base domain used for reverse dns"
   type        = string
 }
 
-variable "private_key" {
-  description = "SSH private Key."
+variable "ssh_port" {
+  description = "SSH port"
+  type        = number
+}
+
+variable "ssh_public_key" {
+  description = "SSH public Key"
   type        = string
 }
 
-variable "additional_public_keys" {
+variable "ssh_private_key" {
+  description = "SSH private Key"
+  type        = string
+}
+
+variable "ssh_additional_public_keys" {
   description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes"
   type        = list(string)
   default     = []
@@ -61,4 +71,20 @@ variable "private_ipv4" {
 variable "server_type" {
   description = "The server type"
   type        = string
+}
+
+variable "packages_to_install" {
+  description = "Packages to install"
+  type        = list(string)
+  default     = []
+}
+
+variable "dns_servers" {
+  type        = list(string)
+  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner"
+}
+
+variable "automatically_upgrade_os" {
+  type    = bool
+  default = true
 }

@@ -2,7 +2,7 @@ resource "random_string" "server" {
   length  = 3
   lower   = true
   special = false
-  number  = false
+  numeric = false
   upper   = false
 
   keepers = {
@@ -11,9 +11,16 @@ resource "random_string" "server" {
   }
 }
 
-resource "hcloud_server" "server" {
-  name = local.name
+resource "random_string" "identity_file" {
+  length  = 20
+  lower   = true
+  special = false
+  numeric = true
+  upper   = false
+}
 
+resource "hcloud_server" "server" {
+  name               = local.name
   image              = "ubuntu-20.04"
   rescue             = "linux64"
   server_type        = var.server_type
@@ -28,6 +35,8 @@ resource "hcloud_server" "server" {
   # Prevent destroying the whole cluster if the user changes
   # any of the attributes that force to recreate the servers.
   lifecycle {
+    create_before_destroy = true
+
     ignore_changes = [
       location,
       ssh_keys,
@@ -37,13 +46,33 @@ resource "hcloud_server" "server" {
 
   connection {
     user           = "root"
-    private_key    = local.ssh_private_key
-    agent_identity = local.ssh_identity
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
     host           = self.ipv4_address
+    port           = var.ssh_port
+  }
+
+  # Prepare ssh identity file
+  provisioner "local-exec" {
+    command = <<-EOT
+      install -b -m 600 /dev/null /tmp/${random_string.identity_file.id}
+      echo "${local.ssh_client_identity}" > /tmp/${random_string.identity_file.id}
+    EOT
   }
 
   # Install MicroOS
   provisioner "remote-exec" {
+    connection {
+      user           = "root"
+      private_key    = var.ssh_private_key
+      agent_identity = local.ssh_agent_identity
+      host           = self.ipv4_address
+
+      # We cannot use different ports here as this runs inside Hetzner Rescue image and thus uses the
+      # standard 22 TCP port.
+      port = 22
+    }
+
     inline = [
       "set -ex",
       "apt-get update",
@@ -53,11 +82,17 @@ resource "hcloud_server" "server" {
     ]
   }
 
-  # Issue a reboot command and wait for MicroOS to reboot and be ready
+  # Issue a reboot command.
   provisioner "local-exec" {
     command = <<-EOT
-      ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
+      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
+    EOT
+  }
+
+  # Wait for MicroOS to reboot and be ready.
+  provisioner "local-exec" {
+    command = <<-EOT
+      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 3
@@ -65,25 +100,78 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Install k3s-selinux (compatible version)
+  # Install k3s-selinux (compatible version) and open-iscsi
   provisioner "remote-exec" {
-    inline = [
-      "set -ex",
-      "transactional-update shell <<< 'rpm --import https://rpm.rancher.io/public.key;zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v0.5.stable.1/k3s-selinux-0.5-1.sle.noarch.rpm'"
+    connection {
+      user           = "root"
+      private_key    = var.ssh_private_key
+      agent_identity = local.ssh_agent_identity
+      host           = self.ipv4_address
+      port           = var.ssh_port
+    }
+
+    inline = [<<-EOT
+      set -ex
+      transactional-update shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
+      sleep 1 && udevadm settle
+      EOT
     ]
   }
 
-  # Issue a reboot command and wait for MicroOS to reboot and be ready
+  # Issue a reboot command.
   provisioner "local-exec" {
     command = <<-EOT
-      ssh ${local.ssh_args} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
-      until ssh ${local.ssh_args} -o ConnectTimeout=2 root@${self.ipv4_address} true 2> /dev/null
+      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -p ${var.ssh_port} root@${self.ipv4_address} '(sleep 3; reboot)&'; sleep 3
+    EOT
+  }
+
+  # Wait for MicroOS to reboot and be ready
+  provisioner "local-exec" {
+    command = <<-EOT
+      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 3
       done
     EOT
   }
+
+  # Cleanup ssh identity file
+  provisioner "local-exec" {
+    command = <<-EOT
+      rm /tmp/${random_string.identity_file.id}
+    EOT
+  }
+
+  # Enable open-iscsi
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+      set -ex
+      if [[ $(systemctl list-units --all -t service --full --no-legend "iscsid.service" | sed 's/^\s*//g' | cut -f1 -d' ') == iscsid.service ]]; then
+        systemctl enable --now iscsid
+      fi
+      EOT
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = var.automatically_upgrade_os ? [<<-EOT
+      echo "Automatic OS updates are enabled"
+      EOT
+      ] : [
+      <<-EOT
+      echo "Automatic OS updates are disabled"
+      systemctl --now disable transactional-update.timer
+      EOT
+    ]
+  }
+}
+
+resource "hcloud_rdns" "server" {
+  count      = var.base_domain != "" ? 1 : 0
+  server_id  = hcloud_server.server.id
+  ip_address = hcloud_server.server.ipv4_address
+  dns_ptr    = format("%s.%s", local.name, var.base_domain)
 }
 
 resource "hcloud_server_network" "server" {
@@ -104,7 +192,9 @@ data "cloudinit_config" "config" {
       "${path.module}/templates/userdata.yaml.tpl",
       {
         hostname          = local.name
-        sshAuthorizedKeys = concat([local.ssh_public_key], var.additional_public_keys)
+        sshPort           = var.ssh_port
+        sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        dnsServers        = var.dns_servers
       }
     )
   }

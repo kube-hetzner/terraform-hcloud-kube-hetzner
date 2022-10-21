@@ -1,11 +1,10 @@
-
 data "remote_file" "kubeconfig" {
   conn {
     host        = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port        = 22
+    port        = var.ssh_port
     user        = "root"
-    private_key = local.ssh_private_key
-    agent       = var.private_key == null
+    private_key = var.ssh_private_key
+    agent       = var.ssh_private_key == null
   }
   path = "/etc/rancher/k3s/k3s.yaml"
 
@@ -13,18 +12,21 @@ data "remote_file" "kubeconfig" {
 }
 
 locals {
-  kubeconfig_external = replace(data.remote_file.kubeconfig.content, "127.0.0.1", module.control_planes[keys(module.control_planes)[0]].ipv4_address)
-  kubeconfig_parsed   = yamldecode(local.kubeconfig_external)
+  kubeconfig_external = replace(data.remote_file.kubeconfig.content, "127.0.0.1", var.use_control_plane_lb ? hcloud_load_balancer.control_plane.*.ipv4[0] : module.control_planes[keys(module.control_planes)[0]].ipv4_address)
+  kubeconfig_final    = replace(local.kubeconfig_external, "default", var.cluster_name)
+  kubeconfig_parsed   = yamldecode(local.kubeconfig_final)
   kubeconfig_data = {
     host                   = local.kubeconfig_parsed["clusters"][0]["cluster"]["server"]
     client_certificate     = base64decode(local.kubeconfig_parsed["users"][0]["user"]["client-certificate-data"])
     client_key             = base64decode(local.kubeconfig_parsed["users"][0]["user"]["client-key-data"])
     cluster_ca_certificate = base64decode(local.kubeconfig_parsed["clusters"][0]["cluster"]["certificate-authority-data"])
+    cluster_name           = var.cluster_name
   }
 }
 
 resource "local_sensitive_file" "kubeconfig" {
-  content         = local.kubeconfig_external
-  filename        = "kubeconfig.yaml"
+  count           = var.create_kubeconfig ? 1 : 0
+  content         = local.kubeconfig_final
+  filename        = "${var.cluster_name}_kubeconfig.yaml"
   file_permission = "600"
 }

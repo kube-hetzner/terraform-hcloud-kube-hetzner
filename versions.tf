@@ -1,20 +1,21 @@
 terraform {
+  required_version = ">= 1.2.0"
   required_providers {
     github = {
       source  = "integrations/github"
-      version = ">= 4.0.0, < 5.0.0"
+      version = ">= 4.0.0"
     }
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.0.0, < 2.0.0"
+      version = ">= 1.35.1"
     }
     local = {
       source  = "hashicorp/local"
-      version = ">= 2.0.0, < 3.0.0"
+      version = ">= 2.0.0"
     }
     remote = {
       source  = "tenstad/remote"
-      version = "~> 0.0.23"
+      version = ">= 0.0.23"
     }
   }
 }
