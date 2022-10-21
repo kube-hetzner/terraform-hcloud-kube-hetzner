@@ -33,6 +33,10 @@ module "kube-hetzner" {
   ssh_private_key = file("/home/username/.ssh/id_ed25519")
   # You can add additional SSH public Keys to grant other team members root access to your cluster nodes.
   # ssh_additional_public_keys = []
+  
+  # You can also add additional SSH public Keys which are saved in the hetzner cloud by a label.
+  # See https://docs.hetzner.cloud/#label-selector
+  # ssh_hcloud_key_label = "role=admin"
 
   # If you want to use an ssh key that is already registered within hetzner cloud, you can pass its id.
   # If no id is passed, a new ssh key will be registered within hetzner cloud.
