@@ -138,12 +138,18 @@ module "kube-hetzner" {
   # You can refine a base domain name to be use in this form of nodename.base_domain for setting the reserve dns inside Hetzner
   # base_domain = "mycluster.example.com"
 
-  # Setting autoscaler_max_nodes > 0 enables the node autoscaler, default is "0"
-  # autoscaler_max_nodes = 5
-  # autoscaler_min_nodes = 0
-  # autoscaler_server_type = "fsn1"
-  # autoscaler_server_location = "cpx21" # must be same or better than the control_plane server type (regarding disk size)!
-
+  # Cluster Autoscaler
+  # Providing at least one map for the array enables the cluster autoscaler feature, default is disabled
+  # * Example below:
+  # autoscaler_nodepools = [
+  #   {
+  #     name        = "autoscaler"
+  #     server_type = "cpx21" # must be same or better than the control_plane server type (regarding disk size)!
+  #     location    = "fsn1"
+  #     min_nodes   = 0
+  #     max_nodes   = 5
+  #   }
+  # ]
 
   # To use local storage on the nodes, you can enable Longhorn, default is "false".
   # enable_longhorn = true

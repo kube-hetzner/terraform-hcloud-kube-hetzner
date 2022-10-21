@@ -117,25 +117,28 @@ _Once the cluster is up; you can change any nodepool count and even set it to 0 
 
 _However, you can freely add other nodepools at the end of each list. And for each nodepools, you can freely increase or decrease the node count (if you want to decrease a nodepool node count make sure you drain the nodes in question before, you can use `terraform show` to identify the node names at the end of the nodepool list, otherwise, if you do not drain the nodes before removing them, it could leave your cluster in a bad state). The only nodepool that needs to have always at least a count of 1 is the first control-plane nodepool._
 
-### Autoscaling Nodes
+### Autoscaling Node Pools
 
-We are supporting autoscaling nodes by deploying the [k8s cluster autoscaler (CA)](https://github.com/kubernetes/autoscaler).
-By default this feature is disabled. You can control the feature via adjusting the following variables in `kube.tf`:
+We are supporting autoscaling node pools by deploying the [k8s cluster autoscaler (CA)](https://github.com/kubernetes/autoscaler).
+By default this feature is disabled. You can control the feature via adding a pool description to the following variable in `kube.tf` (by default this array is empty):
 
 ```terraform
-autoscaler_max_nodes = 5
-autoscaler_min_nodes = 0
-autoscaler_server_type = "fsn1"
-autoscaler_server_location = "cxp21" # must be same or better than the control_plane server type (regarding disk size)!
+autoscaler_nodepools = [
+    {
+      name        = "autoscaler"
+      server_type = "cpx21" # must be same or better than the control_plane server type (regarding disk size)!
+      location    = "fsn1"
+      min_nodes   = 0
+      max_nodes   = 5
+    }
+  ]
 ```
 
-By setting `autoscaler_max_nodes` higher than 0 the feature will be enabled.
+By adding at least one map to the array of `autoscaler_nodepools` the feature will be enabled.
 The nodes are booted based on a snapshot that is created from the initial control_plane.
-So please ensure that the disk of your chosen server type is at least the same size as the one of the control_plane.
+So please ensure that the disk of your chosen server type is at least the same size as the one of the first control_plane.
 
 See the _CA_ documentation for more configuration options. 
-
-Currently we support only one node pool for autoscaling.
 ## High Availability
 
 By default, we have three control planes and three agents configured, with automatic upgrades and reboots of the nodes.

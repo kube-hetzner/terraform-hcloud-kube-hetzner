@@ -3,22 +3,18 @@ locals {
     "${path.module}/templates/autoscaler.yaml.tpl",
     {
       #cloudinit_config - we have to check if this is necessary, if so we need to recreate it, or somehow extract it from server module, up to a higher level
-      cloudinit_config            = base64encode(data.cloudinit_config.autoscaler-config[0].rendered)
-      name                        = "autoscaler"
-      ca_image                    = var.cluster_autoscaler_image
-      ca_version                  = var.cluster_autoscaler_version
-      server_type                 = var.autoscaler_server_type
-      location                    = var.autoscaler_server_location
-      ssh_key                     = local.hcloud_ssh_key_id
-      ipv4_subnet_id              = hcloud_network.k3s.id # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
-      snapshot_id                 = hcloud_snapshot.autoscaler_image[0].id
-      min_number_nodes_autoscaler = var.autoscaler_min_nodes
-      max_number_nodes_autoscaler = var.autoscaler_max_nodes
+      cloudinit_config = base64encode(data.cloudinit_config.autoscaler-config[0].rendered)
+      ca_image         = var.cluster_autoscaler_image
+      ca_version       = var.cluster_autoscaler_version
+      ssh_key          = local.hcloud_ssh_key_id
+      ipv4_subnet_id   = hcloud_network.k3s.id # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
+      snapshot_id      = hcloud_snapshot.autoscaler_image[0].id
+      node_pools       = var.autoscaler_nodepools
   })
 }
 
 resource "hcloud_snapshot" "autoscaler_image" {
-  count = var.autoscaler_max_nodes != 0 ? 1 : 0
+  count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
 
   # using control_plane here as this one is always available
   server_id   = values(module.control_planes)[0].id
@@ -29,7 +25,7 @@ resource "hcloud_snapshot" "autoscaler_image" {
 }
 
 resource "null_resource" "configure_autoscaler" {
-  count = var.autoscaler_max_nodes != 0 ? 1 : 0
+  count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
 
   triggers = {
     template = local.autoscaler_yaml
@@ -63,7 +59,7 @@ resource "null_resource" "configure_autoscaler" {
 }
 
 data "cloudinit_config" "autoscaler-config" {
-  count = var.autoscaler_max_nodes != 0 ? 1 : 0
+  count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
 
   gzip          = true
   base64_encode = true
