@@ -85,16 +85,19 @@ variable "cluster_autoscaler_image" {
   default     = "k8s.gcr.io/autoscaling/cluster-autoscaler"
   description = "Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used."
 }
+
 variable "cluster_autoscaler_version" {
   type        = string
   default     = "v1.25.0"
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
+
 variable "autoscaler_nodepools" {
   description = "Cluster autoscaler nodepools."
   type        = list(any)
   default     = []
 }
+
 variable "hetzner_ccm_version" {
   type        = string
   default     = null

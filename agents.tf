@@ -89,6 +89,7 @@ resource "null_resource" "agents" {
     hcloud_network_subnet.agent
   ]
 }
+
 resource "hcloud_volume" "longhorn_volume" {
   for_each = { for k, v in local.agent_nodes : k => v if((lookup(v, "longhorn_volume_size", 0) >= 10) && (lookup(v, "longhorn_volume_size", 0) <= 10000) && var.enable_longhorn) }
 

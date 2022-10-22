@@ -120,7 +120,7 @@ _However, you can freely add other nodepools at the end of each list. And for ea
 ### Autoscaling Node Pools
 
 We are supporting autoscaling node pools by deploying the [k8s cluster autoscaler (CA)](https://github.com/kubernetes/autoscaler).
-By default this feature is disabled. You can control the feature via adding a pool description to the following variable in `kube.tf` (by default this array is empty):
+By default, this feature is disabled. You can control the feature via adding a pool description to the following variable in `kube.tf` (by default this array is empty):
 
 ```terraform
 autoscaler_nodepools = [
@@ -138,7 +138,8 @@ By adding at least one map to the array of `autoscaler_nodepools` the feature wi
 The nodes are booted based on a snapshot that is created from the initial control_plane.
 So please ensure that the disk of your chosen server type is at least the same size as the one of the first control_plane.
 
-See the _CA_ documentation for more configuration options. 
+See the _CA_ documentation for more configuration options.
+
 ## High Availability
 
 By default, we have three control planes and three agents configured, with automatic upgrades and reboots of the nodes.
@@ -160,6 +161,7 @@ You can copy and modify the [one in the templates](https://github.com/kube-hetzn
 ### Turning Off Automatic Upgrade
 
 _If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup which requires at least 3 control-plane nodes), you need to set:_
+
 ```terraform
 automatically_upgrade_os = false
 ```

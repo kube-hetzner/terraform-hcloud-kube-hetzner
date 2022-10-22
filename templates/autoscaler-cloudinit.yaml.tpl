@@ -71,10 +71,10 @@ write_files:
 
       # ensure old k3s stuff is deleted from previous snapshot
       rm -rf /var/lib/rancher/k3s
-      
+
       # run installer. Not the best way to serve directly from a public server, but works for now
       curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${k3s_channel} INSTALL_K3S_EXEC=agent sh - 
-      
+
       # install selinux module
       /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp
 
