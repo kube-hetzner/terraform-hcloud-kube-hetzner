@@ -14,8 +14,11 @@ module "kube-hetzner" {
 
   # * For local dev, path to the git repo
   # source = "../../kube-hetzner/"
+  # If you want to use the latest master branch
+  # source = "github.com/kube-hetzner/terraform-hcloud-kube-hetzner"
   # For normal use, this is the path to the terraform registry
   source = "kube-hetzner/kube-hetzner/hcloud"
+  
   # you can optionally specify a version number
   # version = "1.2.0"
 
