@@ -26,6 +26,12 @@ variable "ssh_private_key" {
   sensitive   = true
 }
 
+variable "ssh_hcloud_key_label" {
+  description = "Additional SSH public Keys by hcloud label. e.g. role=admin"
+  type        = string
+  default     = ""
+}
+
 variable "ssh_additional_public_keys" {
   description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes."
   type        = list(string)
