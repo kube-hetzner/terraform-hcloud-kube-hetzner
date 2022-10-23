@@ -186,6 +186,8 @@ spec:
             value: '${ipv4_subnet_id}'
           - name: HCLOUD_IMAGE
             value: '${snapshot_id}'
+          - name: HCLOUD_FIREWALL
+            value: '${firewall_id}'
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs
