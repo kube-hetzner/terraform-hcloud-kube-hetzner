@@ -26,6 +26,12 @@ variable "ssh_private_key" {
   sensitive   = true
 }
 
+variable "ssh_hcloud_key_label" {
+  description = "Additional SSH public Keys by hcloud label. e.g. role=admin"
+  type        = string
+  default     = ""
+}
+
 variable "ssh_additional_public_keys" {
   description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes."
   type        = list(string)
@@ -79,11 +85,13 @@ variable "cluster_autoscaler_image" {
   default     = "k8s.gcr.io/autoscaling/cluster-autoscaler"
   description = "Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used."
 }
+
 variable "cluster_autoscaler_version" {
   type        = string
   default     = "v1.25.0"
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
+
 variable "autoscaler_nodepools" {
   description = "Cluster autoscaler nodepools."
   type = list(object({
@@ -95,6 +103,7 @@ variable "autoscaler_nodepools" {
   }))
   default = []
 }
+
 variable "hetzner_ccm_version" {
   type        = string
   default     = null
