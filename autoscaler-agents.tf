@@ -9,7 +9,7 @@ locals {
       ssh_key          = local.hcloud_ssh_key_id
       ipv4_subnet_id   = hcloud_network.k3s.id # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
       snapshot_id      = hcloud_snapshot.autoscaler_image[0].id
-      firewall_id    = hcloud_firewall.k3s.id
+      firewall_id      = hcloud_firewall.k3s.id
       node_pools       = var.autoscaler_nodepools
   })
 }
