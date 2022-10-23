@@ -86,8 +86,14 @@ variable "cluster_autoscaler_version" {
 }
 variable "autoscaler_nodepools" {
   description = "Cluster autoscaler nodepools."
-  type        = list(any)
-  default     = []
+  type = list(object({
+    name        = string
+    server_type = string
+    location    = string
+    min_nodes   = number
+    max_nodes   = number
+  }))
+  default = []
 }
 variable "hetzner_ccm_version" {
   type        = string

@@ -1,5 +1,5 @@
 locals {
-  autoscaler_yaml = templatefile(
+  autoscaler_yaml = length(var.autoscaler_nodepools) == 0 ? "" : templatefile(
     "${path.module}/templates/autoscaler.yaml.tpl",
     {
       #cloudinit_config - we have to check if this is necessary, if so we need to recreate it, or somehow extract it from server module, up to a higher level
@@ -44,7 +44,7 @@ resource "null_resource" "configure_autoscaler" {
     destination = "/tmp/autoscaler.yaml"
   }
 
-  # Apply the definition
+  # Create/Apply the definition
   provisioner "remote-exec" {
     inline = [
       "set -ex",

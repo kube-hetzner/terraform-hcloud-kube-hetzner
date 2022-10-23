@@ -4,6 +4,10 @@ instance-id: iid-abcde001
 
 debug: True
 
+bootcmd:
+# uninstall k3s if it exists already in the snaphshot
+- [/bin/sh, -c, '[ -f /usr/local/bin/k3s-uninstall.sh ] && /usr/local/bin/k3s-uninstall.sh']
+
 write_files:
 
 # Configure the private network interface
@@ -69,23 +73,13 @@ write_files:
       #!/bin/sh
       set -e
 
-      # ensure old k3s stuff is deleted from previous snapshot
-      rm -rf /var/lib/rancher/k3s
+      # old k3s is deleted with bootcmd
       
       # run installer. Not the best way to serve directly from a public server, but works for now
       curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${k3s_channel} INSTALL_K3S_EXEC=agent sh - 
       
       # install selinux module
       /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp
-
-# zypper:
-#   repos:
-#     - id: rancher-k3s
-#       name: Rancher K3s Common (stable)
-#       baseurl: https://rpm.rancher.io/k3s/stable/common/microos/noarch
-#       enabled: 1
-#       gpgkey: https://rpm.rancher.io/public.key
-#       autorefresh: 1
 
 # Add new authorized keys
 ssh_deletekeys: true
@@ -104,6 +98,9 @@ hostname: ${hostname}
 preserve_hostname: true
 
 runcmd:
+
+# ensure that /var uses full available disk size, thanks to btrfs this is easy
+- [btrfs, 'filesystem', 'resize', 'max', '/var']
 
 %{ if sshPort != 22 }
 # SELinux permission for the SSH alternative port.
