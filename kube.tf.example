@@ -115,19 +115,19 @@ module "kube-hetzner" {
       server_type = "cpx21",
       location    = "nbg1",
       labels      = [],
-      taints      = [],
+      # To exclude from Longhorn if that is used for instance. Completely optional.
+      taints = [
+        "server-usage=storage:NoSchedule"
+      ],
       count       = 1
     },
     {
       name        = "storage",
       server_type = "cpx21",
       location    = "fsn1",
-      # Fully optional, just a demo
+      # Fully optional, just a demo.
       labels = [
         "node.kubernetes.io/server-usage=storage"
-      ],
-      taints = [
-        "server-usage=storage:NoSchedule"
       ],
       count = 1
       # In the case of using Longhorn, you can use Hetzner volumes instead of using the node's own storage by specifying a value from 10 to 10000 (in GB)
