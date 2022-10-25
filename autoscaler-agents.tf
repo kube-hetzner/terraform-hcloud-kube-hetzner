@@ -2,7 +2,6 @@ locals {
   autoscaler_yaml = length(var.autoscaler_nodepools) == 0 ? "" : templatefile(
     "${path.module}/templates/autoscaler.yaml.tpl",
     {
-      #cloudinit_config - we have to check if this is necessary, if so we need to recreate it, or somehow extract it from server module, up to a higher level
       cloudinit_config = base64encode(data.cloudinit_config.autoscaler-config[0].rendered)
       ca_image         = var.cluster_autoscaler_image
       ca_version       = var.cluster_autoscaler_version
