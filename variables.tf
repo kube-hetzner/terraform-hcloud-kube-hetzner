@@ -80,6 +80,30 @@ variable "agent_nodepools" {
   default     = []
 }
 
+variable "cluster_autoscaler_image" {
+  type        = string
+  default     = "k8s.gcr.io/autoscaling/cluster-autoscaler"
+  description = "Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used."
+}
+
+variable "cluster_autoscaler_version" {
+  type        = string
+  default     = "v1.25.0"
+  description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
+}
+
+variable "autoscaler_nodepools" {
+  description = "Cluster autoscaler nodepools."
+  type = list(object({
+    name        = string
+    server_type = string
+    location    = string
+    min_nodes   = number
+    max_nodes   = number
+  }))
+  default = []
+}
+
 variable "hetzner_ccm_version" {
   type        = string
   default     = null
@@ -242,7 +266,6 @@ variable "longhorn_fstype" {
     error_message = "Must be one of \"ext4\" or \"xfs\""
   }
 }
-
 
 variable "longhorn_replica_count" {
   type        = number
