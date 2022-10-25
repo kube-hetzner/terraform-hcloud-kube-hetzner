@@ -170,7 +170,7 @@ spec:
             - --cloud-provider=hetzner
             - --stderrthreshold=info
             %{~ for pool in node_pools ~}
-            - --nodes=${pool.min_nodes}:${pool.max_nodes}:${pool.server_type}:${pool.location}:${cluster_name}-${pool.name}
+            - --nodes=${pool.min_nodes}:${pool.max_nodes}:${pool.server_type}:${pool.location}:${cluster_name}${pool.name}
             %{~ endfor ~}
           env:
           - name: HCLOUD_TOKEN
