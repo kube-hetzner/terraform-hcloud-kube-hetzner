@@ -201,8 +201,8 @@ resource "null_resource" "kustomization" {
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/cert_manager.yaml.tpl",
-    {
-      values = indent(4, trimspace(local.cert-manager_values))
+      {
+        values = indent(4, trimspace(local.cert-manager_values))
     })
     destination = "/var/post_install/cert_manager.yaml"
   }
