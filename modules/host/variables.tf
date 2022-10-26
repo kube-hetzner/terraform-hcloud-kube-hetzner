@@ -88,3 +88,9 @@ variable "automatically_upgrade_os" {
   type    = bool
   default = true
 }
+
+variable "kube_distro" {
+  type        = string
+  default     = "rke2"
+  description = "The kube distro to use."  
+}

@@ -373,3 +373,8 @@ variable "create_kustomization" {
   default     = true
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
 }
+variable "kube_distro" {
+  type        = string
+  default     = "rke2"
+  description = "The kube distro to use."  
+}

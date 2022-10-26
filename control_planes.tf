@@ -30,6 +30,8 @@ module "control_planes" {
 
   automatically_upgrade_os = var.automatically_upgrade_os
 
+  kube_distro = var.kube_distro
+
   depends_on = [
     hcloud_network_subnet.control_plane
   ]
@@ -71,6 +73,15 @@ resource "hcloud_load_balancer_service" "load_balancer_service" {
   listen_port      = "6443"
 }
 
+resource "hcloud_load_balancer_service" "load_balancer_service_rke2" {
+  count = var.use_control_plane_lb && local.kube_distro == "rke2" ? 1 : 0
+
+  load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]
+  protocol         = "tcp"
+  destination_port = "9345"
+  listen_port      = "9345"
+}
+
 resource "null_resource" "control_planes" {
   for_each = local.control_plane_nodes
 
@@ -96,7 +107,7 @@ resource "null_resource" "control_planes" {
             var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] :
             module.control_planes[each.key].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
             module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
-          module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+          module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:${local.kube_distro == "rke2" ? "9345" : "6443" }"
           token                       = random_password.k3s_token.result
           disable-cloud-controller    = true
           disable                     = local.disable_extras
@@ -109,7 +120,8 @@ resource "null_resource" "control_planes" {
           node-taint                  = each.value.taints
           write-kubeconfig-mode       = "0644" # needed for import into rancher
         },
-        lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+        local.kube_distro == "k3s" ? lookup(local.cni_k3s_settings, var.cni_plugin, {}) : { },
+        local.kube_distro == "rke2" ? { cni = [var.cni_plugin] } : {},
         var.use_control_plane_lb ? {
           tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
           } : {
@@ -131,12 +143,27 @@ resource "null_resource" "control_planes" {
   # Start the k3s server and wait for it to have started correctly
   provisioner "remote-exec" {
     inline = [
-      "systemctl start k3s 2> /dev/null",
+      local.kube_distro != "rke2" ? "" : <<-EOT
+      mkdir -p /var/lib/rancher/rke2/server/manifests
+      cat <<EOF > /var/lib/rancher/rke2/server/manifests/canal-values.yaml
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChartConfig
+      metadata:
+        name: rke2-canal
+        namespace: kube-system
+      spec:
+        valuesContent: |-
+          flannel:
+            iface: "eth1"
+      EOF
+      EOT
+      ,
+      "systemctl start ${local.kube_distro == "rke2" ? "rke2-server" : local.kube_distro } 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
-        until systemctl status k3s > /dev/null; do
-          systemctl start k3s 2> /dev/null
-          echo "Waiting for the k3s server to start..."
+        until systemctl status ${local.kube_distro == "rke2" ? "rke2-server" : local.kube_distro } > /dev/null; do
+          systemctl start ${local.kube_distro == "rke2" ? "rke2-server" : local.kube_distro } 2> /dev/null
+          echo "Waiting for the ${local.kube_distro == "rke2" ? "rke2-server" : local.kube_distro } server to start..."
           sleep 3
         done
       EOF

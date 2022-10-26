@@ -11,23 +11,43 @@ locals {
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi.release_tag
   kured_version = var.kured_version != null ? var.kured_version : data.github_release.kured.release_tag
 
+  kube_distro = var.kube_distro
+
   common_commands_install_k3s = [
     "set -ex",
     # prepare the k3s config directory
-    "mkdir -p /etc/rancher/k3s",
+    "mkdir -p /etc/rancher/${local.kube_distro}",
     # move the config file into place
-    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
+    "mv /tmp/config.yaml /etc/rancher/${local.kube_distro}/config.yaml",
     # if the server has already been initialized just stop here
-    "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
+    "[ -e /etc/rancher/${local.kube_distro}/${local.kube_distro}.yaml ] && exit 0",
   ]
 
-  apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
+  apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/${local.kube_distro}.pp"]
 
   install_k3s_server = concat(local.common_commands_install_k3s, [
-    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"
+    "curl -sfL https://get.${local.kube_distro}.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_${upper(local.kube_distro)}_CHANNEL=${var.initial_k3s_channel} INSTALL_${upper(local.kube_distro)}_EXEC=server sh -",
+    local.kube_distro != "rke2" ? "" : <<-EOT
+    ln -fs /var/lib/rancher/rke2/bin/{kubectl,crictl,ctr} /usr/local/bin/
+    cat >/etc/profile.d/01-rke2.sh <<'EOF'
+    export CONTAINERD_ADDRESS=/run/k3s/containerd/containerd.sock
+    export CONTAINERD_NAMESPACE=k8s.io
+    export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml
+    export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+    EOF
+    EOT
   ], local.apply_k3s_selinux)
   install_k3s_agent = concat(local.common_commands_install_k3s, [
-    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"
+    "curl -sfL https://get.${local.kube_distro}.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_${upper(local.kube_distro)}_CHANNEL=${var.initial_k3s_channel} INSTALL_${upper(local.kube_distro)}_EXEC=agent sh -",
+    local.kube_distro != "rke2" ? "" : <<-EOT
+    ln -fs /var/lib/rancher/rke2/bin/{kubectl,crictl,ctr} /usr/local/bin/
+    cat >/etc/profile.d/01-rke2.sh <<'EOF'
+    export CONTAINERD_ADDRESS=/run/k3s/containerd/containerd.sock
+    export CONTAINERD_NAMESPACE=k8s.io
+    export CRI_CONFIG_FILE=/var/lib/rancher/rke2/agent/etc/crictl.yaml
+    export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+    EOF
+    EOT
   ], local.apply_k3s_selinux)
 
   control_plane_nodes = merge([
@@ -251,7 +271,7 @@ locals {
 
   labels = {
     "provisioner" = "terraform",
-    "engine"      = "k3s"
+    "engine"      = local.kube_distro
     "cluster"     = var.cluster_name
   }
 

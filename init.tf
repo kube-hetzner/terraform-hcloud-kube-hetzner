@@ -45,18 +45,18 @@ resource "null_resource" "first_control_plane" {
   # Upon reboot start k3s and wait for it to be ready to receive commands
   provisioner "remote-exec" {
     inline = [
-      "systemctl start k3s",
+      "systemctl start ${local.kube_distro == "rke2" ? "rke2-server" : local.kube_distro }",
       # prepare the post_install directory
       "mkdir -p /var/post_install",
       # wait for k3s to become ready
       <<-EOT
       timeout 120 bash <<EOF
-        until systemctl status k3s > /dev/null; do
-          systemctl start k3s
-          echo "Waiting for the k3s server to start..."
+        until systemctl status ${local.kube_distro == "rke2" ? "rke2-server" : local.kube_distro } > /dev/null; do
+          systemctl start ${local.kube_distro == "rke2" ? "rke2-server" : local.kube_distro }
+          echo "Waiting for the ${local.kube_distro == "rke2" ? "rke2-server" : local.kube_distro } server to start..."
           sleep 2
         done
-        until [ -e /etc/rancher/k3s/k3s.yaml ]; do
+        until [ -e /etc/rancher/${local.kube_distro}/${local.kube_distro}.yaml ]; do
           echo "Waiting for kubectl config..."
           sleep 2
         done
@@ -107,7 +107,7 @@ resource "null_resource" "kustomization" {
           "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"
         ],
         lookup(local.ingress_controller_install_resources, local.ingress_controller, []),
-        lookup(local.cni_install_resources, var.cni_plugin, []),
+        local.kube_distro == "k3s" ? lookup(local.cni_install_resources, var.cni_plugin, []): [],
         var.enable_longhorn ? ["longhorn.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
         var.enable_rancher ? ["rancher.yaml"] : [],
@@ -119,7 +119,7 @@ resource "null_resource" "kustomization" {
           file("${path.module}/kustomize/system-upgrade-controller.yaml"),
           "ccm.yaml",
         ],
-        lookup(local.cni_install_resource_patches, var.cni_plugin, [])
+        local.kube_distro == "k3s" ? lookup(local.cni_install_resource_patches, var.cni_plugin, []) : []
       )
     })
     destination = "/var/post_install/kustomization.yaml"
@@ -187,7 +187,7 @@ resource "null_resource" "kustomization" {
   # Upload the system upgrade controller plans config
   provisioner "file" {
     content = templatefile(
-      "${path.module}/templates/plans.yaml.tpl",
+      "${path.module}/templates/${local.kube_distro == "rke2" ? "plans_rke2" : "plans"}.yaml.tpl",
       {
         channel = var.initial_k3s_channel
     })

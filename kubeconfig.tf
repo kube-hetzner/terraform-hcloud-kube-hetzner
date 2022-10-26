@@ -6,7 +6,7 @@ data "remote_file" "kubeconfig" {
     private_key = var.ssh_private_key
     agent       = var.ssh_private_key == null
   }
-  path = "/etc/rancher/k3s/k3s.yaml"
+  path = "/etc/rancher/${local.kube_distro}/${local.kube_distro}.yaml"
 
   depends_on = [null_resource.control_planes[0]]
 }

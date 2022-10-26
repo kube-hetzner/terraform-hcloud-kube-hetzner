@@ -28,6 +28,8 @@ module "agents" {
 
   automatically_upgrade_os = var.automatically_upgrade_os
 
+  kube_distro = local.kube_distro
+
   depends_on = [
     hcloud_network_subnet.agent
   ]
@@ -52,7 +54,7 @@ resource "null_resource" "agents" {
   provisioner "file" {
     content = yamlencode({
       node-name     = module.agents[each.key].name
-      server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+      server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:${local.kube_distro == "rke2" ? "9345" : "6443" }"
       token         = random_password.k3s_token.result
       kubelet-arg   = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
       flannel-iface = "eth1"
@@ -71,12 +73,12 @@ resource "null_resource" "agents" {
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = [
-      "systemctl start k3s-agent 2> /dev/null",
+      "systemctl start ${local.kube_distro}-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
-        until systemctl status k3s-agent > /dev/null; do
-          systemctl start k3s-agent 2> /dev/null
-          echo "Waiting for the k3s agent to start..."
+        until systemctl status ${local.kube_distro}-agent > /dev/null; do
+          systemctl start ${local.kube_distro}-agent 2> /dev/null
+          echo "Waiting for the ${local.kube_distro} agent to start..."
           sleep 2
         done
       EOF
