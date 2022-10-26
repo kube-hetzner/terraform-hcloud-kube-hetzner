@@ -300,7 +300,7 @@ locals {
     "nginx"   = ["nginx_ingress.yaml"]
   }
 
-  cilium_values = var.cilium_values ? var.cilium_values : <<EOT
+  cilium_values = var.cilium_values != null ? var.cilium_values : <<EOT
 ipam:
  operator:
   clusterPoolIPv4PodCIDRList:
@@ -308,7 +308,7 @@ ipam:
 devices: "eth1"
   EOT
 
-  longhorn_values = var.longhorn_values ? var.longhorn_values : <<EOT
+  longhorn_values = var.longhorn_values != null ? var.longhorn_values : <<EOT
 defaultSettings:
   defaultDataPath: /var/longhorn
 persistence:
@@ -317,7 +317,7 @@ persistence:
   %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
   EOT
 
-  nginx_ingress_values = var.nginx_ingress_values ? var.nginx_ingress_values : <<EOT
+  nginx_ingress_values = var.nginx_ingress_values != null ? var.nginx_ingress_values : <<EOT
 controller:
   watchIngressWithoutClass: "true"
   kind: "Deployment"
@@ -337,7 +337,7 @@ controller:
       "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
   EOT
 
-  traefik_ingress_values = var.traefik_ingress_values ? var.traefik_ingress_values : <<EOT
+  traefik_ingress_values = var.traefik_ingress_values != null ? var.traefik_ingress_values : <<EOT
     globalArguments: []
     service:
       enabled: true
@@ -372,13 +372,13 @@ controller:
 %{ endif ~}
   EOT
 
-  rancher_values = var.rancher_values ? var.rancher_values : <<EOT
+  rancher_values = var.rancher_values != null ? var.rancher_values : <<EOT
 hostname: "${var.rancher_hostname}"
 replicas: ${length(local.control_plane_nodes)}
 bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
   EOT
 
-  cert-manager_values = var.cert_manager_values ? var.cert_manager_values : <<EOT
+  cert-manager_values = var.cert_manager_values != null ? var.cert_manager_values : <<EOT
 installCRDs: true
   EOT
 }

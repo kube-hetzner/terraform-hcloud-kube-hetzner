@@ -1,0 +1,9 @@
+installCRDs: true
+
+replicaCount: 3
+
+webhook:
+  replicaCount: 3
+
+cainjector:
+  replicaCount: 3

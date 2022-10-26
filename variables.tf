@@ -251,12 +251,6 @@ variable "disable_network_policy" {
   description = "Disable k3s default network policy controller (default false, automatically true for calico and cilium)."
 }
 
-variable "disable_kube_proxy" {
-  type        = bool
-  default     = false
-  description = "Disable Kube-Proxy for replacements (e.g. Cilium kube-proxy replacement)"
-}
-
 variable "cni_plugin" {
   type        = string
   default     = "flannel"
