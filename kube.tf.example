@@ -306,6 +306,7 @@ module "kube-hetzner" {
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # IMPORTANT: Rancher's install is quite memory intensive, you will require at least 4GB if RAM, meaning cx21 server type (for your control plane).
   # ALSO, in order for Rancher to successfully deploy, you have to set the "rancher_hostname".
+  # ⚠️ Also please note that the latest version of Rancher is not yet compatible with kubernetes v1.25, so best to set initial_k3s_channel = "v1.24".
   # enable_rancher = true
 
   # If using Rancher you can set the Rancher hostname, it must be unique hostname even if you do not use it.
