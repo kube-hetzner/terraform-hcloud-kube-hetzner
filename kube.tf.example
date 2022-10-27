@@ -236,7 +236,7 @@ module "kube-hetzner" {
   # Allows you to specify either stable, latest, testing or supported minor versions (defaults to stable)
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to latest - 0.01,
-  # at the time of writing the latest is v1.25, so setting the value above to "v1.24" will insure maximum compatibility with Rancher, Longhorn and so on!
+  # at the time of writing the latest is v1.25, so setting the value below to "v1.24" will insure maximum compatibility with Rancher, Longhorn and so on!
   # As a rule of thumb, avoid using latest, even if it's the default, we advise you to fix it as mentioned above.
   # initial_k3s_channel = "latest"
 
