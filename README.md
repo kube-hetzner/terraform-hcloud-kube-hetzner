@@ -105,7 +105,7 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 The default is Flannel, but you can also choose Calico or Cilium, by setting the `cni_plugin` variable in `kube.tf` to "calico" or "cilium".
 
-As Cilium has a lot of interesting and powerful configurations possibility. We give you the possibiliy to add a `cilium_values.yaml` file to the root of your module before you deploy your cluster, the same place where you have your `kube.tf` file. This file must be of the same format as the Cilium [values.yaml file](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml), but with the values you want to modify. During the deploy, Terraform will test to see if this file is present and if so will use those values to deploy the Cilium Helm chart.
+As Cilium has a lot of interesting and powerful configurations possibility. We give you the possibility to configure your Cilium with the `cilium_values` (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster. During the deploy, Terraform will test to see if this variable is set and if so will use those values to deploy the Cilium Helm chart.
 
 ### Scaling Nodes
 
@@ -197,13 +197,13 @@ Rarely needed, but can be handy in the long run. During the installation, we aut
 
 Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Chart](https://rancher.com/docs/k3s/latest/en/helm/) yaml definition and managed by the Helm Controller inside of k3s.
 
-By default, we strive to give you optimal defaults, but if you with to customize them, you can do so.
+By default, we strive to give you optimal defaults, but if you with to customize them, you can do so with the variabel `rancher_values`.
 
 ### Before deploying
 
 In the case of Traefik, Rancher, and Longhorn, we provide you with variables to configure everything you need.
 
-On top of the above, for Nginx, Rancher, Cilium and Longhorn, for maximum flexibility, we give you the ability to add a Helm values.yaml file (for instance, `cilium_values.yaml`) to the root of your module, the same place where you have your `kube.tf` file. _You can find a `_values.yaml.example` value file for each listed component at the root of this project._
+On top of the above, for Nginx, Rancher, Cilium, Traefik and Longhorn, for maximum flexibility, we give you the ability to configure your helm values within specific terraform variables (for instance, `cilium_values`). _You can find some example Helm values in the [Example-Folder](examples/helm_values) for each listed component at the root of this project._
 
 ### After deploying
 
@@ -219,7 +219,7 @@ This file needs to be a valid `Kustomization` manifest, but it supports terrafor
 
 All files in the `extra-manifests` directory including the rendered version of `kustomization.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
-_You can use the above to pass all kinds of kubenertes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
+_You can use the above to pass all kinds of kubernetes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
 
 ## Examples
 
@@ -262,7 +262,7 @@ _We advise you to use the first one, as it supports HA setups without requiring 
 
 ### Via Cert-Manager (recommended)
 
-In your module variables, set `enable_cert_manager` to `true`, and just create your issuers as decribed here <https://cert-manager.io/docs/configuration/acme/>.
+In your module variables, set `enable_cert_manager` to `true`, and just create your issuers as described here <https://cert-manager.io/docs/configuration/acme/>.
 
 Then in your Ingress definition, just mentioning the issuer as an annotation and giving a secret name will take care of instructing cert-manager to generate a certificate for it! It simpler than the alternative, you just have to configure your issuer(s) first with the method of your choice.
 
