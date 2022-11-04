@@ -75,9 +75,7 @@ resource "hcloud_server" "server" {
 
     inline = [
       "set -ex",
-      "apt-get update",
-      "apt-get install -y aria2",
-      "aria2c --follow-metalink=true https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.meta4",
+      "wget --timeout=5 --waitretry=0 --tries=10 --retry-connrefused --inet4-only https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2",
       "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
     ]
   }

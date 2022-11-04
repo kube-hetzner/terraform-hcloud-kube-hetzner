@@ -300,7 +300,7 @@ locals {
     "nginx"   = ["nginx_ingress.yaml"]
   }
 
-  cilium_values = var.cilium_values != null ? var.cilium_values : <<EOT
+  cilium_values = var.cilium_values != "" ? var.cilium_values : <<EOT
 ipam:
  operator:
   clusterPoolIPv4PodCIDRList:
@@ -308,7 +308,7 @@ ipam:
 devices: "eth1"
   EOT
 
-  longhorn_values = var.longhorn_values != null ? var.longhorn_values : <<EOT
+  longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT
 defaultSettings:
   defaultDataPath: /var/longhorn
 persistence:
@@ -317,7 +317,7 @@ persistence:
   %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
   EOT
 
-  nginx_ingress_values = var.nginx_ingress_values != null ? var.nginx_ingress_values : <<EOT
+  nginx_ingress_values = var.nginx_ingress_values != "" ? var.nginx_ingress_values : <<EOT
 controller:
   watchIngressWithoutClass: "true"
   kind: "Deployment"
@@ -337,48 +337,45 @@ controller:
       "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
   EOT
 
-  traefik_ingress_values = var.traefik_ingress_values != null ? var.traefik_ingress_values : <<EOT
-    globalArguments: []
-    service:
-      enabled: true
-      type: LoadBalancer
-%{if !local.using_klipper_lb~}
-      annotations:
-        "load-balancer.hetzner.cloud/name": "${var.cluster_name}"
-        # make hetzners load-balancer connect to our nodes via our private k3s
-        "load-balancer.hetzner.cloud/use-private-ip": "true"
-        # keep hetzner-ccm from exposing our private ingress ip, which in general isn't routeable from the public internet
-        "load-balancer.hetzner.cloud/disable-private-ingress": "true"
-        # disable ipv6 by default, because external-dns doesn't support AAAA for hcloud yet https://github.com/kubernetes-sigs/external-dns/issues/2044
-        "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
-        "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
-        "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
-        "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
-%{endif~}
-    additionalArguments:
-%{if !local.using_klipper_lb~}
-      - "--entryPoints.web.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-      - "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-      - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-      - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-%{endif~}
+  traefik_ingress_values = var.traefik_ingress_values != "" ? var.traefik_ingress_values : <<EOT
+globalArguments: []
+service:
+  enabled: true
+  type: LoadBalancer
+  %{if !local.using_klipper_lb}
+  annotations:
+    "load-balancer.hetzner.cloud/name": "${var.cluster_name}"
+    "load-balancer.hetzner.cloud/use-private-ip": "true"
+    "load-balancer.hetzner.cloud/disable-private-ingress": "true"
+    "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
+    "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
+    "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
+    "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+  %{endif}
+additionalArguments:
+%{if !local.using_klipper_lb}
+- "--entryPoints.web.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
+- "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
+- "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
+- "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
+%{endif}
 %{for option in var.traefik_additional_options~}
-      - "${option}"
+- "${option}"
 %{endfor~}
-%{if var.traefik_acme_tls~}
-      - "--certificatesresolvers.le.acme.tlschallenge=true"
-      - "--certificatesresolvers.le.acme.email=${var.traefik_acme_email}"
-      - "--certificatesresolvers.le.acme.storage=/data/acme.json"
-%{endif~}
+%{if var.traefik_acme_tls}
+- "--certificatesresolvers.le.acme.tlschallenge=true"
+- "--certificatesresolvers.le.acme.email=${var.traefik_acme_email}"
+- "--certificatesresolvers.le.acme.storage=/data/acme.json"
+%{endif}
   EOT
 
-  rancher_values = var.rancher_values != null ? var.rancher_values : <<EOT
+  rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
 hostname: "${var.rancher_hostname}"
 replicas: ${length(local.control_plane_nodes)}
 bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
   EOT
 
-  cert-manager_values = var.cert_manager_values != null ? var.cert_manager_values : <<EOT
+  cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
 installCRDs: true
   EOT
 }
