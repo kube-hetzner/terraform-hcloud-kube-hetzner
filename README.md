@@ -91,7 +91,7 @@ It will take around 5 minutes to complete, and then you should see a green outpu
 
 ## Usage
 
-When your brand new cluster is up and running, the sky is your limit! 🎉
+When your brand-new cluster is up and running, the sky is your limit! 🎉
 
 You can immediately kubectl into it (by exporting the kubeconfig to a file via `terraform output --raw kubeconfig > clustername_kubeconfig.yaml` after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
@@ -105,7 +105,7 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 The default is Flannel, but you can also choose Calico or Cilium, by setting the `cni_plugin` variable in `kube.tf` to "calico" or "cilium".
 
-As Cilium has a lot of interesting and powerful configurations possibility. We give you the possibiliy to add a `cilium_values.yaml` file to the root of your module before you deploy your cluster, the same place where you have your `kube.tf` file. This file must be of the same format as the Cilium [values.yaml file](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml), but with the values you want to modify. During the deploy, Terraform will test to see if this file is present and if so will use those values to deploy the Cilium Helm chart.
+As Cilium has a lot of interesting and powerful configurations' possibility. We give you the possibility to configure your Cilium with the `cilium_values` (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster. During the deployment, Terraform will test to see if this variable is set and if so will use those values to deploy the Cilium Helm chart.
 
 ### Scaling Nodes
 
@@ -178,7 +178,7 @@ _To turn off k3s upgrades, you can either remove the `k3s_upgrade=true` label or
 kubectl -n system-upgrade label node <node-name> k3s_upgrade-
 ```
 
-Alternatively, you can disable the k3s automatic upgrade without individually editing the labels on the nodes. Instead you can just delete the two system controller upgrade plans with:
+Alternatively, you can disable the k3s automatic upgrade without individually editing the labels on the nodes. Instead, you can just delete the two system controller upgrade plans with:
 
 ```sh
 kubectl delete plan k3s-agent -n system-upgrade
@@ -190,26 +190,26 @@ kubectl delete plan k3s-server -n system-upgrade
 Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `clustername_kubeconfig.yaml` at the root of your project.
 
 1. First create a duplicate of that file and name it `kustomization.yaml`, keeping the original file intact, in case you need to restore the old config.
-2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on Github, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
-3. Apply the the updated `kustomization.yaml` with `kubectl apply -k ./`.
+2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on GitHub, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
+3. Apply the updated `kustomization.yaml` with `kubectl apply -k ./`.
 
 ## Customizing the Cluster Components
 
-Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Chart](https://rancher.com/docs/k3s/latest/en/helm/) yaml definition and managed by the Helm Controller inside of k3s.
+Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Chart](https://rancher.com/docs/k3s/latest/en/helm/) yaml definition and managed by the Helm Controller inside k3s.
 
-By default, we strive to give you optimal defaults, but if you with to customize them, you can do so.
+By default, we strive to give you optimal defaults, but if you with to customize them, you can do so with the variable `rancher_values`.
 
 ### Before deploying
 
 In the case of Traefik, Rancher, and Longhorn, we provide you with variables to configure everything you need.
 
-On top of the above, for Nginx, Rancher, Cilium and Longhorn, for maximum flexibility, we give you the ability to add a Helm values.yaml file (for instance, `cilium_values.yaml`) to the root of your module, the same place where you have your `kube.tf` file. _You can find a `_values.yaml.example` value file for each listed component at the root of this project._
+On top of the above, for Nginx, Rancher, Cilium, Traefik and Longhorn, for maximum flexibility, we give you the ability to configure your helm values within specific terraform variables (for instance, `cilium_values`). _You can find some example Helm values in the [Example-Folder](examples/helm_values) for each listed component at the root of this project._
 
 ### After deploying
 
 Once the Cluster is up and running, you can easily customize many components like Traefik, Nginx, Rancher, Cilium, Cert-Manager and Longhorn by using HelmChartConfig definitions. See the [examples](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples) section, for more information.
 
-For other components like Calico and Kured (which uses manifests), we automatically save a `kustomization_backup.yaml` file in the root of your module during the deploy, so you can use that as a starting point. This is also useful when creating the HelmChartConfig definitions, as both HelmChart and HelmChartConfig definitions are very similar.
+For other components like Calico and Kured (which uses manifests), we automatically save a `kustomization_backup.yaml` file in the root of your module during the deployment, so you can use that as a starting point. This is also useful when creating the HelmChartConfig definitions, as both HelmChart and HelmChartConfig definitions are very similar.
 
 ## Adding Extras
 
@@ -219,7 +219,7 @@ This file needs to be a valid `Kustomization` manifest, but it supports terrafor
 
 All files in the `extra-manifests` directory including the rendered version of `kustomization.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
-_You can use the above to pass all kinds of kubenertes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
+_You can use the above to pass all kinds of kubernetes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
 
 ## Examples
 
@@ -256,13 +256,13 @@ _For more cilium commands, please refer to their corresponding [Documentation](h
 
 <summary>Ingress with TLS</summary>
 
-You have two solutions, the first is to use `Cert-Manager` to take care of the certificates, and the second is to let `Traefik` bear this responsability.
+You have two solutions, the first is to use `Cert-Manager` to take care of the certificates, and the second is to let `Traefik` bear this responsibility.
 
 _We advise you to use the first one, as it supports HA setups without requiring you to use the enterprise version of Traefik. The reason for that is that according to Traefik themselves, Traefik CE (community edition) is stateless, and it's not possible to run multiple instance of Traefik CE with LetsEncrypt enabled. Meaning, you cannot have your ingress be HA with Traefik if you use the community edition and have activated the LetsEncrypt resolver. You could however use Traefik EE (enterprise edition) to achieve that. Long story short, if you are going to use Traefik CE (like most of us), you should use cert-manager to generate the certificates. Source [here](https://doc.traefik.io/traefik/v2.0/providers/kubernetes-crd/)._
 
 ### Via Cert-Manager (recommended)
 
-In your module variables, set `enable_cert_manager` to `true`, and just create your issuers as decribed here <https://cert-manager.io/docs/configuration/acme/>.
+In your module variables, set `enable_cert_manager` to `true`, and just create your issuers as described here <https://cert-manager.io/docs/configuration/acme/>.
 
 Then in your Ingress definition, just mentioning the issuer as an annotation and giving a secret name will take care of instructing cert-manager to generate a certificate for it! It simpler than the alternative, you just have to configure your issuer(s) first with the method of your choice.
 
@@ -385,7 +385,7 @@ First and foremost, it depends, but it's always good to have a quick look into H
 - To check the network, use `hcloud network describe k3s`.
 - To look at the LB, use `hcloud loadbalancer describe traefik`.
 
-Then for the rest, you'll often need to login to your cluster via ssh, to do that, use:
+Then for the rest, you'll often need to log in to your cluster via ssh, to do that, use:
 
 ```sh
 ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
@@ -404,7 +404,7 @@ If you want to take down the cluster, you can proceed as follows:
 terraform destroy -auto-approve
 ```
 
-And if the network is slow to delete, just issue `hcloud load-balancer delete clustername` to speed things up! As the load-balancer is usually the ressoure that is the slowest to get deleted on its own.
+And if the network is slow to delete, just issue `hcloud load-balancer delete clustername` to speed things up! As the load-balancer is usually the resource that is the slowest to get deleted on its own.
 
 _Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation._
 
@@ -424,9 +424,9 @@ Code contributions are very much **welcome**.
 
 1. Fork the Project
 2. Create your Branch (`git checkout -b AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature")
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature')
 4. Push to the Branch (`git push origin AmazingFeature`)
-5. Open a Pull Request targetting the `staging` branch.
+5. Open a Pull Request targeting the `staging` branch.
 
 <!-- ACKNOWLEDGEMENTS -->
 

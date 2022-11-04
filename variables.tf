@@ -128,6 +128,12 @@ variable "enable_nginx" {
   description = "Whether to enable or disbale the installation of the Nginx Ingress Controller."
 }
 
+variable "nginx_ingress_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
+}
+
 variable "enable_klipper_metal_lb" {
   type        = bool
   default     = false
@@ -156,6 +162,12 @@ variable "traefik_additional_options" {
   type        = list(string)
   default     = []
   description = "Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file."
+}
+
+variable "traefik_ingress_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart."
 }
 
 variable "allow_scheduling_on_control_plane" {
@@ -250,6 +262,12 @@ variable "cni_plugin" {
   }
 }
 
+variable "cilium_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart."
+}
+
 variable "enable_longhorn" {
   type        = bool
   default     = false
@@ -273,6 +291,12 @@ variable "longhorn_replica_count" {
   description = "Number of replicas per longhorn volume."
 }
 
+variable "longhorn_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to longhorn as 'valuesContent' at the HelmChart."
+}
+
 variable "disable_hetzner_csi" {
   type        = bool
   default     = false
@@ -283,6 +307,12 @@ variable "enable_cert_manager" {
   type        = bool
   default     = false
   description = "Enable cert manager."
+}
+
+variable "cert_manager_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart."
 }
 
 variable "enable_rancher" {
@@ -330,6 +360,12 @@ variable "rancher_bootstrap_password" {
     condition     = (length(var.rancher_bootstrap_password) >= 48) || (length(var.rancher_bootstrap_password) == 0)
     error_message = "The Rancher bootstrap password must be at least 48 characters long."
   }
+}
+
+variable "rancher_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart."
 }
 
 variable "block_icmp_ping_in" {
