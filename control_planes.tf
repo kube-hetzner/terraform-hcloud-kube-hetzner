@@ -37,12 +37,11 @@ module "control_planes" {
 
 resource "hcloud_load_balancer" "control_plane" {
   count = var.use_control_plane_lb ? 1 : 0
+  name  = "${var.cluster_name}-control-plane"
 
   load_balancer_type = var.load_balancer_type
-  name               = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}control-plane"
   location           = var.load_balancer_location
-
-  labels = merge(local.labels, local.labels_control_plane_lb)
+  labels             = merge(local.labels, local.labels_control_plane_lb)
 }
 
 resource "hcloud_load_balancer_network" "control_plane" {
@@ -52,7 +51,7 @@ resource "hcloud_load_balancer_network" "control_plane" {
   subnet_id        = hcloud_network_subnet.control_plane.*.id[0]
 }
 
-resource "hcloud_load_balancer_target" "load_balancer_target" {
+resource "hcloud_load_balancer_target" "control_plane" {
   count = var.use_control_plane_lb ? 1 : 0
 
   depends_on       = [hcloud_load_balancer_network.control_plane]
@@ -62,7 +61,7 @@ resource "hcloud_load_balancer_target" "load_balancer_target" {
   use_private_ip   = true
 }
 
-resource "hcloud_load_balancer_service" "load_balancer_service" {
+resource "hcloud_load_balancer_service" "control_plane" {
   count = var.use_control_plane_lb ? 1 : 0
 
   load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]

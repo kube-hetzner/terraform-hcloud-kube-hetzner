@@ -75,7 +75,7 @@ resource "hcloud_server" "server" {
 
     inline = [
       "set -ex",
-      "wget --timeout=5 --waitretry=0 --tries=10 --retry-connrefused --inet4-only https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2",
+      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2",
       "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
     ]
   }
@@ -166,7 +166,8 @@ resource "hcloud_server" "server" {
 }
 
 resource "hcloud_rdns" "server" {
-  count      = var.base_domain != "" ? 1 : 0
+  count = var.base_domain != "" ? 1 : 0
+
   server_id  = hcloud_server.server.id
   ip_address = hcloud_server.server.ipv4_address
   dns_ptr    = format("%s.%s", local.name, var.base_domain)
