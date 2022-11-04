@@ -97,7 +97,7 @@ resource "hcloud_volume" "longhorn_volume" {
     provisioner = "terraform"
     scope       = "longhorn"
   }
-  name      = "longhorn-${module.agents[each.key].name}"
+  name      = "${var.cluster_name}-longhorn-${module.agents[each.key].name}"
   size      = lookup(local.agent_nodes[each.key], "longhorn_volume_size", 0)
   server_id = module.agents[each.key].id
   automount = true

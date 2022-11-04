@@ -166,7 +166,8 @@ resource "hcloud_server" "server" {
 }
 
 resource "hcloud_rdns" "server" {
-  count      = var.base_domain != "" ? 1 : 0
+  count = var.base_domain != "" ? 1 : 0
+
   server_id  = hcloud_server.server.id
   ip_address = hcloud_server.server.ipv4_address
   dns_ptr    = format("%s.%s", local.name, var.base_domain)
