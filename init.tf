@@ -30,7 +30,8 @@ resource "null_resource" "first_control_plane" {
           tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
           } : {
           tls-san = [module.control_planes[keys(module.control_planes)[0]].ipv4_address]
-        }
+        },
+        var.etcd_s3_backup != null ? merge(var.etcd_s3_backup) : {}
       )
     )
 
