@@ -134,12 +134,6 @@ variable "nginx_ingress_values" {
   description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
 }
 
-variable "enable_klipper_metal_lb" {
-  type        = bool
-  default     = false
-  description = "Use klipper load balancer."
-}
-
 variable "enable_traefik" {
   type        = bool
   default     = true

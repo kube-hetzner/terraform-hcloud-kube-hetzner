@@ -66,19 +66,14 @@ locals {
   # the rest of the subnets are for agent nodes in each nodepools.
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(local.network_ipv4_cidr, 8, index)]
 
-  # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
   agent_count            = sum([for v in var.agent_nodepools : v.count])
   is_single_node_cluster = (local.control_plane_count + local.agent_count) == 1
 
-  using_klipper_lb = var.enable_klipper_metal_lb || local.is_single_node_cluster
-
-  has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
+  has_external_load_balancer = local.ingress_controller == "none"
 
   # disable k3s extras
-  disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], var.enable_traefik ? [] : [
-    "traefik"
-  ], var.enable_metrics_server ? [] : ["metrics-server"])
+  disable_extras = concat(["local-storage", "servicelb"], var.enable_traefik ? [] : ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
 
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
@@ -211,25 +206,6 @@ locals {
         "0.0.0.0/0"
       ]
     }
-    ], !local.using_klipper_lb ? [] : [
-    # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
-    # not an external load-balancer.
-    {
-      direction = "in"
-      protocol  = "tcp"
-      port      = "80"
-      source_ips = [
-        "0.0.0.0/0"
-      ]
-    },
-    {
-      direction = "in"
-      protocol  = "tcp"
-      port      = "443"
-      source_ips = [
-        "0.0.0.0/0"
-      ]
-    }
     ], var.block_icmp_ping_in ? [] : [
     {
       direction = "in"
@@ -289,6 +265,10 @@ locals {
     }
   }
 
+  kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+  kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+  flannel_iface               = "eth1"
+
   ingress_controller = var.enable_traefik ? "traefik" : var.enable_nginx ? "nginx" : "none"
   ingress_controller_service_names = {
     "traefik" = "traefik"
@@ -342,7 +322,6 @@ globalArguments: []
 service:
   enabled: true
   type: LoadBalancer
-%{if !local.using_klipper_lb~}
   annotations:
     "load-balancer.hetzner.cloud/name": "${var.cluster_name}"
     "load-balancer.hetzner.cloud/use-private-ip": "true"
@@ -351,14 +330,11 @@ service:
     "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
     "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
     "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
-%{endif~}
 additionalArguments:
-%{if !local.using_klipper_lb~}
 - "--entryPoints.web.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
 - "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
 - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
 - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-%{endif~}
 %{for option in var.traefik_additional_options~}
 - "${option}"
 %{endfor~}
