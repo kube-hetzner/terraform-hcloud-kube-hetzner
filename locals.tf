@@ -342,7 +342,7 @@ globalArguments: []
 service:
   enabled: true
   type: LoadBalancer
-  %{if !local.using_klipper_lb}
+%{if !local.using_klipper_lb~}
   annotations:
     "load-balancer.hetzner.cloud/name": "${var.cluster_name}"
     "load-balancer.hetzner.cloud/use-private-ip": "true"
@@ -351,22 +351,22 @@ service:
     "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
     "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
     "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
-  %{endif}
+%{endif~}
 additionalArguments:
-%{if !local.using_klipper_lb}
+%{if !local.using_klipper_lb~}
 - "--entryPoints.web.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
 - "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
 - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
 - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-%{endif}
+%{endif~}
 %{for option in var.traefik_additional_options~}
 - "${option}"
 %{endfor~}
-%{if var.traefik_acme_tls}
+%{if var.traefik_acme_tls~}
 - "--certificatesresolvers.le.acme.tlschallenge=true"
 - "--certificatesresolvers.le.acme.email=${var.traefik_acme_email}"
 - "--certificatesresolvers.le.acme.storage=/data/acme.json"
-%{endif}
+%{endif~}
   EOT
 
   rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT

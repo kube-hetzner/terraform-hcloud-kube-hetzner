@@ -17,7 +17,7 @@ resource "null_resource" "first_control_plane" {
           cluster-init                = true
           disable-cloud-controller    = true
           disable                     = local.disable_extras
-          kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+          kubelet-arg                 = ["volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
           kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
           flannel-iface               = "eth1"
           node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
@@ -152,7 +152,7 @@ resource "null_resource" "kustomization" {
       {
         cluster_cidr_ipv4   = local.cluster_cidr_ipv4
         default_lb_location = var.load_balancer_location
-        using_hetzner_lb    = !local.using_klipper_lb
+        using_klipper_lb    = local.using_klipper_lb
     })
     destination = "/var/post_install/ccm.yaml"
   }

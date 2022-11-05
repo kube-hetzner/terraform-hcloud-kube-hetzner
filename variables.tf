@@ -184,7 +184,7 @@ variable "enable_metrics_server" {
 
 variable "initial_k3s_channel" {
   type        = string
-  default     = "stable"
+  default     = "v1.24"
   description = "Allows you to specify an initial k3s channel."
 
   validation {
