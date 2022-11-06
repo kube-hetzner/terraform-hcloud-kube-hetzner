@@ -107,10 +107,7 @@ module "kube-hetzner" {
       server_type = "cpx11",
       location    = "fsn1",
       labels      = [],
-      # To exclude from Longhorn if that is used for instance. Completely optional.
-      taints = [
-        "server-usage=storage:NoSchedule"
-      ],
+      taints      = [],
       count       = 1
     },
     {
@@ -118,10 +115,7 @@ module "kube-hetzner" {
       server_type = "cpx21",
       location    = "nbg1",
       labels      = [],
-      # To exclude from Longhorn if that is used for instance. Completely optional.
-      taints = [
-        "server-usage=storage:NoSchedule"
-      ],
+      taints      = [],
       count = 1
     },
     {
