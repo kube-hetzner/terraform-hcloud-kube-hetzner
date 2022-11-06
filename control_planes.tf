@@ -115,7 +115,9 @@ resource "null_resource" "control_planes" {
           tls-san = [
             module.control_planes[each.key].ipv4_address
           ]
-        }
+        }, 
+        length(keys(var.etcd_s3_backup)) > 0 ? var.etcd_s3_backup : {}
+
       )
     )
 
