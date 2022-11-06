@@ -105,7 +105,7 @@ _Once you start with Terraform, it's best not to change the state manually in He
 
 The default is Flannel, but you can also choose Calico or Cilium, by setting the `cni_plugin` variable in `kube.tf` to "calico" or "cilium".
 
-As Cilium has a lot of interesting and powerful configurations' possibility. We give you the possibility to configure your Cilium with the `cilium_values` (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster. During the deployment, Terraform will test to see if this variable is set and if so will use those values to deploy the Cilium Helm chart.
+As Cilium has a lot of interesting and powerful configurations' possibility. We give you the possibility to configure your Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster.
 
 ### Scaling Nodes
 
@@ -154,7 +154,7 @@ Otherwise, it is essential to turn off automatic OS upgrades (k3s can continue t
 
 By default, MicroOS gets upgraded automatically on each node and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
-As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default, it follows the k3s `stable` channel, but you can also change to the `latest` one if needed or specify a target version to upgrade to via the upgrade plan.
+As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default it will be set to the `initial_k3s_channel`, but you can also set it to `stable`, `latest`, or one more specific like `v1.23` if needed or specify a target version to upgrade to via the upgrade plan (this also allows for downgrades).
 
 You can copy and modify the [one in the templates](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/templates/plans.yaml.tpl) for that! More on the subject in [k3s upgrades](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
@@ -172,7 +172,13 @@ _Alternatively ssh into each node and issue the following command:_
 systemctl --now disable transactional-update.timer
 ```
 
-_To turn off k3s upgrades, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove it, apply:_
+_If you wish to turn off automatic k3s upgrades, you need to set:_
+
+```terraform
+automatically_upgrade_k3s = false
+```
+
+_Alternatively, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove it, apply:_
 
 ```sh
 kubectl -n system-upgrade label node <node-name> k3s_upgrade-
@@ -197,13 +203,13 @@ Rarely needed, but can be handy in the long run. During the installation, we aut
 
 Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Chart](https://rancher.com/docs/k3s/latest/en/helm/) yaml definition and managed by the Helm Controller inside k3s.
 
-By default, we strive to give you optimal defaults, but if you with to customize them, you can do so with the variable `rancher_values`.
+By default, we strive to give you optimal defaults, but if wish, you can customize them.
 
 ### Before deploying
 
 In the case of Traefik, Rancher, and Longhorn, we provide you with variables to configure everything you need.
 
-On top of the above, for Nginx, Rancher, Cilium, Traefik and Longhorn, for maximum flexibility, we give you the ability to configure your helm values within specific terraform variables (for instance, `cilium_values`). _You can find some example Helm values in the [Example-Folder](examples/helm_values) for each listed component at the root of this project._
+On top of the above, for Nginx, Rancher, Cilium, Traefik and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
 
 ### After deploying
 
@@ -213,7 +219,7 @@ For other components like Calico and Kured (which uses manifests), we automatica
 
 ## Adding Extras
 
-If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory besides your `kube.tf`. 
+If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory besides your `kube.tf`.
 
 This file needs to be a valid `Kustomization` manifest, but it supports terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable to the module).
 
@@ -293,7 +299,7 @@ spec:
               number: 80
 ```
   
-_⚠️ In case of using Ingress-Nginx as ingress controller, if you choose to use the HTTP challenge method you need to do an additional step of adding this annotation `load-balancer.hetzner.cloud/hostname` to the Nginx service definition. And you set it equal to a FQDN that points to your LB address._ 
+_⚠️ In case of using Ingress-Nginx as ingress controller, if you choose to use the HTTP challenge method you need to do an additional step of adding this annotation `load-balancer.hetzner.cloud/hostname` to the Nginx service definition. And you set it equal to a FQDN that points to your LB address._
   
 _This is to circumvent this known issue https://github.com/cert-manager/cert-manager/issues/466, also see https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/354. Otherwise, you can just use the DNS challenge, which does not require any additional tweaks to work._
 
@@ -340,8 +346,7 @@ spec:
 
 Running a development cluster on a single node without any high availability is also possible.
 
-When doing so, `automatically_upgrade_os` should be set to `false`, especially with attached volumes the automatic reboots won't work properly.
-In this case, we don't deploy an external load-balancer but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
+When doing so, `automatically_upgrade_os` should be set to `false`, especially with attached volumes the automatic reboots won't work properly. In this case, we don't deploy an external load-balancer but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
 
 </details>
 

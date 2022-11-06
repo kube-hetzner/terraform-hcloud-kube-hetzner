@@ -17,9 +17,9 @@ resource "null_resource" "first_control_plane" {
           cluster-init                = true
           disable-cloud-controller    = true
           disable                     = local.disable_extras
-          kubelet-arg                 = ["volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
-          kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
-          flannel-iface               = "eth1"
+          kubelet-arg                 = local.kubelet_arg
+          kube-controller-manager-arg = local.kube_controller_manager_arg
+          flannel-iface               = local.flannel_iface
           node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints

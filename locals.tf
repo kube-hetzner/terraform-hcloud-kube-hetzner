@@ -84,7 +84,7 @@ locals {
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
   default_control_plane_labels = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
 
-  allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
+  allow_scheduling_on_control_plane = (local.is_single_node_cluster || local.using_klipper_lb) ? true : var.allow_scheduling_on_control_plane
 
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
@@ -289,6 +289,10 @@ locals {
     }
   }
 
+  kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+  kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
+  flannel_iface               = "eth1"
+
   ingress_controller = var.enable_traefik ? "traefik" : var.enable_nginx ? "nginx" : "none"
   ingress_controller_service_names = {
     "traefik" = "traefik"
@@ -326,6 +330,7 @@ controller:
     "use-forwarded-headers": "true"
     "compute-full-forwarded-for": "true"
     "use-proxy-protocol": "true"
+%{if !local.using_klipper_lb~}
   service:
     annotations:
       "load-balancer.hetzner.cloud/name": "${var.cluster_name}"
@@ -335,6 +340,7 @@ controller:
       "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
       "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
       "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+%{endif~}
   EOT
 
   traefik_ingress_values = var.traefik_ingress_values != "" ? var.traefik_ingress_values : <<EOT
