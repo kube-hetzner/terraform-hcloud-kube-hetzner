@@ -49,7 +49,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] **Traefik** or **Nginx** as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
 - [x] **Automatic HA** with the default setting of three control-plane nodes and two agent nodes.
 - [x] **Autoscaling** nodes via the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
-- [x] **Super-HA** with Nodepools for both control-plane and agent nodes can be in different locations.
+- [x] **Super-HA** with Nodepools for both control-plane and agent nodes that can be in different locations.
 - [x] Possibility to have a **single node cluster** with a proper ingress controller.
 - [x] Can use Klipper as an **on-metal LB** or the **Hetzner LB**.
 - [x] Ability to **add nodes and nodepools** when the cluster is running.
