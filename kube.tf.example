@@ -333,7 +333,7 @@ module "kube-hetzner" {
 
   # It is best practice to turn this off, but for backwards compatibility it is set to "true" by default. 
   # See https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/349
-  # When "false". The kubeconfig file can instead be created by executing: "terraform output --raw kubeconfig > cluster_kubeconfig.yaml"
+  # When "false". The kubeconfig file can instead be created by executing: "terraform output --raw kubeconfig_file > cluster_kubeconfig.yaml"
   # Always be careful to not commit this file!
   # create_kubeconfig = false
 
