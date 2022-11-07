@@ -29,14 +29,14 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 
 ![Product Name Screen Shot][product-screenshot]
 
-Why OpenSUSE MicroOS (and not Ubuntu)? 
+**Why OpenSUSE MicroOS (and not Ubuntu)?**
 - Optimized container OS that is fully locked down, most of the filesystem is read-only!
 - Hardened by default with automatic ban for abusive IPs on SSH for instance.
 - Evergreen updates and upgrades, your node will stay valid forever, as it piggy-backs into OpenSUSE Thumbleweed's rolling-release!
 - Automatic upgrades by default, and if something breaks, it automatically rolls-back, thanks to it uses of BTRFS snapshots.
 - Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
 
-Why k3s?
+**Why k3s?**
 - Certifified Kubernetes Distribution, it is automatically synced to k8s source.
 - Fast deployment, it is deployed with a single command.
 - Comes batteries included, with its in-cluster [helm-controller](https://github.com/k3s-io/helm-controller).
