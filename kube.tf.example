@@ -224,12 +224,15 @@ module "kube-hetzner" {
   # True by default for single node clusters, and when enable_klipper_metal_lb is true. In those cases, the value below will be ignored.
   # allow_scheduling_on_control_plane = true
 
-  # If you want to disable the automatic upgrade of k3s, you can set this to false. The default is "true".
+  # If you want to disable the automatic upgrade of k3s, you can set this to false.
+  # Ideally, keep it on, to always have the latest and greatest Kubernetes version, but lock the initial_k3s_channel to a kube major version,
+  # of your choice, like v1.24 or v1.25. That way you get the best of both worlds without the breaking changes risk.
+  # The default is "true" (If you are in HA i.e. at least 3 control plane nodes & 2 agents, just keep it, it works great!)
   # automatically_upgrade_k3s = false
 
-  # If you want to disable the automatic upgrade of MicroOS, you can set this to false. The default is "true".
-  # This is recommend for non-HA clusters, because the nodes can't be drained properly and thus the reboot will fail.
-  # IMPORTANT: This is a security risk!
+  # For non-HA clusters i.e. when the number of control-plane nodes is < 3, you have to turn it off.
+  # Ideally, for production use, always use an HA setup with at least 3 control-plane nodes and 2 agents, and keep this on for max security.
+  # The default is "true" (in HA it works wonderfully well, with automatically roll-back to the previous snapshot in case of an issue).
   # automatically_upgrade_os = false
 
   # Allows you to specify either stable, latest, testing or supported minor versions (defaults to stable)
