@@ -23,11 +23,23 @@
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
-This project aims to create a highly optimized Kubernetes installation that is easy to maintain, secure and automatically upgrades both the nodes and Kubernetes. We aimed for functionality as close as possible to GKE's Auto-Pilot.
+This project aims to create a highly optimized Kubernetes installation that is easy to maintain, secure and automatically upgrades both the nodes and Kubernetes. We aimed for functionality as close as possible to GKE's Auto-Pilot. _Please note that we are not affiliates of Hetzner; but we do strive to be an optimal solution for deploying and maintaining Kubernetes clusters on Hetzner Cloud._
 
-To achieve this, we built it on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
+To achieve this, we built up on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
 
-_Please note that we are not affiliates of Hetzner; this is just an open-source project striving to be an optimal solution for deploying and maintaining Kubernetes on Hetzner Cloud._
+Why OpenSUSE MicroOS (and not Ubuntu)? 
+- Optimized container OS that is fully locked down, most of the filesystem is read-only!
+- Hardened by default with automatic ban for abusive IPs on SSH for instance.
+- Evergreen updates and upgrades, your node will stay valid forever, as it piggy-backs into OpenSUSE Thumbleweed's rolling-release!
+- Automatic upgrades by default, and if something breaks, it automatically rolls-back, thanks to it uses of BTRFS snapshots.
+- Supports Kured to properly drain and reboot nodes in an HA fashion.
+
+Why k3s?
+- Certifified Kubernetes Distribution, it is automatically synced to k8s source.
+- Small in size & Lightweight — The binary containing the non-containerized components is smaller than K8s.
+- Fast deployment, it is deployed with a single command.
+- Comes batteries included, with its in-cluster [helm-controller](https://github.com/k3s-io/helm-controller).
+- Easy automatic update, via the [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller).
 
 ### Features
 
@@ -35,14 +47,14 @@ _Please note that we are not affiliates of Hetzner; this is just an open-source 
 - Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
 - Traefik or Nginx as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
 - Automatic HA with the default setting of three control-plane nodes and two agent nodes.
-- Autoscaling nodes by supporting the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
+- Autoscaling nodes via the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
 - Super-HA: Nodepools for both control-plane and agent nodes can be in different locations.
 - Possibility to have a single node cluster with a proper ingress controller.
 - Can use Klipper as an "on-metal" LB instead of the Hetzner LB.
 - Ability to add nodes and nodepools when the cluster is running.
-- Possibility to turn Longhorn (using either Hetzner volumes or node storage), and/or Hetzner CSI.
+- Possibility to turn on Longhorn (using either Hetzner volumes or node storage), and/or Hetzner CSI.
 - Choose between Flannel (default), Calico, or Cilium as CNI.
-- Tons of flexible configuration options to suit all needs.
+- Flexible configuration options via variables, and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -219,9 +231,9 @@ For other components like Calico and Kured (which uses manifests), we automatica
 
 ## Adding Extras
 
-If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory besides your `kube.tf`.
+If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory/file besides your `kube.tf`.
 
-This file needs to be a valid `Kustomization` manifest, but it supports terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable to the module).
+This file needs to be a valid `Kustomization` manifest, but it supports terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable (via a map) to the module).
 
 All files in the `extra-manifests` directory including the rendered version of `kustomization.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
