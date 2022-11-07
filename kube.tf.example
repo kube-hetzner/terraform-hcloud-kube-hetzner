@@ -331,10 +331,10 @@ module "kube-hetzner" {
   # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
   # extra_kustomize_parameters={}
 
-  # Don't create a local kubeconfig file. For backwards compatibility this is set to true by default in the module but for automatic runs this can cause issues.
+  # It is best practice to turn this off, but for backwards compatibility it is set to "true" by default. 
   # See https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/349
-  # The kubeconfig file can instead be created by executing: "terraform output --raw kubeconfig > cluster_kubeconfig.yaml"
-  # Be careful to not commit this file!
+  # When "false". The kubeconfig file can instead be created by executing: "terraform output --raw kubeconfig > cluster_kubeconfig.yaml"
+  # Always be careful to not commit this file!
   # create_kubeconfig = false
 
   # Don't create the kustomize backup. This can be helpful for automation.
