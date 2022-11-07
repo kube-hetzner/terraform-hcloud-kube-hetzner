@@ -32,11 +32,10 @@ Why OpenSUSE MicroOS (and not Ubuntu)?
 - Hardened by default with automatic ban for abusive IPs on SSH for instance.
 - Evergreen updates and upgrades, your node will stay valid forever, as it piggy-backs into OpenSUSE Thumbleweed's rolling-release!
 - Automatic upgrades by default, and if something breaks, it automatically rolls-back, thanks to it uses of BTRFS snapshots.
-- Supports Kured to properly drain and reboot nodes in an HA fashion.
+- Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
 
 Why k3s?
 - Certifified Kubernetes Distribution, it is automatically synced to k8s source.
-- Small in size & Lightweight — The binary containing the non-containerized components is smaller than K8s.
 - Fast deployment, it is deployed with a single command.
 - Comes batteries included, with its in-cluster [helm-controller](https://github.com/k3s-io/helm-controller).
 - Easy automatic update, via the [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller).
