@@ -18,7 +18,7 @@ module "kube-hetzner" {
   # source = "github.com/kube-hetzner/terraform-hcloud-kube-hetzner"
   # For normal use, this is the path to the terraform registry
   source = "kube-hetzner/kube-hetzner/hcloud"
-  
+
   # you can optionally specify a version number
   # version = "1.2.0"
 
@@ -36,7 +36,7 @@ module "kube-hetzner" {
   ssh_private_key = file("/home/username/.ssh/id_ed25519")
   # You can add additional SSH public Keys to grant other team members root access to your cluster nodes.
   # ssh_additional_public_keys = []
-  
+
   # You can also add additional SSH public Keys which are saved in the hetzner cloud by a label.
   # See https://docs.hetzner.cloud/#label-selector
   # ssh_hcloud_key_label = "role=admin"
@@ -118,11 +118,8 @@ module "kube-hetzner" {
       server_type = "cpx21",
       location    = "nbg1",
       labels      = [],
-      # To exclude from Longhorn if that is used for instance. Completely optional.
-      taints = [
-        "server-usage=storage:NoSchedule"
-      ],
-      count       = 1
+      taints      = [],
+      count = 1
     },
     {
       name        = "storage",
@@ -175,8 +172,8 @@ module "kube-hetzner" {
   # how many replica volumes should longhorn create (default is 3)
   # longhorn_replica_count = 1
 
-  # When you enable Longhorn, you can go with the default settings and just modify the above two variables OR you can copy the longhorn_values.yaml.example
-  # file to longhorn_value.yaml and put it at the base of your own module, next to your kube.tf, this is Longhorn's own helm values file.
+  # When you enable Longhorn, you can go with the default settings and just modify the above two variables OR you can add a longhorn_values variable
+  # with all needed helm values, see towards the end of the file in the advanced section.
   # If that file is present, the system will use it during the deploy, if not it will use the default values with the two variable above that can be customized.
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
 
@@ -197,17 +194,17 @@ module "kube-hetzner" {
   # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "true". Default is "false".
   # FOR THIS TO NOT BE IGNORED, you also need to set "enable_traefik = false".
   # By the default we load an optimal Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
-  # we allow you to add a nginx_ingress_values.yaml file to the root of your module, next to the kube.tf file, it is simply a helm values config file.
-  # See the nginx_ingress_values.yaml.example located at the root of this project.
+  # we allow you to add a nginx_ingress_values, see towards the end of this file in the advanced section.
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # enable_nginx = true
 
   # If you want to disable the Traefik ingress controller, to use the Nginx ingress controller for instance, you can can set this to "false". Default is "true".
   # enable_traefik = false
 
-  # Use the klipper LB, instead of the default Hetzner one, that has an advantage of dropping the cost of the setup,
-  # Automatically "true" in the case of single node cluster.
+  # Use the klipper LB (similar to metalLB), instead of the default Hetzner one, that has an advantage of dropping the cost of the setup.
+  # Automatically "true" in the case of single node cluster (as it does not make sense to use the Hetzner LB in that situation).
   # It can work with any ingress controller that you choose to deploy.
+  # Please note that because the klipper lb points to all nodes, we automatically allow scheduling on the control plane when it is active.
   # enable_klipper_metal_lb = "true"
 
   # We give you the possibility to use letsencrypt directly with Traefik because it's an easy setup, however it's not optimal,
@@ -225,12 +222,11 @@ module "kube-hetzner" {
   # enable_metrics_server = false
 
   # If you want to allow non-control-plane workloads to run on the control-plane nodes, set "true" below. The default is "false".
-  # True by default for single node clusters.
+  # True by default for single node clusters, and when enable_klipper_metal_lb is true. In those cases, the value below will be ignored.
   # allow_scheduling_on_control_plane = true
 
   # If you want to disable the automatic upgrade of k3s, you can set this to false. The default is "true".
   # automatically_upgrade_k3s = false
-
 
   # If you want to disable the automatic upgrade of MicroOS, you can set this to false. The default is "true".
   # This is recommend for non-HA clusters, because the nodes can't be drained properly and thus the reboot will fail.
@@ -241,8 +237,8 @@ module "kube-hetzner" {
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to latest - 0.01,
   # at the time of writing the latest is v1.25, so setting the value below to "v1.24" will insure maximum compatibility with Rancher, Longhorn and so on!
-  # As a rule of thumb, avoid using latest, even if it's the default, we advise you to fix it as mentioned above.
-  # initial_k3s_channel = "latest"
+  # The default is "v1.24".
+  # initial_k3s_channel = "stable"
 
   # The cluster name, by default "k3s"
   # cluster_name = ""
@@ -273,9 +269,8 @@ module "kube-hetzner" {
 
   # If you want to configure a different CNI for k3s, use this flag
   # possible values: flannel (Default), calico, and cilium
-  # CAVEATS: Calico is not supported when not using the Hetzner LB (like when enable_klipper_metal_lb is set to true or when using a single node cluster),
-  # because of the following issue https://github.com/k3s-io/klipper-lb/issues/6.
-  # As for Cilium, we allow infinite configurations, please check the CNI section of the readme over at https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/#cni.
+  # As for Cilium, we allow infinite configurations via helm values, please check the CNI section of the readme over at https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/#cni.
+  # Also, see the cilium_values at towards the end of this file, in the advanced section.
   # cni_plugin = "cilium"
 
   # If you want to disable the k3s default network policy controller, use this flag!
@@ -305,8 +300,7 @@ module "kube-hetzner" {
   # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
   # The easiest thing is to leave everything as is (using the default rancher self-signed certificate) and put Cloudflare in front of it.
   # As for the number of replicas, by default it is set to the numbe of control plane nodes.
-  # You can customized all of the above by adding a rancher_values.yaml file at the root of your module, which is just a helm values file.
-  # See the rancher_values.yaml.example file located at the root of the project.
+  # You can customized all of the above by adding a rancher_values variable see at the end of this file in the advanced section.
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # IMPORTANT: Rancher's install is quite memory intensive, you will require at least 4GB if RAM, meaning cx21 server type (for your control plane).
   # ALSO, in order for Rancher to successfully deploy, you have to set the "rancher_hostname".
@@ -333,7 +327,6 @@ module "kube-hetzner" {
   # More information about the registration can be found here https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/
   # rancher_registration_manifest_url = "https://rancher.xyz.dev/v3/import/xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz.yaml"
 
-
   # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
   # extra_kustomize_parameters={}
 
@@ -341,11 +334,81 @@ module "kube-hetzner" {
   # See https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/349
   # The kubeconfig file can instead be created by executing: "terraform output --raw kubeconfig > cluster_kubeconfig.yaml"
   # Be careful to not commit this file!
-  create_kubeconfig = false
-
+  # create_kubeconfig = false
 
   # Don't create the kustomize backup. This can be helpful for automation.
   # create_kustomization = false
+
+  ### ADVANCED - Custom helm values for packages above (search _values if you want to located where those are mentioned upper in this file)
+  # ⚠️ Inside the _values variable below are examples, up to you to find out the best helm values possible, we do not provide support for customized helm values.
+  # Please understand that the indentation is very important, inside the EOTs, as those are proper yaml helm values.
+  # We advise you to use the default values, and only change them if you know what you are doing!
+
+  # Cilium, all Cilium helm values can be found at https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   cilium_values = <<EOT
+ipam:
+  mode: kubernetes
+devices: "eth1"
+k8s:
+  requireIPv4PodCIDR: true
+kubeProxyReplacement: strict
+  EOT */
+
+  # Cert manager, all cert-manager helm values can be found at https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   cert_manager_values = <<EOT
+installCRDs: true
+replicaCount: 3
+webhook:
+  replicaCount: 3
+cainjector:
+  replicaCount: 3
+  EOT */
+
+  # Longhorn, all Longhorn helm values can be found at https://github.com/longhorn/longhorn/blob/master/chart/values.yaml
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   longhorn_values = <<EOT
+defaultSettings:
+  defaultDataPath: /var/longhorn
+persistence:
+  defaultFsType: ext4
+  defaultClassReplicaCount: 3
+  defaultClass: true
+  EOT */
+
+  # Nginx, all Nginx helm values can be found at https://github.com/kubernetes/ingress-nginx/blob/main/charts/ingress-nginx/values.yaml
+  # You can also have a look at https://kubernetes.github.io/ingress-nginx/, to understand how it works, and all the options at your disposal.
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   nginx_ingress_values = <<EOT
+controller:
+  watchIngressWithoutClass: "true"
+  kind: "DaemonSet"
+  config:
+    "use-forwarded-headers": "true"
+    "compute-full-forwarded-for": "true"
+    "use-proxy-protocol": "true"
+  service:
+    annotations:
+      "load-balancer.hetzner.cloud/name": "k3s"
+      "load-balancer.hetzner.cloud/use-private-ip": "true"
+      "load-balancer.hetzner.cloud/disable-private-ingress": "true"
+      "load-balancer.hetzner.cloud/location": "nbg1"
+      "load-balancer.hetzner.cloud/type": "lb11"
+      "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+  EOT */
+
+  # Rancher, all Rancher helm values can be found at https://rancher.com/docs/rancher/v2.5/en/installation/install-rancher-on-k8s/chart-options/
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   rancher_values = <<EOT
+ingress:
+  tls:
+    source: "rancher"
+hostname: "rancher.example.com"
+replicas: 1
+bootstrapPassword: "supermario"
+  EOT */
+
 }
 
 provider "hcloud" {
@@ -363,6 +426,6 @@ terraform {
 }
 
 output "kubeconfig" {
-    value = module.kube-hetzner.kubeconfig_file
-    sensitive = true
+  value     = module.kube-hetzner.kubeconfig_file
+  sensitive = true
 }

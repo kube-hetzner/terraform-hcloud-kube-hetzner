@@ -99,9 +99,9 @@ resource "null_resource" "control_planes" {
           token                       = random_password.k3s_token.result
           disable-cloud-controller    = true
           disable                     = local.disable_extras
-          kubelet-arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
-          kube-controller-manager-arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
-          flannel-iface               = "eth1"
+          kubelet-arg                 = local.kubelet_arg
+          kube-controller-manager-arg = local.kube_controller_manager_arg
+          flannel-iface               = local.flannel_iface
           node-ip                     = module.control_planes[each.key].private_ipv4_address
           advertise-address           = module.control_planes[each.key].private_ipv4_address
           node-label                  = each.value.labels
