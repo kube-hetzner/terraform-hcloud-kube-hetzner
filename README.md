@@ -44,7 +44,7 @@ Why k3s?
 
 ### Features
 
-- [x] Maintenance-free with auto-upgrades to the latest version of **MicroOS** and **k3s**.
+- [x] **Maintenance-free** with auto-upgrades to the latest version of MicroOS and k3s.
 - [x] Proper use of the **Hetzner private network** to minimize latency and remove the need for encryption.
 - [x] **Traefik** or **Nginx** as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
 - [x] **Automatic HA** with the default setting of three control-plane nodes and two agent nodes.
