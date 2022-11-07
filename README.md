@@ -32,8 +32,8 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 **Why OpenSUSE MicroOS (and not Ubuntu)?**
 - Optimized container OS that is fully locked down, most of the filesystem is read-only!
 - Hardened by default with automatic ban for abusive IPs on SSH for instance.
-- Evergreen updates and upgrades, your node will stay valid forever, as it piggy-backs into OpenSUSE Thumbleweed's rolling-release!
-- Automatic upgrades by default, and if something breaks, it automatically rolls-back, thanks to it uses of BTRFS snapshots.
+- Evergreen release, your node will stay valid forever, as it piggy-backs into OpenSUSE Thumbleweed's rolling-release!
+- Automatic updates by default, and if something breaks, it automatically rolls-back, thanks to it uses of BTRFS snapshots.
 - Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
 
 **Why k3s?**
