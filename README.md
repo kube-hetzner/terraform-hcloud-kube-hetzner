@@ -42,18 +42,18 @@ Why k3s?
 
 ### Features
 
-- Maintenance-free with auto-upgrades to the latest version of MicroOS and k3s.
-- Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
-- Traefik or Nginx as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
-- Automatic HA with the default setting of three control-plane nodes and two agent nodes.
-- Autoscaling nodes via the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
-- Super-HA: Nodepools for both control-plane and agent nodes can be in different locations.
-- Possibility to have a single node cluster with a proper ingress controller.
-- Can use Klipper as an "on-metal" LB instead of the Hetzner LB.
-- Ability to add nodes and nodepools when the cluster is running.
-- Possibility to turn on Longhorn (using either Hetzner volumes or node storage), and/or Hetzner CSI.
-- Choose between Flannel (default), Calico, or Cilium as CNI.
-- Flexible configuration options via variables, and an extra Kustomization option.
+✅ Maintenance-free with auto-upgrades to the latest version of **MicroOS** and **k3s**.
+✅ Proper use of the **Hetzner private network** to minimize latency and remove the need for encryption.
+✅ **Traefik** or **Nginx** as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
+✅ **Automatic HA** with the default setting of three control-plane nodes and two agent nodes.
+✅ **Autoscaling** nodes via the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
+✅ **Super-HA** with Nodepools for both control-plane and agent nodes can be in different locations.
+✅ Possibility to have a **single node cluster** with a proper ingress controller.
+✅ Can use Klipper as an **on-metal LB** or the **Hetzner LB**.
+✅ Ability to **add nodes and nodepools** when the cluster is running.
+✅ Possibility to turn on **Longhorn** and/or **Hetzner CSI**.
+✅ Choose between **Flannel, Calico, or Cilium** as CNI.
+✅ **Flexible configuration options** via variables, and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
