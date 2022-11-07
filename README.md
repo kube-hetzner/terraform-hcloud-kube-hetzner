@@ -27,6 +27,8 @@ This project aims to create a highly optimized Kubernetes installation that is e
 
 To achieve this, we built up on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
 
+![Product Name Screen Shot][product-screenshot]
+
 Why OpenSUSE MicroOS (and not Ubuntu)? 
 - Optimized container OS that is fully locked down, most of the filesystem is read-only!
 - Hardened by default with automatic ban for abusive IPs on SSH for instance.
@@ -56,8 +58,6 @@ Why k3s?
 - [x] **Flexible configuration options** via variables, and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
-
-![Product Name Screen Shot][product-screenshot]
 
 <!-- GETTING STARTED -->
 
