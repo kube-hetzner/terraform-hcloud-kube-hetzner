@@ -161,6 +161,16 @@ module "kube-hetzner" {
   #   }
   # ]
 
+  # Enable etcd snapshot backups to S3 storage.
+  # Just provide a map with the needed settings (according to your S3 storage provider) and backups to S3 will
+  # be enabled (with the default settings for etcd scnapshots).
+  # etcd_s3_backup = {
+  #   etcd-s3-endpoint        = "xxxx.r2.cloudflarestorage.com"
+  #   etcd-s3-access-key      = "<access-key>"
+  #   etcd-s3-secret-key      = "<secret-key>"
+  #   etcd-s3-bucket          = "k3s-etcd-snapshots"
+  # }
+
   # To use local storage on the nodes, you can enable Longhorn, default is "false".
   # See a full recap on how to configure agent nodepools for longhorn here https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/discussions/373#discussioncomment-3983159
   # enable_longhorn = true
