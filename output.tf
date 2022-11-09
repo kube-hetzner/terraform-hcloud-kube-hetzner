@@ -17,12 +17,12 @@ output "agents_public_ipv4" {
   description = "The public IPv4 addresses of the agent servers."
 }
 
-output "load_balancer_public_ipv4" {
+output "ingress_public_ipv4" {
   description = "The public IPv4 address of the Hetzner load balancer"
   value       = local.has_external_load_balancer ? null : data.hcloud_load_balancer.cluster[0].ipv4
 }
 
-output "load_balancer_public_ipv6" {
+output "ingress_public_ipv6" {
   description = "The public IPv6 address of the Hetzner load balancer"
   value       = (local.has_external_load_balancer || var.load_balancer_disable_ipv6) ? null : data.hcloud_load_balancer.cluster[0].ipv6
 }
@@ -37,15 +37,4 @@ output "kubeconfig" {
   description = "Structured kubeconfig data to supply to other providers"
   value       = local.kubeconfig_data
   sensitive   = true
-}
-
-
-output "ingress_public_ipv4" {
-  description = "The public ingress IPv4 of the cluster (external/internal load balancer)"
-  value       = local.has_external_load_balancer ? module.control_planes[keys(module.control_planes)[0]].ipv4_address : data.hcloud_load_balancer.cluster[0].ipv4
-}
-
-output "ingress_public_ipv6" {
-  description = "The public ingress IPv6 of the cluster (external/internal load balancer). Only supported with external load balancer"
-  value       = local.has_external_load_balancer ? null : data.hcloud_load_balancer.cluster[0].ipv6
 }

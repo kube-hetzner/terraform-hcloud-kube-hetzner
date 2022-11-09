@@ -3,9 +3,9 @@
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.2.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.3 |
 | <a name="requirement_github"></a> [github](#requirement\_github) | >= 4.0.0 |
-| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.35.1 |
+| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.35.2 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.0.0 |
 | <a name="requirement_remote"></a> [remote](#requirement\_remote) | >= 0.0.23 |
 
@@ -15,7 +15,7 @@
 |------|---------|
 | <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
 | <a name="provider_github"></a> [github](#provider\_github) | >= 4.0.0 |
-| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.35.1 |
+| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.35.2 |
 | <a name="provider_local"></a> [local](#provider\_local) | >= 2.0.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 | <a name="provider_random"></a> [random](#provider\_random) | n/a |
@@ -103,7 +103,7 @@
 | <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token. | `string` | n/a | yes |
 | <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. | `string` | `null` | no |
 | <a name="input_hetzner_csi_version"></a> [hetzner\_csi\_version](#input\_hetzner\_csi\_version) | Version of Container Storage Interface driver for Hetzner Cloud. | `string` | `null` | no |
-| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"stable"` | no |
+| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.24"` | no |
 | <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured | `string` | `null` | no |
 | <a name="input_load_balancer_disable_ipv6"></a> [load\_balancer\_disable\_ipv6](#input\_load\_balancer\_disable\_ipv6) | Disable ipv6 for the load balancer. | `bool` | `false` | no |
 | <a name="input_load_balancer_location"></a> [load\_balancer\_location](#input\_load\_balancer\_location) | Default load balancer location. | `string` | `"fsn1"` | no |
@@ -138,10 +138,8 @@
 | <a name="output_agents_public_ipv4"></a> [agents\_public\_ipv4](#output\_agents\_public\_ipv4) | The public IPv4 addresses of the agent servers. |
 | <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Shared suffix for all resources belonging to this cluster. |
 | <a name="output_control_planes_public_ipv4"></a> [control\_planes\_public\_ipv4](#output\_control\_planes\_public\_ipv4) | The public IPv4 addresses of the controlplane servers. |
-| <a name="output_ingress_public_ipv4"></a> [ingress\_public\_ipv4](#output\_ingress\_public\_ipv4) | The public ingress IPv4 of the cluster (external/internal load balancer) |
-| <a name="output_ingress_public_ipv6"></a> [ingress\_public\_ipv6](#output\_ingress\_public\_ipv6) | The public ingress IPv6 of the cluster (external/internal load balancer). Only supported with external load balancer |
+| <a name="output_ingress_public_ipv4"></a> [ingress\_public\_ipv4](#output\_ingress\_public\_ipv4) | The public IPv4 address of the Hetzner load balancer |
+| <a name="output_ingress_public_ipv6"></a> [ingress\_public\_ipv6](#output\_ingress\_public\_ipv6) | The public IPv6 address of the Hetzner load balancer |
 | <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Structured kubeconfig data to supply to other providers |
 | <a name="output_kubeconfig_file"></a> [kubeconfig\_file](#output\_kubeconfig\_file) | Kubeconfig file content with external IP address |
-| <a name="output_load_balancer_public_ipv4"></a> [load\_balancer\_public\_ipv4](#output\_load\_balancer\_public\_ipv4) | The public IPv4 address of the Hetzner load balancer |
-| <a name="output_load_balancer_public_ipv6"></a> [load\_balancer\_public\_ipv6](#output\_load\_balancer\_public\_ipv6) | The public IPv6 address of the Hetzner load balancer |
 <!-- END_TF_DOCS -->

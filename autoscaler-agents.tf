@@ -80,8 +80,8 @@ data "cloudinit_config" "autoscaler-config" {
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
           token         = random_password.k3s_token.result
-          kubelet-arg   = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
-          flannel-iface = "eth1"
+          kubelet-arg   = local.kubelet_arg
+          flannel-iface = local.flannel_iface
           node-label    = local.default_agent_labels
           node-taint    = local.default_agent_taints
         })

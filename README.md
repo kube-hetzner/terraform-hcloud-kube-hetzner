@@ -23,30 +23,41 @@
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
-This project aims to create a highly optimized Kubernetes installation that is easy to maintain, secure and automatically upgrades both the nodes and Kubernetes. We aimed for functionality as close as possible to GKE's Auto-Pilot.
+This project aims to create a highly optimized Kubernetes installation that is easy to maintain, secure and automatically upgrades both the nodes and Kubernetes. We aimed for functionality as close as possible to GKE's Auto-Pilot. _Please note that we are not affiliates of Hetzner; but we do strive to be an optimal solution for deploying and maintaining Kubernetes clusters on Hetzner Cloud._
 
-To achieve this, we built it on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
+To achieve this, we built up on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
 
-_Please note that we are not affiliates of Hetzner; this is just an open-source project striving to be an optimal solution for deploying and maintaining Kubernetes on Hetzner Cloud._
+![Product Name Screen Shot][product-screenshot]
+
+**Why OpenSUSE MicroOS (and not Ubuntu)?**
+- Optimized container OS that is fully locked down, most of the filesystem is read-only!
+- Hardened by default with automatic ban for abusive IPs on SSH for instance.
+- Evergreen release, your node will stay valid forever, as it piggy-backs into OpenSUSE Thumbleweed's rolling-release!
+- Automatic updates by default, and if something breaks, it automatically rolls-back, thanks to it uses of BTRFS snapshots.
+- Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
+
+**Why k3s?**
+- Certifified Kubernetes Distribution, it is automatically synced to k8s source.
+- Fast deployment, it is deployed with a single command.
+- Comes batteries included, with its in-cluster [helm-controller](https://github.com/k3s-io/helm-controller).
+- Easy automatic update, via the [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller).
 
 ### Features
 
-- Maintenance-free with auto-upgrades to the latest version of MicroOS and k3s.
-- Proper use of the Hetzner private network to minimize latency and remove the need for encryption.
-- Traefik or Nginx as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
-- Automatic HA with the default setting of three control-plane nodes and two agent nodes.
-- Autoscaling nodes by supporting the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
-- Super-HA: Nodepools for both control-plane and agent nodes can be in different locations.
-- Possibility to have a single node cluster with a proper ingress controller.
-- Can use Klipper as an "on-metal" LB instead of the Hetzner LB.
-- Ability to add nodes and nodepools when the cluster is running.
-- Possibility to turn Longhorn (using either Hetzner volumes or node storage), and/or Hetzner CSI.
-- Choose between Flannel (default), Calico, or Cilium as CNI.
-- Tons of flexible configuration options to suit all needs.
+- [x] **Maintenance-free** with auto-upgrades to the latest version of MicroOS and k3s.
+- [x] Proper use of the **Hetzner private network** to minimize latency and remove the need for encryption.
+- [x] **Traefik** or **Nginx** as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
+- [x] **Automatic HA** with the default setting of three control-plane nodes and two agent nodes.
+- [x] **Autoscaling** nodes via the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
+- [x] **Super-HA** with Nodepools for both control-plane and agent nodes that can be in different locations.
+- [x] Possibility to have a **single node cluster** with a proper ingress controller.
+- [x] Can use Klipper as an **on-metal LB** or the **Hetzner LB**.
+- [x] Ability to **add nodes and nodepools** when the cluster is running.
+- [x] Possibility to turn on **Longhorn** and/or **Hetzner CSI**.
+- [x] Choose between **Flannel, Calico, or Cilium** as CNI.
+- [x] **Flexible configuration options** via variables, and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
-
-![Product Name Screen Shot][product-screenshot]
 
 <!-- GETTING STARTED -->
 
@@ -89,23 +100,29 @@ terraform apply -auto-approve
 
 It will take around 5 minutes to complete, and then you should see a green output confirming a successful deployment.
 
+_Once you start with Terraform, it's best not to change the state of the project manually via the Hetzner UI; otherwise, you may get an error when you try to run terraform again for that cluster (when trying to change the number of nodes for instance)._
+
 ## Usage
 
 When your brand-new cluster is up and running, the sky is your limit! 🎉
 
-You can immediately kubectl into it (by exporting the kubeconfig to a file via `terraform output --raw kubeconfig > clustername_kubeconfig.yaml` after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
+You can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
 ```sh
 export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
 ```
 
-_Once you start with Terraform, it's best not to change the state manually in Hetzner; otherwise, you'll get an error when you try to scale up or down or even destroy the cluster._
+If chose to turn `create_kubeconfig` to false in your kube.tf (good practice), you can still create this file by running `terraform output --raw kubeconfig_file > clustername_kubeconfig.yaml` and then use it as described above.
+
+You can also use it in an automated flow, in which case `create_kubeconfig` should be set to false, and you can use the `kubeconfig` output variable to get the kubeconfig file in a structured data format.
+
+_You can view all kinds of details about the cluster by running `terraform output kubeconfig` or `terraform output -json kubeconfig | jq`._
 
 ## CNI
 
 The default is Flannel, but you can also choose Calico or Cilium, by setting the `cni_plugin` variable in `kube.tf` to "calico" or "cilium".
 
-As Cilium has a lot of interesting and powerful configurations' possibility. We give you the possibility to configure your Cilium with the `cilium_values` (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster. During the deployment, Terraform will test to see if this variable is set and if so will use those values to deploy the Cilium Helm chart.
+As Cilium has a lot of interesting and powerful configurations' possibility. We give you the possibility to configure your Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster.
 
 ### Scaling Nodes
 
@@ -154,7 +171,7 @@ Otherwise, it is essential to turn off automatic OS upgrades (k3s can continue t
 
 By default, MicroOS gets upgraded automatically on each node and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
-As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default, it follows the k3s `stable` channel, but you can also change to the `latest` one if needed or specify a target version to upgrade to via the upgrade plan.
+As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default it will be set to the `initial_k3s_channel`, but you can also set it to `stable`, `latest`, or one more specific like `v1.23` if needed or specify a target version to upgrade to via the upgrade plan (this also allows for downgrades).
 
 You can copy and modify the [one in the templates](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/templates/plans.yaml.tpl) for that! More on the subject in [k3s upgrades](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
@@ -172,7 +189,13 @@ _Alternatively ssh into each node and issue the following command:_
 systemctl --now disable transactional-update.timer
 ```
 
-_To turn off k3s upgrades, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove it, apply:_
+_If you wish to turn off automatic k3s upgrades, you need to set:_
+
+```terraform
+automatically_upgrade_k3s = false
+```
+
+_Alternatively, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove it, apply:_
 
 ```sh
 kubectl -n system-upgrade label node <node-name> k3s_upgrade-
@@ -197,13 +220,13 @@ Rarely needed, but can be handy in the long run. During the installation, we aut
 
 Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Chart](https://rancher.com/docs/k3s/latest/en/helm/) yaml definition and managed by the Helm Controller inside k3s.
 
-By default, we strive to give you optimal defaults, but if you with to customize them, you can do so with the variable `rancher_values`.
+By default, we strive to give you optimal defaults, but if wish, you can customize them.
 
 ### Before deploying
 
 In the case of Traefik, Rancher, and Longhorn, we provide you with variables to configure everything you need.
 
-On top of the above, for Nginx, Rancher, Cilium, Traefik and Longhorn, for maximum flexibility, we give you the ability to configure your helm values within specific terraform variables (for instance, `cilium_values`). _You can find some example Helm values in the [Example-Folder](examples/helm_values) for each listed component at the root of this project._
+On top of the above, for Nginx, Rancher, Cilium, Traefik and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
 
 ### After deploying
 
@@ -213,9 +236,9 @@ For other components like Calico and Kured (which uses manifests), we automatica
 
 ## Adding Extras
 
-If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory besides your `kube.tf`. 
+If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory/file besides your `kube.tf`.
 
-This file needs to be a valid `Kustomization` manifest, but it supports terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable to the module).
+This file needs to be a valid `Kustomization` manifest, but it supports terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable (via a map) to the module).
 
 All files in the `extra-manifests` directory including the rendered version of `kustomization.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
@@ -293,7 +316,7 @@ spec:
               number: 80
 ```
   
-_⚠️ In case of using Ingress-Nginx as ingress controller, if you choose to use the HTTP challenge method you need to do an additional step of adding this annotation `load-balancer.hetzner.cloud/hostname` to the Nginx service definition. And you set it equal to a FQDN that points to your LB address._ 
+_⚠️ In case of using Ingress-Nginx as ingress controller, if you choose to use the HTTP challenge method you need to do an additional step of adding this annotation `load-balancer.hetzner.cloud/hostname` to the Nginx service definition. And you set it equal to a FQDN that points to your LB address._
   
 _This is to circumvent this known issue https://github.com/cert-manager/cert-manager/issues/466, also see https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/354. Otherwise, you can just use the DNS challenge, which does not require any additional tweaks to work._
 
@@ -340,8 +363,7 @@ spec:
 
 Running a development cluster on a single node without any high availability is also possible.
 
-When doing so, `automatically_upgrade_os` should be set to `false`, especially with attached volumes the automatic reboots won't work properly.
-In this case, we don't deploy an external load-balancer but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
+When doing so, `automatically_upgrade_os` should be set to `false`, especially with attached volumes the automatic reboots won't work properly. In this case, we don't deploy an external load-balancer but use the default [k3s service load balancer](https://rancher.com/docs/k3s/latest/en/networking/#service-load-balancer) on the host itself and open up port 80 & 443 in the firewall (done automatically).
 
 </details>
 

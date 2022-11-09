@@ -15,10 +15,13 @@ spec:
             - "--allow-untagged-cloud"
             - "--allocate-node-cidrs=true"
             - "--cluster-cidr=${cluster_cidr_ipv4}"
+%{if using_klipper_lb~}
+            - "--secure-port=10288"
+%{endif~}
           env:
             - name: "HCLOUD_LOAD_BALANCERS_LOCATION"
               value: "${default_lb_location}"
             - name: "HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP"
               value: "true"
             - name: "HCLOUD_LOAD_BALANCERS_ENABLED"
-              value: "${using_hetzner_lb}"
+              value: "${!using_klipper_lb}"
