@@ -275,6 +275,12 @@ locals {
     "calico" = ["calico.yaml"]
   }
 
+  etcd_s3_snapshots = length(keys(var.etcd_s3_backup)) > 0 ? merge(
+    {
+      "etcd-s3" = true
+    },
+  var.etcd_s3_backup) : {}
+
   cni_k3s_settings = {
     "flannel" = {
       disable-network-policy = var.disable_network_policy

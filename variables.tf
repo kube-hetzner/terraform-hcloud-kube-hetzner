@@ -142,8 +142,9 @@ variable "enable_klipper_metal_lb" {
 
 variable "etcd_s3_backup" {
   description = "Etcd cluster state backup to S3 storage"
-  type = map(any)
-  default = {}
+  type        = map(any)
+  sensitive   = true
+  default     = {}
 }
 
 variable "enable_traefik" {
