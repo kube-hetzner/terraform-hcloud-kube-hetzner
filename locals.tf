@@ -15,8 +15,9 @@ locals {
     "set -ex",
     # prepare the k3s config directory
     "mkdir -p /etc/rancher/k3s",
-    # move the config file into place
+    # move the config file into place and adjust permissions
     "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
+    "chmod 0600 /etc/rancher/k3s/config.yaml",
     # if the server has already been initialized just stop here
     "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
   ]
@@ -274,6 +275,12 @@ locals {
   cni_install_resource_patches = {
     "calico" = ["calico.yaml"]
   }
+
+  etcd_s3_snapshots = length(keys(var.etcd_s3_backup)) > 0 ? merge(
+    {
+      "etcd-s3" = true
+    },
+  var.etcd_s3_backup) : {}
 
   cni_k3s_settings = {
     "flannel" = {

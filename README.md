@@ -124,7 +124,7 @@ The default is Flannel, but you can also choose Calico or Cilium, by setting the
 
 As Cilium has a lot of interesting and powerful configurations' possibility. We give you the possibility to configure your Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster.
 
-### Scaling Nodes
+## Scaling Nodes
 
 Two things can be scaled: the number of nodepools or the number of nodes in these nodepools. You have two lists of nodepools you can add to your `kube.tf`, the control plane nodepool and the agent nodepool list. Combined, they cannot exceed 255 nodepools (you are extremely unlikely to reach this limit). As for the count of nodes per nodepools, if you raise your limits in Hetzner, you can have up to 64,670 nodes per nodepool (also very unlikely to need that much).
 
@@ -134,7 +134,7 @@ _Once the cluster is up; you can change any nodepool count and even set it to 0 
 
 _However, you can freely add other nodepools at the end of each list. And for each nodepools, you can freely increase or decrease the node count (if you want to decrease a nodepool node count make sure you drain the nodes in question before, you can use `terraform show` to identify the node names at the end of the nodepool list, otherwise, if you do not drain the nodes before removing them, it could leave your cluster in a bad state). The only nodepool that needs to have always at least a count of 1 is the first control-plane nodepool._
 
-### Autoscaling Node Pools
+## Autoscaling Node Pools
 
 We are supporting autoscaling node pools by deploying the [k8s cluster autoscaler (CA)](https://github.com/kubernetes/autoscaler).
 By default, this feature is disabled. You can control the feature via adding a pool description to the following variable in `kube.tf` (by default this array is empty):
