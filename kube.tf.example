@@ -437,7 +437,7 @@ terraform {
   }
 }
 
-output "kubeconfig" {
+output "kubeconfig_file" {
   value     = module.kube-hetzner.kubeconfig_file
   sensitive = true
 }
