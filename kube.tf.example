@@ -144,9 +144,9 @@ module "kube-hetzner" {
   # kube-controller-manager-arg = "- bind-address=0.0.0.0",
   # kube-proxy-arg = "- metrics-bind-address=0.0.0.0",
   # kube-scheduler-arg = "- bind-address=0.0.0.0",
-  control_planes_custom_config = {
-
-  }
+  # control_planes_custom_config = {
+  #  
+  # }
 
   # * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
   load_balancer_type     = "lb11"

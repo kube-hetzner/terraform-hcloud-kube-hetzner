@@ -418,7 +418,7 @@ variable "create_kustomization" {
 }
 
 variable "control_planes_custom_config" {
-  type = map
-  default = {}
+  type        = map(any)
+  default     = {}
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }
