@@ -27,6 +27,7 @@ output "ingress_public_ipv6" {
   value       = (local.has_external_load_balancer || var.load_balancer_disable_ipv6) ? null : data.hcloud_load_balancer.cluster[0].ipv6
 }
 
+# Keeping for backward compatibility
 output "kubeconfig_file" {
   value       = local.kubeconfig_external
   description = "Kubeconfig file content with external IP address"
@@ -34,6 +35,12 @@ output "kubeconfig_file" {
 }
 
 output "kubeconfig" {
+  value       = local.kubeconfig_external
+  description = "Kubeconfig file content with external IP address"
+  sensitive   = true
+}
+
+output "kubeconfig_data" {
   description = "Structured kubeconfig data to supply to other providers"
   value       = local.kubeconfig_data
   sensitive   = true

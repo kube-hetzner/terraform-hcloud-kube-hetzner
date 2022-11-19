@@ -112,7 +112,7 @@ You can immediately kubectl into it (using the `clustername_kubeconfig.yaml` sav
 export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
 ```
 
-If chose to turn `create_kubeconfig` to false in your kube.tf (good practice), you can still create this file by running `terraform output --raw kubeconfig_file > clustername_kubeconfig.yaml` and then use it as described above.
+If chose to turn `create_kubeconfig` to false in your kube.tf (good practice), you can still create this file by running `terraform output --raw kubeconfig > clustername_kubeconfig.yaml` and then use it as described above.
 
 You can also use it in an automated flow, in which case `create_kubeconfig` should be set to false, and you can use the `kubeconfig` output variable to get the kubeconfig file in a structured data format.
 
