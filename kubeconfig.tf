@@ -15,11 +15,11 @@ locals {
   kubeconfig_external = replace(replace(data.remote_file.kubeconfig.content, "127.0.0.1", var.use_control_plane_lb ? hcloud_load_balancer.control_plane.*.ipv4[0] : module.control_planes[keys(module.control_planes)[0]].ipv4_address), "default", var.cluster_name)
   kubeconfig_parsed   = yamldecode(local.kubeconfig_external)
   kubeconfig_data = {
-    host                      = local.kubeconfig_parsed["clusters"][0]["cluster"]["server"]
-    client_certifreplaceicate = base64decode(local.kubeconfig_parsed["users"][0]["user"]["client-certificate-data"])
-    client_key                = base64decode(local.kubeconfig_parsed["users"][0]["user"]["client-key-data"])
-    cluster_ca_certificate    = base64decode(local.kubeconfig_parsed["clusters"][0]["cluster"]["certificate-authority-data"])
-    cluster_name              = var.cluster_name
+    host                   = local.kubeconfig_parsed["clusters"][0]["cluster"]["server"]
+    client_certificate     = base64decode(local.kubeconfig_parsed["users"][0]["user"]["client-certificate-data"])
+    client_key             = base64decode(local.kubeconfig_parsed["users"][0]["user"]["client-key-data"])
+    cluster_ca_certificate = base64decode(local.kubeconfig_parsed["clusters"][0]["cluster"]["certificate-authority-data"])
+    cluster_name           = var.cluster_name
   }
 }
 
