@@ -416,3 +416,9 @@ variable "create_kustomization" {
   default     = true
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
 }
+
+variable "control_planes_custom_config" {
+  type = map
+  default = {}
+  description = "Custom control plane configuration e.g to allow etcd monitoring."
+}
