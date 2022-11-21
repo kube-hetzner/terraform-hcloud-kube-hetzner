@@ -147,6 +147,7 @@ module "kube-hetzner" {
 
   # Cluster Autoscaler
   # Providing at least one map for the array enables the cluster autoscaler feature, default is disabled
+  # Please note that the autoscaler should not be used with initial_k3s_channel < "v1.25". So ideally lock it to "v1.25".
   # * Example below:
   # autoscaler_nodepools = [
   #   {
