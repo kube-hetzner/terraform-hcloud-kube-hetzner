@@ -19,6 +19,7 @@ spec:
       - {key: kured, operator: NotIn, values: ["rebooting"]}
   tolerations:
     - {key: server-usage, effect: NoSchedule, operator: Equal, value: storage}
+    - {operator: Exists}
   prepare:
     image: rancher/k3s-upgrade
     args: ["prepare", "k3s-server"]
