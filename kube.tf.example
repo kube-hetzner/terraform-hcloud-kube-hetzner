@@ -139,11 +139,11 @@ module "kube-hetzner" {
     }
   ]
   # Add custom control plane configuration options here.
-  # E.g:
-  # etcd-expose-metrics = true,
-  # kube-controller-manager-arg = "- bind-address=0.0.0.0",
-  # kube-proxy-arg = "- metrics-bind-address=0.0.0.0",
-  # kube-scheduler-arg = "- bind-address=0.0.0.0",
+  # E.g to enable monitoring for etcd, proxy etc:
+  # "etcd-expose-metrics": "true"
+  # "kube-controller-manager-arg": "bind-address=0.0.0.0"
+  # "kube-proxy-arg": "metrics-bind-address=0.0.0.0"
+  # "kube-scheduler-arg": "bind-address=0.0.0.0"
   # control_planes_custom_config = {
   #  
   # }
