@@ -194,6 +194,7 @@ data "cloudinit_config" "config" {
         sshPort           = var.ssh_port
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         dnsServers        = var.dns_servers
+        k3sRegistries     = var.k3s_registries
       }
     )
   }

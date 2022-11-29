@@ -88,3 +88,8 @@ variable "automatically_upgrade_os" {
   type    = bool
   default = true
 }
+
+variable "k3s_registries" {
+  default = ""
+  type    = string
+}

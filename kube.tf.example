@@ -266,6 +266,21 @@ module "kube-hetzner" {
   # Whether to use the cluster name in the node name, in the form of {cluster_name}-{nodepool_name}, the default is "true".
   # use_cluster_name_in_node_name = false
 
+  # Extra k3s registries. This is useful if you have private registries and you
+  # want to pull images without additional secrets. 
+  # registries.yaml file docs: https://docs.k3s.io/installation/private-registry
+  /* k3s_registries = <<-EOT
+    mirrors:
+      hub.my_registry.com:
+        endpoint:
+          - "hub.my_registry.com"
+    configs:
+      hub.my_registry.com:
+        auth:
+          username: username
+          password: password
+  EOT */
+
   # Adding extra firewall rules, like opening a port
   # More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall
   # extra_firewall_rules = [
