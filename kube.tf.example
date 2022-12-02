@@ -208,6 +208,9 @@ module "kube-hetzner" {
   # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available.
   # kured_version = ""
 
+  # If you want to use your own CCM, set a link to the deployment yaml here
+  # override_ccm = "https://gist.githubusercontent.com/maaft/3fba8406265aed9b0713452e72bfd385/raw/b2cd9a0c00db70c3071a5a64cf7d3c97ef63112a/kube-hetzner-ccm-wg.yaml"
+
   # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "true". Default is "false".
   # FOR THIS TO NOT BE IGNORED, you also need to set "enable_traefik = false".
   # By the default we load an optimal Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,

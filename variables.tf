@@ -122,6 +122,12 @@ variable "kured_version" {
   description = "Version of Kured"
 }
 
+variable "override_ccm" {
+  type        = string
+  default     = null
+  description = "Link to a custom CCM deployment yaml"
+}
+
 variable "enable_nginx" {
   type        = bool
   default     = false
