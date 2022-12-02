@@ -106,10 +106,10 @@
 | <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. | `string` | `null` | no |
 | <a name="input_hetzner_csi_version"></a> [hetzner\_csi\_version](#input\_hetzner\_csi\_version) | Version of Container Storage Interface driver for Hetzner Cloud. | `string` | `null` | no |
 | <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.24"` | no |
+| <a name="input_k3s_registries"></a> [k3s\_registries](#input\_k3s\_registries) | K3S registries.yml contents. It used to access private docker registries. | `string` | `""` | no |
 | <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured | `string` | `null` | no |
 | <a name="input_load_balancer_disable_ipv6"></a> [load\_balancer\_disable\_ipv6](#input\_load\_balancer\_disable\_ipv6) | Disable ipv6 for the load balancer. | `bool` | `false` | no |
 | <a name="input_load_balancer_location"></a> [load\_balancer\_location](#input\_load\_balancer\_location) | Default load balancer location. | `string` | `"fsn1"` | no |
-| <a name="k3s_registries"></a> [k3s\_registries](#k3s\_registries) | Allows you to specify custom config for private registries. | `string` | `""` | no |
 | <a name="input_load_balancer_type"></a> [load\_balancer\_type](#input\_load\_balancer\_type) | Default load balancer server type. | `string` | `"lb11"` | no |
 | <a name="input_longhorn_fstype"></a> [longhorn\_fstype](#input\_longhorn\_fstype) | The longhorn fstype. | `string` | `"ext4"` | no |
 | <a name="input_longhorn_replica_count"></a> [longhorn\_replica\_count](#input\_longhorn\_replica\_count) | Number of replicas per longhorn volume. | `number` | `3` | no |
