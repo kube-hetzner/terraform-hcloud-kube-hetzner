@@ -119,8 +119,8 @@ resource "null_resource" "kustomization" {
         [
           file("${path.module}/kustomize/kured.yaml"),
           file("${path.module}/kustomize/system-upgrade-controller.yaml"),
-          "ccm.yaml",
         ],
+        var.override_ccm != null ? [] : ["ccm.yaml"],
         lookup(local.cni_install_resource_patches, var.cni_plugin, [])
       )
     })
