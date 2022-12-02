@@ -211,6 +211,16 @@ module "kube-hetzner" {
   # If you want to use your own CCM, set a link to the deployment yaml here
   # override_ccm = "https://gist.githubusercontent.com/maaft/3fba8406265aed9b0713452e72bfd385/raw/b2cd9a0c00db70c3071a5a64cf7d3c97ef63112a/kube-hetzner-ccm-wg.yaml"
 
+  # Any extra secrets you need to create during the init process (e.g. for your custom CCM)
+  # extra_init_secrets = [{
+  #   name      = "hetzner"
+  #   namespace = "kube-system"
+  #   literals = {
+  #     robot-user     = "<robot user>"
+  #     robot-password = "<robot password>"
+  #   }
+  # }]
+
   # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "true". Default is "false".
   # FOR THIS TO NOT BE IGNORED, you also need to set "enable_traefik = false".
   # By the default we load an optimal Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,

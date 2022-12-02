@@ -128,6 +128,17 @@ variable "override_ccm" {
   description = "Link to a custom CCM deployment yaml"
 }
 
+variable "extra_init_secrets" {
+  description = "Any extra secrets you need to create during the init process"
+  type = list(object({
+    name      = string
+    namespace = string
+    literals  = map(string)
+  }))
+  sensitive = true
+  default   = []
+}
+
 variable "enable_nginx" {
   type        = bool
   default     = false
