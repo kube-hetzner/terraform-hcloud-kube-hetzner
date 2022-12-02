@@ -216,6 +216,7 @@ module "kube-hetzner" {
   #   name      = "hetzner"
   #   namespace = "kube-system"
   #   literals = {
+  #     hcloud         = local.hcloud_token
   #     robot-user     = "<robot user>"
   #     robot-password = "<robot password>"
   #   }
