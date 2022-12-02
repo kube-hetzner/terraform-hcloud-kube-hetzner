@@ -66,6 +66,12 @@ write_files:
     X3QBAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
   path: /etc/selinux/sshd_t.pp
 
+%{ if k3sRegistries != "" }
+# Create k3s registries file
+- content: ${base64encode(k3sRegistries)}
+  encoding: base64
+  path: /etc/rancher/k3s/registries.yaml
+%{ endif }
 
 # Add ssh authorized keys
 ssh_authorized_keys:

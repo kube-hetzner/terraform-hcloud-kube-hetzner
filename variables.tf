@@ -422,3 +422,9 @@ variable "control_planes_custom_config" {
   default     = {}
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }
+
+variable "k3s_registries" {
+  description = "K3S registries.yml contents. It used to access private docker registries."
+  default     = ""
+  type        = string
+}
