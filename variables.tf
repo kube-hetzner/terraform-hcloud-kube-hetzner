@@ -280,7 +280,11 @@ variable "enable_longhorn" {
   default     = false
   description = "Whether of not to enable Longhorn."
 }
-
+variable "longhorn_namespace" {
+  type        = string
+  default     = "longhorn-system"
+  description = "Namespace for longhorn deployment, defaults to 'longhorn-system'"
+}
 variable "longhorn_fstype" {
   type        = string
   default     = "ext4"
