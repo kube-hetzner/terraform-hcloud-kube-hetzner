@@ -195,7 +195,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/longhorn.yaml.tpl",
       {
         longhorn_namespace = var.longhorn_namespace
-        values = indent(4, trimspace(local.longhorn_values))
+        values             = indent(4, trimspace(local.longhorn_values))
     })
     destination = "/var/post_install/longhorn.yaml"
   }
