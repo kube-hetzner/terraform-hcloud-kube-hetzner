@@ -1,10 +1,12 @@
 data "github_release" "hetzner_ccm" {
+  count       = var.hetzner_ccm_version == null ? 1 : 0
   repository  = "hcloud-cloud-controller-manager"
   owner       = "hetznercloud"
   retrieve_by = "latest"
 }
 
 data "github_release" "hetzner_csi" {
+  count       = var.hetzner_csi_version == null ? 1 : 0
   repository  = "csi-driver"
   owner       = "hetznercloud"
   retrieve_by = "latest"
@@ -12,6 +14,7 @@ data "github_release" "hetzner_csi" {
 
 // github_release for kured
 data "github_release" "kured" {
+  count       = var.kured_version == null ? 1 : 0
   repository  = "kured"
   owner       = "weaveworks"
   retrieve_by = "latest"
