@@ -12,7 +12,7 @@ data "remote_file" "kubeconfig" {
 }
 
 locals {
-  kubeconfig_external = replace(replace(data.remote_file.kubeconfig.content, "127.0.0.1", var.use_control_plane_lb ? hcloud_load_balancer.control_plane.*.ipv4[0] : (length(keys(module.control_planes)) > 0 ? module.control_planes[keys(module.control_planes)[0]].ipv4_address : "unknown")), "default", var.cluster_name)
+  kubeconfig_external = replace(replace(data.remote_file.kubeconfig.content, "127.0.0.1", var.use_control_plane_lb ? hcloud_load_balancer.control_plane.*.ipv4[0] : (can(module.control_planes[keys(module.control_planes)[0]].ipv4_address) ? module.control_planes[keys(module.control_planes)[0]].ipv4_address : "unknown")), "default", var.cluster_name)
   kubeconfig_parsed   = yamldecode(local.kubeconfig_external)
   kubeconfig_data = {
     host                   = local.kubeconfig_parsed["clusters"][0]["cluster"]["server"]
