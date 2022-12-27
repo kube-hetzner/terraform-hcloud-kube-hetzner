@@ -37,7 +37,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
 
 **Why k3s?**
-- Certifified Kubernetes Distribution, it is automatically synced to k8s source.
+- Certified Kubernetes Distribution, it is automatically synced to k8s source.
 - Fast deployment, it is deployed with a single command.
 - Comes batteries included, with its in-cluster [helm-controller](https://github.com/k3s-io/helm-controller).
 - Easy automatic update, via the [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller).
