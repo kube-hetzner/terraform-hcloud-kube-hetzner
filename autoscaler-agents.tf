@@ -85,6 +85,7 @@ data "cloudinit_config" "autoscaler-config" {
           node-label    = local.default_agent_labels
           node-taint    = local.default_agent_taints
         })
+        k3s_registries  = var.k3s_registries
       }
     )
   }

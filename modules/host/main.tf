@@ -165,6 +165,34 @@ resource "hcloud_server" "server" {
   }
 }
 
+resource "null_resource" "registries" {
+  depends_on = [hcloud_server.server]
+
+  triggers = {
+    registries = var.k3s_registries
+  }
+
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = hcloud_server.server.ipv4_address
+    port           = var.ssh_port
+  }
+
+  provisioner "file" {
+    content = var.k3s_registries
+    destination = "/etc/rancher/k3s/registries.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "touch /var/run/reboot-required"
+    ]
+  }
+}
+
 resource "hcloud_rdns" "server" {
   count = var.base_domain != "" ? 1 : 0
 
