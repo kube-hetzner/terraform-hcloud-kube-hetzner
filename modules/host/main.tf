@@ -182,7 +182,7 @@ resource "null_resource" "registries" {
   }
 
   provisioner "file" {
-    content = var.k3s_registries
+    content     = var.k3s_registries
     destination = "/etc/rancher/k3s/registries.yaml"
   }
 
