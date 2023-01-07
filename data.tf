@@ -22,7 +22,7 @@ data "github_release" "kured" {
 
 data "hcloud_load_balancer" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
-  name  = var.cluster_name
+  name  = local.ingress_controller == "traefik" ? "${var.cluster_name}-traefik" : var.cluster_name
 
   depends_on = [null_resource.kustomization]
 }
