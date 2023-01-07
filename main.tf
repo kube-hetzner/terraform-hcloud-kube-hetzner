@@ -7,14 +7,16 @@ resource "hcloud_ssh_key" "k3s" {
   count      = var.hcloud_ssh_key_id == null ? 1 : 0
   name       = var.cluster_name
   public_key = var.ssh_public_key
+  labels     = local.labels
 }
 
 resource "hcloud_network" "k3s" {
   name     = var.cluster_name
   ip_range = local.network_ipv4_cidr
+  labels   = local.labels
 }
 
-# We start from the end of the subnets cird array, 
+# We start from the end of the subnets cird array,
 # as we would have fewer control plane nodepools, than angent ones.
 resource "hcloud_network_subnet" "control_plane" {
   count        = length(var.control_plane_nodepools)
@@ -34,7 +36,8 @@ resource "hcloud_network_subnet" "agent" {
 }
 
 resource "hcloud_firewall" "k3s" {
-  name = var.cluster_name
+  name   = var.cluster_name
+  labels = local.labels
 
   dynamic "rule" {
     for_each = concat(local.base_firewall_rules, var.extra_firewall_rules)
@@ -49,15 +52,17 @@ resource "hcloud_firewall" "k3s" {
 }
 
 resource "hcloud_placement_group" "control_plane" {
-  count = ceil(local.control_plane_count / 10)
-  name  = "${var.cluster_name}-control-plane-${count.index + 1}"
-  type  = "spread"
+  count  = ceil(local.control_plane_count / 10)
+  name   = "${var.cluster_name}-control-plane-${count.index + 1}"
+  labels = local.labels
+  type   = "spread"
 }
 
 resource "hcloud_placement_group" "agent" {
-  count = ceil(local.agent_count / 10)
-  name  = "${var.cluster_name}-agent-${count.index + 1}"
-  type  = "spread"
+  count  = ceil(local.agent_count / 10)
+  name   = "${var.cluster_name}-agent-${count.index + 1}"
+  labels = local.labels
+  type   = "spread"
 }
 
 resource "null_resource" "destroy_cluster_loadbalancer" {
