@@ -122,12 +122,19 @@ resource "null_resource" "autoscaled_nodes_registries" {
 
   provisioner "file" {
     content     = var.k3s_registries
-    destination = "/etc/rancher/k3s/registries.yaml"
+    destination = "/tmp/registries.yaml"
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "touch /var/run/reboot-required"
+    inline = [<<-EOT
+    if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml; then
+      echo "No reboot required"
+    else
+      echo "Update registries.yaml, reboot required"
+      cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
+      touch /var/run/reboot-required
+    fi
+    EOT
     ]
   }
 }

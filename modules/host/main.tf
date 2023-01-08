@@ -143,7 +143,8 @@ resource "hcloud_server" "server" {
 
   # Enable open-iscsi
   provisioner "remote-exec" {
-    inline = [<<-EOT
+    inline = [
+      <<-EOT
       set -ex
       if [[ $(systemctl list-units --all -t service --full --no-legend "iscsid.service" | sed 's/^\s*//g' | cut -f1 -d' ') == iscsid.service ]]; then
         systemctl enable --now iscsid
@@ -153,7 +154,8 @@ resource "hcloud_server" "server" {
   }
 
   provisioner "remote-exec" {
-    inline = var.automatically_upgrade_os ? [<<-EOT
+    inline = var.automatically_upgrade_os ? [
+      <<-EOT
       echo "Automatic OS updates are enabled"
       EOT
       ] : [
@@ -172,7 +174,6 @@ resource "null_resource" "registries" {
     registries = var.k3s_registries
   }
 
-
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
@@ -183,12 +184,19 @@ resource "null_resource" "registries" {
 
   provisioner "file" {
     content     = var.k3s_registries
-    destination = "/etc/rancher/k3s/registries.yaml"
+    destination = "/tmp/registries.yaml"
   }
 
   provisioner "remote-exec" {
-    inline = [
-      "touch /var/run/reboot-required"
+    inline = [<<-EOT
+    if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml; then
+      echo "No reboot required"
+    else
+      echo "Update registries.yaml, reboot required"
+      cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
+      touch /var/run/reboot-required
+    fi
+    EOT
     ]
   }
 }
