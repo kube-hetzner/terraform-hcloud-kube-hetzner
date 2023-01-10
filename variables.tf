@@ -454,3 +454,9 @@ variable "opensuse_microos_mirror_link" {
     error_message = "You need to use a mirror link from https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist"
   }
 }
+
+variable "additional_tls_sans" {
+  description = "Additional TLS SANs to allow connection to control-plane through it."
+  default     = []
+  type        = list(string)
+}

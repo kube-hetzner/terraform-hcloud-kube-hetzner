@@ -337,6 +337,11 @@ module "kube-hetzner" {
   # The default is false.
   # use_control_plane_lb = true
 
+  # Let's say you are not using the control plane LB solution above, and still want to have one hostname point to all your control-plane nodes.
+  # You could create multiple A records of to let's say cp.cluster.my.org pointing to all of your control-plane nodes ips.
+  # In which case, you need to define that hostname in the k3s TLS-SANs config to allow connection through it. It can be hostnames or IP addresses.
+  # additional_tls_sans = ["cp.cluster.my.org"]
+
   # Oftentimes, you need to communicate to the cluster from inside the cluster itself, in which case it is important to set this value, as it will configure the hostname
   # at the load balancer level, and will save you from many slows downs when initiating communications from inside. Later on, you can point your DNS to the IP given
   # to the LB. And if you have other services pointing to it, you are also free to create CNAMES to point to it, or whatever you see fit.
