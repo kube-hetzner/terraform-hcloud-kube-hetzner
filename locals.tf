@@ -92,7 +92,7 @@ locals {
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
 
-  packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs"] : [], var.extra_packages_to_install)
+  packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [], var.extra_packages_to_install)
 
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
