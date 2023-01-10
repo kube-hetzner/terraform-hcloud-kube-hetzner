@@ -347,6 +347,9 @@ controller:
       "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
       "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
       "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+%{if var.lb_hostname != ""~}
+      "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
+%{endif~}
 %{endif~}
   EOT
 
@@ -364,6 +367,9 @@ service:
     "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
     "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
     "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+%{if var.lb_hostname != ""~}
+      "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
+%{endif~}
 %{endif~}
 additionalArguments:
 %{if !local.using_klipper_lb~}
@@ -383,7 +389,7 @@ additionalArguments:
   EOT
 
   rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
-hostname: "${var.rancher_hostname}"
+hostname: "${var.rancher_hostname} ? ${var.rancher_hostname} : ${var.lb_hostname}"
 replicas: ${length(local.control_plane_nodes)}
 bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
   EOT

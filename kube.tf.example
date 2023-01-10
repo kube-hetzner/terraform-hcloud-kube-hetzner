@@ -332,6 +332,12 @@ module "kube-hetzner" {
   # The default is false.
   # use_control_plane_lb = true
 
+  # Oftentimes, you need to communicate to the cluster from inside the cluster itself, in which case it is important to set this value, as it will configure the hostname
+  # at the load balancer level, and will save you from many slows downs when initiating communications from inside. Later on, you can point your DNS to the IP given
+  # to the LB. And if you have other services pointing to it, you are also free to create CNAMES to point to it, or whatever you see fit.
+  # If set, it will apply to either ingress controllers, Traefik or Ingress-Nginx.
+  # lb_hostname = ""
+
   # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
   # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own self-signed certificates.
   # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
@@ -345,6 +351,8 @@ module "kube-hetzner" {
 
   # If using Rancher you can set the Rancher hostname, it must be unique hostname even if you do not use it.
   # If not pointing the DNS, you can just port-forward locally via kubectl to get access to the dashboard.
+  # If you already set the lb_hostname above and are using a Hetzner LB, you do not need to set this one, as it will be used by default.
+  # But if you set this one explicitly, it will have preference over the lb_hostname in rancher settings.
   # rancher_hostname = "rancher.xyz.dev"
 
   # When Rancher is deployed, by default is uses the "latest" channel. But this can be customized.

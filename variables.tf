@@ -354,6 +354,17 @@ variable "rancher_hostname" {
   }
 }
 
+variable "lb_hostname" {
+  type        = string
+  default     = ""
+  description = "The Hetzner Load Balancer hostname, for either Traefik or Ingress-Nginx."
+
+  validation {
+    condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.rancher_hostname)) || var.rancher_hostname == ""
+    error_message = "It must be a valid domain name (FQDN)."
+  }
+}
+
 variable "rancher_registration_manifest_url" {
   type        = string
   description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)."
