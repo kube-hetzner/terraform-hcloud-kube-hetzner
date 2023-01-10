@@ -20,9 +20,9 @@ resource "hcloud_snapshot" "autoscaler_image" {
   # using control_plane here as this one is always available
   server_id   = values(module.control_planes)[0].id
   description = "Initial snapshot used for autoscaler"
-  labels = {
+  labels = merge(local.labels, {
     autoscaler = "true"
-  }
+  })
 }
 
 resource "null_resource" "configure_autoscaler" {
