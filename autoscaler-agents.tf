@@ -15,7 +15,7 @@ locals {
       node_pools   = var.autoscaler_nodepools
   })
   # A concatenated list of all autoscaled nodes
-  autoscaled_nodes = {
+  autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
     for v in concat([
       for k, v in data.
       hcloud_servers.autoscaled_nodes : [for v in v.servers : v]
