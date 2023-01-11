@@ -97,6 +97,7 @@ resource "hcloud_volume" "longhorn_volume" {
 
   labels = {
     provisioner = "terraform"
+    cluster     = var.cluster_name
     scope       = "longhorn"
   }
   name      = "${var.cluster_name}-longhorn-${module.agents[each.key].name}"

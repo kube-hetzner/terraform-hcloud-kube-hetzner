@@ -404,7 +404,7 @@ variable "use_control_plane_lb" {
 
 variable "dns_servers" {
   type        = list(string)
-  default     = ["1.1.1.1", " 1.0.0.1", "8.8.8.8"]
+  default     = ["8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1"]
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner."
 }
 
