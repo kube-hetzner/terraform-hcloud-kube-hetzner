@@ -37,7 +37,7 @@ resource "hcloud_firewall" "k3s" {
   name = var.cluster_name
 
   dynamic "rule" {
-    for_each = concat(local.base_firewall_rules, var.extra_firewall_rules)
+    for_each = local.firewall_rules_list
     content {
       direction       = rule.value.direction
       protocol        = rule.value.protocol
