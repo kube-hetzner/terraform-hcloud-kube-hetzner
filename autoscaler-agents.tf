@@ -127,7 +127,7 @@ resource "null_resource" "autoscaled_nodes_registries" {
 
   provisioner "remote-exec" {
     inline = [<<-EOT
-    if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml; then
+    if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml || [ ! -f /etc/rancher/k3s/registries.yaml ]; then
       echo "No reboot required"
     else
       echo "Update registries.yaml, reboot required"
