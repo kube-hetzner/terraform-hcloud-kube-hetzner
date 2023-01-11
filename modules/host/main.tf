@@ -75,7 +75,7 @@ resource "hcloud_server" "server" {
 
     inline = [
       "set -ex",
-      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2",
+      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${var.opensuse_microos_mirror_link}",
       "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
     ]
   }
@@ -193,6 +193,7 @@ resource "null_resource" "registries" {
       echo "No reboot required"
     else
       echo "Update registries.yaml, reboot required"
+      mkdir -p /etc/rancher/k3s
       cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
       touch /var/run/reboot-required
     fi

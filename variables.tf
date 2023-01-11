@@ -354,6 +354,17 @@ variable "rancher_hostname" {
   }
 }
 
+variable "lb_hostname" {
+  type        = string
+  default     = ""
+  description = "The Hetzner Load Balancer hostname, for either Traefik or Ingress-Nginx."
+
+  validation {
+    condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.lb_hostname)) || var.lb_hostname == ""
+    error_message = "It must be a valid domain name (FQDN)."
+  }
+}
+
 variable "rancher_registration_manifest_url" {
   type        = string
   description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)."
@@ -393,7 +404,7 @@ variable "use_control_plane_lb" {
 
 variable "dns_servers" {
   type        = list(string)
-  default     = ["1.1.1.1", " 1.0.0.1", "8.8.8.8"]
+  default     = ["8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1"]
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner."
 }
 
@@ -431,4 +442,21 @@ variable "k3s_registries" {
   description = "K3S registries.yml contents. It used to access private docker registries."
   default     = ""
   type        = string
+}
+
+variable "opensuse_microos_mirror_link" {
+  description = "The mirror link to use for the opensuse microos image."
+  default     = "https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  type        = string
+
+  validation {
+    condition     = can(regex("^https.*openSUSE-MicroOS\\.x86_64-OpenStack-Cloud\\.qcow2$", var.opensuse_microos_mirror_link))
+    error_message = "You need to use a mirror link from https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist"
+  }
+}
+
+variable "additional_tls_sans" {
+  description = "Additional TLS SANs to allow connection to control-plane through it."
+  default     = []
+  type        = list(string)
 }

@@ -131,6 +131,7 @@ resource "null_resource" "autoscaled_nodes_registries" {
       echo "No reboot required"
     else
       echo "Update registries.yaml, reboot required"
+      mkdir -p /etc/rancher/k3s
       cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
       touch /var/run/reboot-required
     fi
