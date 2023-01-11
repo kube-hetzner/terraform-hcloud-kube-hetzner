@@ -324,6 +324,11 @@ module "kube-hetzner" {
   # You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "false".
   # enable_cert_manager = true
 
+  # By default we use a known good mirror to download the needed OpenSUSE, but for instance, it may not be available in US-East location, in which case,
+  # you can find a working mirror for you at https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist,
+  # Or use the value below to automatically select an optimal mirror (by default we have it fixed to one german mirror that we know works for most locations)
+  # opensuse_microos_mirror_link = "https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+
   # IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner, defaults to ["1.1.1.1", " 1.0.0.1", "8.8.8.8"].
   # For rancher installs, best to leave it as default.
   # dns_servers = []
@@ -331,6 +336,17 @@ module "kube-hetzner" {
   # When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability.
   # The default is false.
   # use_control_plane_lb = true
+
+  # Let's say you are not using the control plane LB solution above, and still want to have one hostname point to all your control-plane nodes.
+  # You could create multiple A records of to let's say cp.cluster.my.org pointing to all of your control-plane nodes ips.
+  # In which case, you need to define that hostname in the k3s TLS-SANs config to allow connection through it. It can be hostnames or IP addresses.
+  # additional_tls_sans = ["cp.cluster.my.org"]
+
+  # Oftentimes, you need to communicate to the cluster from inside the cluster itself, in which case it is important to set this value, as it will configure the hostname
+  # at the load balancer level, and will save you from many slows downs when initiating communications from inside. Later on, you can point your DNS to the IP given
+  # to the LB. And if you have other services pointing to it, you are also free to create CNAMES to point to it, or whatever you see fit.
+  # If set, it will apply to either ingress controllers, Traefik or Ingress-Nginx.
+  # lb_hostname = ""
 
   # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
   # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own self-signed certificates.
@@ -345,6 +361,8 @@ module "kube-hetzner" {
 
   # If using Rancher you can set the Rancher hostname, it must be unique hostname even if you do not use it.
   # If not pointing the DNS, you can just port-forward locally via kubectl to get access to the dashboard.
+  # If you already set the lb_hostname above and are using a Hetzner LB, you do not need to set this one, as it will be used by default.
+  # But if you set this one explicitly, it will have preference over the lb_hostname in rancher settings.
   # rancher_hostname = "rancher.xyz.dev"
 
   # When Rancher is deployed, by default is uses the "latest" channel. But this can be customized.

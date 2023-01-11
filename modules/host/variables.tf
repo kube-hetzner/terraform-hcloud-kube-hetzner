@@ -93,3 +93,8 @@ variable "k3s_registries" {
   default = ""
   type    = string
 }
+
+variable "opensuse_microos_mirror_link" {
+  default = "https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  type    = string
+}

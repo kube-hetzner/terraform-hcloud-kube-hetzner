@@ -7,21 +7,22 @@ module "control_planes" {
 
   for_each = local.control_plane_nodes
 
-  name                       = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
-  base_domain                = var.base_domain
-  ssh_keys                   = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
-  ssh_port                   = var.ssh_port
-  ssh_public_key             = var.ssh_public_key
-  ssh_private_key            = var.ssh_private_key
-  ssh_additional_public_keys = length(var.ssh_hcloud_key_label) > 0 ? concat(var.ssh_additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh_additional_public_keys
-  firewall_ids               = [hcloud_firewall.k3s.id]
-  placement_group_id         = var.placement_group_disable ? 0 : hcloud_placement_group.control_plane[floor(each.value.index / 10)].id
-  location                   = each.value.location
-  server_type                = each.value.server_type
-  ipv4_subnet_id             = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  packages_to_install        = local.packages_to_install
-  dns_servers                = var.dns_servers
-  k3s_registries             = var.k3s_registries
+  name                         = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
+  base_domain                  = var.base_domain
+  ssh_keys                     = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
+  ssh_port                     = var.ssh_port
+  ssh_public_key               = var.ssh_public_key
+  ssh_private_key              = var.ssh_private_key
+  ssh_additional_public_keys   = length(var.ssh_hcloud_key_label) > 0 ? concat(var.ssh_additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh_additional_public_keys
+  firewall_ids                 = [hcloud_firewall.k3s.id]
+  placement_group_id           = var.placement_group_disable ? 0 : hcloud_placement_group.control_plane[floor(each.value.index / 10)].id
+  location                     = each.value.location
+  server_type                  = each.value.server_type
+  ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
+  packages_to_install          = local.packages_to_install
+  dns_servers                  = var.dns_servers
+  k3s_registries               = var.k3s_registries
+  opensuse_microos_mirror_link = var.opensuse_microos_mirror_link
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
@@ -111,11 +112,11 @@ resource "null_resource" "control_planes" {
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
         var.use_control_plane_lb ? {
-          tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
+          tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
           } : {
-          tls-san = [
+          tls-san = concat([
             module.control_planes[each.key].ipv4_address
-          ]
+          ], var.additional_tls_sans)
         },
         local.etcd_s3_snapshots,
         var.control_planes_custom_config

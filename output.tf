@@ -19,7 +19,7 @@ output "agents_public_ipv4" {
 
 output "ingress_public_ipv4" {
   description = "The public IPv4 address of the Hetzner load balancer"
-  value       = local.has_external_load_balancer ? null : data.hcloud_load_balancer.cluster[0].ipv4
+  value       = local.has_external_load_balancer ? module.control_planes[keys(module.control_planes)[0]].ipv4_address : data.hcloud_load_balancer.cluster[0].ipv4
 }
 
 output "ingress_public_ipv6" {

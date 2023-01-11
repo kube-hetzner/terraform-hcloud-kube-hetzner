@@ -27,9 +27,9 @@ resource "null_resource" "first_control_plane" {
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
         var.use_control_plane_lb ? {
-          tls-san = [hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]]
+          tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
           } : {
-          tls-san = [module.control_planes[keys(module.control_planes)[0]].ipv4_address]
+          tls-san = concat([module.control_planes[keys(module.control_planes)[0]].ipv4_address], var.additional_tls_sans)
         },
         local.etcd_s3_snapshots,
         var.control_planes_custom_config
@@ -106,7 +106,7 @@ resource "null_resource" "kustomization" {
           "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
         ],
         var.disable_hetzner_csi ? [] : [
-          "https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml"
+          "hcloud-csi.yml"
         ],
         lookup(local.ingress_controller_install_resources, local.ingress_controller, []),
         lookup(local.cni_install_resources, var.cni_plugin, []),
@@ -227,6 +227,7 @@ resource "null_resource" "kustomization" {
       "set -ex",
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
+      "curl https://raw.githubusercontent.com/hetznercloud/csi-driver/${local.csi_version}/deploy/kubernetes/hcloud-csi.yml | sed -e 's|k8s.gcr.io|registry.k8s.io|g' > /var/post_install/hcloud-csi.yml"
     ]
   }
 

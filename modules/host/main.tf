@@ -75,7 +75,7 @@ resource "hcloud_server" "server" {
 
     inline = [
       "set -ex",
-      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2",
+      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${var.opensuse_microos_mirror_link}",
       "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
     ]
   }
@@ -143,7 +143,8 @@ resource "hcloud_server" "server" {
 
   # Enable open-iscsi
   provisioner "remote-exec" {
-    inline = [<<-EOT
+    inline = [
+      <<-EOT
       set -ex
       if [[ $(systemctl list-units --all -t service --full --no-legend "iscsid.service" | sed 's/^\s*//g' | cut -f1 -d' ') == iscsid.service ]]; then
         systemctl enable --now iscsid
@@ -153,7 +154,8 @@ resource "hcloud_server" "server" {
   }
 
   provisioner "remote-exec" {
-    inline = var.automatically_upgrade_os ? [<<-EOT
+    inline = var.automatically_upgrade_os ? [
+      <<-EOT
       echo "Automatic OS updates are enabled"
       EOT
       ] : [
@@ -161,6 +163,41 @@ resource "hcloud_server" "server" {
       echo "Automatic OS updates are disabled"
       systemctl --now disable transactional-update.timer
       EOT
+    ]
+  }
+}
+
+resource "null_resource" "registries" {
+  depends_on = [hcloud_server.server]
+
+  triggers = {
+    registries = var.k3s_registries
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = hcloud_server.server.ipv4_address
+    port           = var.ssh_port
+  }
+
+  provisioner "file" {
+    content     = var.k3s_registries
+    destination = "/tmp/registries.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [<<-EOT
+    if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml || [ ! -f /etc/rancher/k3s/registries.yaml ]; then
+      echo "No reboot required"
+    else
+      echo "Update registries.yaml, reboot required"
+      mkdir -p /etc/rancher/k3s
+      cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
+      touch /var/run/reboot-required
+    fi
+    EOT
     ]
   }
 }
