@@ -280,6 +280,11 @@ variable "enable_longhorn" {
   default     = false
   description = "Whether of not to enable Longhorn."
 }
+variable "longhorn_repository" {
+  type        = string
+  default     = "https://charts.rancher.io"
+  description = "By default a forked chart which is compatible with rancher is used, but if that version is behind on what you need, switch to https://charts.longhorn.io."
+}
 variable "longhorn_namespace" {
   type        = string
   default     = "longhorn-system"
