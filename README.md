@@ -175,6 +175,23 @@ As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade c
 
 You can copy and modify the [one in the templates](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/templates/plans.yaml.tpl) for that! More on the subject in [k3s upgrades](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
+### Configuring update timeframes
+
+Per default a node that installed updates will reboot within the next few minutes and updates are installed roughly every 24 hours.
+Kured can be instructed with specific timeframes for rebooting, to prevent too frequent drains and reboots.
+All options from the [docs](https://kured.dev/docs/configuration/) are available for modification.
+
+⚠️ Kured is also used to reboot nodes after configuration updates (`registries.yaml`, ...), so keep in mind that configuration changes
+can take some time to propagate!
+
+```terraform
+kured_options = {
+  "reboot-days": "su"
+  "start-time": "9am"
+  "end-time": "5pm"
+}
+```
+
 ### Turning Off Automatic Upgrade
 
 _If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup which requires at least 3 control-plane nodes), you need to set:_

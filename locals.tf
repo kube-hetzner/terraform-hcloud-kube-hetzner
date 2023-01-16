@@ -3,7 +3,7 @@ locals {
   # For terraforms provisioner.connection.agent_identity, we need the public key as a string.
   ssh_agent_identity = var.ssh_private_key == null ? var.ssh_public_key : null
 
-  # If passed, a key already registered within hetzner is used. 
+  # If passed, a key already registered within hetzner is used.
   # Otherwise, a new one will be created by the module.
   hcloud_ssh_key_id = var.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.hcloud_ssh_key_id
 
@@ -409,4 +409,11 @@ bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.ran
   cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
 installCRDs: true
   EOT
+
+  kured_options = merge({
+    "reboot-command" : "/usr/bin/systemctl reboot",
+    "pre-reboot-node-labels" : "kured=rebooting",
+    "post-reboot-node-labels" : "kured=done",
+    "period" : "5m",
+  }, var.kured_options)
 }

@@ -117,8 +117,8 @@ resource "null_resource" "kustomization" {
       ),
       patchesStrategicMerge = concat(
         [
-          file("${path.module}/kustomize/kured.yaml"),
           file("${path.module}/kustomize/system-upgrade-controller.yaml"),
+          "kured.yaml",
           "ccm.yaml",
         ],
         lookup(local.cni_install_resource_patches, var.cni_plugin, [])
@@ -219,6 +219,16 @@ resource "null_resource" "kustomization" {
         values                  = indent(4, trimspace(local.rancher_values))
     })
     destination = "/var/post_install/rancher.yaml"
+  }
+
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/kured.yaml.tpl",
+      {
+        options = local.kured_options
+      }
+    )
+    destination = "/var/post_install/kured.yaml"
   }
 
   # Deploy secrets, logging is automatically disabled due to sensitive variables

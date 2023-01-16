@@ -130,7 +130,7 @@ module "kube-hetzner" {
       count = 1
       # In the case of using Longhorn, you can use Hetzner volumes instead of using the node's own storage by specifying a value from 10 to 10000 (in GB)
       # It will create one volume per node in the nodepool, and configure Longhorn to use them.
-      # Something worth noting is that Volume storage is slower than node storage, which is achieved by not mentioning longhorn_volume_size or setting it to 0. 
+      # Something worth noting is that Volume storage is slower than node storage, which is achieved by not mentioning longhorn_volume_size or setting it to 0.
       # So for something like DBs, you definitely want node storage, for other things like backups, volume storage is fine, and cheaper.
       # longhorn_volume_size = 20
     }
@@ -255,6 +255,16 @@ module "kube-hetzner" {
   # The default is "true" (in HA it works wonderfully well, with automatically roll-back to the previous snapshot in case of an issue).
   # automatically_upgrade_os = false
 
+  # If you need more control over kured and the reboot behaviour, you can pass additional options to kured.
+  # For example limiting reboots to certain timeframes. For all options see: https://kured.dev/docs/configuration/
+  # The default options are: `--reboot-command=/usr/bin/systemctl reboot --pre-reboot-node-labels=kured=rebooting --post-reboot-node-labels=kured=done --period=5m`
+  # Defaults can be overridden by using the same key.
+  # kured_options = {
+  #   "reboot-days": "su"
+  #   "start-time": "9am"
+  #   "end-time": "5pm"
+  # }
+
   # Allows you to specify either stable, latest, testing or supported minor versions (defaults to stable)
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to latest - 0.01,
@@ -269,7 +279,7 @@ module "kube-hetzner" {
   # use_cluster_name_in_node_name = false
 
   # Extra k3s registries. This is useful if you have private registries and you
-  # want to pull images without additional secrets. 
+  # want to pull images without additional secrets.
   # registries.yaml file docs: https://docs.k3s.io/installation/private-registry
   /* k3s_registries = <<-EOT
     mirrors:
@@ -384,7 +394,7 @@ module "kube-hetzner" {
   # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
   # extra_kustomize_parameters={}
 
-  # It is best practice to turn this off, but for backwards compatibility it is set to "true" by default. 
+  # It is best practice to turn this off, but for backwards compatibility it is set to "true" by default.
   # See https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/349
   # When "false". The kubeconfig file can instead be created by executing: "terraform output --raw kubeconfig > cluster_kubeconfig.yaml"
   # Always be careful to not commit this file!
