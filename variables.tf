@@ -390,6 +390,11 @@ variable "rancher_values" {
   description = "Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart."
 }
 
+variable "kured_options" {
+  type    = map(string)
+  default = {}
+}
+
 variable "block_icmp_ping_in" {
   type        = bool
   default     = false

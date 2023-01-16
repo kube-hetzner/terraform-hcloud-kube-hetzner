@@ -21,3 +21,7 @@ spec:
             - --pre-reboot-node-labels=kured=rebooting
             - --post-reboot-node-labels=kured=done
             - --period=5m
+            %{~ for key, value in options ~}
+            - --${key}=${value}
+            %{~ endfor ~}
+
