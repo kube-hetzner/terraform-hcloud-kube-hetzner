@@ -128,6 +128,12 @@ variable "enable_nginx" {
   description = "Whether to enable or disbale the installation of the Nginx Ingress Controller."
 }
 
+variable "nginx_ingress_replica_count" {
+  type        = number
+  default     = 3
+  description = "Number of replicas per ingress-nginx controller."
+}
+
 variable "nginx_ingress_values" {
   type        = string
   default     = ""
@@ -153,16 +159,16 @@ variable "enable_traefik" {
   description = "Whether to enable or disable the installation of the Traefik Ingress Controller."
 }
 
-variable "traefik_acme_tls" {
-  type        = bool
-  default     = false
-  description = "Whether to include the TLS configuration with the Traefik configuration."
+variable "traefik_replica_count" {
+  type        = number
+  default     = 3
+  description = "Number of replicas per traefik controller."
 }
 
-variable "traefik_acme_email" {
-  type        = string
-  default     = ""
-  description = "Email used to recieved expiration notice for certificate."
+variable "traefik_redirect_to_https" {
+  type        = bool
+  default     = true
+  description = "Should traefik redirect http to https."
 }
 
 variable "traefik_additional_options" {
@@ -191,7 +197,7 @@ variable "enable_metrics_server" {
 
 variable "initial_k3s_channel" {
   type        = string
-  default     = "v1.24"
+  default     = "v1.25"
   description = "Allows you to specify an initial k3s channel."
 
   validation {
@@ -282,8 +288,8 @@ variable "enable_longhorn" {
 }
 variable "longhorn_repository" {
   type        = string
-  default     = "https://charts.rancher.io"
-  description = "By default a forked chart which is compatible with rancher is used, but if that version is behind on what you need, switch to https://charts.longhorn.io."
+  default     = "https://charts.longhorn.io"
+  description = "By default the official chart which is incompatible with rancher is used, but if that version is behind on what you need, switch to https://charts.rancher.io."
 }
 variable "longhorn_namespace" {
   type        = string
@@ -321,7 +327,7 @@ variable "disable_hetzner_csi" {
 
 variable "enable_cert_manager" {
   type        = bool
-  default     = false
+  default     = true
   description = "Enable cert manager."
 }
 
@@ -393,6 +399,24 @@ variable "rancher_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart."
+}
+
+variable "kured_start_time" {
+  type        = string
+  default     = "03:00"
+  description = "Time to start Kured checks."
+}
+
+variable "kured_end_time" {
+  type        = string
+  default     = "08:00"
+  description = "Time to end Kured checks."
+}
+
+variable "kured_time_zone" {
+  type        = string
+  default     = "Local"
+  description = "Time zone for Kured."
 }
 
 variable "kured_options" {

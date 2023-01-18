@@ -127,14 +127,14 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/kustomization.yaml"
   }
 
-  # Upload traefik config
+  # Upload traefik ingress controller config
   provisioner "file" {
     content = templatefile(
-      "${path.module}/templates/traefik_config.yaml.tpl",
+      "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
         values = indent(4, trimspace(local.traefik_ingress_values))
     })
-    destination = "/var/post_install/traefik_config.yaml"
+    destination = "/var/post_install/traefik_ingress.yaml"
   }
 
   # Upload nginx ingress controller config
