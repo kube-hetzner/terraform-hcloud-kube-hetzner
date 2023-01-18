@@ -259,6 +259,10 @@ locals {
     "traefik" = "traefik"
     "nginx"   = "ngx-ingress-nginx-controller"
   }
+  ingress_controller_namespace_names = {
+    "traefik" = "traefik"
+    "nginx"   = "ingress-nginx"
+  }
 
   ingress_controller_install_resources = {
     "traefik" = ["traefik_ingress.yaml"]
