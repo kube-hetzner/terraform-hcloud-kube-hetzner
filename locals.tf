@@ -127,9 +127,7 @@ locals {
       direction = "in"
       protocol  = "tcp"
       port      = "6443"
-      source_ips = [
-        "0.0.0.0/0"
-      ]
+      source_ips = ["0.0.0.0/0", "::/0"]
     },
 
     # Allow all traffic to the ssh ports
@@ -137,18 +135,14 @@ locals {
       direction = "in"
       protocol  = "tcp"
       port      = "22"
-      source_ips = [
-        "0.0.0.0/0"
-      ]
+      source_ips = ["0.0.0.0/0", "::/0"]
     }
     ], var.ssh_port == 22 ? [] : [
     {
       direction = "in"
       protocol  = "tcp"
       port      = var.ssh_port
-      source_ips = [
-        "0.0.0.0/0"
-      ]
+      source_ips = ["0.0.0.0/0", "::/0"]
     },
     ],
     [], !local.using_klipper_lb ? [] : [
@@ -158,34 +152,26 @@ locals {
         direction = "in"
         protocol  = "tcp"
         port      = "80"
-        source_ips = [
-          "0.0.0.0/0"
-        ]
+        source_ips = ["0.0.0.0/0", "::/0"]
       },
       {
         direction = "in"
         protocol  = "tcp"
         port      = "443"
-        source_ips = [
-          "0.0.0.0/0"
-        ]
+        source_ips = ["0.0.0.0/0", "::/0"]
       }
       ], var.block_icmp_ping_in ? [] : [
       {
         direction = "in"
         protocol  = "icmp"
-        source_ips = [
-          "0.0.0.0/0"
-        ]
+        source_ips = ["0.0.0.0/0", "::/0"]
       }
       ], var.cni_plugin != "cilium" ? [] : [
       {
         direction = "in"
         protocol  = "tcp"
         port      = "4244-4245"
-        source_ips = [
-          "0.0.0.0/0"
-        ]
+        source_ips = ["0.0.0.0/0", "::/0"]
       }
   ])
 
