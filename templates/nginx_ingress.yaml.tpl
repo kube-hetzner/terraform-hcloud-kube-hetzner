@@ -1,17 +1,17 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: ingress-nginx
+  name: nginx
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: ngx
+  name: nginx
   namespace: kube-system
 spec:
   chart: ingress-nginx
   repo: https://kubernetes.github.io/ingress-nginx
-  targetNamespace: ingress-nginx
+  targetNamespace: nginx
   bootstrap: true
   valuesContent: |-
     ${values}

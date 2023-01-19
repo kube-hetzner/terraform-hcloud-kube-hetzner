@@ -116,25 +116,25 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud."
 }
 
-variable "kured_version" {
-  type        = string
-  default     = null
-  description = "Version of Kured"
+variable "restrict_outbound_traffic" {
+  type        = bool
+  default     = true
+  description = "Whether or not to restrict the outbound traffic."
 }
 
 variable "enable_nginx" {
   type        = bool
   default     = false
-  description = "Whether to enable or disbale the installation of the Nginx Ingress Controller."
+  description = "Whether to enable or disable the installation of the Nginx Ingress Controller."
 }
 
-variable "nginx_ingress_replica_count" {
+variable "nginx_replica_count" {
   type        = number
-  default     = 3
-  description = "Number of replicas per ingress-nginx controller."
+  default     = 0
+  description = "Number of replicas per nginx controller."
 }
 
-variable "nginx_ingress_values" {
+variable "nginx_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
@@ -161,14 +161,14 @@ variable "enable_traefik" {
 
 variable "traefik_replica_count" {
   type        = number
-  default     = 3
+  default     = 0
   description = "Number of replicas per traefik controller."
 }
 
 variable "traefik_redirect_to_https" {
   type        = bool
   default     = true
-  description = "Should traefik redirect http to https."
+  description = "Should traefik redirect http traffic to https."
 }
 
 variable "traefik_additional_options" {
@@ -177,7 +177,7 @@ variable "traefik_additional_options" {
   description = "Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file."
 }
 
-variable "traefik_ingress_values" {
+variable "traefik_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart."
@@ -284,12 +284,12 @@ variable "cilium_values" {
 variable "enable_longhorn" {
   type        = bool
   default     = false
-  description = "Whether of not to enable Longhorn."
+  description = "Whether or not to enable Longhorn."
 }
 variable "longhorn_repository" {
   type        = string
   default     = "https://charts.longhorn.io"
-  description = "By default the official chart which is incompatible with rancher is used, but if that version is behind on what you need, switch to https://charts.rancher.io."
+  description = "By default the official chart which may be incompatible with rancher is used. If you need to fully support rancher switch to https://charts.rancher.io."
 }
 variable "longhorn_namespace" {
   type        = string
@@ -401,22 +401,28 @@ variable "rancher_values" {
   description = "Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart."
 }
 
+variable "kured_version" {
+  type        = string
+  default     = null
+  description = "Version of Kured."
+}
+
 variable "kured_start_time" {
   type        = string
   default     = "03:00"
-  description = "Time to start Kured checks."
+  description = "Time after which nodes will start to be rebooted."
 }
 
 variable "kured_end_time" {
   type        = string
   default     = "08:00"
-  description = "Time to end Kured checks."
+  description = "Time after which nodes will NOT be rebooted."
 }
 
 variable "kured_time_zone" {
   type        = string
   default     = "Local"
-  description = "Time zone for Kured."
+  description = "Time zone used for Kured start and end times."
 }
 
 variable "kured_options" {
