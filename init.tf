@@ -132,7 +132,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
-        values = indent(4, trimspace(local.traefik_ingress_values))
+        values = indent(4, trimspace(local.traefik_values))
     })
     destination = "/var/post_install/traefik_ingress.yaml"
   }
@@ -140,11 +140,11 @@ resource "null_resource" "kustomization" {
   # Upload nginx ingress controller config
   provisioner "file" {
     content = templatefile(
-      "${path.module}/templates/ingress_nginx.yaml.tpl",
+      "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
-        values = indent(4, trimspace(local.ingress_nginx_values))
+        values = indent(4, trimspace(local.nginx_values))
     })
-    destination = "/var/post_install/ingress_nginx.yaml"
+    destination = "/var/post_install/nginx_ingress.yaml"
   }
 
   # Upload the CCM patch config
