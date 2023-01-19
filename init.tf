@@ -127,7 +127,7 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/kustomization.yaml"
   }
 
-  # Upload traefik-ingress controller config
+  # Upload traefik ingress controller config
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/traefik_ingress.yaml.tpl",
@@ -137,7 +137,7 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/traefik_ingress.yaml"
   }
 
-  # Upload ingress-nginx controller config
+  # Upload nginx ingress controller config
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/ingress_nginx.yaml.tpl",
