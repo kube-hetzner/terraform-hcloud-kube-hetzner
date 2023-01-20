@@ -130,8 +130,13 @@ variable "enable_nginx" {
 
 variable "nginx_replica_count" {
   type        = number
-  default     = 0
+  default     = null
   description = "Number of replicas per nginx controller."
+
+  validation {
+    condition     = var.nginx_replica_count == null || var.nginx_replica_count > 0
+    error_message = "Number of nginx replicas can't be below 1."
+  }
 }
 
 variable "nginx_values" {
@@ -161,8 +166,13 @@ variable "enable_traefik" {
 
 variable "traefik_replica_count" {
   type        = number
-  default     = 0
+  default     = null
   description = "Number of replicas per traefik controller."
+
+  validation {
+    condition     = var.traefik_replica_count == null || var.traefik_replica_count > 0
+    error_message = "Number of traefik replicas can't be below 1."
+  }
 }
 
 variable "traefik_redirect_to_https" {
@@ -311,6 +321,11 @@ variable "longhorn_replica_count" {
   type        = number
   default     = 3
   description = "Number of replicas per longhorn volume."
+
+  validation {
+    condition     = var.longhorn_replica_count > 0
+    error_message = "Number of longhorn replicas can't be below 1."
+  }
 }
 
 variable "longhorn_values" {
