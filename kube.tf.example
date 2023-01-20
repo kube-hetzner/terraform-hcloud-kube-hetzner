@@ -182,8 +182,8 @@ module "kube-hetzner" {
   # See a full recap on how to configure agent nodepools for longhorn here https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/discussions/373#discussioncomment-3983159
   # enable_longhorn = true
 
-  # By default, longhorn is pulled from https://charts.rancher.io which assures compatibility with rancher.
-  # If you need a newer version of longhorn you can set this variable to https://charts.longhorn.io. 
+  # By default, longhorn is pulled from https://charts.longhorn.io.
+  # If you need a version of longhorn which assures compatibility with rancher you can set this variable to https://charts.rancher.io. 
   # longhorn_repository = "https://charts.rancher.io"
 
   # The namespace for longhorn deployment, default is "longhorn-system"
@@ -214,15 +214,24 @@ module "kube-hetzner" {
   # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available.
   # kured_version = ""
 
-  # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "true". Default is "false".
-  # FOR THIS TO NOT BE IGNORED, you also need to set "enable_traefik = false".
-  # By the default we load an optimal Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
-  # we allow you to add a nginx_ingress_values, see towards the end of this file in the advanced section.
-  # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
-  # enable_nginx = true
+  # If you want to specify what time Kured starts restarting nodes, set it below. Default is 3AM.
+  # kured_start_time = ""
 
-  # If you want to disable the Traefik ingress controller, to use the Nginx ingress controller for instance, you can can set this to "false". Default is "true".
-  # enable_traefik = false
+  # If you want to specify what time Kured stops restarting nodes, set it below. Default is 8AM.
+  # kured_end_time = ""
+
+  # If you want to specify what timezone Kured uses, set it below. Default is Local.
+  # kured_time_zone = ""
+
+  # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "nginx". Default is "traefik".
+  # By the default we load optimal Traefik and Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
+  # we allow you to add a traefik_values and nginx_values, see towards the end of this file in the advanced section.
+  # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
+  # If you want to disable both controllers set this to "none"
+  # ingress_controller = "nginx"
+
+  # You can change the number of replicas for selected ingress controller here. The default 0 means autoselecting based on number of agent nodes (1 node = 1 replica, 2 nodes = 2 replicas, 3+ nodes = 3 replicas)
+  # ingress_replica_count = 1
 
   # Use the klipper LB (similar to metalLB), instead of the default Hetzner one, that has an advantage of dropping the cost of the setup.
   # Automatically "true" in the case of single node cluster (as it does not make sense to use the Hetzner LB in that situation).
@@ -230,16 +239,13 @@ module "kube-hetzner" {
   # Please note that because the klipper lb points to all nodes, we automatically allow scheduling on the control plane when it is active.
   # enable_klipper_metal_lb = "true"
 
-  # We give you the possibility to use letsencrypt directly with Traefik because it's an easy setup, however it's not optimal,
-  # as the free version of Traefik causes a little bit of downtime when when the certificates get renewed. For proper SSL management,
-  # we instead recommend you to use cert-manager, that you can easily deploy with helm; see https://cert-manager.io/.
-  # traefik_acme_tls = true
-  # traefik_acme_email = "mail@example.com"
-
   # If you want to configure additional Arguments for traefik, enter them here as a list and in the form of traefik CLI arguments; see https://doc.traefik.io/traefik/reference/static-configuration/cli/
   # They are the options that go into the additionalArguments section of the Traefik helm values file.
   # Example: traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
   # traefik_additional_options = []
+
+  # By default traefik is configured to redirect http traffic to https, you can set this to 'false' to disable the redirection.
+  # traefik_redirect_to_https = false
 
   # If you want to disable the metric server, you can! Default is "true".
   # enable_metrics_server = false
@@ -261,12 +267,10 @@ module "kube-hetzner" {
 
   # If you need more control over kured and the reboot behaviour, you can pass additional options to kured.
   # For example limiting reboots to certain timeframes. For all options see: https://kured.dev/docs/configuration/
-  # The default options are: `--reboot-command=/usr/bin/systemctl reboot --pre-reboot-node-labels=kured=rebooting --post-reboot-node-labels=kured=done --period=5m`
+  # The default options are: `--reboot-command=/usr/bin/systemctl reboot --pre-reboot-node-labels=kured=rebooting --post-reboot-node-labels=kured=done --period=5m --start-time=03:00 --end-time=08:00 --time-zone=Local`
   # Defaults can be overridden by using the same key.
   # kured_options = {
   #   "reboot-days": "su"
-  #   "start-time": "9am"
-  #   "end-time": "5pm"
   # }
 
   # Allows you to specify either stable, latest, testing or supported minor versions (defaults to stable)
@@ -296,6 +300,9 @@ module "kube-hetzner" {
           username: username
           password: password
   EOT */
+
+  # If you want to disable the default restrictive outbound rules you can set this to 'false'
+  # restrict_outbound_traffic = false
 
   # Adding extra firewall rules, like opening a port
   # More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall
