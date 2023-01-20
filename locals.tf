@@ -316,7 +316,7 @@ persistence:
 controller:
   watchIngressWithoutClass: "true"
   kind: "Deployment"
-  replicaCount: ${(var.nginx_replica_count != null) ? var.nginx_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1}
+  replicaCount: ${(local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1}
   config:
     "use-forwarded-headers": "true"
     "compute-full-forwarded-for": "true"
@@ -339,7 +339,7 @@ controller:
 
   traefik_values = var.traefik_values != "" ? var.traefik_values : <<EOT
 deployment:
-  replicas: ${(var.traefik_replica_count != null) ? var.traefik_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1}
+  replicas: ${(local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1}
 globalArguments: []
 service:
   enabled: true

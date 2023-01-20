@@ -128,17 +128,6 @@ variable "enable_nginx" {
   description = "Whether to enable or disable the installation of the Nginx Ingress Controller."
 }
 
-variable "nginx_replica_count" {
-  type        = number
-  default     = null
-  description = "Number of replicas per nginx controller."
-
-  validation {
-    condition     = var.nginx_replica_count == null || var.nginx_replica_count > 0
-    error_message = "Number of nginx replicas can't be below 1."
-  }
-}
-
 variable "nginx_values" {
   type        = string
   default     = ""
@@ -162,17 +151,6 @@ variable "enable_traefik" {
   type        = bool
   default     = true
   description = "Whether to enable or disable the installation of the Traefik Ingress Controller."
-}
-
-variable "traefik_replica_count" {
-  type        = number
-  default     = null
-  description = "Number of replicas per traefik controller."
-
-  validation {
-    condition     = var.traefik_replica_count == null || var.traefik_replica_count > 0
-    error_message = "Number of traefik replicas can't be below 1."
-  }
 }
 
 variable "traefik_redirect_to_https" {
