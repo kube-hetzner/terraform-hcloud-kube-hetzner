@@ -151,6 +151,7 @@ locals {
       {
         direction = "out"
         protocol  = "icmp"
+        port      = ""
         destination_ips = ["0.0.0.0/0", "::/0"]
       },
 
@@ -208,6 +209,7 @@ locals {
       {
         direction = "in"
         protocol  = "icmp"
+        port      = ""
         source_ips = ["0.0.0.0/0", "::/0"]
       }
       ], var.cni_plugin != "cilium" ? [] : [
