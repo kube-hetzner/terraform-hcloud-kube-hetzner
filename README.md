@@ -33,14 +33,14 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - Optimized container OS that is fully locked down, most of the filesystem is read-only!
 - Hardened by default with automatic ban for abusive IPs on SSH for instance.
 - Evergreen release, your node will stay valid forever, as it piggy-backs into OpenSUSE Tumbleweed's rolling-release!
-- Automatic updates by default, and if something breaks, it automatically rolls-back, thanks to it uses of BTRFS snapshots.
+- Automatic updates by default and automatically roll-backs if something breaks, thanks to its use of BTRFS snapshots.
 - Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
 
 **Why k3s?**
 - Certified Kubernetes Distribution, it is automatically synced to k8s source.
-- Fast deployment, it is deployed with a single command.
+- Fast deployment, as it is a single binary and can be deployed with a single command.
 - Comes batteries included, with its in-cluster [helm-controller](https://github.com/k3s-io/helm-controller).
-- Easy automatic update, via the [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller).
+- Easy automatic updates, via the [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller).
 
 ### Features
 
@@ -57,13 +57,13 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
 - [x] **Flexible configuration options** via variables, and an extra Kustomization option.
 
-_It uses Terraform to deploy as it's easy to use, and Hetzner provides a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
+_It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
 <!-- GETTING STARTED -->
 
 ## Getting Started
 
-Follow those simple steps, and your world's cheapest Kube cluster will be up and running.
+Follow those simple steps, and your world's cheapest Kubernetes cluster will be up and running.
 
 ### ✔️ Prerequisites
 
@@ -81,10 +81,10 @@ brew install hcloud
 ### 💡 [Do not skip] Creating your kube.tf file
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key. Take note of the key! ✅
-2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/ssh.md). ✅
-3. Prepare the module by copying `kube.tf.example` to `kube.tf` **in a new folder** which you cd into, then replace the values from steps 1 and 2. ✅
-4. (Optional) Many variables in `kube.tf` can be customized to suit your needs, you can do so if you want. ✅
-5. At this stage you should be in your new folder, with a fresh `kube.tf` file, if it is so, you can proceed forward! ✅
+1. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/ssh.md). ✅
+1. Prepare the module by copying `kube.tf.example` to `kube.tf` **in a new folder** which you cd into, then replace the values from steps 1 and 2. ✅
+1. (Optional) Many variables in `kube.tf` can be customized to suit your needs, you can do so if you want. ✅
+1. At this stage you should be in your new folder, with a fresh `kube.tf` file, if it is so, you can proceed forward! ✅
 
 _A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
 
@@ -177,22 +177,21 @@ You can copy and modify the [one in the templates](https://github.com/kube-hetzn
 
 ### Configuring update timeframes
 
-Per default a node that installed updates will reboot within the next few minutes and updates are installed roughly every 24 hours.
+Per default a node that installed updates will reboot between 3AM and 8AM Local time, and updates are installed roughly every 24 hours.
 Kured can be instructed with specific timeframes for rebooting, to prevent too frequent drains and reboots.
 All options from the [docs](https://kured.dev/docs/configuration/) are available for modification.
 
-⚠️ Kured is also used to reboot nodes after configuration updates (`registries.yaml`, ...), so keep in mind that configuration changes
-can take some time to propagate!
+⚠️ Kured is also used to reboot nodes after configuration updates (`registries.yaml`, ...), so keep in mind that configuration changes can take some time to propagate!
 
 ```terraform
 kured_options = {
   "reboot-days": "su"
-  "start-time": "9am"
-  "end-time": "5pm"
+  "start-time": "3am"
+  "end-time": "8am"
 }
 ```
 
-### Turning Off Automatic Upgrade
+### Turning Off Automatic Upgrades
 
 _If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup which requires at least 3 control-plane nodes), you need to set:_
 
@@ -230,8 +229,8 @@ kubectl delete plan k3s-server -n system-upgrade
 Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `clustername_kubeconfig.yaml` at the root of your project.
 
 1. First create a duplicate of that file and name it `kustomization.yaml`, keeping the original file intact, in case you need to restore the old config.
-2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on GitHub, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
-3. Apply the updated `kustomization.yaml` with `kubectl apply -k ./`.
+1. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on GitHub, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
+1. Apply the updated `kustomization.yaml` with `kubectl apply -k ./`.
 
 ## Customizing the Cluster Components
 
@@ -296,9 +295,9 @@ _For more cilium commands, please refer to their corresponding [Documentation](h
 
 <summary>Ingress with TLS</summary>
 
-You have two solutions, the first is to use `Cert-Manager` to take care of the certificates, and the second is to let `Traefik` bear this responsibility.
+You have two options, the first is to use `Cert-Manager` to take care of the certificates, and the second is to let `Traefik` bear this responsibility.
 
-_We advise you to use the first one, as it supports HA setups without requiring you to use the enterprise version of Traefik. The reason for that is that according to Traefik themselves, Traefik CE (community edition) is stateless, and it's not possible to run multiple instance of Traefik CE with LetsEncrypt enabled. Meaning, you cannot have your ingress be HA with Traefik if you use the community edition and have activated the LetsEncrypt resolver. You could however use Traefik EE (enterprise edition) to achieve that. Long story short, if you are going to use Traefik CE (like most of us), you should use cert-manager to generate the certificates. Source [here](https://doc.traefik.io/traefik/v2.0/providers/kubernetes-crd/)._
+_We advise you to use `Cert-Manager`, as it supports HA setups without requiring you to use the enterprise version of Traefik. The reason for that is that according to Traefik themselves, Traefik CE (community edition) is stateless, and it's not possible to run multiple instance of Traefik CE with LetsEncrypt enabled. Meaning, you cannot have your ingress be HA with Traefik if you use the community edition and have activated the LetsEncrypt resolver. You could however use Traefik EE (enterprise edition) to achieve that. Long story short, if you are going to use Traefik CE (like most of us), you should use cert-manager to generate the certificates. Source [here](https://doc.traefik.io/traefik/v2.0/providers/kubernetes-crd/)._
 
 ### Via Cert-Manager (recommended)
 
@@ -336,41 +335,6 @@ spec:
 _⚠️ In case of using Ingress-Nginx as ingress controller, if you choose to use the HTTP challenge method you need to do an additional step of adding this annotation `load-balancer.hetzner.cloud/hostname` to the Nginx service definition. And you set it equal to a FQDN that points to your LB address._
   
 _This is to circumvent this known issue https://github.com/cert-manager/cert-manager/issues/466, also see https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/354. Otherwise, you can just use the DNS challenge, which does not require any additional tweaks to work._
-
-### Via Traefik CE (not recommended)
-
-Here is an example of an ingress to run an application with TLS, change the host to fit your need in `examples/tls/ingress.yaml` and then deploy the example:
-
-```sh
-kubectl apply -f examples/tls/.
-
-```
-
-```yml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: my-ingress
-  annotations:
-    traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.tls.certresolver: le
-spec:
-  tls:
-    - hosts:
-        - example.com
-  rules:
-    - host: example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: my-service
-                port:
-                  number: 80
-
-```
 
 </details>
 
@@ -462,10 +426,10 @@ There is also a branch where openSUSE MicroOS came preinstalled with the k3s RPM
 Code contributions are very much **welcome**.
 
 1. Fork the Project
-2. Create your Branch (`git checkout -b AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature')
-4. Push to the Branch (`git push origin AmazingFeature`)
-5. Open a Pull Request targeting the `staging` branch.
+1. Create your Branch (`git checkout -b AmazingFeature`)
+1. Commit your Changes (`git commit -m 'Add some AmazingFeature')
+1. Push to the Branch (`git push origin AmazingFeature`)
+1. Open a Pull Request targeting the `staging` branch.
 
 <!-- ACKNOWLEDGEMENTS -->
 

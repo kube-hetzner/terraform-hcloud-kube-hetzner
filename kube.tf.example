@@ -116,7 +116,7 @@ module "kube-hetzner" {
       location    = "nbg1",
       labels      = [],
       taints      = [],
-      count       = 2
+      count       = 1
     },
     {
       name        = "storage",
