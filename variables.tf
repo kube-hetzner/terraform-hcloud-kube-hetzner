@@ -122,18 +122,6 @@ variable "restrict_outbound_traffic" {
   description = "Whether or not to restrict the outbound traffic."
 }
 
-variable "enable_nginx" {
-  type        = bool
-  default     = false
-  description = "Whether to enable or disable the installation of the Nginx Ingress Controller."
-}
-
-variable "nginx_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
-}
-
 variable "enable_klipper_metal_lb" {
   type        = bool
   default     = false
@@ -147,10 +135,26 @@ variable "etcd_s3_backup" {
   default     = {}
 }
 
-variable "enable_traefik" {
-  type        = bool
-  default     = true
-  description = "Whether to enable or disable the installation of the Traefik Ingress Controller."
+variable "ingress_controller" {
+  type        = string
+  default     = "traefik"
+  description = "The name of the ingress controller."
+
+  validation {
+    condition     = contains(["traefik", "nginx", "none"], var.ingress_controller)
+    error_message = "Must be one of \"traefik\" or \"nginx\" or \"none\""
+  }
+}
+
+variable "ingress_replica_count" {
+  type        = number
+  default     = 0
+  description = "Number of replicas per ingress controller. 0 means autodetect based on the number of agent nodes."
+
+  validation {
+    condition     = var.ingress_replica_count >= 0
+    error_message = "Number of ingress replicas can't be below 0."
+  }
 }
 
 variable "traefik_redirect_to_https" {
@@ -169,6 +173,12 @@ variable "traefik_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart."
+}
+
+variable "nginx_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
 }
 
 variable "allow_scheduling_on_control_plane" {

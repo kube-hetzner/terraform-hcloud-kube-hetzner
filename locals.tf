@@ -76,6 +76,8 @@ locals {
 
   has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
 
+  ingress_replica_count = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
 
@@ -280,11 +282,13 @@ locals {
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
 
-  ingress_controller = var.enable_traefik ? "traefik" : var.enable_nginx ? "nginx" : "none"
+  ingress_controller = var.ingress_controller
+
   ingress_controller_service_names = {
     "traefik" = "traefik"
     "nginx"   = "ngx-ingress-nginx-controller"
   }
+  
   ingress_controller_namespace_names = {
     "traefik" = "traefik"
     "nginx"   = "nginx"
@@ -316,7 +320,7 @@ persistence:
 controller:
   watchIngressWithoutClass: "true"
   kind: "Deployment"
-  replicaCount: ${(local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1}
+  replicaCount: ${local.ingress_replica_count}
   config:
     "use-forwarded-headers": "true"
     "compute-full-forwarded-for": "true"
@@ -339,7 +343,7 @@ controller:
 
   traefik_values = var.traefik_values != "" ? var.traefik_values : <<EOT
 deployment:
-  replicas: ${(local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1}
+  replicas: ${local.ingress_replica_count}
 globalArguments: []
 service:
   enabled: true
