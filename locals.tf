@@ -410,8 +410,5 @@ installCRDs: true
     "pre-reboot-node-labels" : "kured=rebooting",
     "post-reboot-node-labels" : "kured=done",
     "period" : "5m",
-    "start-time": "${var.kured_start_time}",
-    "end-time": "${var.kured_end_time}",
-    "time-zone": "${var.kured_time_zone}",
   }, var.kured_options)
 }

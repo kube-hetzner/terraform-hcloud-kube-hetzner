@@ -177,19 +177,11 @@ You can copy and modify the [one in the templates](https://github.com/kube-hetzn
 
 ### Configuring update timeframes
 
-Per default a node that installed updates will reboot between 3AM and 8AM Local time, and updates are installed roughly every 24 hours.
+Per default a node that installed updates will reboot within the next few minutes and updates are installed roughly every 24 hours.
 Kured can be instructed with specific timeframes for rebooting, to prevent too frequent drains and reboots.
 All options from the [docs](https://kured.dev/docs/configuration/) are available for modification.
 
 ⚠️ Kured is also used to reboot nodes after configuration updates (`registries.yaml`, ...), so keep in mind that configuration changes can take some time to propagate!
-
-```terraform
-kured_options = {
-  "reboot-days": "su"
-  "start-time": "3am"
-  "end-time": "8am"
-}
-```
 
 ### Turning Off Automatic Upgrades
 

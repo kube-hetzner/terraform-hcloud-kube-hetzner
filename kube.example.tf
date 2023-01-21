@@ -269,10 +269,12 @@ module "kube-hetzner" {
 
   # If you need more control over kured and the reboot behaviour, you can pass additional options to kured.
   # For example limiting reboots to certain timeframes. For all options see: https://kured.dev/docs/configuration/
-  # The default options are: `--reboot-command=/usr/bin/systemctl reboot --pre-reboot-node-labels=kured=rebooting --post-reboot-node-labels=kured=done --period=5m --start-time=03:00 --end-time=08:00 --time-zone=Local`
+  # The default options are: `--reboot-command=/usr/bin/systemctl reboot --pre-reboot-node-labels=kured=rebooting --post-reboot-node-labels=kured=done --period=5m`
   # Defaults can be overridden by using the same key.
   # kured_options = {
   #   "reboot-days": "su"
+  #   "start-time": "3am"
+  #   "end-time": "8am"
   # }
 
   # Allows you to specify either stable, latest, testing or supported minor versions.

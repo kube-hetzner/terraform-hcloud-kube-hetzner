@@ -410,24 +410,6 @@ variable "kured_version" {
   description = "Version of Kured."
 }
 
-variable "kured_start_time" {
-  type        = string
-  default     = "03:00"
-  description = "Time after which nodes will start to be rebooted."
-}
-
-variable "kured_end_time" {
-  type        = string
-  default     = "08:00"
-  description = "Time after which nodes will NOT be rebooted."
-}
-
-variable "kured_time_zone" {
-  type        = string
-  default     = "Local"
-  description = "Time zone used for Kured start and end times."
-}
-
 variable "kured_options" {
   type    = map(string)
   default = {}
