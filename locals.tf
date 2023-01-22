@@ -125,100 +125,100 @@ locals {
 
     # Allow all traffic to the kube api server
     {
-      direction = "in"
-      protocol  = "tcp"
-      port      = "6443"
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "6443"
       source_ips = ["0.0.0.0/0", "::/0"]
     },
 
     # Allow all traffic to the ssh ports
     {
-      direction = "in"
-      protocol  = "tcp"
-      port      = "22"
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "22"
       source_ips = ["0.0.0.0/0", "::/0"]
     }
     ], var.ssh_port == 22 ? [] : [
     {
-      direction = "in"
-      protocol  = "tcp"
-      port      = var.ssh_port
+      direction  = "in"
+      protocol   = "tcp"
+      port       = var.ssh_port
       source_ips = ["0.0.0.0/0", "::/0"]
     },
     ], !var.restrict_outbound_traffic ? [] : [
-      # Allow basic out traffic
-      # ICMP to ping outside services
-      {
-        direction = "out"
-        protocol  = "icmp"
-        port      = ""
-        destination_ips = ["0.0.0.0/0", "::/0"]
-      },
+    # Allow basic out traffic
+    # ICMP to ping outside services
+    {
+      direction       = "out"
+      protocol        = "icmp"
+      port            = ""
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
 
-      # DNS
-      {
-        direction = "out"
-        protocol  = "tcp"
-        port      = "53"
-        destination_ips = ["0.0.0.0/0", "::/0"]
-      },
-      {
-        direction = "out"
-        protocol  = "udp"
-        port      = "53"
-        destination_ips = ["0.0.0.0/0", "::/0"]
-      },
+    # DNS
+    {
+      direction       = "out"
+      protocol        = "tcp"
+      port            = "53"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      direction       = "out"
+      protocol        = "udp"
+      port            = "53"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
 
-      # HTTP(s)
-      {
-        direction = "out"
-        protocol  = "tcp"
-        port      = "80"
-        destination_ips = ["0.0.0.0/0", "::/0"]
-      },
-      {
-        direction = "out"
-        protocol  = "tcp"
-        port      = "443"
-        destination_ips = ["0.0.0.0/0", "::/0"]
-      },
+    # HTTP(s)
+    {
+      direction       = "out"
+      protocol        = "tcp"
+      port            = "80"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      direction       = "out"
+      protocol        = "tcp"
+      port            = "443"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
 
-      #NTP
-      {
-        direction = "out"
-        protocol  = "udp"
-        port      = "123"
-        destination_ips = ["0.0.0.0/0", "::/0"]
-      }
-      ], !local.using_klipper_lb ? [] : [
-      # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
-      # not an external load-balancer.
-      {
-        direction = "in"
-        protocol  = "tcp"
-        port      = "80"
-        source_ips = ["0.0.0.0/0", "::/0"]
-      },
-      {
-        direction = "in"
-        protocol  = "tcp"
-        port      = "443"
-        source_ips = ["0.0.0.0/0", "::/0"]
-      }
-      ], var.block_icmp_ping_in ? [] : [
-      {
-        direction = "in"
-        protocol  = "icmp"
-        port      = ""
-        source_ips = ["0.0.0.0/0", "::/0"]
-      }
-      ], var.cni_plugin != "cilium" ? [] : [
-      {
-        direction = "in"
-        protocol  = "tcp"
-        port      = "4244-4245"
-        source_ips = ["0.0.0.0/0", "::/0"]
-      }
+    #NTP
+    {
+      direction       = "out"
+      protocol        = "udp"
+      port            = "123"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    }
+    ], !local.using_klipper_lb ? [] : [
+    # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
+    # not an external load-balancer.
+    {
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "80"
+      source_ips = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "443"
+      source_ips = ["0.0.0.0/0", "::/0"]
+    }
+    ], var.block_icmp_ping_in ? [] : [
+    {
+      direction  = "in"
+      protocol   = "icmp"
+      port       = ""
+      source_ips = ["0.0.0.0/0", "::/0"]
+    }
+    ], var.cni_plugin != "cilium" ? [] : [
+    {
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "4244-4245"
+      source_ips = ["0.0.0.0/0", "::/0"]
+    }
   ])
 
   # create a new firewall list based on base_firewall_rules but with direction-protocol-port as key
@@ -290,7 +290,7 @@ locals {
     "traefik" = "traefik"
     "nginx"   = "ngx-ingress-nginx-controller"
   }
-  
+
   ingress_controller_namespace_names = {
     "traefik" = "traefik"
     "nginx"   = "nginx"
