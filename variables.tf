@@ -116,22 +116,10 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud."
 }
 
-variable "kured_version" {
-  type        = string
-  default     = null
-  description = "Version of Kured"
-}
-
-variable "enable_nginx" {
+variable "restrict_outbound_traffic" {
   type        = bool
-  default     = false
-  description = "Whether to enable or disbale the installation of the Nginx Ingress Controller."
-}
-
-variable "nginx_ingress_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
+  default     = true
+  description = "Whether or not to restrict the outbound traffic."
 }
 
 variable "enable_klipper_metal_lb" {
@@ -147,22 +135,32 @@ variable "etcd_s3_backup" {
   default     = {}
 }
 
-variable "enable_traefik" {
+variable "ingress_controller" {
+  type        = string
+  default     = "traefik"
+  description = "The name of the ingress controller."
+
+  validation {
+    condition     = contains(["traefik", "nginx", "none"], var.ingress_controller)
+    error_message = "Must be one of \"traefik\" or \"nginx\" or \"none\""
+  }
+}
+
+variable "ingress_replica_count" {
+  type        = number
+  default     = 0
+  description = "Number of replicas per ingress controller. 0 means autodetect based on the number of agent nodes."
+
+  validation {
+    condition     = var.ingress_replica_count >= 0
+    error_message = "Number of ingress replicas can't be below 0."
+  }
+}
+
+variable "traefik_redirect_to_https" {
   type        = bool
   default     = true
-  description = "Whether to enable or disable the installation of the Traefik Ingress Controller."
-}
-
-variable "traefik_acme_tls" {
-  type        = bool
-  default     = false
-  description = "Whether to include the TLS configuration with the Traefik configuration."
-}
-
-variable "traefik_acme_email" {
-  type        = string
-  default     = ""
-  description = "Email used to recieved expiration notice for certificate."
+  description = "Should traefik redirect http traffic to https."
 }
 
 variable "traefik_additional_options" {
@@ -171,10 +169,16 @@ variable "traefik_additional_options" {
   description = "Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file."
 }
 
-variable "traefik_ingress_values" {
+variable "traefik_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart."
+}
+
+variable "nginx_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
 }
 
 variable "allow_scheduling_on_control_plane" {
@@ -191,11 +195,11 @@ variable "enable_metrics_server" {
 
 variable "initial_k3s_channel" {
   type        = string
-  default     = "v1.24"
+  default     = "v1.25"
   description = "Allows you to specify an initial k3s channel."
 
   validation {
-    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25"], var.initial_k3s_channel)
+    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26"], var.initial_k3s_channel)
     error_message = "The initial k3s channel must be one of stable, latest or testing, or any of the minor kube versions like v1.22."
   }
 }
@@ -278,12 +282,12 @@ variable "cilium_values" {
 variable "enable_longhorn" {
   type        = bool
   default     = false
-  description = "Whether of not to enable Longhorn."
+  description = "Whether or not to enable Longhorn."
 }
 variable "longhorn_repository" {
   type        = string
-  default     = "https://charts.rancher.io"
-  description = "By default a forked chart which is compatible with rancher is used, but if that version is behind on what you need, switch to https://charts.longhorn.io."
+  default     = "https://charts.longhorn.io"
+  description = "By default the official chart which may be incompatible with rancher is used. If you need to fully support rancher switch to https://charts.rancher.io."
 }
 variable "longhorn_namespace" {
   type        = string
@@ -305,6 +309,11 @@ variable "longhorn_replica_count" {
   type        = number
   default     = 3
   description = "Number of replicas per longhorn volume."
+
+  validation {
+    condition     = var.longhorn_replica_count > 0
+    error_message = "Number of longhorn replicas can't be below 1."
+  }
 }
 
 variable "longhorn_values" {
@@ -321,7 +330,7 @@ variable "disable_hetzner_csi" {
 
 variable "enable_cert_manager" {
   type        = bool
-  default     = false
+  default     = true
   description = "Enable cert manager."
 }
 
@@ -393,6 +402,12 @@ variable "rancher_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart."
+}
+
+variable "kured_version" {
+  type        = string
+  default     = null
+  description = "Version of Kured."
 }
 
 variable "kured_options" {

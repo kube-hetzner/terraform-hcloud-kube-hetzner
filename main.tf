@@ -73,13 +73,6 @@ resource "null_resource" "destroy_cluster_loadbalancer" {
     cluster_name     = var.cluster_name
   }
 
-  # Important when issuing terraform destroy, otherwise the LB will not let the network get deleted
-  provisioner "local-exec" {
-    when       = destroy
-    command    = "kubectl -n kube-system delete service traefik --kubeconfig kubeconfig.yaml"
-    on_failure = continue
-  }
-
   depends_on = [
     null_resource.control_planes[0],
     hcloud_network_subnet.control_plane,

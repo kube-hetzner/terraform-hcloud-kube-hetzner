@@ -1,17 +1,16 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: nginx
+  name: traefik
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: nginx
+  name: traefik
   namespace: kube-system
 spec:
-  chart: ingress-nginx
-  repo: https://kubernetes.github.io/ingress-nginx
-  targetNamespace: nginx
-  bootstrap: true
+  chart: traefik
+  repo: https://traefik.github.io/charts
+  targetNamespace: traefik
   valuesContent: |-
     ${values}

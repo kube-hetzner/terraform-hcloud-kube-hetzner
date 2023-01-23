@@ -127,14 +127,14 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/kustomization.yaml"
   }
 
-  # Upload traefik config
+  # Upload traefik ingress controller config
   provisioner "file" {
     content = templatefile(
-      "${path.module}/templates/traefik_config.yaml.tpl",
+      "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
-        values = indent(4, trimspace(local.traefik_ingress_values))
+        values = indent(4, trimspace(local.traefik_values))
     })
-    destination = "/var/post_install/traefik_config.yaml"
+    destination = "/var/post_install/traefik_ingress.yaml"
   }
 
   # Upload nginx ingress controller config
@@ -142,7 +142,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
-        values = indent(4, trimspace(local.nginx_ingress_values))
+        values = indent(4, trimspace(local.nginx_values))
     })
     destination = "/var/post_install/nginx_ingress.yaml"
   }
@@ -281,7 +281,7 @@ resource "null_resource" "kustomization" {
       local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 180 bash <<EOF
-      until [ -n "\$(kubectl get -n kube-system service/${lookup(local.ingress_controller_service_names, local.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].ip}' 2> /dev/null)" ]; do
+      until [ -n "\$(kubectl get -n ${lookup(local.ingress_controller_namespace_names, local.ingress_controller)} service/${lookup(local.ingress_controller_service_names, local.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
           sleep 2
       done

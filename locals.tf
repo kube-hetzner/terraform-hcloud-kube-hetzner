@@ -76,10 +76,10 @@ locals {
 
   has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
 
+  ingress_replica_count = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+
   # disable k3s extras
-  disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], var.enable_traefik ? [] : [
-    "traefik"
-  ], var.enable_metrics_server ? [] : ["metrics-server"])
+  disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
 
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
@@ -90,7 +90,6 @@ locals {
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
-
 
   packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [], var.extra_packages_to_install)
 
@@ -126,132 +125,105 @@ locals {
 
     # Allow all traffic to the kube api server
     {
-      direction = "in"
-      protocol  = "tcp"
-      port      = "6443"
-      source_ips = [
-        "0.0.0.0/0"
-      ]
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "6443"
+      source_ips = ["0.0.0.0/0", "::/0"]
     },
 
     # Allow all traffic to the ssh ports
     {
-      direction = "in"
-      protocol  = "tcp"
-      port      = "22"
-      source_ips = [
-        "0.0.0.0/0"
-      ]
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "22"
+      source_ips = ["0.0.0.0/0", "::/0"]
     }
     ], var.ssh_port == 22 ? [] : [
     {
-      direction = "in"
-      protocol  = "tcp"
-      port      = var.ssh_port
-      source_ips = [
-        "0.0.0.0/0"
-      ]
+      direction  = "in"
+      protocol   = "tcp"
+      port       = var.ssh_port
+      source_ips = ["0.0.0.0/0", "::/0"]
     },
-    ],
-    [
-      # Allow basic out traffic
-      # ICMP to ping outside services
-      {
-        direction = "out"
-        protocol  = "icmp"
-        destination_ips = [
-          "0.0.0.0/0"
-        ]
-      },
+    ], !var.restrict_outbound_traffic ? [] : [
+    # Allow basic out traffic
+    # ICMP to ping outside services
+    {
+      direction       = "out"
+      protocol        = "icmp"
+      port            = ""
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
 
-      # DNS
-      {
-        direction = "out"
-        protocol  = "tcp"
-        port      = "53"
-        destination_ips = [
-          "0.0.0.0/0"
-        ]
-      },
-      {
-        direction = "out"
-        protocol  = "udp"
-        port      = "53"
-        destination_ips = [
-          "0.0.0.0/0"
-        ]
-      },
+    # DNS
+    {
+      direction       = "out"
+      protocol        = "tcp"
+      port            = "53"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      direction       = "out"
+      protocol        = "udp"
+      port            = "53"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
 
-      # HTTP(s)
-      {
-        direction = "out"
-        protocol  = "tcp"
-        port      = "80"
-        destination_ips = [
-          "0.0.0.0/0"
-        ]
-      },
-      {
-        direction = "out"
-        protocol  = "tcp"
-        port      = "443"
-        destination_ips = [
-          "0.0.0.0/0"
-        ]
-      },
+    # HTTP(s)
+    {
+      direction       = "out"
+      protocol        = "tcp"
+      port            = "80"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      direction       = "out"
+      protocol        = "tcp"
+      port            = "443"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    },
 
-      #NTP
-      {
-        direction = "out"
-        protocol  = "udp"
-        port      = "123"
-        destination_ips = [
-          "0.0.0.0/0"
-        ]
-      }
-      ], !local.using_klipper_lb ? [] : [
-      # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
-      # not an external load-balancer.
-      {
-        direction = "in"
-        protocol  = "tcp"
-        port      = "80"
-        source_ips = [
-          "0.0.0.0/0"
-        ]
-      },
-      {
-        direction = "in"
-        protocol  = "tcp"
-        port      = "443"
-        source_ips = [
-          "0.0.0.0/0"
-        ]
-      }
-      ], var.block_icmp_ping_in ? [] : [
-      {
-        direction = "in"
-        protocol  = "icmp"
-        source_ips = [
-          "0.0.0.0/0"
-        ]
-      }
-      ], var.cni_plugin != "cilium" ? [] : [
-      {
-        direction = "in"
-        protocol  = "tcp"
-        port      = "4244-4245"
-        source_ips = [
-          "0.0.0.0/0"
-        ]
-      }
+    #NTP
+    {
+      direction       = "out"
+      protocol        = "udp"
+      port            = "123"
+      destination_ips = ["0.0.0.0/0", "::/0"]
+    }
+    ], !local.using_klipper_lb ? [] : [
+    # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
+    # not an external load-balancer.
+    {
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "80"
+      source_ips = ["0.0.0.0/0", "::/0"]
+    },
+    {
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "443"
+      source_ips = ["0.0.0.0/0", "::/0"]
+    }
+    ], var.block_icmp_ping_in ? [] : [
+    {
+      direction  = "in"
+      protocol   = "icmp"
+      port       = ""
+      source_ips = ["0.0.0.0/0", "::/0"]
+    }
+    ], var.cni_plugin != "cilium" ? [] : [
+    {
+      direction  = "in"
+      protocol   = "tcp"
+      port       = "4244-4245"
+      source_ips = ["0.0.0.0/0", "::/0"]
+    }
   ])
 
   # create a new firewall list based on base_firewall_rules but with direction-protocol-port as key
   # this is needed to avoid duplicate rules
   firewall_rules = { for rule in local.base_firewall_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule }
-
-
 
   # do the same for var.extra_firewall_rules
   extra_firewall_rules = { for rule in var.extra_firewall_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule }
@@ -312,14 +284,20 @@ locals {
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
 
-  ingress_controller = var.enable_traefik ? "traefik" : var.enable_nginx ? "nginx" : "none"
+  ingress_controller = var.ingress_controller
+
   ingress_controller_service_names = {
     "traefik" = "traefik"
     "nginx"   = "ngx-ingress-nginx-controller"
   }
 
+  ingress_controller_namespace_names = {
+    "traefik" = "traefik"
+    "nginx"   = "nginx"
+  }
+
   ingress_controller_install_resources = {
-    "traefik" = ["traefik_config.yaml"]
+    "traefik" = ["traefik_ingress.yaml"]
     "nginx"   = ["nginx_ingress.yaml"]
   }
 
@@ -340,11 +318,11 @@ persistence:
   %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
   EOT
 
-  nginx_ingress_values = var.nginx_ingress_values != "" ? var.nginx_ingress_values : <<EOT
+  nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
 controller:
   watchIngressWithoutClass: "true"
   kind: "Deployment"
-  replicaCount: ${(local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1}
+  replicaCount: ${local.ingress_replica_count}
   config:
     "use-forwarded-headers": "true"
     "compute-full-forwarded-for": "true"
@@ -365,7 +343,9 @@ controller:
 %{endif~}
   EOT
 
-  traefik_ingress_values = var.traefik_ingress_values != "" ? var.traefik_ingress_values : <<EOT
+  traefik_values = var.traefik_values != "" ? var.traefik_values : <<EOT
+deployment:
+  replicas: ${local.ingress_replica_count}
 globalArguments: []
 service:
   enabled: true
@@ -380,23 +360,38 @@ service:
     "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
     "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
 %{if var.lb_hostname != ""~}
-      "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
+    "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
 %{endif~}
-additionalArguments:
+ports:
+  web:
+%{if var.traefik_redirect_to_https~}
+    redirectTo: websecure
+%{endif~}
 %{if !local.using_klipper_lb~}
-- "--entryPoints.web.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-- "--entryPoints.websecure.proxyProtocol.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-- "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
-- "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,10.0.0.0/8"
+    proxyProtocol:
+      trustedIPs:
+        - 127.0.0.1/32
+        - 10.0.0.0/8
+    forwardedHeaders:
+      trustedIPs:
+        - 127.0.0.1/32
+        - 10.0.0.0/8
+  websecure:
+    proxyProtocol:
+      trustedIPs:
+        - 127.0.0.1/32
+        - 10.0.0.0/8
+    forwardedHeaders:
+      trustedIPs:
+        - 127.0.0.1/32
+        - 10.0.0.0/8
 %{endif~}
+%{if var.traefik_additional_options != ""~}
+additionalArguments:
 %{for option in var.traefik_additional_options~}
 - "${option}"
 %{endfor~}
-%{if var.traefik_acme_tls~}
-- "--certificatesresolvers.le.acme.tlschallenge=true"
-- "--certificatesresolvers.le.acme.email=${var.traefik_acme_email}"
-- "--certificatesresolvers.le.acme.storage=/data/acme.json"
 %{endif~}
   EOT
 
