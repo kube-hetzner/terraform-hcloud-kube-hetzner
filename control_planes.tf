@@ -104,7 +104,6 @@ resource "null_resource" "control_planes" {
           kubelet-arg                 = local.kubelet_arg
           kube-controller-manager-arg = local.kube_controller_manager_arg
           flannel-iface               = local.flannel_iface
-          flannel-backend             = local.flannel_backend
           node-ip                     = module.control_planes[each.key].private_ipv4_address
           advertise-address           = module.control_planes[each.key].private_ipv4_address
           node-label                  = each.value.labels
