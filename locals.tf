@@ -92,7 +92,7 @@ locals {
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
   packages_to_install = concat(
-    ["wireguard-tools"],
+    var.encrypt_kubernetes_api ? ["wireguard-tools"] : [],
     var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [],
     var.extra_packages_to_install,
   )
@@ -273,6 +273,7 @@ locals {
   cni_k3s_settings = {
     "flannel" = {
       disable-network-policy = var.disable_network_policy
+      flannel-backend        = var.encrypt_kubernetes_api ? "wireguard-native" : "vxlan"
     }
     "calico" = {
       disable-network-policy = true
