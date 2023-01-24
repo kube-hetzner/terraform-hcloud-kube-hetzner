@@ -288,7 +288,7 @@ locals {
   kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
-  flannel-backend             = var.encrypt_kubernetes_api ? "wireguard-native" : "vxlan"
+  flannel_backend             = var.encrypt_kubernetes_api ? "wireguard-native" : "vxlan"
 
   ingress_controller = var.ingress_controller
 
