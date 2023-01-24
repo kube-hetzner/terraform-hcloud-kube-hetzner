@@ -20,7 +20,7 @@ resource "null_resource" "first_control_plane" {
           kubelet-arg                 = local.kubelet_arg
           kube-controller-manager-arg = local.kube_controller_manager_arg
           flannel-iface               = local.flannel_iface
-          flannel-backend             = "wireguard-native"
+          flannel-backend             = local.flannel_backend
           node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints

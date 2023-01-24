@@ -457,6 +457,12 @@ variable "create_kustomization" {
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
 }
 
+variable "encrypt_kubernetes_api" {
+  type        = bool
+  default     = true
+  description = "Use wireguard-native as the backend for CNI."
+}
+
 variable "control_planes_custom_config" {
   type        = map(any)
   default     = {}
