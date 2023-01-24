@@ -93,13 +93,11 @@
 | <a name="input_disable_hetzner_csi"></a> [disable\_hetzner\_csi](#input\_disable\_hetzner\_csi) | Disable hetzner csi driver. | `bool` | `false` | no |
 | <a name="input_disable_network_policy"></a> [disable\_network\_policy](#input\_disable\_network\_policy) | Disable k3s default network policy controller (default false, automatically true for calico and cilium). | `bool` | `false` | no |
 | <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. | `list(string)` | <pre>[<br>  "8.8.8.8",<br>  "8.8.4.4",<br>  "1.1.1.1",<br>  "1.0.0.1"<br>]</pre> | no |
-| <a name="input_enable_cert_manager"></a> [enable\_cert\_manager](#input\_enable\_cert\_manager) | Enable cert manager. | `bool` | `false` | no |
+| <a name="input_enable_cert_manager"></a> [enable\_cert\_manager](#input\_enable\_cert\_manager) | Enable cert manager. | `bool` | `true` | no |
 | <a name="input_enable_klipper_metal_lb"></a> [enable\_klipper\_metal\_lb](#input\_enable\_klipper\_metal\_lb) | Use klipper load balancer. | `bool` | `false` | no |
-| <a name="input_enable_longhorn"></a> [enable\_longhorn](#input\_enable\_longhorn) | Whether of not to enable Longhorn. | `bool` | `false` | no |
+| <a name="input_enable_longhorn"></a> [enable\_longhorn](#input\_enable\_longhorn) | Whether or not to enable Longhorn. | `bool` | `false` | no |
 | <a name="input_enable_metrics_server"></a> [enable\_metrics\_server](#input\_enable\_metrics\_server) | Whether to enable or disbale k3s mertric server. | `bool` | `true` | no |
-| <a name="input_enable_nginx"></a> [enable\_nginx](#input\_enable\_nginx) | Whether to enable or disbale the installation of the Nginx Ingress Controller. | `bool` | `false` | no |
 | <a name="input_enable_rancher"></a> [enable\_rancher](#input\_enable\_rancher) | Enable rancher. | `bool` | `false` | no |
-| <a name="input_enable_traefik"></a> [enable\_traefik](#input\_enable\_traefik) | Whether to enable or disable the installation of the Traefik Ingress Controller. | `bool` | `true` | no |
 | <a name="input_etcd_s3_backup"></a> [etcd\_s3\_backup](#input\_etcd\_s3\_backup) | Etcd cluster state backup to S3 storage | `map(any)` | `{}` | no |
 | <a name="input_extra_firewall_rules"></a> [extra\_firewall\_rules](#input\_extra\_firewall\_rules) | Additional firewall rules to apply to the cluster. | `list(any)` | `[]` | no |
 | <a name="input_extra_kustomize_parameters"></a> [extra\_kustomize\_parameters](#input\_extra\_kustomize\_parameters) | All values will be passed to the `kustomization.tmp.yml` template. | `map(any)` | `{}` | no |
@@ -108,10 +106,12 @@
 | <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token. | `string` | n/a | yes |
 | <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. | `string` | `null` | no |
 | <a name="input_hetzner_csi_version"></a> [hetzner\_csi\_version](#input\_hetzner\_csi\_version) | Version of Container Storage Interface driver for Hetzner Cloud. | `string` | `null` | no |
-| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.24"` | no |
+| <a name="input_ingress_controller"></a> [ingress\_controller](#input\_ingress\_controller) | The name of the ingress controller. | `string` | `"traefik"` | no |
+| <a name="input_ingress_replica_count"></a> [ingress\_replica\_count](#input\_ingress\_replica\_count) | Number of replicas per ingress controller. 0 means autodetect based on the number of agent nodes. | `number` | `0` | no |
+| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.25"` | no |
 | <a name="input_k3s_registries"></a> [k3s\_registries](#input\_k3s\_registries) | K3S registries.yml contents. It used to access private docker registries. | `string` | `""` | no |
 | <a name="input_kured_options"></a> [kured\_options](#input\_kured\_options) | n/a | `map(string)` | `{}` | no |
-| <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured | `string` | `null` | no |
+| <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured. | `string` | `null` | no |
 | <a name="input_lb_hostname"></a> [lb\_hostname](#input\_lb\_hostname) | The Hetzner Load Balancer hostname, for either Traefik or Ingress-Nginx. | `string` | `""` | no |
 | <a name="input_load_balancer_disable_ipv6"></a> [load\_balancer\_disable\_ipv6](#input\_load\_balancer\_disable\_ipv6) | Disable ipv6 for the load balancer. | `bool` | `false` | no |
 | <a name="input_load_balancer_location"></a> [load\_balancer\_location](#input\_load\_balancer\_location) | Default load balancer location. | `string` | `"fsn1"` | no |
@@ -119,10 +119,10 @@
 | <a name="input_longhorn_fstype"></a> [longhorn\_fstype](#input\_longhorn\_fstype) | The longhorn fstype. | `string` | `"ext4"` | no |
 | <a name="input_longhorn_namespace"></a> [longhorn\_namespace](#input\_longhorn\_namespace) | Namespace for longhorn deployment, defaults to 'longhorn-system' | `string` | `"longhorn-system"` | no |
 | <a name="input_longhorn_replica_count"></a> [longhorn\_replica\_count](#input\_longhorn\_replica\_count) | Number of replicas per longhorn volume. | `number` | `3` | no |
-| <a name="input_longhorn_repository"></a> [longhorn\_repository](#input\_longhorn\_repository) | By default a forked chart which is compatible with rancher is used, but if that version is behind on what you need, switch to https://charts.longhorn.io. | `string` | `"https://charts.rancher.io"` | no |
+| <a name="input_longhorn_repository"></a> [longhorn\_repository](#input\_longhorn\_repository) | By default the official chart which may be incompatible with rancher is used. If you need to fully support rancher switch to https://charts.rancher.io. | `string` | `"https://charts.longhorn.io"` | no |
 | <a name="input_longhorn_values"></a> [longhorn\_values](#input\_longhorn\_values) | Additional helm values file to pass to longhorn as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_network_region"></a> [network\_region](#input\_network\_region) | Default region for network. | `string` | `"eu-central"` | no |
-| <a name="input_nginx_ingress_values"></a> [nginx\_ingress\_values](#input\_nginx\_ingress\_values) | Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart. | `string` | `""` | no |
+| <a name="input_nginx_values"></a> [nginx\_values](#input\_nginx\_values) | Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_opensuse_microos_mirror_link"></a> [opensuse\_microos\_mirror\_link](#input\_opensuse\_microos\_mirror\_link) | The mirror link to use for the opensuse microos image. | `string` | `"https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"` | no |
 | <a name="input_placement_group_disable"></a> [placement\_group\_disable](#input\_placement\_group\_disable) | Whether to disable placement groups. | `bool` | `false` | no |
 | <a name="input_rancher_bootstrap_password"></a> [rancher\_bootstrap\_password](#input\_rancher\_bootstrap\_password) | Rancher bootstrap password. | `string` | `""` | no |
@@ -130,15 +130,15 @@
 | <a name="input_rancher_install_channel"></a> [rancher\_install\_channel](#input\_rancher\_install\_channel) | The rancher installation channel. | `string` | `"stable"` | no |
 | <a name="input_rancher_registration_manifest_url"></a> [rancher\_registration\_manifest\_url](#input\_rancher\_registration\_manifest\_url) | The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/). | `string` | `""` | no |
 | <a name="input_rancher_values"></a> [rancher\_values](#input\_rancher\_values) | Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart. | `string` | `""` | no |
+| <a name="input_restrict_outbound_traffic"></a> [restrict\_outbound\_traffic](#input\_restrict\_outbound\_traffic) | Whether or not to restrict the outbound traffic. | `bool` | `true` | no |
 | <a name="input_ssh_additional_public_keys"></a> [ssh\_additional\_public\_keys](#input\_ssh\_additional\_public\_keys) | Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes. | `list(string)` | `[]` | no |
 | <a name="input_ssh_hcloud_key_label"></a> [ssh\_hcloud\_key\_label](#input\_ssh\_hcloud\_key\_label) | Additional SSH public Keys by hcloud label. e.g. role=admin | `string` | `""` | no |
 | <a name="input_ssh_port"></a> [ssh\_port](#input\_ssh\_port) | The main SSH port to connect to the nodes. | `number` | `22` | no |
 | <a name="input_ssh_private_key"></a> [ssh\_private\_key](#input\_ssh\_private\_key) | SSH private Key. | `string` | n/a | yes |
 | <a name="input_ssh_public_key"></a> [ssh\_public\_key](#input\_ssh\_public\_key) | SSH public Key. | `string` | n/a | yes |
-| <a name="input_traefik_acme_email"></a> [traefik\_acme\_email](#input\_traefik\_acme\_email) | Email used to recieved expiration notice for certificate. | `string` | `""` | no |
-| <a name="input_traefik_acme_tls"></a> [traefik\_acme\_tls](#input\_traefik\_acme\_tls) | Whether to include the TLS configuration with the Traefik configuration. | `bool` | `false` | no |
 | <a name="input_traefik_additional_options"></a> [traefik\_additional\_options](#input\_traefik\_additional\_options) | Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file. | `list(string)` | `[]` | no |
-| <a name="input_traefik_ingress_values"></a> [traefik\_ingress\_values](#input\_traefik\_ingress\_values) | Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart. | `string` | `""` | no |
+| <a name="input_traefik_redirect_to_https"></a> [traefik\_redirect\_to\_https](#input\_traefik\_redirect\_to\_https) | Should traefik redirect http traffic to https. | `bool` | `true` | no |
+| <a name="input_traefik_values"></a> [traefik\_values](#input\_traefik\_values) | Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_use_cluster_name_in_node_name"></a> [use\_cluster\_name\_in\_node\_name](#input\_use\_cluster\_name\_in\_node\_name) | Whether to use the cluster name in the node name. | `bool` | `true` | no |
 | <a name="input_use_control_plane_lb"></a> [use\_control\_plane\_lb](#input\_use\_control\_plane\_lb) | When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability. | `bool` | `false` | no |
 
