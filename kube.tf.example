@@ -435,6 +435,26 @@ devices: "eth1"
 k8s:
   requireIPv4PodCIDR: true
 kubeProxyReplacement: strict
+l7Proxy: false
+encryption:
+  enabled: true
+  type: wireguard
+  EOT */
+
+  # Calico, all Calico patch values can be found at ?
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   calico_values = <<EOT
+volumes:
+  - name: flexvol-driver-host
+    hostPath:
+      type: DirectoryOrCreate
+      path: /var/lib/kubelet/volumeplugins/nodeagent~uds
+containers:
+  - name: calico-node
+    env:
+      - name: CALICO_IPV4POOL_CIDR
+        value: "${local.cluster_cidr_ipv4}"
+wireguardEnabled: true
   EOT */
 
   # Cert manager, all cert-manager helm values can be found at https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
