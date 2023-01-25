@@ -273,7 +273,7 @@ locals {
   cni_k3s_settings = {
     "flannel" = {
       disable-network-policy = var.disable_network_policy
-      flannel-backend        = var.encrypt_kubernetes_api ? "wireguard-native" : "vxlan"
+      flannel-backend        = var.enable_wireguard ? "wireguard-native" : "vxlan"
     }
     "calico" = {
       disable-network-policy = true
@@ -312,6 +312,12 @@ ipam:
   clusterPoolIPv4PodCIDRList:
    - ${local.cluster_cidr_ipv4}
 devices: "eth1"
+%{if var.enable_wireguard~}
+l7Proxy: false
+encryption:
+  enabled: true
+  type: wireguard
+%{endif~}
   EOT
 
   longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT

@@ -145,7 +145,7 @@ module "kube-hetzner" {
   # }
 
   # You can disable encrypted wireguard backend by setting this to "false". Default is "true".
-  # encrypt_kubernetes_api = false
+  # enable_wireguard = false
 
   # * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
   load_balancer_type     = "lb11"

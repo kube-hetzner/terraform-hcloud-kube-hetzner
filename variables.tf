@@ -457,7 +457,7 @@ variable "create_kustomization" {
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
 }
 
-variable "encrypt_kubernetes_api" {
+variable "enable_wireguard" {
   type        = bool
   default     = true
   description = "Use wireguard-native as the backend for CNI."
