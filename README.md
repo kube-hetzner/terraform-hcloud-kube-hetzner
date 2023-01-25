@@ -216,6 +216,13 @@ kubectl delete plan k3s-agent -n system-upgrade
 kubectl delete plan k3s-server -n system-upgrade
 ```
 
+Also, note that after turning off nodes upgrades, you will need to manually upgrade the nodes when needed. You can do so by SSH'ing into each node and running the following commands (and don't forget to drain the node before with `kubectl drain <node-name>`):
+
+```sh
+transactional-update
+reboot
+```
+
 ### Individual Components Upgrade
 
 Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `clustername_kubeconfig.yaml` at the root of your project.
