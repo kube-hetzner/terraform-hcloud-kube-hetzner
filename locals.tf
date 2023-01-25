@@ -92,7 +92,7 @@ locals {
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
   packages_to_install = concat(
-    var.encrypt_kubernetes_api ? ["wireguard-tools"] : [],
+    var.enable_wireguard ? ["wireguard-tools"] : [],
     var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [],
     var.extra_packages_to_install,
   )
