@@ -320,6 +320,22 @@ encryption:
 %{endif~}
   EOT
 
+  calico_values = var.calico_values != "" ? var.calico_values : <<EOT
+volumes:
+  - name: flexvol-driver-host
+    hostPath:
+      type: DirectoryOrCreate
+      path: /var/lib/kubelet/volumeplugins/nodeagent~uds
+containers:
+  - name: calico-node
+    env:
+      - name: CALICO_IPV4POOL_CIDR
+        value: "${local.cluster_cidr_ipv4}"
+%{if var.enable_wireguard~}
+wireguardEnabled: true
+%{endif~}
+  EOT
+
   longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT
 defaultSettings:
   defaultDataPath: /var/longhorn

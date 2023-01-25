@@ -164,7 +164,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/calico.yaml.tpl",
       {
-        cluster_cidr_ipv4 = local.cluster_cidr_ipv4
+        values = indent(6, trimspace(local.calico_values))
     })
     destination = "/var/post_install/calico.yaml"
   }
