@@ -183,7 +183,10 @@ resource "null_resource" "server_setup" {
 }
 
 resource "null_resource" "registries" {
-  depends_on = [hcloud_server.server]
+  depends_on = [
+    hcloud_server.server,
+    null_resource.server_setup,
+  ]
 
   triggers = {
     registries = var.k3s_registries
