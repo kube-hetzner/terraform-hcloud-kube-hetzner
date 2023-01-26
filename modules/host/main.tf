@@ -212,7 +212,7 @@ resource "hcloud_rdns" "server" {
 }
 
 resource "hcloud_server_network" "server" {
-  ip        = var.private_ipv4
+  # auto-assign the ip.
   server_id = hcloud_server.server.id
   subnet_id = var.ipv4_subnet_id
 }

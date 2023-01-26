@@ -63,10 +63,6 @@ variable "ipv4_subnet_id" {
   type        = string
 }
 
-variable "private_ipv4" {
-  description = "Private IP for the server"
-  type        = string
-}
 
 variable "server_type" {
   description = "The server type"

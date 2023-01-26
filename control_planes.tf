@@ -24,10 +24,6 @@ module "control_planes" {
   k3s_registries               = var.k3s_registries
   opensuse_microos_mirror_link = var.opensuse_microos_mirror_link
 
-  # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
-  # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
-  private_ipv4 = cidrhost(hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
-
   labels = merge(local.labels, local.labels_control_plane_node)
 
   automatically_upgrade_os = var.automatically_upgrade_os

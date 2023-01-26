@@ -24,8 +24,6 @@ module "agents" {
   k3s_registries               = var.k3s_registries
   opensuse_microos_mirror_link = var.opensuse_microos_mirror_link
 
-  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
-
   labels = merge(local.labels, local.labels_agent_node)
 
   automatically_upgrade_os = var.automatically_upgrade_os
