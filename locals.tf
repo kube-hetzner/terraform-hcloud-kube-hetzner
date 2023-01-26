@@ -312,7 +312,7 @@ locals {
 
   ingress_controller_service_names = {
     "traefik" = "traefik"
-    "nginx"   = "ngx-ingress-nginx-controller"
+    "nginx"   = "nginx-ingress-nginx-controller"
   }
 
   ingress_controller_namespace_names = {

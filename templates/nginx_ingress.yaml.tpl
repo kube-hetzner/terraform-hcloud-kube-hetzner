@@ -12,5 +12,6 @@ spec:
   chart: ingress-nginx
   repo: https://kubernetes.github.io/ingress-nginx
   targetNamespace: nginx
+  bootstrap: true
   valuesContent: |-
     ${values}

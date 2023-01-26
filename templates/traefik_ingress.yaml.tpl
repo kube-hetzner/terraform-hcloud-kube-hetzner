@@ -12,5 +12,6 @@ spec:
   chart: traefik
   repo: https://traefik.github.io/charts
   targetNamespace: traefik
+  bootstrap: true
   valuesContent: |-
     ${values}
