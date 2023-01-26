@@ -43,12 +43,26 @@ resource "hcloud_server" "server" {
       user_data,
     ]
   }
+}
+
+resource "hcloud_server_network" "server" {
+  # auto-assign the ip.
+  server_id = hcloud_server.server.id
+  subnet_id = var.ipv4_subnet_id
+}
+
+resource "null_resource" "server_setup" {
+
+  # do this after the private ip assignment
+  depends_on = [
+    hcloud_server_network.server
+  ]
 
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = self.ipv4_address
+    host           = hcloud_server.server.ipv4_address
     port           = var.ssh_port
   }
 
@@ -66,7 +80,7 @@ resource "hcloud_server" "server" {
       user           = "root"
       private_key    = var.ssh_private_key
       agent_identity = local.ssh_agent_identity
-      host           = self.ipv4_address
+      host           = hcloud_server.server.ipv4_address
 
       # We cannot use different ports here as this runs inside Hetzner Rescue image and thus uses the
       # standard 22 TCP port.
@@ -83,14 +97,14 @@ resource "hcloud_server" "server" {
   # Issue a reboot command.
   provisioner "local-exec" {
     command = <<-EOT
-      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
+      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} root@${hcloud_server.server.ipv4_address} '(sleep 2; reboot)&'; sleep 3
     EOT
   }
 
   # Wait for MicroOS to reboot and be ready.
   provisioner "local-exec" {
     command = <<-EOT
-      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
+      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${hcloud_server.server.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 3
@@ -104,7 +118,7 @@ resource "hcloud_server" "server" {
       user           = "root"
       private_key    = var.ssh_private_key
       agent_identity = local.ssh_agent_identity
-      host           = self.ipv4_address
+      host           = hcloud_server.server.ipv4_address
       port           = var.ssh_port
     }
 
@@ -120,14 +134,14 @@ resource "hcloud_server" "server" {
   # Issue a reboot command.
   provisioner "local-exec" {
     command = <<-EOT
-      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -p ${var.ssh_port} root@${self.ipv4_address} '(sleep 3; reboot)&'; sleep 3
+      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -p ${var.ssh_port} root@${hcloud_server.server.ipv4_address} '(sleep 3; reboot)&'; sleep 3
     EOT
   }
 
   # Wait for MicroOS to reboot and be ready
   provisioner "local-exec" {
     command = <<-EOT
-      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
+      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${hcloud_server.server.ipv4_address} true 2> /dev/null
       do
         echo "Waiting for MicroOS to reboot and become available..."
         sleep 3
@@ -211,11 +225,6 @@ resource "hcloud_rdns" "server" {
   dns_ptr    = format("%s.%s", local.name, var.base_domain)
 }
 
-resource "hcloud_server_network" "server" {
-  # auto-assign the ip.
-  server_id = hcloud_server.server.id
-  subnet_id = var.ipv4_subnet_id
-}
 
 data "cloudinit_config" "config" {
   gzip          = true
