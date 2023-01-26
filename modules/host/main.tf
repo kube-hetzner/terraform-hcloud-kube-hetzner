@@ -110,7 +110,6 @@ resource "hcloud_server" "server" {
 
     inline = [<<-EOT
       set -ex
-      transactional-update shell <<< "zypper install -y --oldpackage https://download.opensuse.org/tumbleweed/repo/oss/noarch/container-selinux-2.188.0-2.1.noarch.rpm && zypper addlock container-selinux"
       transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       sleep 1 && udevadm settle
       EOT
