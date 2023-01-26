@@ -8,14 +8,4 @@ metadata:
 spec:
   template:
     spec:
-      volumes:
-        # Used to install Flex Volume Driver
-        - name: flexvol-driver-host
-          hostPath:
-            type: DirectoryOrCreate
-            path: /var/lib/kubelet/volumeplugins/nodeagent~uds
-      containers:
-        - name: calico-node
-          env:
-            - name: CALICO_IPV4POOL_CIDR
-              value: "${cluster_cidr_ipv4}"
+      ${values}
