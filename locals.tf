@@ -11,16 +11,35 @@ locals {
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
 
-  common_commands_install_k3s = [
-    "set -ex",
-    # prepare the k3s config directory
-    "mkdir -p /etc/rancher/k3s",
-    # move the config file into place and adjust permissions
-    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
-    "chmod 0600 /etc/rancher/k3s/config.yaml",
-    # if the server has already been initialized just stop here
-    "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
-  ]
+  additional_k3s_environment = join("\n",
+    [
+      for var_name, var_value in var.additional_k3s_environment :
+      "${var_name}=\"${var_value}\""
+    ]
+  )
+  install_additional_k3s_environment = <<-EOT
+  cat >> /etc/environment <<EOF
+  ${local.additional_k3s_environment}
+  EOF
+  set -a; source /etc/environment; set +a;
+  EOT
+
+  common_commands_install_k3s = concat(
+    [
+      "set -ex",
+      # prepare the k3s config directory
+      "mkdir -p /etc/rancher/k3s",
+      # move the config file into place and adjust permissions
+      "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
+      "chmod 0600 /etc/rancher/k3s/config.yaml",
+      # if the server has already been initialized just stop here
+      "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
+      local.install_additional_k3s_environment,
+    ],
+    # User-defined commands to execute just before installing k3s.
+    var.preinstall_exec,
+  )
+
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
 

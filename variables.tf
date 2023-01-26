@@ -433,6 +433,19 @@ variable "dns_servers" {
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner."
 }
 
+variable "additional_k3s_environment" {
+  type        = map(any)
+  default     = {}
+  description = "Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy ."
+}
+
+variable "preinstall_exec" {
+  type        = list(string)
+  default     = []
+  description = "Additional to execute before the install calls, for example fetching and installing certs."
+}
+
+
 variable "extra_packages_to_install" {
   type        = list(string)
   default     = []
