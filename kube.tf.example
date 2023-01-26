@@ -144,6 +144,9 @@ module "kube-hetzner" {
   #  kube-scheduler-arg = "bind-address=0.0.0.0",
   # }
 
+  # You can disable encrypted wireguard backend by setting this to "false". Default is "true".
+  # enable_wireguard = false
+
   # * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
   load_balancer_type     = "lb11"
   load_balancer_location = "fsn1"
@@ -444,6 +447,26 @@ devices: "eth1"
 k8s:
   requireIPv4PodCIDR: true
 kubeProxyReplacement: strict
+l7Proxy: false
+encryption:
+  enabled: true
+  type: wireguard
+  EOT */
+
+  # Calico, all Calico patch values can be found at ?
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   calico_values = <<EOT
+volumes:
+  - name: flexvol-driver-host
+    hostPath:
+      type: DirectoryOrCreate
+      path: /var/lib/kubelet/volumeplugins/nodeagent~uds
+containers:
+  - name: calico-node
+    env:
+      - name: CALICO_IPV4POOL_CIDR
+        value: "${local.cluster_cidr_ipv4}"
+wireguardEnabled: true
   EOT */
 
   # Cert manager, all cert-manager helm values can be found at https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml

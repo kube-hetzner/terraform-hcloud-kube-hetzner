@@ -110,7 +110,11 @@ locals {
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
-  packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [], var.extra_packages_to_install)
+  packages_to_install = concat(
+    var.enable_wireguard ? ["wireguard-tools"] : [],
+    var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [],
+    var.extra_packages_to_install,
+  )
 
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
@@ -288,6 +292,7 @@ locals {
   cni_k3s_settings = {
     "flannel" = {
       disable-network-policy = var.disable_network_policy
+      flannel-backend        = var.enable_wireguard ? "wireguard-native" : "vxlan"
     }
     "calico" = {
       disable-network-policy = true
@@ -326,6 +331,28 @@ ipam:
   clusterPoolIPv4PodCIDRList:
    - ${local.cluster_cidr_ipv4}
 devices: "eth1"
+%{if var.enable_wireguard~}
+l7Proxy: false
+encryption:
+  enabled: true
+  type: wireguard
+%{endif~}
+  EOT
+
+  calico_values = var.calico_values != "" ? var.calico_values : <<EOT
+volumes:
+  - name: flexvol-driver-host
+    hostPath:
+      type: DirectoryOrCreate
+      path: /var/lib/kubelet/volumeplugins/nodeagent~uds
+containers:
+  - name: calico-node
+    env:
+      - name: CALICO_IPV4POOL_CIDR
+        value: "${local.cluster_cidr_ipv4}"
+%{if var.enable_wireguard~}
+wireguardEnabled: true
+%{endif~}
   EOT
 
   longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT

@@ -279,6 +279,12 @@ variable "cilium_values" {
   description = "Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart."
 }
 
+variable "calico_values" {
+  type        = string
+  default     = ""
+  description = "Additional pacthes to pass to Cilium as 'valuesContent' at the Manifest."
+}
+
 variable "enable_longhorn" {
   type        = bool
   default     = false
@@ -468,6 +474,12 @@ variable "create_kustomization" {
   type        = bool
   default     = true
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
+}
+
+variable "enable_wireguard" {
+  type        = bool
+  default     = true
+  description = "Use wireguard-native as the backend for CNI."
 }
 
 variable "control_planes_custom_config" {
