@@ -10,7 +10,7 @@ locals {
   ssh_client_identity = var.ssh_private_key == null ? var.ssh_public_key : var.ssh_private_key
 
   # Final list of packages to install
-  needed_packages = join(" ", concat(["https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/fix/k3s-selinux/.extra/k3s-selinux-0.0~bd1f1455dirty-0.sle.src.rpm restorecond policycoreutils setools-console"], var.packages_to_install))
+  needed_packages = join(" ", concat(["https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/fix/k3s-selinux/.extra/k3s-selinux-next.rpm restorecond policycoreutils setools-console"], var.packages_to_install))
 
   # the hosts name with its unique suffix attached
   name = "${var.name}-${random_string.server.id}"
