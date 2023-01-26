@@ -68,7 +68,7 @@ write_files:
   content: ${base64encode(k3s_registries)}
 
 - owner: root:root
-  path: /root/install-k3s-agent.sh
+  path: /var/kube-hetzner/install-k3s-agent.sh
   permissions: '0600'
   content: |
       #!/bin/sh
@@ -130,7 +130,7 @@ runcmd:
 - [systemctl, disable, '--now', 'rebootmgr.service']
 
 # install k3s
-- [/bin/sh, /root/install-k3s-agent.sh]
+- [/bin/sh, /var/kube-hetzner/install-k3s-agent.sh]
 
 # start k3s-agent service
 - [systemctl, 'start', 'k3s-agent']
