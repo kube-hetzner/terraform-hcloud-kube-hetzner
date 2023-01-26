@@ -110,6 +110,7 @@ resource "hcloud_server" "server" {
 
     inline = [<<-EOT
       set -ex
+      transactional-update shell <<< "zypper install -y --no-gpg-checks https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/fix/k3s-selinux/.extra/k3s-selinux-next.rpm"
       transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       sleep 1 && udevadm settle
       EOT
