@@ -305,6 +305,19 @@ module "kube-hetzner" {
           password: password
   EOT */
 
+  # Additional environment variables for the host OS on which k3s runs. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . 
+  # additional_k3s_environment = {
+  #   "CONTAINERD_HTTP_PROXY" : "http://your.proxy:port",
+  #   "CONTAINERD_HTTPS_PROXY" : "http://your.proxy:port",
+  #   "NO_PROXY" : "127.0.0.0/8,10.0.0.0/8,",
+  # }
+
+  # Additional commands to execute on the host OS before the install calls, for example fetching and installing certs.
+  # preinstall_exec = [
+  #   "curl https://somewhere.over.the.rainbow/ca.crt > /root/ca.crt",
+  #   "trust anchor --store /root/ca.crt",
+  # ]
+
   # If you want to allow all outbound traffic you can set this to "false". Default is "true".
   # restrict_outbound_traffic = false
 
