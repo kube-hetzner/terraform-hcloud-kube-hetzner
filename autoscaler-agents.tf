@@ -130,10 +130,14 @@ resource "null_resource" "autoscaled_nodes_registries" {
     if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml || [ ! -f /etc/rancher/k3s/registries.yaml ]; then
       echo "No reboot required"
     else
-      echo "Update registries.yaml, reboot required"
+      echo "Update registries.yaml, restart of k3s required"
       mkdir -p /etc/rancher/k3s
       cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
-      touch /var/run/reboot-required
+      if systemctl status k3s > /dev/null; then 
+        systemctl restart k3s; 
+      elif systemctl status k3s-agent > /dev/null; then 
+        systemctl restart k3s-agent; 
+      fi  
     fi
     EOT
     ]
