@@ -490,7 +490,7 @@ variable "control_planes_custom_config" {
 
 variable "k3s_registries" {
   description = "K3S registries.yml contents. It used to access private docker registries."
-  default     = ""
+  default     = " "
   type        = string
 }
 
