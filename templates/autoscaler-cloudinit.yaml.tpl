@@ -1,5 +1,3 @@
-instance-id: iid-abcde001
-
 #cloud-config
 
 debug: True
@@ -57,28 +55,19 @@ write_files:
     X3QBAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
   path: /etc/selinux/sshd_t.pp
 
-- owner: root:root
+- content: ${base64encode(k3s_config)}
+  encoding: base64
   path: /etc/rancher/k3s/config.yaml
-  encoding: base64
-  content: ${base64encode(k3s_config)}
 
-- owner: root:root
+- content: ${base64encode(k3s_registries)}
+  encoding: base64
   path: /etc/rancher/k3s/registries.yaml
-  encoding: base64
-  content: ${base64encode(k3s_registries)}
 
-- owner: root:root
-  path: /var/kube-hetzner/install-k3s-agent.sh
-  permissions: '0600'
-  content: |
-      #!/bin/sh
-      set -e
-
-      # run installer. Not the best way to serve directly from a public server, but works for now
-      curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${k3s_channel} INSTALL_K3S_EXEC=agent sh -
-
-      # install selinux module
-      /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp
+- content: |
+    set -ex
+    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${k3s_channel} INSTALL_K3S_EXEC=agent sh -
+    /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp
+  path: /tmp/install-k3s-agent.sh
 
 # Add new authorized keys
 ssh_deletekeys: true
@@ -125,12 +114,12 @@ runcmd:
 - [sed, '-i', 's/NUMBER_LIMIT="2-10"/NUMBER_LIMIT="4"/g', /etc/snapper/configs/root]
 - [sed, '-i', 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g', /etc/snapper/configs/root]
 
-# Disables unneeded services
+# Activate changes and disable unneeded services
 - [systemctl, 'restart', 'sshd']
 - [systemctl, disable, '--now', 'rebootmgr.service']
 
 # install k3s
-- [/bin/sh, /var/kube-hetzner/install-k3s-agent.sh]
+- ['/bin/sh', '/tmp/install-k3s-agent.sh']
 
 # start k3s-agent service
 - [systemctl, 'start', 'k3s-agent']
