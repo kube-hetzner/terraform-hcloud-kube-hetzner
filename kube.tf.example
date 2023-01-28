@@ -144,7 +144,9 @@ module "kube-hetzner" {
   #  kube-scheduler-arg = "bind-address=0.0.0.0",
   # }
 
-  # You can disable encrypted wireguard backend by setting this to "false". Default is "true".
+  # You can enable encrypted wireguard for the CNI by setting this to "true". Default is "false".
+  # FYI, Hetzner says "Traffic between cloud servers inside a Network is private and isolated, but not automatically encrypted." 
+  # Source: https://docs.hetzner.com/cloud/networks/faq/#is-traffic-inside-hetzner-cloud-networks-encrypted
   # enable_wireguard = false
 
   # * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
@@ -315,7 +317,7 @@ module "kube-hetzner" {
   #   "NO_PROXY" : "127.0.0.0/8,10.0.0.0/8,",
   # }
 
-  # Additional commands to execute on the host OS before the install calls, for example fetching and installing certs.
+  # Additional commands to execute on the host OS before the k3s install, for example fetching and installing certs.
   # preinstall_exec = [
   #   "curl https://somewhere.over.the.rainbow/ca.crt > /root/ca.crt",
   #   "trust anchor --store /root/ca.crt",

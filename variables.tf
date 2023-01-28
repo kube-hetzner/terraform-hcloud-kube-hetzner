@@ -478,7 +478,7 @@ variable "create_kustomization" {
 
 variable "enable_wireguard" {
   type        = bool
-  default     = true
+  default     = false
   description = "Use wireguard-native as the backend for CNI."
 }
 
