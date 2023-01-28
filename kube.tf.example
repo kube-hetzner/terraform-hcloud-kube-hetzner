@@ -362,8 +362,8 @@ module "kube-hetzner" {
   # By default, we allow ICMP ping in to the nodes, to check for liveness for instance. If you do not want to allow that, you can. Just set this flag to true (false by default).
   # block_icmp_ping_in = true
 
-  # You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "false".
-  # enable_cert_manager = true
+  # You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "true".
+  # enable_cert_manager = false
 
   # We download OpenSUSE MicroOS from a mirror. In case it somehow does not work for you (you get a 403), you can try other mirrors.
   # You can find a working mirror at https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist,
