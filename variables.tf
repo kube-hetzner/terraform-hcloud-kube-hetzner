@@ -279,6 +279,12 @@ variable "cilium_values" {
   description = "Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart."
 }
 
+variable "calico_values" {
+  type        = string
+  default     = ""
+  description = "Additional pacthes to pass to Cilium as 'valuesContent' at the Manifest."
+}
+
 variable "enable_longhorn" {
   type        = bool
   default     = false
@@ -433,6 +439,19 @@ variable "dns_servers" {
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner."
 }
 
+variable "additional_k3s_environment" {
+  type        = map(any)
+  default     = {}
+  description = "Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy ."
+}
+
+variable "preinstall_exec" {
+  type        = list(string)
+  default     = []
+  description = "Additional to execute before the install calls, for example fetching and installing certs."
+}
+
+
 variable "extra_packages_to_install" {
   type        = list(string)
   default     = []
@@ -455,6 +474,12 @@ variable "create_kustomization" {
   type        = bool
   default     = true
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
+}
+
+variable "enable_wireguard" {
+  type        = bool
+  default     = false
+  description = "Use wireguard-native as the backend for CNI."
 }
 
 variable "control_planes_custom_config" {

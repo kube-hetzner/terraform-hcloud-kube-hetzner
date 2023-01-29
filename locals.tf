@@ -11,16 +11,35 @@ locals {
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
 
-  common_commands_install_k3s = [
-    "set -ex",
-    # prepare the k3s config directory
-    "mkdir -p /etc/rancher/k3s",
-    # move the config file into place and adjust permissions
-    "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
-    "chmod 0600 /etc/rancher/k3s/config.yaml",
-    # if the server has already been initialized just stop here
-    "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
-  ]
+  additional_k3s_environment = join("\n",
+    [
+      for var_name, var_value in var.additional_k3s_environment :
+      "${var_name}=\"${var_value}\""
+    ]
+  )
+  install_additional_k3s_environment = <<-EOT
+  cat >> /etc/environment <<EOF
+  ${local.additional_k3s_environment}
+  EOF
+  set -a; source /etc/environment; set +a;
+  EOT
+
+  common_commands_install_k3s = concat(
+    [
+      "set -ex",
+      # prepare the k3s config directory
+      "mkdir -p /etc/rancher/k3s",
+      # move the config file into place and adjust permissions
+      "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
+      "chmod 0600 /etc/rancher/k3s/config.yaml",
+      # if the server has already been initialized just stop here
+      "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
+      local.install_additional_k3s_environment,
+    ],
+    # User-defined commands to execute just before installing k3s.
+    var.preinstall_exec,
+  )
+
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
 
@@ -91,7 +110,11 @@ locals {
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
-  packages_to_install = concat(var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [], var.extra_packages_to_install)
+  packages_to_install = concat(
+    var.enable_wireguard ? ["wireguard-tools"] : [],
+    var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [],
+    var.extra_packages_to_install,
+  )
 
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
@@ -260,15 +283,10 @@ locals {
     "calico" = ["calico.yaml"]
   }
 
-  etcd_s3_snapshots = length(keys(var.etcd_s3_backup)) > 0 ? merge(
-    {
-      "etcd-s3" = true
-    },
-  var.etcd_s3_backup) : {}
-
   cni_k3s_settings = {
     "flannel" = {
       disable-network-policy = var.disable_network_policy
+      flannel-backend        = var.enable_wireguard ? "wireguard-native" : "vxlan"
     }
     "calico" = {
       disable-network-policy = true
@@ -279,6 +297,12 @@ locals {
       flannel-backend        = "none"
     }
   }
+
+  etcd_s3_snapshots = length(keys(var.etcd_s3_backup)) > 0 ? merge(
+    {
+      "etcd-s3" = true
+    },
+  var.etcd_s3_backup) : {}
 
   kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
@@ -307,6 +331,40 @@ ipam:
   clusterPoolIPv4PodCIDRList:
    - ${local.cluster_cidr_ipv4}
 devices: "eth1"
+%{if var.enable_wireguard~}
+l7Proxy: false
+encryption:
+  enabled: true
+  type: wireguard
+%{endif~}
+  EOT
+
+  # Not to be confused with the other helm values, this is used for the calico.yaml kustomize patch
+  # It also serves as a stub for a potential future use via helm values
+  calico_values = var.calico_values != "" ? var.calico_values : <<EOT
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: calico-node
+  namespace: kube-system
+  labels:
+    k8s-app: calico-node
+spec:
+  template:
+    spec:
+      volumes:
+        - name: flexvol-driver-host
+          hostPath:
+            type: DirectoryOrCreate
+            path: /var/lib/kubelet/volumeplugins/nodeagent~uds
+      containers:
+        - name: calico-node
+          env:
+            - name: CALICO_IPV4POOL_CIDR
+              value: "${local.cluster_cidr_ipv4}"
+            - name: FELIX_WIREGUARDENABLED
+              value: "${var.enable_wireguard}"
+
   EOT
 
   longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT
@@ -411,4 +469,24 @@ installCRDs: true
     "post-reboot-node-labels" : "kured=done",
     "period" : "5m",
   }, var.kured_options)
+
+  k3s_registries_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml; then
+  echo "No update required to the registries.yaml file"
+else
+  echo "Backing up /etc/rancher/k3s/registries.yaml to /tmp/registries_$DATE.yaml"
+  cp /etc/rancher/k3s/registries.yaml /tmp/registries_$DATE.yaml
+  echo "Updated registries.yaml detected, restart of k3s service required"
+  cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
+  if systemctl is-active --quiet k3s; then
+    systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/registries.yaml from backup" && cp /tmp/registries_$DATE.yaml /etc/rancher/k3s/registries.yaml && systemctl restart k3s)
+  elif systemctl is-active --quiet k3s-agent; then
+    systemctl restart k3s-agent || (echo "Error: Failed to restart k3s-agent. Restoring /etc/rancher/k3s/registries.yaml from backup" && cp /tmp/registries_$DATE.yaml /etc/rancher/k3s/registries.yaml && systemctl restart k3s-agent)
+  else
+    echo "No active k3s or k3s-agent service found"
+  fi
+  echo "k3s service or k3s-agent service restarted successfully"
+fi
+EOF
 }

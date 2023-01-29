@@ -144,6 +144,13 @@ module "kube-hetzner" {
   #  kube-scheduler-arg = "bind-address=0.0.0.0",
   # }
 
+  # You can enable encrypted wireguard for the CNI by setting this to "true". Default is "false".
+  # FYI, Hetzner says "Traffic between cloud servers inside a Network is private and isolated, but not automatically encrypted." 
+  # Source: https://docs.hetzner.com/cloud/networks/faq/#is-traffic-inside-hetzner-cloud-networks-encrypted
+  # It works with all CNIs that we support.
+  # Just note, that if Cilium with cilium_values, the responsability of enabling of disabling Wireguard falls on you.
+  # enable_wireguard = false
+
   # * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
   load_balancer_type     = "lb11"
   load_balancer_location = "fsn1"
@@ -290,9 +297,11 @@ module "kube-hetzner" {
   # Whether to use the cluster name in the node name, in the form of {cluster_name}-{nodepool_name}, the default is "true".
   # use_cluster_name_in_node_name = false
 
-  # Extra k3s registries. This is useful if you have private registries and you
-  # want to pull images without additional secrets.
-  # registries.yaml file docs: https://docs.k3s.io/installation/private-registry
+  # Extra k3s registries. This is useful if you have private registries and you want to pull images without additional secrets.
+  # Or if you want to proxy registries for various reasons like rate-limiting.
+  # It will create the registries.yaml file, more info here https://docs.k3s.io/installation/private-registry.
+  # Note that you do not need to get this right from the first time, you can update it when you want during the life of your cluster.
+  # The default is blank.
   /* k3s_registries = <<-EOT
     mirrors:
       hub.my_registry.com:
@@ -304,6 +313,19 @@ module "kube-hetzner" {
           username: username
           password: password
   EOT */
+
+  # Additional environment variables for the host OS on which k3s runs. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . 
+  # additional_k3s_environment = {
+  #   "CONTAINERD_HTTP_PROXY" : "http://your.proxy:port",
+  #   "CONTAINERD_HTTPS_PROXY" : "http://your.proxy:port",
+  #   "NO_PROXY" : "127.0.0.0/8,10.0.0.0/8,",
+  # }
+
+  # Additional commands to execute on the host OS before the k3s install, for example fetching and installing certs.
+  # preinstall_exec = [
+  #   "curl https://somewhere.over.the.rainbow/ca.crt > /root/ca.crt",
+  #   "trust anchor --store /root/ca.crt",
+  # ]
 
   # If you want to allow all outbound traffic you can set this to "false". Default is "true".
   # restrict_outbound_traffic = false
@@ -346,8 +368,8 @@ module "kube-hetzner" {
   # By default, we allow ICMP ping in to the nodes, to check for liveness for instance. If you do not want to allow that, you can. Just set this flag to true (false by default).
   # block_icmp_ping_in = true
 
-  # You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "false".
-  # enable_cert_manager = true
+  # You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "true".
+  # enable_cert_manager = false
 
   # We download OpenSUSE MicroOS from a mirror. In case it somehow does not work for you (you get a 403), you can try other mirrors.
   # You can find a working mirror at https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist,
@@ -431,6 +453,10 @@ devices: "eth1"
 k8s:
   requireIPv4PodCIDR: true
 kubeProxyReplacement: strict
+l7Proxy: false
+encryption:
+  enabled: true
+  type: wireguard
   EOT */
 
   # Cert manager, all cert-manager helm values can be found at https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml

@@ -159,12 +159,13 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/ccm.yaml"
   }
 
-  # Upload the calico patch config
+  # Upload the calico patch config, for the kustomization of the calico manifest
+  # This method is a stub which could be replaced by a more practical helm implementation
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/calico.yaml.tpl",
       {
-        cluster_cidr_ipv4 = local.cluster_cidr_ipv4
+        values = trimspace(local.calico_values)
     })
     destination = "/var/post_install/calico.yaml"
   }

@@ -22,6 +22,7 @@ module "control_planes" {
   packages_to_install          = local.packages_to_install
   dns_servers                  = var.dns_servers
   k3s_registries               = var.k3s_registries
+  k3s_registries_update_script = local.k3s_registries_update_script
   opensuse_microos_mirror_link = var.opensuse_microos_mirror_link
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely

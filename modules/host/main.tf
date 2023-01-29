@@ -169,8 +169,6 @@ resource "hcloud_server" "server" {
 }
 
 resource "null_resource" "registries" {
-  depends_on = [hcloud_server.server]
-
   triggers = {
     registries = var.k3s_registries
   }
@@ -189,18 +187,10 @@ resource "null_resource" "registries" {
   }
 
   provisioner "remote-exec" {
-    inline = [<<-EOT
-    if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml || [ ! -f /etc/rancher/k3s/registries.yaml ]; then
-      echo "No reboot required"
-    else
-      echo "Update registries.yaml, reboot required"
-      mkdir -p /etc/rancher/k3s
-      cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
-      touch /var/run/reboot-required
-    fi
-    EOT
-    ]
+    inline = [var.k3s_registries_update_script]
   }
+
+  depends_on = [hcloud_server.server]
 }
 
 resource "hcloud_rdns" "server" {
