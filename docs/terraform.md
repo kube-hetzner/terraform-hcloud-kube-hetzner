@@ -72,6 +72,7 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| <a name="input_additional_k3s_environment"></a> [additional\_k3s\_environment](#input\_additional\_k3s\_environment) | Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . | `map(any)` | `{}` | no |
 | <a name="input_additional_tls_sans"></a> [additional\_tls\_sans](#input\_additional\_tls\_sans) | Additional TLS SANs to allow connection to control-plane through it. | `list(string)` | `[]` | no |
 | <a name="input_agent_nodepools"></a> [agent\_nodepools](#input\_agent\_nodepools) | Number of agent nodes. | `list(any)` | `[]` | no |
 | <a name="input_allow_scheduling_on_control_plane"></a> [allow\_scheduling\_on\_control\_plane](#input\_allow\_scheduling\_on\_control\_plane) | Whether to allow non-control-plane workloads to run on the control-plane nodes. | `bool` | `false` | no |
@@ -80,6 +81,7 @@
 | <a name="input_autoscaler_nodepools"></a> [autoscaler\_nodepools](#input\_autoscaler\_nodepools) | Cluster autoscaler nodepools. | <pre>list(object({<br>    name        = string<br>    server_type = string<br>    location    = string<br>    min_nodes   = number<br>    max_nodes   = number<br>  }))</pre> | `[]` | no |
 | <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | Base domain of the cluster, used for reserve dns. | `string` | `""` | no |
 | <a name="input_block_icmp_ping_in"></a> [block\_icmp\_ping\_in](#input\_block\_icmp\_ping\_in) | Block entering ICMP ping. | `bool` | `false` | no |
+| <a name="input_calico_values"></a> [calico\_values](#input\_calico\_values) | Additional pacthes to pass to Cilium as 'valuesContent' at the Manifest. | `string` | `""` | no |
 | <a name="input_cert_manager_values"></a> [cert\_manager\_values](#input\_cert\_manager\_values) | Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_cilium_values"></a> [cilium\_values](#input\_cilium\_values) | Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_cluster_autoscaler_image"></a> [cluster\_autoscaler\_image](#input\_cluster\_autoscaler\_image) | Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used. | `string` | `"k8s.gcr.io/autoscaling/cluster-autoscaler"` | no |
@@ -98,6 +100,7 @@
 | <a name="input_enable_longhorn"></a> [enable\_longhorn](#input\_enable\_longhorn) | Whether or not to enable Longhorn. | `bool` | `false` | no |
 | <a name="input_enable_metrics_server"></a> [enable\_metrics\_server](#input\_enable\_metrics\_server) | Whether to enable or disbale k3s mertric server. | `bool` | `true` | no |
 | <a name="input_enable_rancher"></a> [enable\_rancher](#input\_enable\_rancher) | Enable rancher. | `bool` | `false` | no |
+| <a name="input_enable_wireguard"></a> [enable\_wireguard](#input\_enable\_wireguard) | Use wireguard-native as the backend for CNI. | `bool` | `false` | no |
 | <a name="input_etcd_s3_backup"></a> [etcd\_s3\_backup](#input\_etcd\_s3\_backup) | Etcd cluster state backup to S3 storage | `map(any)` | `{}` | no |
 | <a name="input_extra_firewall_rules"></a> [extra\_firewall\_rules](#input\_extra\_firewall\_rules) | Additional firewall rules to apply to the cluster. | `list(any)` | `[]` | no |
 | <a name="input_extra_kustomize_parameters"></a> [extra\_kustomize\_parameters](#input\_extra\_kustomize\_parameters) | All values will be passed to the `kustomization.tmp.yml` template. | `map(any)` | `{}` | no |
@@ -125,6 +128,7 @@
 | <a name="input_nginx_values"></a> [nginx\_values](#input\_nginx\_values) | Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_opensuse_microos_mirror_link"></a> [opensuse\_microos\_mirror\_link](#input\_opensuse\_microos\_mirror\_link) | The mirror link to use for the opensuse microos image. | `string` | `"https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"` | no |
 | <a name="input_placement_group_disable"></a> [placement\_group\_disable](#input\_placement\_group\_disable) | Whether to disable placement groups. | `bool` | `false` | no |
+| <a name="input_preinstall_exec"></a> [preinstall\_exec](#input\_preinstall\_exec) | Additional to execute before the install calls, for example fetching and installing certs. | `list(string)` | `[]` | no |
 | <a name="input_rancher_bootstrap_password"></a> [rancher\_bootstrap\_password](#input\_rancher\_bootstrap\_password) | Rancher bootstrap password. | `string` | `""` | no |
 | <a name="input_rancher_hostname"></a> [rancher\_hostname](#input\_rancher\_hostname) | The rancher hostname. | `string` | `""` | no |
 | <a name="input_rancher_install_channel"></a> [rancher\_install\_channel](#input\_rancher\_install\_channel) | The rancher installation channel. | `string` | `"stable"` | no |
