@@ -469,4 +469,24 @@ installCRDs: true
     "post-reboot-node-labels" : "kured=done",
     "period" : "5m",
   }, var.kured_options)
+
+  k3s_registries_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml; then
+  echo "No update required to the registries.yaml file"
+else
+  echo "Backing up /etc/rancher/k3s/registries.yaml to /tmp/registries_$DATE.yaml"
+  cp /etc/rancher/k3s/registries.yaml /tmp/registries_$DATE.yaml
+  echo "Updated registries.yaml detected, restart of k3s service required"
+  cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
+  if systemctl is-active --quiet k3s; then
+    systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/registries.yaml from backup" && cp /tmp/registries_$DATE.yaml /etc/rancher/k3s/registries.yaml && systemctl restart k3s)
+  elif systemctl is-active --quiet k3s-agent; then
+    systemctl restart k3s-agent || (echo "Error: Failed to restart k3s-agent. Restoring /etc/rancher/k3s/registries.yaml from backup" && cp /tmp/registries_$DATE.yaml /etc/rancher/k3s/registries.yaml && systemctl restart k3s-agent)
+  else
+    echo "No active k3s or k3s-agent service found"
+  fi
+  echo "k3s service or k3s-agent service restarted successfully"
+fi
+EOF
 }

@@ -106,8 +106,7 @@ data "hcloud_servers" "autoscaled_nodes" {
 }
 
 resource "null_resource" "autoscaled_nodes_registries" {
-  depends_on = [data.hcloud_servers.autoscaled_nodes]
-  for_each   = local.autoscaled_nodes
+  for_each = local.autoscaled_nodes
   triggers = {
     registries = var.k3s_registries
   }
@@ -126,20 +125,6 @@ resource "null_resource" "autoscaled_nodes_registries" {
   }
 
   provisioner "remote-exec" {
-    inline = [<<-EOT
-    if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml || [ ! -f /etc/rancher/k3s/registries.yaml ]; then
-      echo "No reboot required"
-    else
-      echo "Update registries.yaml, restart of k3s required"
-      mkdir -p /etc/rancher/k3s
-      cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
-      if systemctl status k3s > /dev/null; then 
-        systemctl restart k3s; 
-      elif systemctl status k3s-agent > /dev/null; then 
-        systemctl restart k3s-agent; 
-      fi  
-    fi
-    EOT
-    ]
+    inline = [local.k3s_registries_update_script]
   }
 }

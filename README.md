@@ -137,26 +137,11 @@ _However, you can freely add other nodepools at the end of each list. And for ea
 
 ## Autoscaling Node Pools
 
-We are supporting autoscaling node pools by deploying the [k8s cluster autoscaler (CA)](https://github.com/kubernetes/autoscaler).
-By default, this feature is disabled. You can control the feature via adding a pool description to the following variable in `kube.tf` (by default this array is empty):
+We support autoscaling node pools powered by the Kubernetes [Cluster Autoscaler](https://github.com/kubernetes/autoscaler).
 
-```terraform
-autoscaler_nodepools = [
-    {
-      name        = "autoscaler"
-      server_type = "cpx21" # must be same or better than the control_plane server type (regarding disk size)!
-      location    = "fsn1"
-      min_nodes   = 0
-      max_nodes   = 5
-    }
-  ]
-```
+By adding at least one map to the array of `autoscaler_nodepools` the feature will be enabled. More on this in the corresponding section of kube.tf.example.
 
-By adding at least one map to the array of `autoscaler_nodepools` the feature will be enabled.
-The nodes are booted based on a snapshot that is created from the initial control_plane.
-So please ensure that the disk of your chosen server type is at least the same size as the one of the first control_plane.
-
-See the _CA_ documentation for more configuration options.
+_Important to know, the nodes are booted based on a snapshot that is created from the initial control_plane. So please ensure that the disk of your chosen server type is at least the same size (or bigger) as the one of the first control_plane._
 
 ## High Availability
 
@@ -246,9 +231,18 @@ On top of the above, for Nginx, Rancher, Cilium, Traefik and Longhorn, for maxim
 
 ### After deploying
 
-Once the Cluster is up and running, you can easily customize many components like Traefik, Nginx, Rancher, Cilium, Cert-Manager and Longhorn by using HelmChartConfig definitions. See the [examples](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples) section, for more information.
+Once the Cluster is up and running, you can easily customize most components like Traefik, Nginx, Rancher, Cilium, Cert-Manager and Longhorn by using HelmChartConfig definitions. See the [examples](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples) section, for more information.
 
 For other components like Calico and Kured (which uses manifests), we automatically save a `kustomization_backup.yaml` file in the root of your module during the deployment, so you can use that as a starting point. This is also useful when creating the HelmChartConfig definitions, as both HelmChart and HelmChartConfig definitions are very similar.
+
+There is yet another option for power-users, to **force the new state of your kube.tf config on the cluster**, which will reconfigure all higher level components (Traefik, Rancher, etc.) to use the new configuration as updated in your `kube.tf` file. Basically it will update and re-apply all manifests including the HelmChart definitions. There is no destructive action on the cluster itself, just an alignment of the cluster state with the new configuration.
+
+Do do so, you have to run:
+  
+```sh
+terraform destroy -target 'module.kube-hetzner.null_resource.kustomization'
+terraform apply
+```
 
 ## Adding Extras
 
@@ -407,9 +401,12 @@ If you want to take down the cluster, you can proceed as follows:
 terraform destroy -auto-approve
 ```
 
-And if the network is slow to delete, just issue `hcloud load-balancer delete clustername` to speed things up! As the load-balancer is usually the resource that is the slowest to get deleted on its own.
+And if the network is slow to delete, just issue `hcloud load-balancer delete clustername` in another terminal tab! As the load-balancer is a ressource requested to the CCM by the ingress controller, and not deployed by Terraform itself.
 
-_Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources during regular operation._
+Same thing for autoscaled nodes, if you have any, you can delete them with `hcloud server delete nodename` (run `hcloud server list` before to get the names).
+In that latter case, if terraform gives you an error that the firewall was not deleted correctly, just re-run `terraform destroy -auto-approve` again.
+
+_Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources (like volumes) during regular operation._
 
 <!-- CONTRIBUTING -->
 
