@@ -282,7 +282,7 @@ variable "cilium_values" {
 variable "calico_values" {
   type        = string
   default     = ""
-  description = "Additional pacthes to pass to Cilium as 'valuesContent' at the Manifest."
+  description = "Just a stub for a future helm implementation. Now it can be used to replace the calico kustomize patch of the calico manifest."
 }
 
 variable "enable_longhorn" {
