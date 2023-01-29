@@ -45,7 +45,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 ### Features
 
 - [x] **Maintenance-free** with auto-upgrades to the latest version of MicroOS and k3s.
-- [x] Proper use of the **Hetzner private network** to minimize latency and remove the need for encryption.
+- [x] Proper use of the **Hetzner private network** to minimize latency.
 - [x] **Traefik** or **Nginx** as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
 - [x] **Automatic HA** with the default setting of three control-plane nodes and two agent nodes.
 - [x] **Autoscaling** nodes via the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
@@ -55,6 +55,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Ability to **add nodes and nodepools** when the cluster is running.
 - [x] Possibility to turn on **Longhorn** and/or **Hetzner CSI**.
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
+- [x] Optional **Wireguard** encryption of the Kube network for added security.
 - [x] **Flexible configuration options** via variables, and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._

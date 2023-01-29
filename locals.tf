@@ -283,12 +283,6 @@ locals {
     "calico" = ["calico.yaml"]
   }
 
-  etcd_s3_snapshots = length(keys(var.etcd_s3_backup)) > 0 ? merge(
-    {
-      "etcd-s3" = true
-    },
-  var.etcd_s3_backup) : {}
-
   cni_k3s_settings = {
     "flannel" = {
       disable-network-policy = var.disable_network_policy
@@ -303,6 +297,12 @@ locals {
       flannel-backend        = "none"
     }
   }
+
+  etcd_s3_snapshots = length(keys(var.etcd_s3_backup)) > 0 ? merge(
+    {
+      "etcd-s3" = true
+    },
+  var.etcd_s3_backup) : {}
 
   kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
@@ -339,20 +339,32 @@ encryption:
 %{endif~}
   EOT
 
+  # Not to be confused with the other helm values, this is used for the calico.yaml kustomize patch
+  # It also serves as a stub for a potential future use via helm values
   calico_values = var.calico_values != "" ? var.calico_values : <<EOT
-volumes:
-  - name: flexvol-driver-host
-    hostPath:
-      type: DirectoryOrCreate
-      path: /var/lib/kubelet/volumeplugins/nodeagent~uds
-containers:
-  - name: calico-node
-    env:
-      - name: CALICO_IPV4POOL_CIDR
-        value: "${local.cluster_cidr_ipv4}"
-%{if var.enable_wireguard~}
-wireguardEnabled: true
-%{endif~}
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: calico-node
+  namespace: kube-system
+  labels:
+    k8s-app: calico-node
+spec:
+  template:
+    spec:
+      volumes:
+        - name: flexvol-driver-host
+          hostPath:
+            type: DirectoryOrCreate
+            path: /var/lib/kubelet/volumeplugins/nodeagent~uds
+      containers:
+        - name: calico-node
+          env:
+            - name: CALICO_IPV4POOL_CIDR
+              value: "${local.cluster_cidr_ipv4}"
+            - name: FELIX_WIREGUARDENABLED
+              value: "${var.enable_wireguard}"
+
   EOT
 
   longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT

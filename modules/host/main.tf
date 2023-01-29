@@ -169,8 +169,6 @@ resource "hcloud_server" "server" {
 }
 
 resource "null_resource" "registries" {
-  depends_on = [hcloud_server.server]
-
   triggers = {
     registries = var.k3s_registries
   }
@@ -190,21 +188,28 @@ resource "null_resource" "registries" {
 
   provisioner "remote-exec" {
     inline = [<<-EOT
-    if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml || [ ! -f /etc/rancher/k3s/registries.yaml ]; then
-      echo "No reboot required"
-    else
-      echo "Update registries.yaml, restart of k3s required"
-      mkdir -p /etc/rancher/k3s
-      cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
-      if systemctl status k3s > /dev/null; then 
-        systemctl restart k3s; 
-      elif systemctl status k3s-agent > /dev/null; then 
-        systemctl restart k3s-agent; 
-      fi  
-    fi
-    EOT
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml; then
+  echo "No update required to the registries.yaml file"
+else
+  echo "Backing up /etc/rancher/k3s/registries.yaml to /tmp/registries_$DATE.yaml"
+  cp /etc/rancher/k3s/registries.yaml /tmp/registries_$DATE.yaml
+  echo "Updated registries.yaml detected, restart of k3s service required"
+  cp /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
+  if systemctl is-active --quiet k3s; then
+    systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/registries.yaml from backup" && cp /tmp/registries_$DATE.yaml /etc/rancher/k3s/registries.yaml && systemctl restart k3s)
+  elif systemctl is-active --quiet k3s-agent; then
+    systemctl restart k3s-agent || (echo "Error: Failed to restart k3s-agent. Restoring /etc/rancher/k3s/registries.yaml from backup" && cp /tmp/registries_$DATE.yaml /etc/rancher/k3s/registries.yaml && systemctl restart k3s-agent)
+  else
+    echo "No active k3s or k3s-agent service found"
+  fi
+  echo "k3s service or k3s-agent service restarted successfully"
+fi
+EOT
     ]
   }
+
+  depends_on = [hcloud_server.server]
 }
 
 resource "hcloud_rdns" "server" {
