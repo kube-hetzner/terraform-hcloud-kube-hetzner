@@ -7,6 +7,8 @@ locals {
   # Otherwise, a new one will be created by the module.
   hcloud_ssh_key_id = var.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.hcloud_ssh_key_id
 
+  microos_image_name = join("-", ["microos-snapshot", formatdate("YYYYMMDDhhmmss", timestamp())])
+
   ccm_version   = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version   = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag

@@ -21,8 +21,7 @@ resource "random_string" "identity_file" {
 
 resource "hcloud_server" "server" {
   name               = local.name
-  image              = "ubuntu-20.04"
-  rescue             = "linux64"
+  image              = var.microos_image_id
   server_type        = var.server_type
   location           = var.location
   ssh_keys           = var.ssh_keys
@@ -57,33 +56,6 @@ resource "hcloud_server" "server" {
     command = <<-EOT
       install -b -m 600 /dev/null /tmp/${random_string.identity_file.id}
       echo "${local.ssh_client_identity}" > /tmp/${random_string.identity_file.id}
-    EOT
-  }
-
-  # Install MicroOS
-  provisioner "remote-exec" {
-    connection {
-      user           = "root"
-      private_key    = var.ssh_private_key
-      agent_identity = local.ssh_agent_identity
-      host           = self.ipv4_address
-
-      # We cannot use different ports here as this runs inside Hetzner Rescue image and thus uses the
-      # standard 22 TCP port.
-      port = 22
-    }
-
-    inline = [
-      "set -ex",
-      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${var.opensuse_microos_mirror_link}",
-      "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
-    ]
-  }
-
-  # Issue a reboot command.
-  provisioner "local-exec" {
-    command = <<-EOT
-      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
     EOT
   }
 

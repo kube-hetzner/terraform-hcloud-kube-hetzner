@@ -2,7 +2,10 @@ variable "name" {
   description = "Host name"
   type        = string
 }
-
+variable "microos_image_id" {
+  description = "MicroOS image ID to be used "
+  type        = string
+}
 variable "base_domain" {
   description = "Base domain used for reverse dns"
   type        = string
