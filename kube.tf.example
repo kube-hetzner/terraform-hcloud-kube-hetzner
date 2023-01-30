@@ -125,6 +125,22 @@ module "kube-hetzner" {
       taints      = [],
       count       = 1
     },
+    # 'egress' nodepool with 'floating IPs' assigning to each node in pool
+    # useful for control/route egress traffic using 'Hetzner Floating IPs' (https://docs.hetzner.com/cloud/floating-ips)
+    # applied to: https://docs.cilium.io/en/stable/gettingstarted/egress-gateway/
+    {
+      name        = "egress",
+      server_type = "cpx11",
+      location    = "fsn1",
+      labels = [
+        "node.kubernetes.io/role=egress"
+      ],
+      taints = [
+        "node.kubernetes.io/role=egress:NoSchedule"
+      ],
+      floating_ip = true
+      count = 1
+    },
     {
       name        = "storage",
       server_type = "cpx21",

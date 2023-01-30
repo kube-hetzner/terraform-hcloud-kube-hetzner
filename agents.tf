@@ -137,3 +137,61 @@ resource "null_resource" "configure_longhorn_volume" {
     hcloud_volume.longhorn_volume
   ]
 }
+
+resource "hcloud_floating_ip" "agents" {
+  for_each = { for k, v in local.agent_nodes : k => v if(lookup(v, "floating_ip", false)) }
+
+  type          = "ipv4"
+  labels        = local.labels
+  home_location = each.value.location
+
+  delete_protection = true
+}
+
+resource "hcloud_floating_ip_assignment" "agents" {
+  for_each = { for k, v in local.agent_nodes : k => v if(lookup(v, "floating_ip", false)) }
+
+  floating_ip_id = hcloud_floating_ip.agents[each.key].id
+  server_id      = module.agents[each.key].id
+
+  depends_on = [
+    null_resource.agents
+  ]
+}
+
+resource "null_resource" "configure_floating_ip" {
+  for_each = { for k, v in local.agent_nodes : k => v if(lookup(v, "floating_ip", false)) }
+
+  triggers = {
+    agent_id = module.agents[each.key].id
+    floating_ip_id = hcloud_floating_ip.agents[each.key].id
+  }
+
+  # Start the k3s agent and wait for it to have started
+  provisioner "remote-exec" {
+    inline = [
+      "echo \"BOOTPROTO='static'\nSTARTMODE='auto'\nIPADDR=${hcloud_floating_ip.agents[each.key].ip_address}/32\nIPADDR_1=${module.agents[each.key].ipv4_address}/32\" > /etc/sysconfig/network/ifcfg-eth0",
+      "echo \"172.31.1.1 - 255.255.255.255 eth0\ndefault 172.31.1.1 - eth0 src ${hcloud_floating_ip.agents[each.key].ip_address}\" > /etc/sysconfig/network/ifroute-eth0",
+
+      "ip addr add ${hcloud_floating_ip.agents[each.key].ip_address}/32 dev eth0",
+      "ip route replace default via 172.31.1.1 dev eth0 src ${hcloud_floating_ip.agents[each.key].ip_address}",
+
+      # its important: floating IP should be first on the interface IP list
+      # move main IP to the second position
+      "ip addr del ${module.agents[each.key].ipv4_address}/32 dev eth0",
+      "ip addr add ${module.agents[each.key].ipv4_address}/32 dev eth0",
+    ]
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = module.agents[each.key].ipv4_address
+    port           = var.ssh_port
+  }
+
+  depends_on = [
+    hcloud_floating_ip_assignment.agents
+  ]
+}
