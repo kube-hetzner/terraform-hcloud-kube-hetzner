@@ -9,7 +9,10 @@ resource "null_resource" "packer" {
   }
 
   provisioner "local-exec" {
-    # working_dir = "./packer"
+    environment = {
+      HCLOUD_TOKEN = nonsensitive(var.hcloud_token)
+    }
+
     # credits for packer integration to https://austincloud.guru/2020/02/27/building-packer-image-with-terraform/
     command = <<EOF
 RED='\033[0;31m'   # Red Text
@@ -18,7 +21,6 @@ BLUE='\033[0;34m'  # Blue Text
 NC='\033[0m'       # No Color
 
 packer build -force \
-  -var hcloud_token=${var.hcloud_token} \
   -var opensuse_microos_mirror_link=${var.opensuse_microos_mirror_link} \
   -var creator_id=${self.id} \
   ${path.module}/packer/hcloud-microos-snapshot.pkr.hcl
