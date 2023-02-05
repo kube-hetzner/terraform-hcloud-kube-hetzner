@@ -222,15 +222,6 @@ module "kube-hetzner" {
   # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available.
   # kured_version = ""
 
-  # If you want to specify what time Kured starts restarting nodes, set it below. Default is 3AM.
-  # kured_start_time = ""
-
-  # If you want to specify what time Kured stops restarting nodes, set it below. Default is 8AM.
-  # kured_end_time = ""
-
-  # If you want to specify what timezone Kured uses, set it below. Default is Local.
-  # kured_time_zone = ""
-
   # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "nginx". Default is "traefik".
   # By the default we load optimal Traefik and Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
   # we allow you to add a traefik_values and nginx_values, see towards the end of this file in the advanced section.
@@ -282,6 +273,7 @@ module "kube-hetzner" {
   #   "reboot-days": "su"
   #   "start-time": "3am"
   #   "end-time": "8am"
+  #   "time-zone": "Local"
   # }
 
   # Allows you to specify either stable, latest, testing or supported minor versions.
