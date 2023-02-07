@@ -496,7 +496,7 @@ variable "k3s_registries" {
 
 variable "opensuse_microos_mirror_link" {
   description = "The mirror link to use for the opensuse microos image."
-  default     = "https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  default     = "https://mirror.dogado.de/opensuse/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
   type        = string
 
   validation {
