@@ -6,11 +6,8 @@ body:
   - type: markdown
     attributes:
         value: |
-          **Describe the bug**
-
-          Before doing so, please research the project, the solution may be in the documentation, in other issues, or in the discussions.
-
-          If none of the above gave you the answer, please explain the bug in detail, and provide as much information as possible.
+          **Kube-Hetzner Bug Report**
+          Before doing so, please research the project, the solution may be in the documentation, in other issues, or in the discussions. If none of the above gave you the answer, please explain the bug in detail and provide as much information as possible.
   - type: textarea
     id: description
     attributes:
