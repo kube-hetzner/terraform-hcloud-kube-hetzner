@@ -16,8 +16,7 @@ body:
     attributes:
       label: Description
       description: A clear and concise description of what the bug is.
-      placeholder: Enter description here
-      value: "A bug happened!"
+      placeholder: What's happening?
     validations:
       required: true
   - type: textarea
@@ -25,8 +24,10 @@ body:
     attributes:
       label: Kube.tf file
       description: Please share your kube.tf file, without sensitive values, and if possible, stripped of comments.
-      placeholder: Enter kube.tf content here
+      placeholder: Enter your kube.tf content goes here
       render: terraform
+    validations:
+      required: true
   - type: textarea
     id: screenshots
     attributes:
