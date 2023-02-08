@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: If you have questions, use the discussions
+    url: https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/discussions
+    about: Please ask and answer questions here.
