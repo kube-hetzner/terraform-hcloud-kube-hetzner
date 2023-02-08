@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Describe the bug**
-A clear and concise description of what the bug is.
+{{A clear and concise description of what the bug is}}
 
 **Kube.tf file**
 Please share your kube.tf file, without sensitive values, and if possible, stripped of comments.
