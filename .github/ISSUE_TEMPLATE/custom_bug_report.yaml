@@ -1,0 +1,41 @@
+name: Bug Report
+description: File a bug report (for questions, use discussions)
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+      attributes:
+        value: |
+          **Describe the bug**
+
+          Before doing so, please research the project, the solution may be in the documentation, in other issues, or in the discussions.
+
+          If none of the above gave you the answer, please explain the bug in detail, and provide as much information as possible.
+  - type: textarea
+      id: description
+      attributes:
+        label: Description
+        description: A clear and concise description of what the bug is.
+        placeholder: Enter description here
+        value: "A bug happened!"
+      validations:
+        required: true
+  - type: textarea
+      id: kube_tf
+      attributes:
+        label: Kube.tf file
+        description: Please share your kube.tf file, without sensitive values, and if possible, stripped of comments.
+        placeholder: Enter kube.tf content here
+        render: terraform
+  - type: textarea
+      attributes:
+        label: Screenshots
+        description: If applicable, add screenshots of the errors.
+        placeholder: Enter screenshots here
+  - type: input
+      attributes:
+        label: Platform
+        description: Windows, Linux, Mac
+        placeholder: Enter platform here
+      validations:
+        required: true
