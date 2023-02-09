@@ -510,3 +510,9 @@ variable "additional_tls_sans" {
   default     = []
   type        = list(string)
 }
+
+variable "calico_version" {
+  type        = string
+  default     = null
+  description = "Version of Calico."
+}

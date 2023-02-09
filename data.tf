@@ -20,6 +20,14 @@ data "github_release" "kured" {
   retrieve_by = "latest"
 }
 
+// github_release for kured
+data "github_release" "calico" {
+  count       = var.calico_version == null ? 1 : 0
+  repository  = "calico"
+  owner       = "projectcalico"
+  retrieve_by = "latest"
+}
+
 data "hcloud_load_balancer" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
   name  = var.cluster_name
