@@ -1,0 +1,21 @@
+name: Feature Request
+title: "[Feature Request]: "
+description: "Submit a feature request for consideration"
+labels: ["feature request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Kube-Hetzner Feature Request**
+
+        For feature exploration, please use our [discussions](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/discussions) section. However, if you judge something to be extremely important or urgent, please let us know what you need and why, and even share tips on implementation.
+
+        Also please know that we are very open to PRs and will work with you to make it happen if fully relevent to the project. So if you can make it happen, and it falls within the project, please do not hesitate to ping us in the discussions about your idea.
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Description
+      description: Tell us more about your feature request.
+      placeholder: "E.g. Adding support for XYZ would greatly improve the user experience..."
+    validations:
+      required: true

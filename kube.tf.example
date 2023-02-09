@@ -30,10 +30,10 @@ module "kube-hetzner" {
   # ssh_port = 2222
 
   # * Your ssh public key
-  ssh_public_key = file("~/.ssh/id_rsa.pub")
+  ssh_public_key = file("~/.ssh/id_ed25519.pub")
   # * Your private key must be "ssh_private_key = null" when you want to use ssh-agent for a Yubikey-like device authentification or an SSH key-pair with a passphrase.
   # For more details on SSH see https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md
-  ssh_private_key = file("~/.ssh/id_rsa")
+  ssh_private_key = file("~/.ssh/id_ed25519")
   # You can add additional SSH public Keys to grant other team members root access to your cluster nodes.
   # ssh_additional_public_keys = []
 
@@ -222,15 +222,6 @@ module "kube-hetzner" {
   # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available.
   # kured_version = ""
 
-  # If you want to specify what time Kured starts restarting nodes, set it below. Default is 3AM.
-  # kured_start_time = ""
-
-  # If you want to specify what time Kured stops restarting nodes, set it below. Default is 8AM.
-  # kured_end_time = ""
-
-  # If you want to specify what timezone Kured uses, set it below. Default is Local.
-  # kured_time_zone = ""
-
   # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "nginx". Default is "traefik".
   # By the default we load optimal Traefik and Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
   # we allow you to add a traefik_values and nginx_values, see towards the end of this file in the advanced section.
@@ -282,6 +273,7 @@ module "kube-hetzner" {
   #   "reboot-days": "su"
   #   "start-time": "3am"
   #   "end-time": "8am"
+  #   "time-zone": "Local"
   # }
 
   # Allows you to specify either stable, latest, testing or supported minor versions.
@@ -357,6 +349,11 @@ module "kube-hetzner" {
   # Also, see the cilium_values at towards the end of this file, in the advanced section.
   # cni_plugin = "cilium"
 
+  # You can choose the version of Calico that you want. By default, the latest is used.
+  # More info on available versions can be found at https://github.com/projectcalico/calico/releases
+  # Please note that if you are getting 403s from Github, it's also useful to set the version manually. However there is rarely a need for that!
+  # calico_version = "v3.25.0"
+
   # If you want to disable the k3s default network policy controller, use this flag!
   # Both Calico and Ciliun cni_plugin values override this value to true automatically, the default is "false".
   # disable_network_policy = true
@@ -373,7 +370,10 @@ module "kube-hetzner" {
 
   # We download OpenSUSE MicroOS from a mirror. In case it somehow does not work for you (you get a 403), you can try other mirrors.
   # You can find a working mirror at https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist,
+  # This is the official link which is the fastest but most of the time gives 403.
   # opensuse_microos_mirror_link = "https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  # This one is usually slow but never has any problems.
+  # opensuse_microos_mirror_link = "https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
 
   # IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner, defaults to ["1.1.1.1", " 1.0.0.1", "8.8.8.8"].
   # For rancher installs, best to leave it as default.
