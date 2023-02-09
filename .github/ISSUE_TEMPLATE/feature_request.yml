@@ -15,7 +15,7 @@ body:
     id: feature-description
     attributes:
       label: Description
-      description: Tell us more about your feature request
+      description: Tell us more about your feature request.
       placeholder: "E.g. Adding support for XYZ would greatly improve the user experience..."
     validations:
       required: true

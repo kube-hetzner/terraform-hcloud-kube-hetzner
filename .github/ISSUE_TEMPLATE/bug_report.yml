@@ -7,6 +7,7 @@ body:
     attributes:
         value: |
           **Kube-Hetzner Bug Report**
+          
           Before doing so, please research the project, the solution may be in the documentation, in other issues, or in the discussions. If none of the above gave you the answer, please explain the bug in detail and provide as much information as possible.
   - type: textarea
     id: description
