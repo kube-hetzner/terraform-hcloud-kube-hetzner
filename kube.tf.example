@@ -149,7 +149,7 @@ module "kube-hetzner" {
   # Source: https://docs.hetzner.com/cloud/networks/faq/#is-traffic-inside-hetzner-cloud-networks-encrypted
   # It works with all CNIs that we support.
   # Just note, that if Cilium with cilium_values, the responsability of enabling of disabling Wireguard falls on you.
-  # enable_wireguard = false
+  # enable_wireguard = true
 
   # * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
   load_balancer_type     = "lb11"
