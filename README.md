@@ -23,7 +23,7 @@
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
 
-This project aims to create a highly optimized Kubernetes installation that is easy to maintain, secure and automatically upgrades both the nodes and Kubernetes. We aimed for functionality as close as possible to GKE's Auto-Pilot. _Please note that we are not affiliates of Hetzner; but we do strive to be an optimal solution for deploying and maintaining Kubernetes clusters on Hetzner Cloud._
+This project aims to create a highly optimized Kubernetes installation that is easy to maintain, secure, and automatically upgrades both the nodes and Kubernetes. We aimed for functionality as close as possible to GKE's Auto-Pilot. _Please note that we are not affiliates of Hetzner, but we do strive to be an optimal solution for deploying and maintaining Kubernetes clusters on Hetzner Cloud._
 
 To achieve this, we built up on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
 
@@ -31,15 +31,15 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 
 **Why OpenSUSE MicroOS (and not Ubuntu)?**
 - Optimized container OS that is fully locked down, most of the filesystem is read-only!
-- Hardened by default with automatic ban for abusive IPs on SSH for instance.
-- Evergreen release, your node will stay valid forever, as it piggy-backs into OpenSUSE Tumbleweed's rolling-release!
-- Automatic updates by default and automatically roll-backs if something breaks, thanks to its use of BTRFS snapshots.
+- Hardened by default with an automatic ban for abusive IPs on SSH for instance.
+- Evergreen release, your node will stay valid forever, as it piggy-backs into OpenSUSE Tumbleweed's rolling release!
+- Automatic updates by default and automatic roll-backs if something breaks, thanks to its use of BTRFS snapshots.
 - Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
 
 **Why k3s?**
 - Certified Kubernetes Distribution, it is automatically synced to k8s source.
 - Fast deployment, as it is a single binary and can be deployed with a single command.
-- Comes batteries included, with its in-cluster [helm-controller](https://github.com/k3s-io/helm-controller).
+- Comes with batteries included, with its in-cluster [helm-controller](https://github.com/k3s-io/helm-controller).
 - Easy automatic updates, via the [system-upgrade-controller](https://github.com/rancher/system-upgrade-controller).
 
 ### Features
@@ -56,7 +56,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Possibility to turn on **Longhorn** and/or **Hetzner CSI**.
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
 - [x] Optional **Wireguard** encryption of the Kube network for added security.
-- [x] **Flexible configuration options** via variables, and an extra Kustomization option.
+- [x] **Flexible configuration options** via variables and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -89,7 +89,7 @@ brew install hcloud
 
 _A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
 
-_It's important to realize that your kube.tf needs to reside in a NEW EMPTY folder, not a clone of this git repo (the module by default will be fetched from the Terraform registry). All you need, is to re-use the [kube.tf.example](https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example) file to make sure you get the format right._
+_It's important to realize that your kube.tf needs to reside in a NEW EMPTY folder, not a clone of this git repo (the module by default will be fetched from the Terraform registry). All you need is to re-use the [kube.tf.example](https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example) file to make sure you get the format right._
 
 ### 🎯 Installation
 
@@ -123,7 +123,7 @@ _You can view all kinds of details about the cluster by running `terraform outpu
 
 The default is Flannel, but you can also choose Calico or Cilium, by setting the `cni_plugin` variable in `kube.tf` to "calico" or "cilium".
 
-As Cilium has a lot of interesting and powerful configurations' possibility. We give you the possibility to configure your Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster.
+As Cilium has a lot of interesting and powerful config possibilities. We give you the possibility to configure your Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster.
 
 ## Scaling Nodes
 
@@ -157,13 +157,13 @@ Otherwise, it is essential to turn off automatic OS upgrades (k3s can continue t
 
 By default, MicroOS gets upgraded automatically on each node and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
 
-As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default it will be set to the `initial_k3s_channel`, but you can also set it to `stable`, `latest`, or one more specific like `v1.23` if needed or specify a target version to upgrade to via the upgrade plan (this also allows for downgrades).
+As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default, it will be set to the `initial_k3s_channel`, but you can also set it to `stable`, `latest`, or one more specific like `v1.23` if needed or specify a target version to upgrade to via the upgrade plan (this also allows for downgrades).
 
 You can copy and modify the [one in the templates](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/templates/plans.yaml.tpl) for that! More on the subject in [k3s upgrades](https://rancher.com/docs/k3s/latest/en/upgrades/basic/).
 
 ### Configuring update timeframes
 
-Per default a node that installed updates will reboot within the next few minutes and updates are installed roughly every 24 hours.
+Per default, a node that installed updates will reboot within the next few minutes and updates are installed roughly every 24 hours.
 Kured can be instructed with specific timeframes for rebooting, to prevent too frequent drains and reboots.
 All options from the [docs](https://kured.dev/docs/configuration/) are available for modification.
 
@@ -171,7 +171,7 @@ All options from the [docs](https://kured.dev/docs/configuration/) are available
 
 ### Turning Off Automatic Upgrades
 
-_If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup which requires at least 3 control-plane nodes), you need to set:_
+_If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup that requires at least 3 control-plane nodes), you need to set:_
 
 ```terraform
 automatically_upgrade_os = false
@@ -202,7 +202,7 @@ kubectl delete plan k3s-agent -n system-upgrade
 kubectl delete plan k3s-server -n system-upgrade
 ```
 
-Also, note that after turning off nodes upgrades, you will need to manually upgrade the nodes when needed. You can do so by SSH'ing into each node and running the following commands (and don't forget to drain the node before with `kubectl drain <node-name>`):
+Also, note that after turning off node upgrades, you will need to manually upgrade the nodes when needed. You can do so by SSH'ing into each node and running the following commands (and don't forget to drain the node before with `kubectl drain <node-name>`):
 
 ```sh
 transactional-update
@@ -227,7 +227,7 @@ By default, we strive to give you optimal defaults, but if wish, you can customi
 
 In the case of Traefik, Rancher, and Longhorn, we provide you with variables to configure everything you need.
 
-On top of the above, for Nginx, Rancher, Cilium, Traefik and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
+On top of the above, for Nginx, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
 
 ### After deploying
 
@@ -235,9 +235,9 @@ Once the Cluster is up and running, you can easily customize most components lik
 
 For other components like Calico and Kured (which uses manifests), we automatically save a `kustomization_backup.yaml` file in the root of your module during the deployment, so you can use that as a starting point. This is also useful when creating the HelmChartConfig definitions, as both HelmChart and HelmChartConfig definitions are very similar.
 
-There is yet another option for power-users, to **force the new state of your kube.tf config on the cluster**, which will reconfigure all higher level components (Traefik, Rancher, etc.) to use the new configuration as updated in your `kube.tf` file. Basically it will update and re-apply all manifests including the HelmChart definitions. There is no destructive action on the cluster itself, just an alignment of the cluster state with the new configuration.
+There is yet another option for power users, to **force the new state of your kube.tf config on the cluster**, which will reconfigure all higher-level components (Traefik, Rancher, etc.) to use the new configuration as updated in your `kube.tf` file. Basically, it will update and re-apply all manifests including the HelmChart definitions. There is no destructive action on the cluster itself, just an alignment of the cluster state with the new configuration.
 
-Do do so, you have to run:
+To do so, you have to run:
   
 ```sh
 terraform destroy -target 'module.kube-hetzner.null_resource.kustomization'
@@ -246,13 +246,13 @@ terraform apply
 
 ## Adding Extras
 
-If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory/file besides your `kube.tf`.
+If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating the `extra-manifests/kustomization.yaml.tpl` directory/file beside your `kube.tf`.
 
 This file needs to be a valid `Kustomization` manifest, but it supports terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable (via a map) to the module).
 
 All files in the `extra-manifests` directory including the rendered version of `kustomization.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
-_You can use the above to pass all kinds of kubernetes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
+_You can use the above to pass all kinds of Kubernetes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
 
 ## Examples
 
@@ -291,13 +291,13 @@ _For more cilium commands, please refer to their corresponding [Documentation](h
 
 You have two options, the first is to use `Cert-Manager` to take care of the certificates, and the second is to let `Traefik` bear this responsibility.
 
-_We advise you to use `Cert-Manager`, as it supports HA setups without requiring you to use the enterprise version of Traefik. The reason for that is that according to Traefik themselves, Traefik CE (community edition) is stateless, and it's not possible to run multiple instance of Traefik CE with LetsEncrypt enabled. Meaning, you cannot have your ingress be HA with Traefik if you use the community edition and have activated the LetsEncrypt resolver. You could however use Traefik EE (enterprise edition) to achieve that. Long story short, if you are going to use Traefik CE (like most of us), you should use cert-manager to generate the certificates. Source [here](https://doc.traefik.io/traefik/v2.0/providers/kubernetes-crd/)._
+_We advise you to use `Cert-Manager`, as it supports HA setups without requiring you to use the enterprise version of Traefik. The reason for that is that according to Traefik themselves, Traefik CE (community edition) is stateless, and it's not possible to run multiple instances of Traefik CE with LetsEncrypt enabled. Meaning, you cannot have your ingress be HA with Traefik if you use the community edition and have activated the LetsEncrypt resolver. You could however use Traefik EE (enterprise edition) to achieve that. Long story short, if you are going to use Traefik CE (like most of us), you should use Cert-Manager to generate the certificates. Source [here](https://doc.traefik.io/traefik/v2.0/providers/kubernetes-crd/)._
 
 ### Via Cert-Manager (recommended)
 
 In your module variables, set `enable_cert_manager` to `true`, and just create your issuers as described here <https://cert-manager.io/docs/configuration/acme/>.
 
-Then in your Ingress definition, just mentioning the issuer as an annotation and giving a secret name will take care of instructing cert-manager to generate a certificate for it! It simpler than the alternative, you just have to configure your issuer(s) first with the method of your choice.
+Then in your Ingress definition, just mentioning the issuer as an annotation and giving a secret name will take care of instructing Cert-Manager to generate a certificate for it! It is simpler than the alternative, you just have to configure your issuer(s) first with the method of your choice.
 
 Ingress example:
 
@@ -326,7 +326,7 @@ spec:
               number: 80
 ```
   
-_⚠️ In case of using Ingress-Nginx as ingress controller, if you choose to use the HTTP challenge method you need to do an additional step of adding variable `lb_hostname = "cluster.example.org"` to your kube.tf. You must set it to a FQDN that points to your LB address._
+_⚠️ In case of using Ingress-Nginx as an ingress controller if you choose to use the HTTP challenge method you need to do an additional step of adding variable `lb_hostname = "cluster.example.org"` to your kube.tf. You must set it to an FQDN that points to your LB address._
   
 _This is to circumvent this known issue https://github.com/cert-manager/cert-manager/issues/466, also see https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/354. Otherwise, you can just use the DNS challenge, which does not require any additional tweaks to work._
 
@@ -369,7 +369,7 @@ spec:
 
 The helm options for Rancher can be seen here <https://github.com/rancher/rancher/blob/release/v2.6/chart/values.yaml>.
 
-Same goes for all add-ons, like Longhorn, Cert-manager, and Traefik.
+The same goes for all add-ons, like Longhorn, Cert-manager, and Traefik.
 
 </details>
 
@@ -401,9 +401,9 @@ If you want to take down the cluster, you can proceed as follows:
 terraform destroy -auto-approve
 ```
 
-And if the network is slow to delete, just issue `hcloud load-balancer delete clustername` in another terminal tab! As the load-balancer is a ressource requested to the CCM by the ingress controller, and not deployed by Terraform itself.
+And if the network is slow to delete, just issue `hcloud load-balancer delete clustername` in another terminal tab! As the load-balancer is a resource requested to the CCM by the ingress controller, and not deployed by Terraform itself.
 
-Same thing for autoscaled nodes, if you have any, you can delete them with `hcloud server delete nodename` (run `hcloud server list` before to get the names).
+The same thing for autoscaled nodes, if you have any, you can delete them with `hcloud server delete nodename` (run `hcloud server list` before to get the names).
 In that latter case, if terraform gives you an error that the firewall was not deleted correctly, just re-run `terraform destroy -auto-approve` again.
 
 _Also, if you had a full-blown cluster in use, it would be best to delete the whole project in your Hetzner account directly as operators or deployments may create other resources (like volumes) during regular operation._
@@ -437,7 +437,7 @@ Code contributions are very much **welcome**.
 - [Hetzner Cloud](https://www.hetzner.com) for providing a solid infrastructure and terraform package.
 - [Hashicorp](https://www.hashicorp.com) for the amazing terraform framework that makes all the magic happen.
 - [Rancher](https://www.rancher.com) for k3s, an amazing Kube distribution that is the core engine of this project.
-- [openSUSE](https://www.opensuse.org) for MicroOS, which is just next level Container OS technology.
+- [openSUSE](https://www.opensuse.org) for MicroOS, which is just next-level Container OS technology.
 
 [contributors-shield]: https://img.shields.io/github/contributors/mysticaltech/kube-hetzner.svg?style=for-the-badge
 [contributors-url]: https://github.com/mysticaltech/kube-hetzner/graphs/contributors
