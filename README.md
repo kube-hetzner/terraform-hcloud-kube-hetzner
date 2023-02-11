@@ -53,7 +53,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Possibility to have a **single node cluster** with a proper ingress controller.
 - [x] Can use Klipper as an **on-metal LB** or the **Hetzner LB**.
 - [x] Ability to **add nodes and nodepools** when the cluster is running.
-- [x] Possibility to turn on **Longhorn** and/or **Hetzner CSI**.
+- [x] Possibility to toggle **Longhorn** and **Hetzner CSI**.
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
 - [x] Optional **Wireguard** encryption of the Kube network for added security.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
@@ -123,7 +123,7 @@ _You can view all kinds of details about the cluster by running `terraform outpu
 
 The default is Flannel, but you can also choose Calico or Cilium, by setting the `cni_plugin` variable in `kube.tf` to "calico" or "cilium".
 
-As Cilium has a lot of interesting and powerful config possibilities. We give you the possibility to configure your Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster.
+As Cilium has a lot of interesting and powerful config possibilities, we give you the ability to configure Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml])) before you deploy your cluster.
 
 ## Scaling Nodes
 
