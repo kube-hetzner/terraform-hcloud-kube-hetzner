@@ -282,7 +282,7 @@ variable "cilium_values" {
 variable "calico_values" {
   type        = string
   default     = ""
-  description = "Additional pacthes to pass to Cilium as 'valuesContent' at the Manifest."
+  description = "Just a stub for a future helm implementation. Now it can be used to replace the calico kustomize patch of the calico manifest."
 }
 
 variable "enable_longhorn" {
@@ -496,7 +496,7 @@ variable "k3s_registries" {
 
 variable "opensuse_microos_mirror_link" {
   description = "The mirror link to use for the opensuse microos image."
-  default     = "https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  default     = "https://mirror.dogado.de/opensuse/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
   type        = string
 
   validation {
@@ -509,4 +509,10 @@ variable "additional_tls_sans" {
   description = "Additional TLS SANs to allow connection to control-plane through it."
   default     = []
   type        = list(string)
+}
+
+variable "calico_version" {
+  type        = string
+  default     = null
+  description = "Version of Calico."
 }
