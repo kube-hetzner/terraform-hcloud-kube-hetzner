@@ -1,3 +1,6 @@
+locals {
+    packages = length(local.packages_to_install) > 0 ? "-var packages_to_install=${local.packages_to_install}"  : ""
+}
 data "hcloud_image" "microos_image" {
   with_selector = "microos-snapshot=yes,creator_id=${null_resource.packer.id}"
   most_recent   = true
@@ -22,7 +25,7 @@ NC='\033[0m'       # No Color
 
 packer build -force \
   -var opensuse_microos_mirror_link=${var.opensuse_microos_mirror_link} \
-  -var creator_id=${self.id} \
+  -var creator_id=${self.id} ${local.packages} \
   ${path.module}/packer/hcloud-microos-snapshot.pkr.hcl
 
 if [ $? -eq 0 ]; then

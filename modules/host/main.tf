@@ -1,15 +1,15 @@
-resource "random_string" "server" {
-  length  = 3
-  lower   = true
-  special = false
-  numeric = false
-  upper   = false
 
+resource "random_id" "server_id" {
   keepers = {
     # We re-create the apart of the name changes.
     name = var.name
+    # Generate a new id each time we switch to a new image id?
+    # image_id = var.microos_image_id
   }
+
+  byte_length = 3
 }
+
 
 resource "random_string" "identity_file" {
   length  = 20
@@ -83,7 +83,6 @@ resource "hcloud_server" "server" {
     inline = [<<-EOT
       set -ex
       transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/master/.extra/k3s-selinux-next.rpm"
-      transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       sleep 1 && udevadm settle
       EOT
     ]
@@ -140,6 +139,12 @@ resource "hcloud_server" "server" {
   }
 }
 
+resource "null_resource" "create_snapshot" {
+  count = startswith(var.microos_image_id, "ubuntu") ? 1 : 0
+
+  depends_on = [hcloud_server.server]
+}
+
 resource "null_resource" "registries" {
   triggers = {
     registries = var.k3s_registries
@@ -162,7 +167,7 @@ resource "null_resource" "registries" {
     inline = [var.k3s_registries_update_script]
   }
 
-  depends_on = [hcloud_server.server]
+  depends_on = [null_resource.create_snapshot]
 }
 
 resource "hcloud_rdns" "server" {

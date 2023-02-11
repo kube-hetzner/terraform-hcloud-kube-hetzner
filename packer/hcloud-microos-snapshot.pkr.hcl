@@ -18,6 +18,15 @@ variable "creator_id" {
   default = "123456789"
 }
 
+variable "packages_to_install" {
+  type    = list(string)
+  default = []
+}
+
+locals {
+  needed_packages = join(" ", concat(["restorecond policycoreutils setools-console"], var.packages_to_install))
+}
+
 source "hcloud" "microos-snapshot" {
   image       = "ubuntu-20.04"
   rescue      = "linux64"
@@ -41,7 +50,9 @@ build {
     inline = [
       "sleep 5",
       "wget --timeout=5 ${var.opensuse_microos_mirror_link}",
+      "echo 'MicroOS image loaded, writing to disk... '",
       "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
+      "echo 'done. Rebooting...'",
       "sleep 2; reboot"
     ]
     expect_disconnect = true
@@ -50,9 +61,31 @@ build {
   # Ensure connection to MicroOS and do house-keeping
   provisioner "shell" {
     pause_before = "5s"
-    inline = [
-      "echo Reboot successful, installing basic packages and cleaning-up....",
-      "rm -rf /var/log/*"
+    inline = [<<-EOT
+      set -ex
+      echo First reboot successful, updating and installing basic packages...
+      # Update to latest MicroOS version
+      # transactional-update dup
+      transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
+      sleep 1 && udevadm settle && reboot
+      EOT
+    ]
+    expect_disconnect = true
+  }
+
+  # Ensure connection to MicroOS and do house-keeping
+  provisioner "shell" {
+    pause_before = "5s"
+    inline = [<<-EOT
+      set -ex
+      echo Second reboot successful, cleaning-up....
+      transactional-update cleanup
+      # TODO: delete snapshots? 
+      rm -rf /var/log/*
+      rm -rf /etc/ssh/ssh_host_*
+      sleep 1 && udevadm settle
+      EOT
     ]
   }
+
 }
