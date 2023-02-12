@@ -1,5 +1,5 @@
 locals {
-    packages = length(local.packages_to_install) > 0 ? "-var packages_to_install=${local.packages_to_install}"  : ""
+  packages = length(local.packages_to_install) > 0 ? "-var packages_to_install=${local.packages_to_install}" : ""
 }
 data "hcloud_image" "microos_image" {
   with_selector = "microos-snapshot=yes,creator_id=${null_resource.packer.id}"
