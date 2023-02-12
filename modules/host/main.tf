@@ -138,13 +138,6 @@ resource "hcloud_server" "server" {
     ]
   }
 }
-
-resource "null_resource" "create_snapshot" {
-  count = startswith(var.microos_image_id, "ubuntu") ? 1 : 0
-
-  depends_on = [hcloud_server.server]
-}
-
 resource "null_resource" "registries" {
   triggers = {
     registries = var.k3s_registries
@@ -167,7 +160,7 @@ resource "null_resource" "registries" {
     inline = [var.k3s_registries_update_script]
   }
 
-  depends_on = [null_resource.create_snapshot]
+  depends_on = [hcloud_server.server]
 }
 
 resource "hcloud_rdns" "server" {
