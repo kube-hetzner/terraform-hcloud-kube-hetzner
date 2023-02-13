@@ -80,12 +80,9 @@ locals {
     }
   ]...)
 
-  # The main network cidr that all subnets will be created upon
-  network_ipv4_cidr = "10.0.0.0/8"
-
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
-  network_ipv4_subnets = [for index in range(256) : cidrsubnet(local.network_ipv4_cidr, 8, index)]
+  network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
@@ -122,11 +119,8 @@ locals {
   hetzner_metadata_service_ipv4 = "169.254.169.254/32"
   hetzner_cloud_api_ipv4        = "213.239.246.1/32"
 
-  # internal Pod CIDR, used for the controller and currently for calico
-  cluster_cidr_ipv4 = "10.42.0.0/16"
-
   whitelisted_ips = [
-    local.network_ipv4_cidr,
+    var.network_ipv4_cidr,
     local.hetzner_metadata_service_ipv4,
     local.hetzner_cloud_api_ipv4,
     "127.0.0.1/32",
@@ -330,7 +324,7 @@ locals {
 ipam:
  operator:
   clusterPoolIPv4PodCIDRList:
-   - ${local.cluster_cidr_ipv4}
+   - ${var.cluster_ipv4_cidr}
 devices: "eth1"
 %{if var.enable_wireguard~}
 l7Proxy: false
@@ -362,7 +356,7 @@ spec:
         - name: calico-node
           env:
             - name: CALICO_IPV4POOL_CIDR
-              value: "${local.cluster_cidr_ipv4}"
+              value: "${var.cluster_ipv4_cidr}"
             - name: FELIX_WIREGUARDENABLED
               value: "${var.enable_wireguard}"
 
