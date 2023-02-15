@@ -455,7 +455,7 @@ additionalArguments:
   EOT
 
   rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
-hostname: "${length(var.rancher_hostname) != "" ? var.rancher_hostname : var.lb_hostname}"
+hostname: "${var.rancher_hostname != "" ? var.rancher_hostname : var.lb_hostname}"
 replicas: ${length(local.control_plane_nodes)}
 bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
   EOT
