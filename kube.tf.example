@@ -50,6 +50,13 @@ module "kube-hetzner" {
   # * For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
   network_region = "eu-central" # change to `us-east` if location is ash
 
+  # If you must change the network CIDR you can do so below, but it is highly advised against.
+  # network_ipv4_cidr = "10.0.0.0/8"
+
+  # If you must change the cluster CIDR you can do so below, but it is highly advised against.
+  # Cluster CIDR must be a part of the network CIDR!
+  # cluster_ipv4_cidr = "10.42.0.0/16"
+
   # For the control planes, at least three nodes are the minimum for HA. Otherwise, you need to turn off the automatic upgrades (see README).
   # **It must always be an ODD number, never even!** Search the internet for "splitbrain problem with etcd" or see https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
   # For instance, one is ok (non-HA), two is not ok, and three is ok (becomes HA). It does not matter if they are in the same nodepool or not! So they can be in different locations and of various types.
