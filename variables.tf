@@ -2,6 +2,7 @@ variable "hcloud_token" {
   description = "Hetzner Cloud API Token."
   type        = string
   sensitive   = true
+  default     = ""
 }
 
 variable "ssh_port" {
