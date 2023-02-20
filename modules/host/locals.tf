@@ -13,5 +13,5 @@ locals {
   needed_packages = join(" ", concat(["restorecond policycoreutils setools-console"], var.packages_to_install))
 
   # the hosts name with its unique suffix attached
-  name = "${var.name}-${random_string.server.id}"
+  name = "${var.name}-${random_id.server_id.hex}"
 }

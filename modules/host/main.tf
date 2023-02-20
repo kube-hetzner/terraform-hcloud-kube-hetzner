@@ -1,15 +1,15 @@
-resource "random_string" "server" {
-  length  = 3
-  lower   = true
-  special = false
-  numeric = false
-  upper   = false
 
+resource "random_id" "server_id" {
   keepers = {
     # We re-create the apart of the name changes.
     name = var.name
+    # Generate a new id each time we switch to a new image id?
+    # image_id = var.microos_image_id
   }
+
+  byte_length = 3
 }
+
 
 resource "random_string" "identity_file" {
   length  = 20
@@ -21,8 +21,7 @@ resource "random_string" "identity_file" {
 
 resource "hcloud_server" "server" {
   name               = local.name
-  image              = "ubuntu-20.04"
-  rescue             = "linux64"
+  image              = var.microos_image_id
   server_type        = var.server_type
   location           = var.location
   ssh_keys           = var.ssh_keys
@@ -60,33 +59,6 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Install MicroOS
-  provisioner "remote-exec" {
-    connection {
-      user           = "root"
-      private_key    = var.ssh_private_key
-      agent_identity = local.ssh_agent_identity
-      host           = self.ipv4_address
-
-      # We cannot use different ports here as this runs inside Hetzner Rescue image and thus uses the
-      # standard 22 TCP port.
-      port = 22
-    }
-
-    inline = [
-      "set -ex",
-      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${var.opensuse_microos_mirror_link}",
-      "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
-    ]
-  }
-
-  # Issue a reboot command.
-  provisioner "local-exec" {
-    command = <<-EOT
-      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} root@${self.ipv4_address} '(sleep 2; reboot)&'; sleep 3
-    EOT
-  }
-
   # Wait for MicroOS to reboot and be ready.
   provisioner "local-exec" {
     command = <<-EOT
@@ -111,7 +83,6 @@ resource "hcloud_server" "server" {
     inline = [<<-EOT
       set -ex
       transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/master/.extra/k3s-selinux-next.rpm"
-      transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       sleep 1 && udevadm settle
       EOT
     ]
@@ -167,7 +138,6 @@ resource "hcloud_server" "server" {
     ]
   }
 }
-
 resource "null_resource" "registries" {
   triggers = {
     registries = var.k3s_registries

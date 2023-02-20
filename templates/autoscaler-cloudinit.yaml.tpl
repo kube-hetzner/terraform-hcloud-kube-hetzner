@@ -57,16 +57,14 @@ write_files:
 
 - content: ${base64encode(k3s_config)}
   encoding: base64
-  path: /etc/rancher/k3s/config.yaml
+  path: /tmp/config.yaml
 
 - content: ${base64encode(k3s_registries)}
   encoding: base64
   path: /etc/rancher/k3s/registries.yaml
 
-- content: |
-    set -ex
-    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${k3s_channel} INSTALL_K3S_EXEC=agent sh -
-    /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp
+- content: ${base64encode(join("\n", install_k3s))}
+  encoding: base64
   path: /tmp/install-k3s-agent.sh
 
 # Add new authorized keys
@@ -86,9 +84,6 @@ hostname: ${hostname}
 preserve_hostname: true
 
 runcmd:
-# uninstall k3s if it exists already in the snaphshot
-- [/bin/sh, -c, '[ -f /usr/local/bin/k3s-uninstall.sh ] && /usr/local/bin/k3s-uninstall.sh']
-
 # ensure that /var uses full available disk size, thanks to btrfs this is easy
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 
@@ -121,5 +116,12 @@ runcmd:
 # install k3s
 - ['/bin/sh', '/tmp/install-k3s-agent.sh']
 
-# start k3s-agent service
-- [systemctl, 'start', 'k3s-agent']
+# enable k3s-agent service
+- [systemctl, 'enable', 'k3s-agent']
+
+# reboot!
+power_state:
+    delay: now
+    mode: reboot
+    message: MicroOS rebooting to reflect changes
+    condition: true
