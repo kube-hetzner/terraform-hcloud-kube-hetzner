@@ -12,7 +12,7 @@ resource "hcloud_ssh_key" "k3s" {
 
 resource "hcloud_network" "k3s" {
   name     = var.cluster_name
-  ip_range = local.network_ipv4_cidr
+  ip_range = var.network_ipv4_cidr
   labels   = local.labels
 }
 
