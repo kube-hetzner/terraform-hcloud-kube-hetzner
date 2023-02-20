@@ -1,6 +1,6 @@
 locals {
-  # First and foremost set your Hetzner API token here. It can be found in your Project > Security > API Token (Read & Write is required).
-  hcloud_token = "xxxxxxxxxxxxxxxxYYYYYYYYYYzzzzzzzzzzzzzzzzz"
+  # set your Hetzner API token here or define the HCLOUD_TOKEN env within your shell for security purpose. It can be found in your Project > Security > API Token (Read & Write is required).
+  hcloud_token = ""
 }
 
 module "kube-hetzner" {
