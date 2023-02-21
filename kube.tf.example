@@ -1,5 +1,5 @@
 locals {
-  # set your Hetzner API token here or define the HCLOUD_TOKEN env within your shell for security purpose. It can be found in your Project > Security > API Token (Read & Write is required).
+  # set your Hetzner API token here or define the TF_VAR_hcloud_token env within your shell for security purpose. It can be found in your Project > Security > API Token (Read & Write is required).
   hcloud_token = ""
 }
 
