@@ -217,6 +217,12 @@ variable "initial_k3s_channel" {
   }
 }
 
+variable "install_k3s_exec_server" {
+  type        = string
+  default     = "server"
+  description = "The command which is set as ExecStart of the k3s server systemd service"
+}
+
 variable "automatically_upgrade_k3s" {
   type        = bool
   default     = true
