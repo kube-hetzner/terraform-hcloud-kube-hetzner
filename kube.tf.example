@@ -535,7 +535,7 @@ ports:
   # Nginx, all Nginx helm values can be found at https://github.com/kubernetes/ingress-nginx/blob/main/charts/ingress-nginx/values.yaml
   # You can also have a look at https://kubernetes.github.io/ingress-nginx/, to understand how it works, and all the options at your disposal.
   # The following is an example, please note that the current indentation inside the EOT is important.
-  /*   nginx_ingress_values = <<EOT
+  /*   nginx_values = <<EOT
 controller:
   watchIngressWithoutClass: "true"
   kind: "DaemonSet"
