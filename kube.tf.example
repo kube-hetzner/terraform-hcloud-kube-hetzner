@@ -90,6 +90,7 @@ module "kube-hetzner" {
       name        = "control-plane-fsn1",
       server_type = "cpx11",
       location    = "fsn1",
+      backups     = false,
       labels      = [],
       taints      = [],
       count       = 1
@@ -98,6 +99,7 @@ module "kube-hetzner" {
       name        = "control-plane-nbg1",
       server_type = "cpx11",
       location    = "nbg1",
+      backups     = false,
       labels      = [],
       taints      = [],
       count       = 1
@@ -106,6 +108,7 @@ module "kube-hetzner" {
       name        = "control-plane-hel1",
       server_type = "cpx11",
       location    = "hel1",
+      backups     = false,
       labels      = [],
       taints      = [],
       count       = 1
@@ -117,6 +120,7 @@ module "kube-hetzner" {
       name        = "agent-small",
       server_type = "cpx11",
       location    = "fsn1",
+      backups     = false,
       labels      = [],
       taints      = [],
       count       = 1
@@ -125,6 +129,7 @@ module "kube-hetzner" {
       name        = "agent-large",
       server_type = "cpx21",
       location    = "nbg1",
+      backups     = false,
       labels      = [],
       taints      = [],
       count       = 1
@@ -133,6 +138,7 @@ module "kube-hetzner" {
       name        = "storage",
       server_type = "cpx21",
       location    = "fsn1",
+      backups     = false,
       # Fully optional, just a demo.
       labels      = [
         "node.kubernetes.io/server-usage=storage"

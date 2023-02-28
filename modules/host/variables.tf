@@ -73,6 +73,11 @@ variable "server_type" {
   type        = string
 }
 
+variable "backups" {
+  description = "Enable backups"
+  type        = bool
+}
+
 variable "packages_to_install" {
   description = "Packages to install"
   type        = list(string)

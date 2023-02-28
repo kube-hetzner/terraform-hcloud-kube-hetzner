@@ -18,6 +18,7 @@ module "control_planes" {
   placement_group_id           = var.placement_group_disable ? 0 : hcloud_placement_group.control_plane[floor(each.value.index / 10)].id
   location                     = each.value.location
   server_type                  = each.value.server_type
+  backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
   packages_to_install          = local.packages_to_install
   dns_servers                  = var.dns_servers
