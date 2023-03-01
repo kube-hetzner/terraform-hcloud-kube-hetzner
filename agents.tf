@@ -163,11 +163,10 @@ resource "null_resource" "configure_floating_ip" {
   for_each = { for k, v in local.agent_nodes : k => v if(lookup(v, "floating_ip", false)) }
 
   triggers = {
-    agent_id = module.agents[each.key].id
+    agent_id       = module.agents[each.key].id
     floating_ip_id = hcloud_floating_ip.agents[each.key].id
   }
 
-  # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = [
       "echo \"BOOTPROTO='static'\nSTARTMODE='auto'\nIPADDR=${hcloud_floating_ip.agents[each.key].ip_address}/32\nIPADDR_1=${module.agents[each.key].ipv4_address}/32\" > /etc/sysconfig/network/ifcfg-eth0",
