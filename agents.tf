@@ -18,7 +18,7 @@ module "agents" {
   placement_group_id           = var.placement_group_disable ? 0 : hcloud_placement_group.agent[floor(each.value.index / 10)].id
   location                     = each.value.location
   server_type                  = each.value.server_type
-  enable_backups               = each.value.enable_backups
+  backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
   packages_to_install          = local.packages_to_install
   dns_servers                  = var.dns_servers

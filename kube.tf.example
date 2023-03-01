@@ -95,7 +95,7 @@ module "kube-hetzner" {
       count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
-      # enable_backups = true
+      # backups = true
     },
     {
       name        = "control-plane-nbg1",
@@ -106,7 +106,7 @@ module "kube-hetzner" {
       count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
-      # enable_backups = true
+      # backups = true
     },
     {
       name        = "control-plane-hel1",
@@ -117,7 +117,7 @@ module "kube-hetzner" {
       count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
-      # enable_backups = true
+      # backups = true
     }
   ]
 
@@ -131,7 +131,7 @@ module "kube-hetzner" {
       count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
-      # enable_backups = true
+      # backups = true
     },
     {
       name        = "agent-large",
@@ -142,7 +142,7 @@ module "kube-hetzner" {
       count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
-      # enable_backups = true
+      # backups = true
     },
     {
       name        = "storage",
@@ -162,7 +162,7 @@ module "kube-hetzner" {
       # longhorn_volume_size = 20
 
       # Enable automatic backups via Hetzner (default: false)
-      # enable_backups = true
+      # backups = true
     }
   ]
   # Add custom control plane configuration options here.

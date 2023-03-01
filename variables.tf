@@ -84,13 +84,13 @@ variable "load_balancer_disable_ipv6" {
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
-    name           = string
-    server_type    = string
-    location       = string
-    enable_backups = optional(bool)
-    labels         = list(string)
-    taints         = list(string)
-    count          = number
+    name        = string
+    server_type = string
+    location    = string
+    backups     = optional(bool)
+    labels      = list(string)
+    taints      = list(string)
+    count       = number
   }))
   default = []
 }
@@ -98,13 +98,13 @@ variable "control_plane_nodepools" {
 variable "agent_nodepools" {
   description = "Number of agent nodes."
   type = list(object({
-    name           = string
-    server_type    = string
-    location       = string
-    enable_backups = optional(bool)
-    labels         = list(string)
-    taints         = list(string)
-    count          = number
+    name        = string
+    server_type = string
+    location    = string
+    backups     = optional(bool)
+    labels      = list(string)
+    taints      = list(string)
+    count       = number
   }))
   default = []
 }

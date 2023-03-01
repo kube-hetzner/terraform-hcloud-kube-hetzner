@@ -28,7 +28,7 @@ resource "hcloud_server" "server" {
   ssh_keys           = var.ssh_keys
   firewall_ids       = var.firewall_ids
   placement_group_id = var.placement_group_id
-  backups            = var.enable_backups
+  backups            = var.backups
   user_data          = data.cloudinit_config.config.rendered
 
   labels = var.labels
