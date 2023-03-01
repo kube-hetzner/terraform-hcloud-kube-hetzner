@@ -73,9 +73,10 @@ variable "server_type" {
   type        = string
 }
 
-variable "backups" {
-  description = "Enable backups"
+variable "enable_backups" {
+  description = "Enable automatic backups via Hetzner"
   type        = bool
+  default     = false
 }
 
 variable "packages_to_install" {
