@@ -85,6 +85,22 @@ resource "random_password" "rancher_bootstrap" {
 
 # This is where all the setup of Kubernetes components happen
 resource "null_resource" "kustomization" {
+
+  # Redeploy helm charts when the underlying values change
+  triggers = {
+    values_yaml = join(",",
+      [
+        local.traefik_values,
+        local.nginx_values,
+        local.calico_values,
+        local.cilium_values,
+        local.longhorn_values,
+        local.cert_manager_values,
+        local.rancher_values,
+      ]
+    )
+  }
+
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
@@ -95,6 +111,7 @@ resource "null_resource" "kustomization" {
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
   provisioner "file" {
+
     content = yamlencode({
       apiVersion = "kustomize.config.k8s.io/v1beta1"
       kind       = "Kustomization"
