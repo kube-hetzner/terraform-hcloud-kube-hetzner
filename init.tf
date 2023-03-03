@@ -111,7 +111,6 @@ resource "null_resource" "kustomization" {
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
   provisioner "file" {
-
     content = yamlencode({
       apiVersion = "kustomize.config.k8s.io/v1beta1"
       kind       = "Kustomization"
