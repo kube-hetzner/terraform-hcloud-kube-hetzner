@@ -7,12 +7,12 @@ locals {
       ca_image         = var.cluster_autoscaler_image
       ca_version       = var.cluster_autoscaler_version
       ssh_key          = local.hcloud_ssh_key_id
-      ipv4_subnet_id   = hcloud_network.k3s.id
       # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
-      snapshot_id  = data.hcloud_image.microos_image.id
-      firewall_id  = hcloud_firewall.k3s.id
-      cluster_name = local.cluster_prefix
-      node_pools   = var.autoscaler_nodepools
+      ipv4_subnet_id = hcloud_network.k3s.id
+      snapshot_id    = data.hcloud_image.microos_snapshot.id
+      firewall_id    = hcloud_firewall.k3s.id
+      cluster_name   = local.cluster_prefix
+      node_pools     = var.autoscaler_nodepools
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
@@ -52,7 +52,7 @@ resource "null_resource" "configure_autoscaler" {
 
   depends_on = [
     null_resource.first_control_plane,
-    data.hcloud_image.microos_image
+    data.hcloud_image.microos_snapshot
   ]
 }
 

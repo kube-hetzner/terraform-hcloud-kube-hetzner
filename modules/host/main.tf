@@ -21,7 +21,7 @@ resource "random_string" "identity_file" {
 
 resource "hcloud_server" "server" {
   name               = local.name
-  image              = var.microos_image_id
+  image              = var.microos_snapshot_id
   server_type        = var.server_type
   location           = var.location
   ssh_keys           = var.ssh_keys
@@ -40,6 +40,7 @@ resource "hcloud_server" "server" {
       location,
       ssh_keys,
       user_data,
+      image,
     ]
   }
 
@@ -72,14 +73,6 @@ resource "hcloud_server" "server" {
 
   # Install k3s-selinux (compatible version) and open-iscsi
   provisioner "remote-exec" {
-    connection {
-      user           = "root"
-      private_key    = var.ssh_private_key
-      agent_identity = local.ssh_agent_identity
-      host           = self.ipv4_address
-      port           = var.ssh_port
-    }
-
     inline = [<<-EOT
       set -ex
       transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/master/.extra/k3s-selinux-next.rpm"
@@ -138,6 +131,7 @@ resource "hcloud_server" "server" {
     ]
   }
 }
+
 resource "null_resource" "registries" {
   triggers = {
     registries = var.k3s_registries
