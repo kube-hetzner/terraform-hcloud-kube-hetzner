@@ -60,6 +60,7 @@ locals {
         location : nodepool_obj.location,
         labels : concat(local.default_control_plane_labels, nodepool_obj.labels),
         taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
+        backups : nodepool_obj.backups,
         index : node_index
       }
     }
@@ -75,6 +76,7 @@ locals {
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
+        backups : nodepool_obj.backups,
         index : node_index
       }
     }
