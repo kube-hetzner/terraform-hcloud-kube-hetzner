@@ -85,20 +85,25 @@ resource "random_password" "rancher_bootstrap" {
 
 # This is where all the setup of Kubernetes components happen
 resource "null_resource" "kustomization" {
-
-  # Redeploy helm charts when the underlying values change
   triggers = {
-    values_yaml = join(",",
-      [
-        local.traefik_values,
-        local.nginx_values,
-        local.calico_values,
-        local.cilium_values,
-        local.longhorn_values,
-        local.cert_manager_values,
-        local.rancher_values,
-      ]
-    )
+    # Redeploy helm charts when the underlying values change
+    helm_values_yaml = [
+      local.traefik_values,
+      local.nginx_values,
+      local.calico_values,
+      local.cilium_values,
+      local.longhorn_values,
+      local.cert_manager_values,
+      local.rancher_values,
+    ]
+    # Redeploy when versions of addons need to be updated
+    versions = [
+      var.cluster_autoscaler_version,
+      var.hetzner_ccm_version,
+      var.hetzner_csi_version,
+      var.kured_version,
+      var.calico_version
+    ]
   }
 
   connection {
