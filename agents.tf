@@ -144,8 +144,6 @@ resource "hcloud_floating_ip" "agents" {
   type          = "ipv4"
   labels        = local.labels
   home_location = each.value.location
-
-  delete_protection = true
 }
 
 resource "hcloud_floating_ip_assignment" "agents" {

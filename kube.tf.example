@@ -128,6 +128,7 @@ module "kube-hetzner" {
     # 'egress' nodepool with 'floating IPs' assigning to each node in pool
     # useful for control/route egress traffic using 'Hetzner Floating IPs' (https://docs.hetzner.com/cloud/floating-ips)
     # applied to: https://docs.cilium.io/en/stable/gettingstarted/egress-gateway/
+    # See the https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples for use case: **Cilium Egress Gateway (via Floating IP)**.
     {
       name        = "egress",
       server_type = "cpx11",
