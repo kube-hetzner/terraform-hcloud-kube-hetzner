@@ -479,7 +479,7 @@ module "kube-hetzner" {
   /*   cilium_values = <<EOT
 ipam:
   mode: kubernetes
-devices: "eth1"
+devices: "enp7s0"
 k8s:
   requireIPv4PodCIDR: true
 kubeProxyReplacement: strict
