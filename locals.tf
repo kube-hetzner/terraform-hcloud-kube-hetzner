@@ -73,6 +73,7 @@ locals {
         nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
         longhorn_volume_size : lookup(nodepool_obj, "longhorn_volume_size", 0),
+        floating_ip : lookup(nodepool_obj, "floating_ip", false),
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
