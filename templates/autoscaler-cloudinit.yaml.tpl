@@ -4,12 +4,6 @@ debug: True
 
 write_files:
 
-# Configure the private network interface
-- content: |
-    BOOTPROTO='dhcp'
-    STARTMODE='auto'
-  path: /etc/sysconfig/network/ifcfg-eth1
-
 # Disable ssh password authentication
 - content: |
     Port ${sshPort}

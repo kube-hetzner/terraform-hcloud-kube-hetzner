@@ -60,6 +60,7 @@ locals {
         location : nodepool_obj.location,
         labels : concat(local.default_control_plane_labels, nodepool_obj.labels),
         taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
+        backups : nodepool_obj.backups,
         index : node_index
       }
     }
@@ -75,6 +76,7 @@ locals {
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
+        backups : nodepool_obj.backups,
         index : node_index
       }
     }
@@ -316,7 +318,7 @@ locals {
 
   kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
-  flannel_iface               = "eth1"
+  flannel_iface               = "enp7s0"
 
   ingress_controller = var.ingress_controller
 
@@ -340,7 +342,7 @@ ipam:
  operator:
   clusterPoolIPv4PodCIDRList:
    - ${var.cluster_ipv4_cidr}
-devices: "eth1"
+devices: "enp7s0"
 %{if var.enable_wireguard~}
 l7Proxy: false
 encryption:
