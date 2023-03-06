@@ -140,7 +140,7 @@ resource "null_resource" "configure_longhorn_volume" {
 }
 
 resource "hcloud_floating_ip" "agents" {
-  for_each = { for k, v in local.agent_nodes : k => v if(lookup(v, "floating_ip", false)) }
+  for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
   type          = "ipv4"
   labels        = local.labels
@@ -148,7 +148,7 @@ resource "hcloud_floating_ip" "agents" {
 }
 
 resource "hcloud_floating_ip_assignment" "agents" {
-  for_each = { for k, v in local.agent_nodes : k => v if(lookup(v, "floating_ip", false)) }
+  for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
   floating_ip_id = hcloud_floating_ip.agents[each.key].id
   server_id      = module.agents[each.key].id
@@ -159,7 +159,7 @@ resource "hcloud_floating_ip_assignment" "agents" {
 }
 
 resource "null_resource" "configure_floating_ip" {
-  for_each = { for k, v in local.agent_nodes : k => v if(lookup(v, "floating_ip", false)) }
+  for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
   triggers = {
     agent_id       = module.agents[each.key].id
