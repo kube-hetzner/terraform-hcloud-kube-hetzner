@@ -87,7 +87,7 @@ resource "random_password" "rancher_bootstrap" {
 resource "null_resource" "kustomization" {
   triggers = {
     # Redeploy helm charts when the underlying values change
-    helm_values_yaml = join("---\n",[
+    helm_values_yaml = join("---\n", [
       local.traefik_values,
       local.nginx_values,
       local.calico_values,
@@ -97,7 +97,7 @@ resource "null_resource" "kustomization" {
       local.rancher_values,
     ])
     # Redeploy when versions of addons need to be updated
-    versions = join("\n",[
+    versions = join("\n", [
       var.cluster_autoscaler_version,
       var.hetzner_ccm_version,
       var.hetzner_csi_version,
