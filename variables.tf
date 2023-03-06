@@ -102,6 +102,7 @@ variable "agent_nodepools" {
     server_type = string
     location    = string
     backups     = optional(bool)
+    floating_ip = optional(bool)
     labels      = list(string)
     taints      = list(string)
     count       = number

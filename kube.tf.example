@@ -163,6 +163,22 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+    },
+    # Egress nodepool useful to route egress traffic using Hetzner Floating IPs (https://docs.hetzner.com/cloud/floating-ips)
+    # used with Cilium's Egress Gateway feature https://docs.cilium.io/en/stable/gettingstarted/egress-gateway/
+    # See the https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples for an example use case.
+    {
+      name        = "egress",
+      server_type = "cpx11",
+      location    = "fsn1",
+      labels = [
+        "node.kubernetes.io/role=egress"
+      ],
+      taints = [
+        "node.kubernetes.io/role=egress:NoSchedule"
+      ],
+      floating_ip = true
+      count = 1
     }
   ]
   # Add custom control plane configuration options here.
