@@ -50,8 +50,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Possibility to toggle **Longhorn** and **Hetzner CSI**.
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
 - [x] Optional **Wireguard** encryption of the Kube network for added security.
-- [x] Optional assign [Floating IPs](https://docs.hetzner.com/cloud/floating-ips/faq) (with default routing via Floating IP) to a selected nodepool.
-See the [examples](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples) section for use case: **Cilium Egress Gateway (via Floating IP)**.
+- [x] Optional use of floating IPs for use via Cilium's Egress Gateway.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
@@ -282,13 +281,13 @@ _For more cilium commands, please refer to their corresponding [Documentation](h
 </details>
 
 <details>
-<summary>Cilium Egress Gateway (via Floating IP)</summary>
+<summary>Cilium Egress Gateway (via Floating IPs)</summary>
 
 [Cilium Egress Gateway](https://docs.cilium.io/en/stable/network/egress-gateway/) provides the ability to control outgoing traffic from POD.
 
-Using Floating IP makes it possible to get rid of the problem of changing the primary IP when recreate (while change node type) the cluster node.
+Using Floating IPs makes it possible to get rid of the problem of changing the primary IPs when recreating a node in the cluster.
 
-To implement Cilium Egress Gateway feature, you need to define a separate nodepool (1 or more nodes) with the setting `floating_ip = true` in the nodepool configuration parameter block.
+To implement the Cilium Egress Gateway feature, you need to define a separate nodepool with the setting `floating_ip = true` in the nodepool configuration parameter block.
 
 Example nodepool configuration:
 ```
@@ -334,7 +333,8 @@ Deploy the K8S cluster infrastructure.
 See the Cilium documentation for further steps (policy writing and testing): [Writing egress gateway policies](https://docs.cilium.io/en/stable/network/egress-gateway/)
 
 CiliumEgressGatewayPolicy example:
-```
+
+```yaml
 apiVersion: cilium.io/v2
 kind: CiliumEgressGatewayPolicy
 metadata:
@@ -359,6 +359,7 @@ spec:
     # It must exist as an IP associated with a network interface on the instance.
     egressIP: {FLOATING_IP}
 ```
+
 </details>
 
 <details>
