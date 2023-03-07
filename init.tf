@@ -99,12 +99,14 @@ resource "null_resource" "kustomization" {
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
-      var.cluster_autoscaler_version,
-      var.hetzner_ccm_version,
-      var.hetzner_csi_version,
-      var.kured_version,
-      var.kured_options,
-      var.calico_version
+      coalesce(var.cluster_autoscaler_version, "N/A"),
+      coalesce(var.hetzner_ccm_version, "N/A"),
+      coalesce(var.hetzner_csi_version, "N/A"),
+      coalesce(var.kured_version, "N/A"),
+      coalesce(var.calico_version, "N/A"),
+    ])
+    options = join("\n", [
+      for option, value in var.kured_options : "${option}=${value}"
     ])
   }
 
