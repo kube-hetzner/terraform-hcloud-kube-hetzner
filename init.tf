@@ -47,6 +47,7 @@ resource "null_resource" "first_control_plane" {
   # Upon reboot start k3s and wait for it to be ready to receive commands
   provisioner "remote-exec" {
     inline = [
+      "/etc/cloud/rename_interface.sh",
       "systemctl start k3s",
       # prepare the post_install directory
       "mkdir -p /var/post_install",
