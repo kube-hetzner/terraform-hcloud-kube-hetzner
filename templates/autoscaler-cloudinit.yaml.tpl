@@ -4,6 +4,21 @@ debug: True
 
 write_files:
 
+# Script to rename the private interface to eth1
+- path: /etc/cloud/rename_interface.sh
+  content: |
+    #!/bin/bash
+    set -xeuo pipefail
+
+    sleep 11
+    
+    INTERFACE=$(ip link show | awk '/^3:/{print $2}' | sed 's/://g')
+    MAC=$(cat /sys/class/net/$INTERFACE/address)
+    
+    cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
+    SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
+    EOF
+
 # Disable ssh password authentication
 - content: |
     Port ${sshPort}
@@ -57,11 +72,41 @@ write_files:
   encoding: base64
   path: /etc/rancher/k3s/registries.yaml
 
+%{ if length(dnsServers) > 0 }
+# Set prepare for manual dns config
 - content: |
-    set -ex
+    [main]
+    dns=none
+  path: /etc/NetworkManager/conf.d/dns.conf
+
+- content: |
+    %{ for server in dnsServers ~}
+    nameserver ${server}
+    %{ endfor }
+  path: /etc/resolv.conf
+  permissions: '0644'
+%{ endif }
+
+- content: |
+    set -vx
     curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${k3s_channel} INSTALL_K3S_EXEC=agent sh -
     /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp
-  path: /tmp/install-k3s-agent.sh
+    systemctl start k3s-agent
+  path: /var/pre_install/install-k3s-agent.sh
+
+- content: |
+    [Unit]
+    Description=Run install-k3s-agent once at boot time
+    After=network-online.target
+
+    [Service]
+    Type=oneshot
+    ExecStart=/bin/sh /var/pre_install/install-k3s-agent.sh
+
+    [Install]
+    WantedBy=network-online.target
+  permissions: '0644'
+  path: /etc/systemd/system/install-k3s-agent.service
 
 # Add new authorized keys
 ssh_deletekeys: true
@@ -91,15 +136,6 @@ runcmd:
 - [semodule, '-vi', '/etc/selinux/sshd_t.pp']
 %{ endif }
 
-# As above, make sure the hostname is not reset
-- [sed, '-i', 's/NETCONFIG_NIS_SETDOMAINNAME="yes"/NETCONFIG_NIS_SETDOMAINNAME="no"/g', /etc/sysconfig/network/config]
-- [sed, '-i', 's/DHCLIENT_SET_HOSTNAME="yes"/DHCLIENT_SET_HOSTNAME="no"/g', /etc/sysconfig/network/dhcp]
-
-%{ if length(dnsServers) > 0 }
-# We set the user provided DNS servers, or leave the value empty to default to Hetzners
-- [sed, '-i', 's/NETCONFIG_DNS_STATIC_SERVERS=""/NETCONFIG_DNS_STATIC_SERVERS="${join(" ", dnsServers)}"/g', /etc/sysconfig/network/config]
-%{ endif }
-
 # Bounds the amount of logs that can survive on the system
 - [sed, '-i', 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
 - [sed, '-i', 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
@@ -108,12 +144,20 @@ runcmd:
 - [sed, '-i', 's/NUMBER_LIMIT="2-10"/NUMBER_LIMIT="4"/g', /etc/snapper/configs/root]
 - [sed, '-i', 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g', /etc/snapper/configs/root]
 
-# Activate changes and disable unneeded services
-- [systemctl, 'restart', 'sshd']
+# Disable unneeded services
 - [systemctl, disable, '--now', 'rebootmgr.service']
 
-# install k3s
-- ['/bin/sh', '/tmp/install-k3s-agent.sh']
+%{ if length(dnsServers) > 0 }
+# Set the dns manually
+- [systemctl, 'reload', 'NetworkManager']
+%{ endif }
 
-# start k3s-agent service
-- [systemctl, 'start', 'k3s-agent']
+# rename network interface
+- [chmod, '+x', '/etc/cloud/rename_interface.sh']
+- ['/etc/cloud/rename_interface.sh']
+
+# Enable install-k3s-agent service
+- [systemctl, enable, 'install-k3s-agent.service']
+
+# Reboot to activate everything
+- [reboot]

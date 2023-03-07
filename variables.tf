@@ -112,7 +112,7 @@ variable "agent_nodepools" {
 
 variable "cluster_autoscaler_image" {
   type        = string
-  default     = "k8s.gcr.io/autoscaling/cluster-autoscaler"
+  default     = "registry.k8s.io/autoscaling/cluster-autoscaler"
   description = "Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used."
 }
 

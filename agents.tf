@@ -75,6 +75,7 @@ resource "null_resource" "agents" {
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = [
+      "/etc/cloud/rename_interface.sh",
       "systemctl start k3s-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
