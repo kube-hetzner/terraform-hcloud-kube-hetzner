@@ -95,8 +95,7 @@ resource "null_resource" "kustomization" {
       local.cilium_values,
       local.longhorn_values,
       local.cert_manager_values,
-      local.rancher_values,
-      var.kured_options
+      local.rancher_values
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
@@ -104,6 +103,7 @@ resource "null_resource" "kustomization" {
       var.hetzner_ccm_version,
       var.hetzner_csi_version,
       var.kured_version,
+      var.kured_options,
       var.calico_version
     ])
   }
