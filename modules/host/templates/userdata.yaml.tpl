@@ -4,6 +4,25 @@ debug: True
 
 write_files:
 
+# Script to rename the private interface to eth1
+- path: /etc/cloud/rename_interface.sh
+  content: |
+    #!/bin/bash
+    set -euo pipefail
+
+    sleep 11
+    
+    INTERFACE=$(ip link show | awk '/^3:/{print $2}' | sed 's/://g')
+    MAC=$(cat /sys/class/net/$INTERFACE/address)
+    
+    cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
+    SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
+    EOF
+
+    ip link set $INTERFACE down
+    ip link set $INTERFACE name eth1
+    ip link set eth1 up
+
 # Disable ssh password authentication
 - content: |
     Port ${sshPort}
@@ -67,6 +86,21 @@ write_files:
   path: /etc/rancher/k3s/registries.yaml
 %{ endif }
 
+%{ if length(dnsServers) > 0 }
+# Set prepare for manual dns config
+- content: |
+    [main]
+    dns=none
+  path: /etc/NetworkManager/conf.d/dns.conf
+
+- content: |
+    %{ for server in dnsServers ~}
+    nameserver ${server}
+    %{ endfor }
+  path: /etc/resolv.conf
+  permissions: '0644'
+%{ endif }
+
 # Add ssh authorized keys
 ssh_authorized_keys:
 %{ for key in sshAuthorizedKeys ~}
@@ -88,15 +122,6 @@ runcmd:
 - [semodule, '-vi', '/etc/selinux/sshd_t.pp']
 %{ endif }
 
-# As above, make sure the hostname is not reset
-- [sed, '-i', 's/NETCONFIG_NIS_SETDOMAINNAME="yes"/NETCONFIG_NIS_SETDOMAINNAME="no"/g', /etc/sysconfig/network/config]
-- [sed, '-i', 's/DHCLIENT_SET_HOSTNAME="yes"/DHCLIENT_SET_HOSTNAME="no"/g', /etc/sysconfig/network/dhcp]
-
-%{ if length(dnsServers) > 0 }
-# We set the user provided DNS servers, or leave the value empty to default to Hetzners
-- [sed, '-i', 's/NETCONFIG_DNS_STATIC_SERVERS=""/NETCONFIG_DNS_STATIC_SERVERS="${join(" ", dnsServers)}"/g', /etc/sysconfig/network/config]
-%{ endif }
-
 # Bounds the amount of logs that can survive on the system
 - [sed, '-i', 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
 - [sed, '-i', 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
@@ -105,6 +130,14 @@ runcmd:
 - [sed, '-i', 's/NUMBER_LIMIT="2-10"/NUMBER_LIMIT="4"/g', /etc/snapper/configs/root]
 - [sed, '-i', 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g', /etc/snapper/configs/root]
 
+%{ if length(dnsServers) > 0 }
+# Set the dns manually
+- [systemctl, 'reload', 'NetworkManager']
+%{ endif }
+
 # Disables unneeded services
 - [systemctl, 'restart', 'sshd']
 - [systemctl, disable, '--now', 'rebootmgr.service']
+
+# make rename_service executable
+- [chmod, '+x', '/etc/cloud/rename_interface.sh']

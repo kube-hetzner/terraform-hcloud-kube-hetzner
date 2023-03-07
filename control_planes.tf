@@ -136,6 +136,7 @@ resource "null_resource" "control_planes" {
   # Start the k3s server and wait for it to have started correctly
   provisioner "remote-exec" {
     inline = [
+      "/etc/cloud/rename_interface.sh",
       "systemctl start k3s 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF

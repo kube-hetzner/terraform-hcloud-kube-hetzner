@@ -319,7 +319,7 @@ locals {
 
   kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
-  flannel_iface               = "enp7s0"
+  flannel_iface               = "eth1"
 
   ingress_controller = var.ingress_controller
 
@@ -343,7 +343,7 @@ ipam:
  operator:
   clusterPoolIPv4PodCIDRList:
    - ${var.cluster_ipv4_cidr}
-devices: "enp7s0"
+devices: "eth1"
 %{if var.enable_wireguard~}
 l7Proxy: false
 encryption:
