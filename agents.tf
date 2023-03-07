@@ -19,6 +19,7 @@ module "agents" {
   placement_group_id           = var.placement_group_disable ? 0 : hcloud_placement_group.agent[floor(each.value.index / 10)].id
   location                     = each.value.location
   server_type                  = each.value.server_type
+  backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
   packages_to_install          = local.packages_to_install
   dns_servers                  = var.dns_servers
@@ -75,6 +76,7 @@ resource "null_resource" "agents" {
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = [
+      "/etc/cloud/rename_interface.sh",
       "systemctl start k3s-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
@@ -136,5 +138,60 @@ resource "null_resource" "configure_longhorn_volume" {
 
   depends_on = [
     hcloud_volume.longhorn_volume
+  ]
+}
+
+resource "hcloud_floating_ip" "agents" {
+  for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
+
+  type          = "ipv4"
+  labels        = local.labels
+  home_location = each.value.location
+}
+
+resource "hcloud_floating_ip_assignment" "agents" {
+  for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
+
+  floating_ip_id = hcloud_floating_ip.agents[each.key].id
+  server_id      = module.agents[each.key].id
+
+  depends_on = [
+    null_resource.agents
+  ]
+}
+
+resource "null_resource" "configure_floating_ip" {
+  for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
+
+  triggers = {
+    agent_id       = module.agents[each.key].id
+    floating_ip_id = hcloud_floating_ip.agents[each.key].id
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "echo \"BOOTPROTO='static'\nSTARTMODE='auto'\nIPADDR=${hcloud_floating_ip.agents[each.key].ip_address}/32\nIPADDR_1=${module.agents[each.key].ipv4_address}/32\" > /etc/sysconfig/network/ifcfg-eth0",
+      "echo \"172.31.1.1 - 255.255.255.255 eth0\ndefault 172.31.1.1 - eth0 src ${hcloud_floating_ip.agents[each.key].ip_address}\" > /etc/sysconfig/network/ifroute-eth0",
+
+      "ip addr add ${hcloud_floating_ip.agents[each.key].ip_address}/32 dev eth0",
+      "ip route replace default via 172.31.1.1 dev eth0 src ${hcloud_floating_ip.agents[each.key].ip_address}",
+
+      # its important: floating IP should be first on the interface IP list
+      # move main IP to the second position
+      "ip addr del ${module.agents[each.key].ipv4_address}/32 dev eth0",
+      "ip addr add ${module.agents[each.key].ipv4_address}/32 dev eth0",
+    ]
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = module.agents[each.key].ipv4_address
+    port           = var.ssh_port
+  }
+
+  depends_on = [
+    hcloud_floating_ip_assignment.agents
   ]
 }

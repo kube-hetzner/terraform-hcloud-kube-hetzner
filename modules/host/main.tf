@@ -27,6 +27,7 @@ resource "hcloud_server" "server" {
   ssh_keys           = var.ssh_keys
   firewall_ids       = var.firewall_ids
   placement_group_id = var.placement_group_id
+  backups            = var.backups
   user_data          = data.cloudinit_config.config.rendered
 
   labels = var.labels
@@ -75,7 +76,7 @@ resource "hcloud_server" "server" {
   provisioner "remote-exec" {
     inline = [<<-EOT
       set -ex
-      transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/master/.extra/k3s-selinux-next.rpm"
+      transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
       sleep 1 && udevadm settle
       EOT
     ]

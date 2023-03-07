@@ -50,6 +50,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Possibility to toggle **Longhorn** and **Hetzner CSI**.
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
 - [x] Optional **Wireguard** encryption of the Kube network for added security.
+- [x] Optional use of floating IPs for use via Cilium's Egress Gateway.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
@@ -277,6 +278,88 @@ kubectl -n kube-system exec --stdin --tty cilium-xxxx -- cilium service list
 
 _For more cilium commands, please refer to their corresponding [Documentation](https://docs.cilium.io/en/latest/cheatsheet)._
   
+</details>
+
+<details>
+<summary>Cilium Egress Gateway (via Floating IPs)</summary>
+
+[Cilium Egress Gateway](https://docs.cilium.io/en/stable/network/egress-gateway/) provides the ability to control outgoing traffic from POD.
+
+Using Floating IPs makes it possible to get rid of the problem of changing the primary IPs when recreating a node in the cluster.
+
+To implement the Cilium Egress Gateway feature, you need to define a separate nodepool with the setting `floating_ip = true` in the nodepool configuration parameter block.
+
+Example nodepool configuration:
+```
+{
+  name        = "egress",
+  server_type = "cpx11",
+  location    = "fsn1",
+  labels = [
+    "node.kubernetes.io/role=egress"
+  ],
+  taints = [
+    "node.kubernetes.io/role=egress:NoSchedule"
+  ],
+  floating_ip = true
+  count = 1
+},
+```
+
+Configure Cilium:
+```
+locals {
+  cluster_ipv4_cidr = "10.42.0.0/16"
+}
+
+cluster_ipv4_cidr = local.cluster_ipv4_cidr
+
+cilium_values = <<EOT
+ipam:
+  operator:
+    clusterPoolIPv4PodCIDRList:
+      - ${local.cluster_ipv4_cidr}
+kubeProxyReplacement: strict
+l7Proxy: "false"
+bpf:
+  masquerade: "true"
+egressGateway:
+  enabled: "true"
+EOT
+```
+
+Deploy the K8S cluster infrastructure.
+
+See the Cilium documentation for further steps (policy writing and testing): [Writing egress gateway policies](https://docs.cilium.io/en/stable/network/egress-gateway/)
+
+CiliumEgressGatewayPolicy example:
+
+```yaml
+apiVersion: cilium.io/v2
+kind: CiliumEgressGatewayPolicy
+metadata:
+  name: egress-sample
+spec:
+  selectors:
+  - podSelector:
+      matchLabels:
+        org: empire
+        class: mediabot
+        io.kubernetes.pod.namespace: default
+
+  destinationCIDRs:
+  - "0.0.0.0/0"
+
+  egressGateway:
+    nodeSelector:
+      matchLabels:
+        node.kubernetes.io/role: egress
+
+    # Specify the IP address used to SNAT traffic matched by the policy.
+    # It must exist as an IP associated with a network interface on the instance.
+    egressIP: {FLOATING_IP}
+```
+
 </details>
 
 <details>

@@ -47,6 +47,7 @@ resource "hcloud_firewall" "k3s" {
   dynamic "rule" {
     for_each = local.firewall_rules_list
     content {
+      description     = rule.value.description
       direction       = rule.value.direction
       protocol        = rule.value.protocol
       port            = lookup(rule.value, "port", null)
