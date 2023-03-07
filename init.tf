@@ -96,6 +96,7 @@ resource "null_resource" "kustomization" {
       local.longhorn_values,
       local.cert_manager_values,
       local.rancher_values,
+      var.kured_options
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
