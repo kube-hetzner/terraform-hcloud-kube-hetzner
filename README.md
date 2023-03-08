@@ -218,26 +218,7 @@ Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Char
 
 By default, we strive to give you optimal defaults, but if wish, you can customize them.
 
-### Before deploying
-
-In the case of Traefik, Rancher, and Longhorn, we provide you with variables to configure everything you need.
-
-On top of the above, for Nginx, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
-
-### After deploying
-
-Once the Cluster is up and running, you can easily customize most components like Traefik, Nginx, Rancher, Cilium, Cert-Manager and Longhorn by using HelmChartConfig definitions. See the [examples](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples) section, for more information.
-
-For other components like Calico and Kured (which uses manifests), we automatically save a `kustomization_backup.yaml` file in the root of your module during the deployment, so you can use that as a starting point. This is also useful when creating the HelmChartConfig definitions, as both HelmChart and HelmChartConfig definitions are very similar.
-
-There is yet another option for power users, to **force the new state of your kube.tf config on the cluster**, which will reconfigure all higher-level components (Traefik, Rancher, etc.) to use the new configuration as updated in your `kube.tf` file. Basically, it will update and re-apply all manifests including the HelmChart definitions. There is no destructive action on the cluster itself, just an alignment of the cluster state with the new configuration.
-
-To do so, you have to run:
-  
-```sh
-terraform destroy -target 'module.kube-hetzner.null_resource.kustomization'
-terraform apply
-```
+For Traefik, Nginx, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
 
 ## Adding Extras
 
@@ -248,6 +229,8 @@ This file needs to be a valid `Kustomization` manifest, but it supports terrafor
 All files in the `extra-manifests` directory including the rendered version of `kustomization.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
 _You can use the above to pass all kinds of Kubernetes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
+
+_That said, you can also use pure Terraform and import the kube-hetzner module as part of a larger project, and then use things like the Terraform helm provider to add additional stuff, all up to you!_
 
 ## Examples
 

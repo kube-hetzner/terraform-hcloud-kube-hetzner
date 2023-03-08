@@ -65,23 +65,3 @@ resource "hcloud_placement_group" "agent" {
   labels = local.labels
   type   = "spread"
 }
-
-resource "null_resource" "destroy_cluster_loadbalancer" {
-
-  # this only gets triggered before total destruction of the cluster, but when the necessary elements to run the commands are still available
-  triggers = {
-    kustomization_id = null_resource.kustomization.id
-    cluster_name     = var.cluster_name
-  }
-
-  depends_on = [
-    null_resource.control_planes[0],
-    hcloud_network_subnet.control_plane,
-    hcloud_network_subnet.agent,
-    hcloud_placement_group.control_plane,
-    hcloud_placement_group.agent,
-    hcloud_network.k3s,
-    hcloud_firewall.k3s,
-    hcloud_ssh_key.k3s
-  ]
-}
