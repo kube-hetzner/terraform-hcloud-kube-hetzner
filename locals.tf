@@ -120,7 +120,7 @@ locals {
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
   hetzner_metadata_service_ipv4 = "169.254.169.254/32"
-  hetzner_cloud_api_ipv4        = "213.239.246.1/32"
+  hetzner_cloud_api_ipv4        = "213.239.246.21/32"
 
   whitelisted_ips = [
     var.network_ipv4_cidr,
