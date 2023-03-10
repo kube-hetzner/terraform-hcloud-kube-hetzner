@@ -113,7 +113,7 @@ locals {
 
   packages_to_install = concat(
     var.enable_wireguard ? ["wireguard-tools"] : [],
-    var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [],
+    var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup", "lvm2"] : [],
     var.extra_packages_to_install,
   )
 
