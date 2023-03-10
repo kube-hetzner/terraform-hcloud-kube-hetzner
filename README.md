@@ -48,6 +48,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Can use Klipper as an **on-metal LB** or the **Hetzner LB**.
 - [x] Ability to **add nodes and nodepools** when the cluster is running.
 - [x] Possibility to toggle **Longhorn** and **Hetzner CSI**.
+- [x] Encryption at rest fully functional in both **Longhorn** and **Hetzner CSI**.
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
 - [x] Optional **Wireguard** encryption of the Kube network for added security.
 - [x] Optional use of **Floating IPs** for use via Cilium's Egress Gateway.
