@@ -434,6 +434,82 @@ The same goes for all add-ons, like Longhorn, Cert-manager, and Traefik.
 
 </details>
 
+<details>
+
+<summary>Encryption at rest with HCloud CSI</summary>
+
+The easiest way to get encrypted volumes working is actually to use the new encryption functionality of hcloud csi itself, see https://github.com/hetznercloud/csi-driver.
+For this, you just need to create a secret containing the encryption key
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: encryption-secret
+  namespace: kube-system
+stringData:
+  encryption-passphrase: foobar
+```
+and to create a new storage class
+```yaml
+  apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    name: hcloud-volumes-encrypted
+  provisioner: csi.hetzner.cloud
+  reclaimPolicy: Delete
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: true
+  parameters:
+    csi.storage.k8s.io/node-publish-secret-name: encryption-secret
+    csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+```
+
+</details>
+
+<details>
+
+<summary>Encryption at rest with Longhorn</summary>
+To get started, use a cluster-wide key for all volumes like this,
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: longhorn-crypto
+  namespace: longhorn-system
+stringData:
+  CRYPTO_KEY_VALUE: "I have nothing to hide."
+  CRYPTO_KEY_PROVIDER: "secret"
+  CRYPTO_KEY_CIPHER: "aes-xts-plain64"
+  CRYPTO_KEY_HASH: "sha256"
+  CRYPTO_KEY_SIZE: "256"
+  CRYPTO_PBKDF: "argon2i"
+```
+and create a new storage class
+```yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: longhorn-crypto-global
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+parameters:
+  nodeSelector: "node-storage"
+  numberOfReplicas: "1"
+  staleReplicaTimeout: "2880" # 48 hours in minutes
+  fromBackup: ""
+  fsType: ext4
+  encrypted: "true"
+  # global secret that contains the encryption key that will be used for all volumes
+  csi.storage.k8s.io/provisioner-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/provisioner-secret-namespace: "longhorn-system"
+  csi.storage.k8s.io/node-publish-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/node-publish-secret-namespace: "longhorn-system"
+  csi.storage.k8s.io/node-stage-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/node-stage-secret-namespace: "longhorn-system"
+```
+For more details, see [Longhorn's documentation](https://longhorn.io/docs/1.4.0/advanced-resources/security/volume-encryption/).
+
+</details>
 ## Debugging
 
 First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without logging in to the UI. That is where the `hcloud` cli comes in.
