@@ -397,7 +397,7 @@ controller:
   config:
     "use-forwarded-headers": "true"
     "compute-full-forwarded-for": "true"
-    "use-proxy-protocol": "true"
+    "use-proxy-protocol": "${!local.using_klipper_lb}"
 %{if !local.using_klipper_lb~}
   service:
     annotations:
@@ -407,7 +407,7 @@ controller:
       "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
       "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
       "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
-      "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+      "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
 %{if var.lb_hostname != ""~}
       "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
@@ -429,7 +429,7 @@ service:
     "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
     "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
     "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
-    "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+    "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
 %{if var.lb_hostname != ""~}
     "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
