@@ -113,14 +113,14 @@ locals {
 
   packages_to_install = concat(
     var.enable_wireguard ? ["wireguard-tools"] : [],
-    var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup"] : [],
+    var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup", "lvm2", "git"] : [],
     var.extra_packages_to_install,
   )
 
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
   hetzner_metadata_service_ipv4 = "169.254.169.254/32"
-  hetzner_cloud_api_ipv4        = "213.239.246.1/32"
+  hetzner_cloud_api_ipv4        = "213.239.246.21/32"
 
   whitelisted_ips = [
     var.network_ipv4_cidr,
@@ -397,7 +397,7 @@ controller:
   config:
     "use-forwarded-headers": "true"
     "compute-full-forwarded-for": "true"
-    "use-proxy-protocol": "true"
+    "use-proxy-protocol": "${!local.using_klipper_lb}"
 %{if !local.using_klipper_lb~}
   service:
     annotations:
@@ -407,7 +407,7 @@ controller:
       "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
       "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
       "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
-      "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+      "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
 %{if var.lb_hostname != ""~}
       "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
@@ -429,7 +429,7 @@ service:
     "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
     "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
     "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
-    "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+    "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
 %{if var.lb_hostname != ""~}
     "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}

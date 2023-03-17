@@ -48,9 +48,10 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Can use Klipper as an **on-metal LB** or the **Hetzner LB**.
 - [x] Ability to **add nodes and nodepools** when the cluster is running.
 - [x] Possibility to toggle **Longhorn** and **Hetzner CSI**.
+- [x] Encryption at rest fully functional in both **Longhorn** and **Hetzner CSI**.
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
 - [x] Optional **Wireguard** encryption of the Kube network for added security.
-- [x] Optional use of floating IPs for use via Cilium's Egress Gateway.
+- [x] Optional use of **Floating IPs** for use via Cilium's Egress Gateway.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
@@ -218,26 +219,7 @@ Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Char
 
 By default, we strive to give you optimal defaults, but if wish, you can customize them.
 
-### Before deploying
-
-In the case of Traefik, Rancher, and Longhorn, we provide you with variables to configure everything you need.
-
-On top of the above, for Nginx, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
-
-### After deploying
-
-Once the Cluster is up and running, you can easily customize most components like Traefik, Nginx, Rancher, Cilium, Cert-Manager and Longhorn by using HelmChartConfig definitions. See the [examples](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples) section, for more information.
-
-For other components like Calico and Kured (which uses manifests), we automatically save a `kustomization_backup.yaml` file in the root of your module during the deployment, so you can use that as a starting point. This is also useful when creating the HelmChartConfig definitions, as both HelmChart and HelmChartConfig definitions are very similar.
-
-There is yet another option for power users, to **force the new state of your kube.tf config on the cluster**, which will reconfigure all higher-level components (Traefik, Rancher, etc.) to use the new configuration as updated in your `kube.tf` file. Basically, it will update and re-apply all manifests including the HelmChart definitions. There is no destructive action on the cluster itself, just an alignment of the cluster state with the new configuration.
-
-To do so, you have to run:
-  
-```sh
-terraform destroy -target 'module.kube-hetzner.null_resource.kustomization'
-terraform apply
-```
+For Traefik, Nginx, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
 
 ## Adding Extras
 
@@ -248,6 +230,8 @@ This file needs to be a valid `Kustomization` manifest, but it supports terrafor
 All files in the `extra-manifests` directory including the rendered version of `kustomization.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
 _You can use the above to pass all kinds of Kubernetes YAML configs, including HelmChart and/or HelmChartConfig definitions (see the previous section if you do not know what those are in the context of k3s)._
+
+_That said, you can also use pure Terraform and import the kube-hetzner module as part of a larger project, and then use things like the Terraform helm provider to add additional stuff, all up to you!_
 
 ## Examples
 
@@ -450,6 +434,82 @@ The same goes for all add-ons, like Longhorn, Cert-manager, and Traefik.
 
 </details>
 
+<details>
+
+<summary>Encryption at rest with HCloud CSI</summary>
+
+The easiest way to get encrypted volumes working is actually to use the new encryption functionality of hcloud csi itself, see https://github.com/hetznercloud/csi-driver.
+For this, you just need to create a secret containing the encryption key
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: encryption-secret
+  namespace: kube-system
+stringData:
+  encryption-passphrase: foobar
+```
+and to create a new storage class
+```yaml
+  apiVersion: storage.k8s.io/v1
+  kind: StorageClass
+  metadata:
+    name: hcloud-volumes-encrypted
+  provisioner: csi.hetzner.cloud
+  reclaimPolicy: Delete
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: true
+  parameters:
+    csi.storage.k8s.io/node-publish-secret-name: encryption-secret
+    csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+```
+
+</details>
+
+<details>
+
+<summary>Encryption at rest with Longhorn</summary>
+To get started, use a cluster-wide key for all volumes like this,
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: longhorn-crypto
+  namespace: longhorn-system
+stringData:
+  CRYPTO_KEY_VALUE: "I have nothing to hide."
+  CRYPTO_KEY_PROVIDER: "secret"
+  CRYPTO_KEY_CIPHER: "aes-xts-plain64"
+  CRYPTO_KEY_HASH: "sha256"
+  CRYPTO_KEY_SIZE: "256"
+  CRYPTO_PBKDF: "argon2i"
+```
+and create a new storage class
+```yaml
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: longhorn-crypto-global
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+parameters:
+  nodeSelector: "node-storage"
+  numberOfReplicas: "1"
+  staleReplicaTimeout: "2880" # 48 hours in minutes
+  fromBackup: ""
+  fsType: ext4
+  encrypted: "true"
+  # global secret that contains the encryption key that will be used for all volumes
+  csi.storage.k8s.io/provisioner-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/provisioner-secret-namespace: "longhorn-system"
+  csi.storage.k8s.io/node-publish-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/node-publish-secret-namespace: "longhorn-system"
+  csi.storage.k8s.io/node-stage-secret-name: "longhorn-crypto"
+  csi.storage.k8s.io/node-stage-secret-namespace: "longhorn-system"
+```
+For more details, see [Longhorn's documentation](https://longhorn.io/docs/1.4.0/advanced-resources/security/volume-encryption/).
+
+</details>
 ## Debugging
 
 First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without logging in to the UI. That is where the `hcloud` cli comes in.

@@ -16,7 +16,7 @@ module "agents" {
   ssh_private_key              = var.ssh_private_key
   ssh_additional_public_keys   = length(var.ssh_hcloud_key_label) > 0 ? concat(var.ssh_additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh_additional_public_keys
   firewall_ids                 = [hcloud_firewall.k3s.id]
-  placement_group_id           = var.placement_group_disable ? 0 : hcloud_placement_group.agent[floor(each.value.index / 10)].id
+  placement_group_id           = var.placement_group_disable ? null : hcloud_placement_group.agent[floor(index(keys(local.agent_nodes), each.key) / 10)].id
   location                     = each.value.location
   server_type                  = each.value.server_type
   backups                      = each.value.backups
@@ -34,7 +34,8 @@ module "agents" {
   automatically_upgrade_os = var.automatically_upgrade_os
 
   depends_on = [
-    hcloud_network_subnet.agent
+    hcloud_network_subnet.agent,
+    hcloud_placement_group.agent
   ]
 }
 

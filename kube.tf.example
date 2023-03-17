@@ -405,7 +405,9 @@ module "kube-hetzner" {
   # disable_network_policy = true
 
   # If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/
-  # That may be useful if you need to deploy more than 500 nodes! The default is "false".
+  # Placement groups are a neat feature but they are limited to 500 nodes per project, if you need to get past that limit, you can disable it.
+  # We advise to not touch that setting, unless you have a specific purpose.
+  # The default is "false", meaning it's enabled by default.
   # placement_group_disable = true
 
   # By default, we allow ICMP ping in to the nodes, to check for liveness for instance. If you do not want to allow that, you can. Just set this flag to true (false by default).

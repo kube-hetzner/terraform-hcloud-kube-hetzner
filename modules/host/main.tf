@@ -77,6 +77,8 @@ resource "hcloud_server" "server" {
     inline = [<<-EOT
       set -ex
       transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
+      transactional-update --continue shell <<< "zypper addlock k3s-selinux"
+      transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       sleep 1 && udevadm settle
       EOT
     ]
