@@ -101,10 +101,14 @@ locals {
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
 
+  # Determine if scheduling should be allowed on control plane nodes, which will be always true for single node clusters and clusters using the klipper lb or if scheduling is allowed on control plane nodes
+  allow_scheduling_on_control_plane = (local.is_single_node_cluster || local.using_klipper_lb) ? true : var.allow_scheduling_on_control_plane
+  # Determine if loadbalancer target should be allowed on control plane nodes, which will be always true for single node clusters or if scheduling is allowed on control plane nodes
+  allow_loadbalancer_target_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
+
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
-  allow_scheduling_on_control_plane = (local.is_single_node_cluster || local.using_klipper_lb) ? true : var.allow_scheduling_on_control_plane
-  default_control_plane_labels = concat(["node.kubernetes.io/exclude-from-external-load-balancers=${local.allow_scheduling_on_control_plane ? "true" : "false"}"], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+  default_control_plane_labels = concat(["node.kubernetes.io/exclude-from-external-load-balancers=${local.allow_loadbalancer_target_on_control_plane ? "false" : "true"}"], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
 
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
