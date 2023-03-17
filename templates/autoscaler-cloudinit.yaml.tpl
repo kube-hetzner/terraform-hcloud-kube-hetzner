@@ -64,13 +64,13 @@ write_files:
     X3QBAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
   path: /etc/selinux/sshd_t.pp
 
-- content: ${base64encode(k3s_config)}
+- content: ${k3s_config}
   encoding: base64
-  path: /etc/rancher/k3s/config.yaml
+  path: /tmp/k3s_config.yaml
 
-- content: ${base64encode(k3s_registries)}
+- content: ${k3s_registries}
   encoding: base64
-  path: /etc/rancher/k3s/registries.yaml
+  path: /tmp/k3s_registries.yaml
 
 %{ if length(dnsServers) > 0 }
 # Set prepare for manual dns config
@@ -157,6 +157,9 @@ runcmd:
 - ['/etc/cloud/rename_interface.sh']
 
 # Enable install-k3s-agent service
+- [mkdir, '-p', '/etc/rancher/k3s/']
+- [cp, '-f' ,'/tmp/k3s_config.yaml', '/etc/rancher/k3s/config.yaml']
+- [cp, '-f' ,'/tmp/k3s_registries.yaml', '/etc/rancher/k3s/registries.yaml']
 - [systemctl, enable, 'install-k3s-agent.service']
 
 # Reboot to activate everything
