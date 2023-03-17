@@ -64,11 +64,11 @@ write_files:
     X3QBAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
   path: /etc/selinux/sshd_t.pp
 
-- content: ${k3s_config}
+- content: ${base64encode(k3s_config)}
   encoding: base64
   path: /tmp/k3s_config.yaml
 
-- content: ${k3s_registries}
+- content: ${base64encode(k3s_registries)}
   encoding: base64
   path: /tmp/k3s_registries.yaml
 
