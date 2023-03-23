@@ -66,11 +66,11 @@ write_files:
 
 - content: ${base64encode(k3s_config)}
   encoding: base64
-  path: /tmp/config.yaml
+  path: /tmp/k3s_config.yaml
 
 - content: ${base64encode(k3s_registries)}
   encoding: base64
-  path: /etc/rancher/k3s/registries.yaml
+  path: /tmp/k3s_registries.yaml
 
 
 - content: ${base64encode(join("\n", install_k3s))}
@@ -152,6 +152,9 @@ runcmd:
 - ['/etc/cloud/rename_interface.sh']
 
 # Enable install-k3s-agent service
+- [mkdir, '-p', '/etc/rancher/k3s/']
+- [cp, '-f' ,'/tmp/k3s_config.yaml', '/etc/rancher/k3s/config.yaml']
+- [cp, '-f' ,'/tmp/k3s_registries.yaml', '/etc/rancher/k3s/registries.yaml']
 - [systemctl, enable, 'install-k3s-agent.service']
 
 # reboot!
