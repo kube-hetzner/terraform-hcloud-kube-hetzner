@@ -108,7 +108,7 @@ locals {
 
   # Default k3s node labels
   default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
-  default_control_plane_labels = concat(["node.kubernetes.io/exclude-from-external-load-balancers=${local.allow_loadbalancer_target_on_control_plane ? "false" : "true"}"], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+  default_control_plane_labels = concat(local.allow_loadbalancer_target_on_control_plane ? [] : ["node.kubernetes.io/exclude-from-external-load-balancers=true"], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
 
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])

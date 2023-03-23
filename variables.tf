@@ -220,7 +220,7 @@ variable "allow_scheduling_on_control_plane" {
 variable "enable_metrics_server" {
   type        = bool
   default     = true
-  description = "Whether to enable or disbale k3s mertric server."
+  description = "Whether to enable or disable k3s metric server."
 }
 
 variable "initial_k3s_channel" {
