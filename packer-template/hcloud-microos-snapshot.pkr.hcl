@@ -10,12 +10,12 @@ variable "hcloud_token" {
 
 variable "opensuse_microos_mirror_link" {
   type    = string
-  default = "https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  default = "https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
 }
 
 variable "creator_id" {
   type    = string
-  default = "123456789"
+  default = "kube-hetzner"
 }
 
 variable "packages_to_install" {
@@ -24,7 +24,7 @@ variable "packages_to_install" {
 }
 
 locals {
-  needed_packages = join(" ", concat(["restorecond policycoreutils setools-console"], var.packages_to_install))
+  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console"], var.packages_to_install))
 }
 
 source "hcloud" "microos-snapshot" {
