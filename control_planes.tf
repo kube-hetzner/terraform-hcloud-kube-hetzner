@@ -8,6 +8,7 @@ module "control_planes" {
   for_each = local.control_plane_nodes
 
   name                         = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
+  microos_snapshot_id          = data.hcloud_image.microos_snapshot.id
   base_domain                  = var.base_domain
   ssh_keys                     = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
   ssh_port                     = var.ssh_port

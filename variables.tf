@@ -5,6 +5,12 @@ variable "hcloud_token" {
   default     = ""
 }
 
+variable "microos_snapshot_id" {
+  description = "MicroOS snapshot ID to be used. Per default empty, an initial snapshot will be created"
+  type        = string
+  default     = ""
+}
+
 variable "ssh_port" {
   description = "The main SSH port to connect to the nodes."
   type        = number

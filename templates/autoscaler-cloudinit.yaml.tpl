@@ -97,26 +97,9 @@ write_files:
   encoding: base64
   path: /tmp/k3s_registries.yaml
 
-%{ if length(dnsServers) > 0 }
-# Set prepare for manual dns config
-- content: |
-    [main]
-    dns=none
-  path: /etc/NetworkManager/conf.d/dns.conf
 
-- content: |
-    %{ for server in dnsServers ~}
-    nameserver ${server}
-    %{ endfor }
-  path: /etc/resolv.conf
-  permissions: '0644'
-%{ endif }
-
-- content: |
-    set -vx
-    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${k3s_channel} INSTALL_K3S_EXEC=agent sh -
-    /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp
-    systemctl start k3s-agent
+- content: ${base64encode(join("\n", install_k3s))}
+  encoding: base64
   path: /var/pre_install/install-k3s-agent.sh
 
 - content: |
@@ -132,6 +115,21 @@ write_files:
     WantedBy=network-online.target
   permissions: '0644'
   path: /etc/systemd/system/install-k3s-agent.service
+
+%{ if length(dnsServers) > 0 }
+# Set prepare for manual dns config
+- content: |
+    [main]
+    dns=none
+  path: /etc/NetworkManager/conf.d/dns.conf
+
+- content: |
+    %{ for server in dnsServers ~}
+    nameserver ${server}
+    %{ endfor }
+  path: /etc/resolv.conf
+  permissions: '0644'
+%{ endif }
 
 # Add new authorized keys
 ssh_deletekeys: true
@@ -150,9 +148,6 @@ hostname: ${hostname}
 preserve_hostname: true
 
 runcmd:
-# uninstall k3s if it exists already in the snaphshot
-- [/bin/sh, -c, '[ -f /usr/local/bin/k3s-uninstall.sh ] && /usr/local/bin/k3s-uninstall.sh']
-
 # ensure that /var uses full available disk size, thanks to btrfs this is easy
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 
@@ -189,5 +184,9 @@ runcmd:
 - [cp, '-f' ,'/tmp/k3s_registries.yaml', '/etc/rancher/k3s/registries.yaml']
 - [systemctl, enable, 'install-k3s-agent.service']
 
-# Reboot to activate everything
-- [reboot]
+# reboot!
+power_state:
+    delay: now
+    mode: reboot
+    message: MicroOS rebooting to reflect changes
+    condition: true
