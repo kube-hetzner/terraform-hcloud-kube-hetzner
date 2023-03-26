@@ -18,11 +18,11 @@ fi
 mkdir -p "${folder_path}/${folder_name}"
 
 # Download the required files
-curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/next/kube.tf.example -o "${folder_path}/${folder_name}/kube.tf"
-curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/next/packer-template/hcloud-microos-snapshot.pkr.hcl -o "${folder_path}/${folder_name}/hcloud-microos-snapshot.pkr.hcl"
+curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example -o "${folder_path}/${folder_name}/kube.tf"
+curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshot.pkr.hcl -o "${folder_path}/${folder_name}/hcloud-microos-snapshot.pkr.hcl"
 
 # Ask if they want to create the MicroOS snapshot
-read -p "Do you want to create the MicroOS snapshot with packer? (yes/no): " create_snapshot
+read -p "Do you want to create the MicroOS snapshot with packer? You will need one. (yes/no): " create_snapshot
 
 if [ "$create_snapshot" = "yes" ]; then
     read -p "Enter your HCLOUD_TOKEN: " hcloud_token
@@ -31,6 +31,6 @@ if [ "$create_snapshot" = "yes" ]; then
 fi
 
 # Output commands
+echo " "
 echo "Before running 'terraform apply', go through the kube.tf file and complete your desired values there."
-echo "To create a MicroOS snapshot (if not done already), run 'packer build hcloud-microos-snapshot.pkr.hcl'."
 echo "To activate the hcloud CLI for this project, run 'hcloud context create ${folder_name}'."
