@@ -13,31 +13,20 @@ variable "opensuse_microos_mirror_link" {
   default = "https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
 }
 
-variable "creator_id" {
-  type    = string
-  default = "kube-hetzner"
-}
-
-variable "packages_to_install" {
-  type    = list(string)
-  default = []
-}
-
 locals {
-  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils"], var.packages_to_install))
+  needed_packages = ["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils"]
 }
 
 source "hcloud" "microos-snapshot" {
   image       = "ubuntu-20.04"
   rescue      = "linux64"
   location    = "nbg1"
-  server_type = "cx21" # at least a disk size of >= 40GiB is needed to install MicroOS image
+  server_type = "cpx11" # at least a disk size of >= 40GiB is needed to install the MicroOS image
   snapshot_labels = {
     microos-snapshot = "yes"
     creator          = "kube-hetzner"
-    creator_id       = var.creator_id
   }
-  snapshot_name = "MicroOS snapshot created by kube-hetzner"
+  snapshot_name = "OpenSUSE MicroOS by Kube-Hetzner"
   ssh_username  = "root"
   token         = var.hcloud_token
 }

@@ -402,6 +402,32 @@ _This is to circumvent this known issue [cert-manager/cert-manager/issues/466](h
 
 <details>
 
+<summary>Create or delete a snapshot</summary>
+
+Apart from the installation script, you can always create or delete the OS snapshot manually.
+
+To create a snapshot, run the following command:
+
+```bash
+packer build ./packer-template/hcloud-microos-snapshot.pkr.hcl
+```
+
+To delete a snapshot, first find it with:
+
+```bash
+hcloud image list
+```
+  
+Then delete it with:
+  
+```bash
+hcloud image delete <image-id>
+```
+
+</details>
+
+<details>
+
 <summary>Single-node cluster</summary>
 
 Running a development cluster on a single node without any high availability is also possible.
@@ -415,6 +441,8 @@ When doing so, `automatically_upgrade_os` should be set to `false`, especially w
 <summary>Use in Terraform cloud</summary>
 
 To use Kube-Hetzner on Terraform cloud, use as a Terraform module as mentioned above, but also change the execution mode from `remote` to `local`.
+
+Also make sure you have the OS snapshot already created in your project, for that, follow the installation script.
 
 </details>
 
