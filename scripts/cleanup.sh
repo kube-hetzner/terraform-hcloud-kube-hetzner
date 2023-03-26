@@ -26,7 +26,7 @@ if [[ "$delete_volumes_input" =~ ^([Yy]es|[Yy])$ ]]; then
   DELETE_VOLUMES=1
 fi
 
-read -p "Do you want to delete snapshots? (yes/no): " delete_snapshots_input
+read -p "Do you want to delete MicroOS snapshots? (yes/no): " delete_snapshots_input
 DELETE_SNAPSHOTS=0
 if [[ "$delete_snapshots_input" =~ ^([Yy]es|[Yy])$ ]]; then
   DELETE_SNAPSHOTS=1

@@ -81,19 +81,25 @@ brew install hcloud
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key, it needs to be Read & Write. Take note of the key! ✅
 1. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/ssh.md). ✅
-1. Now navigate to where you want to have your project live and execute the following command, which will help you get started with a **a new folder** along with the required files, and will propose you to create the snapshot. ✅
+1. Now navigate to where you want to have your project live and execute the following command, which will help you get started with a **a new folder** along with the required files, and will propose you to create a needed MicroOS snapshot. ✅
 
     ```sh
-    tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/start.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
+    tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
     ```
 
-    _Optionally, for future usage, save that command in an alias in your shell preferences. You can call it "create_kh" for instance._
+    _Optionally, for future usage, save that command in an alias in your shell preferences, like so:_
 
-1. In that new project folder that gets created created, you will find your `kube.tf` that must be customized to suit your needs. ✅
+    ```sh
+    alias create_kh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" <https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh> && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
+    ```
+
+1. In that new project folder that gets created, you will find your `kube.tf` and it must be customized to suit your needs. ✅
 
 _A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
 
 ### 🎯 Installation
+
+Now that you have your `kube.tf` file, along with the OS snapshot in Hetzner project, you can start the installation process:
 
 ```sh
 cd <your-project-folder>
@@ -104,7 +110,7 @@ terraform apply -auto-approve
 
 It will take around 5 minutes to complete, and then you should see a green output confirming a successful deployment.
 
-_Once you start with Terraform, it's best not to change the state of the project manually via the Hetzner UI; otherwise, you may get an error when you try to run terraform again for that cluster (when trying to change the number of nodes for instance)._
+_Once you start with Terraform, it's best not to change the state of the project manually via the Hetzner UI; otherwise, you may get an error when you try to run terraform again for that cluster (when trying to change the number of nodes for instance). If you want to inspect your Hetzner project, learn to use the hcloud cli._
 
 ## Usage
 
@@ -411,6 +417,7 @@ Apart from the installation script, you can always create or delete the OS snaps
 To create a snapshot, run the following command:
 
 ```bash
+export HCLOUD_TOKEN=<your-token>
 packer build ./packer-template/hcloud-microos-snapshot.pkr.hcl
 ```
 
@@ -583,10 +590,16 @@ If you want to take down the cluster, you can proceed as follows:
 terraform destroy -auto-approve
 ```
 
-If you see the destroy hanging, it's probably because the Hetzner LB and the autoscaled nodes. You can use the following command to delete everything (you can also save this one to an alias in your shell, for instance calling it "remove_kh"):
+If you see the destroy hanging, it's probably because the Hetzner LB and the autoscaled nodes. You can use the following command to delete everything:
 
 ```sh
 tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/cleanup.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
+```
+
+As a one time thing, for convenience, you can also save it as an alias in your shell config file, like so:
+
+```sh
+alias cleanup_kh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/cleanup.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
 ```
 
 _Careful, the above commands will delete everything, including volumes in your projects. You can always try with a dry run, it will give you that option._

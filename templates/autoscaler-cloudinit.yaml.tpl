@@ -91,14 +91,14 @@ write_files:
 
 - content: ${base64encode(k3s_config)}
   encoding: base64
-  path: /tmp/k3s_config.yaml
+  path: /tmp/config.yaml
 
 - content: ${base64encode(k3s_registries)}
   encoding: base64
-  path: /tmp/k3s_registries.yaml
+  path: /tmp/registries.yaml
 
 
-- content: ${base64encode(join("\n", install_k3s))}
+- content: ${base64encode(install_k3s_agent_script)}
   encoding: base64
   path: /var/pre_install/install-k3s-agent.sh
 
@@ -180,8 +180,8 @@ runcmd:
 
 # Enable install-k3s-agent service
 - [mkdir, '-p', '/etc/rancher/k3s/']
-- [cp, '-f' ,'/tmp/k3s_config.yaml', '/etc/rancher/k3s/config.yaml']
-- [cp, '-f' ,'/tmp/k3s_registries.yaml', '/etc/rancher/k3s/registries.yaml']
+- [cp, '-f' ,'/tmp/config.yaml', '/etc/rancher/k3s/config.yaml']
+- [cp, '-f' ,'/tmp/registries.yaml', '/etc/rancher/k3s/registries.yaml']
 - [systemctl, enable, 'install-k3s-agent.service']
 
 # reboot!

@@ -14,7 +14,7 @@ variable "opensuse_microos_mirror_link" {
 }
 
 locals {
-  needed_packages = "restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils"
+  needed_packages = "restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi nfs-client xfsprogs cryptsetup lvm2 git"
 }
 
 source "hcloud" "microos-snapshot" {
@@ -55,6 +55,8 @@ build {
       echo First reboot successful, updating and installing basic packages...
       # Update to latest MicroOS version
       transactional-update dup
+      transactional-update --continue shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
+      transactional-update --continue shell <<< "zypper addlock k3s-selinux"
       transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       sleep 1 && udevadm settle && reboot
       EOT

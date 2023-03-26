@@ -81,8 +81,8 @@ data "cloudinit_config" "autoscaler-config" {
           node-label    = local.default_agent_labels
           node-taint    = local.default_agent_taints
         })
-        k3s_registries = var.k3s_registries
-        install_k3s    = local.install_k3s_agent
+        k3s_registries           = var.k3s_registries
+        install_k3s_agent_script = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
       }
     )
   }

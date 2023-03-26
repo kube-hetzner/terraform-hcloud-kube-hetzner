@@ -9,6 +9,10 @@ locals {
   # if an ssh agent is used.
   ssh_client_identity = var.ssh_private_key == null ? var.ssh_public_key : var.ssh_private_key
 
+  # Final list of packages to install
+  needed_packages = join(" ", var.packages_to_install)
+
   # the hosts name with its unique suffix attached
-  name = "${var.name}-${random_id.server_id.hex}"
+  name = "${var.name}-${random_string.server.id}"
+
 }

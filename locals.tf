@@ -31,7 +31,7 @@ locals {
       # prepare the k3s config directory
       "mkdir -p /etc/rancher/k3s",
       # move the config file into place and adjust permissions
-      "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
+      "[ -f /tmp/config.yaml ] && mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
       "chmod 0600 /etc/rancher/k3s/config.yaml",
       # if the server has already been initialized just stop here
       "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
@@ -114,11 +114,7 @@ locals {
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
-  packages_to_install = concat(
-    var.enable_wireguard ? ["wireguard-tools"] : [],
-    var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup", "lvm2", "git"] : [],
-    var.extra_packages_to_install,
-  )
+  packages_to_install = var.extra_packages_to_install
 
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
