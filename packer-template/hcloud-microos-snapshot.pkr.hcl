@@ -14,7 +14,7 @@ variable "opensuse_microos_mirror_link" {
 }
 
 locals {
-  needed_packages = ["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils"]
+  needed_packages = "restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils"
 }
 
 source "hcloud" "microos-snapshot" {
