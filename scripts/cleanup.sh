@@ -2,35 +2,34 @@
 
 DRY_RUN=1
 
-while getopts "hfc:" arg; do
-  case $arg in
-    h)
-      echo "$0 -cfh"
-      echo " -c=CLUSTER_NAME Name of the cluster to delete"
-      echo " -f Force deletion (per default just a dry run)"
-      echo " -h Help"
-      exit 0
-      ;;
-    c)
-      CLUSTER_NAME=$OPTARG
-      ;;
-    f)
-      echo "STUFF WILL BE DELETED!"
-      DRY_RUN=0
-      ;;
-    *)
-      echo "Unsupported option: $arg"
-      exit 1
+echo "Welcome to the Hetzner cluster deletion script!"
+echo " "
+echo "We advise you to first run 'terraform destroy' and execute that script when it starts hanging because of ressources still attached to the network."
+echo "In order to run this script need to have the hcloud CLI installed and configured with a context for the cluster you want to delete."
+command -v hcloud >/dev/null 2>&1 || { echo "hcloud (Hetzner CLI) is not installed. Install it with 'brew install hcloud'."; exit 1; }
+echo "You can do so by running 'hcloud context create <cluster_name>' and inputting your HCLOUD_TOKEN."
+echo " "
+
+read -p "Enter the name of the cluster to delete: " CLUSTER_NAME
+
+while true; do
+  read -p "Do you want to perform a dry run? (yes/no): " dry_run_input
+  case $dry_run_input in
+    [Yy]* ) DRY_RUN=1; break;;
+    [Nn]* ) DRY_RUN=0; break;;
+    * ) echo "Please answer yes or no.";;
   esac
 done
 
-if [[ -z ${CLUSTER_NAME+x} ]]; then
-  echo "-c CLUSTER_NAME is required"
-  exit 1
+if (( DRY_RUN == 0 )); then
+  echo "WARNING: STUFF WILL BE DELETED!"
+else
+  echo "Performing a dry run, nothing will be deleted."
 fi
 
 HCLOUD_SELECTOR=(--selector='provisioner=terraform' --selector="cluster=$CLUSTER_NAME")
 HCLOUD_OUTPUT_OPTIONS=(-o noheader -o 'columns=id')
+NODEPOOLS=( $(terraform state list | grep -oP 'module.kube-hetzner.data.hcloud_servers.autoscaled_nodes\["\K([^"]+)') )
 
 VOLUMES=()
 while IFS='' read -r line; do VOLUMES+=("$line"); done < <(hcloud volume list "${HCLOUD_SELECTOR[@]}" "${HCLOUD_OUTPUT_OPTIONS[@]}")
@@ -108,7 +107,7 @@ function delete_firewalls() {
   for ID in "${FIREWALLS[@]}"; do
     echo "Delete firewall: $ID"
     if (( DRY_RUN == 0 )); then
-     hcloud firewall delete "$ID"
+      hcloud firewall delete "$ID"
     fi
   done
 }
@@ -117,7 +116,7 @@ function delete_networks() {
   for ID in "${NETWORKS[@]}"; do
     echo "Delete network: $ID"
     if (( DRY_RUN == 0 )); then
-      hcloud network delete "$ID "
+      hcloud network delete "$ID"
     fi
   done
 }
@@ -131,11 +130,23 @@ function delete_ssh_keys() {
   done
 }
 
+function delete_autoscaled_nodes() {
+  local servers
+  while IFS='' read -r line; do servers+=("$line"); done < <(hcloud server list -o noheader -o 'columns=id,name' | grep "${CLUSTER_NAME}")
+
+  for server_info in "${servers[@]}"; do
+    local ID=$(echo "$server_info" | awk '{print $1}')
+    local server_name=$(echo "$server_info" | awk '{print $2}')
+    echo "Delete autoscaled server: $ID (Name: $server_name)"
+    if (( DRY_RUN == 0 )); then
+      hcloud server delete "$ID"
+    fi
+  done
+}
 
 if (( DRY_RUN > 0 )); then
   echo "Dry run, nothing will be deleted!"
 fi
-
 
 detach_volumes
 delete_volumes
@@ -145,3 +156,5 @@ delete_load_balancer
 delete_firewalls
 delete_networks
 delete_ssh_keys
+delete_autoscaled_nodes
+
