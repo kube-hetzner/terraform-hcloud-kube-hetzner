@@ -6,7 +6,7 @@ command -v packer >/dev/null 2>&1 || { echo "packer is not installed. Install it
 command -v hcloud >/dev/null 2>&1 || { echo "hcloud (Hetzner CLI) is not installed. Install it with 'brew install hcloud'."; exit 1; }
 
 # Ask for the folder name and path
-read -p "Enter the name of the folder to create: " folder_name
+read -p "Enter the name of the folder you want to create (no spaces): " folder_name
 read -p "Enter the path to create the folder in (default: current directory): " folder_path
 
 # Set default path if not provided

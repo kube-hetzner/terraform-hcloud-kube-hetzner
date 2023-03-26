@@ -24,7 +24,7 @@ variable "packages_to_install" {
 }
 
 locals {
-  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console"], var.packages_to_install))
+  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils"], var.packages_to_install))
 }
 
 source "hcloud" "microos-snapshot" {
@@ -49,7 +49,7 @@ build {
   provisioner "shell" {
     inline = [
       "sleep 5",
-      "wget --timeout=5 ${var.opensuse_microos_mirror_link}",
+      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${var.opensuse_microos_mirror_link}",
       "echo 'MicroOS image loaded, writing to disk... '",
       "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
       "echo 'done. Rebooting...'",
@@ -65,7 +65,7 @@ build {
       set -ex
       echo First reboot successful, updating and installing basic packages...
       # Update to latest MicroOS version
-      # transactional-update dup
+      transactional-update dup
       transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       sleep 1 && udevadm settle && reboot
       EOT
@@ -78,9 +78,8 @@ build {
     pause_before = "5s"
     inline = [<<-EOT
       set -ex
-      echo Second reboot successful, cleaning-up....
+      echo Second reboot successful, cleaning-up...
       transactional-update cleanup
-      # TODO: delete snapshots? 
       rm -rf /var/log/*
       rm -rf /etc/ssh/ssh_host_*
       sleep 1 && udevadm settle

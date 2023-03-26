@@ -1,15 +1,15 @@
+resource "random_string" "server" {
+  length  = 3
+  lower   = true
+  special = false
+  numeric = false
+  upper   = false
 
-resource "random_id" "server_id" {
   keepers = {
     # We re-create the apart of the name changes.
     name = var.name
-    # Generate a new id each time we switch to a new image id?
-    # image_id = var.microos_image_id
   }
-
-  byte_length = 3
 }
-
 
 resource "random_string" "identity_file" {
   length  = 20
@@ -64,7 +64,7 @@ resource "hcloud_server" "server" {
     command = <<-EOT
       until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
       do
-        echo "Waiting for MicroOS to reboot and become available..."
+        echo "Waiting for MicroOS to become available..."
         sleep 3
       done
     EOT
@@ -76,7 +76,7 @@ resource "hcloud_server" "server" {
       set -ex
       transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
       transactional-update --continue shell <<< "zypper addlock k3s-selinux"
-      transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
+      transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${var.packages_to_install}"
       sleep 1 && udevadm settle
       EOT
     ]
