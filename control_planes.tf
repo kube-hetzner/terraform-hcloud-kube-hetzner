@@ -21,11 +21,11 @@ module "control_planes" {
   server_type                  = each.value.server_type
   backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  packages_to_install          = local.packages_to_install
   dns_servers                  = var.dns_servers
   k3s_registries               = var.k3s_registries
   k3s_registries_update_script = local.k3s_registries_update_script
-  opensuse_microos_mirror_link = var.opensuse_microos_mirror_link
+  cloudinit_write_files_common = local.cloudinit_write_files_common
+  cloudinit_runcmd_common      = local.cloudinit_runcmd_common
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.

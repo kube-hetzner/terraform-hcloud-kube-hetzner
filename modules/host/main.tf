@@ -70,34 +70,6 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Install k3s-selinux (compatible version) and open-iscsi
-  provisioner "remote-exec" {
-    inline = [<<-EOT
-      set -ex
-      transactional-update shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
-      sleep 1 && udevadm settle
-      EOT
-    ]
-  }
-
-  # Issue a reboot command.
-  provisioner "local-exec" {
-    command = <<-EOT
-      ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -p ${var.ssh_port} root@${self.ipv4_address} '(sleep 3; reboot)&'; sleep 3
-    EOT
-  }
-
-  # Wait for MicroOS to reboot and be ready
-  provisioner "local-exec" {
-    command = <<-EOT
-      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
-      do
-        echo "Waiting for MicroOS to reboot and become available..."
-        sleep 3
-      done
-    EOT
-  }
-
   # Cleanup ssh identity file
   provisioner "local-exec" {
     command = <<-EOT
@@ -105,17 +77,6 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Enable open-iscsi
-  provisioner "remote-exec" {
-    inline = [
-      <<-EOT
-      set -ex
-      if [[ $(systemctl list-units --all -t service --full --no-legend "iscsid.service" | sed 's/^\s*//g' | cut -f1 -d' ') == iscsid.service ]]; then
-        systemctl enable --now iscsid
-      fi
-      EOT
-    ]
-  }
 
   provisioner "remote-exec" {
     inline = var.automatically_upgrade_os ? [
@@ -179,13 +140,12 @@ data "cloudinit_config" "config" {
     filename     = "init.cfg"
     content_type = "text/cloud-config"
     content = templatefile(
-      "${path.module}/templates/userdata.yaml.tpl",
+      "${path.module}/templates/cloudinit.yaml.tpl",
       {
-        hostname          = local.name
-        sshPort           = var.ssh_port
-        sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
-        dnsServers        = var.dns_servers
-        k3sRegistries     = var.k3s_registries
+        hostname                     = local.name
+        sshAuthorizedKeys            = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        cloudinit_write_files_common = var.cloudinit_write_files_common
+        cloudinit_runcmd_common      = var.cloudinit_runcmd_common
       }
     )
   }

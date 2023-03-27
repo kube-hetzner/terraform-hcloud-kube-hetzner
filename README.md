@@ -604,6 +604,16 @@ alias cleanup_kh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://r
 
 _Careful, the above commands will delete everything, including volumes in your projects. You can always try with a dry run, it will give you that option._
 
+## Upgrading the Module
+
+Usually, you will want to upgrade the module in your project to the latest version. Just change the version attribute in your kube.tf and terraform apply. This will upgrade the module to the latest version.
+
+When moving from 1.x to 2.x:
+
+- Within your project folder, run the create_kh installation command, see Do Not Skip section above. This will create the snapshot for you.
+- Then modify your kube.tf to use version >= 2.0, and remove packages_to_install and opensuse_microos_mirror_link variables if used. This functionality has been moved to the packer snapshot state.
+- Then run terraform apply.
+
 <!-- CONTRIBUTING -->
 ## History
 

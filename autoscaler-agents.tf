@@ -70,9 +70,7 @@ data "cloudinit_config" "autoscaler-config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
-        sshPort           = var.ssh_port
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
-        dnsServers        = var.dns_servers
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
           token         = random_password.k3s_token.result
@@ -81,8 +79,9 @@ data "cloudinit_config" "autoscaler-config" {
           node-label    = local.default_agent_labels
           node-taint    = local.default_agent_taints
         })
-        k3s_registries           = var.k3s_registries
-        install_k3s_agent_script = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
+        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["/etc/cloud/rename_interface.sh", "systemctl start k3s-agent"]))
+        cloudinit_write_files_common = local.cloudinit_write_files_common
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
       }
     )
   }

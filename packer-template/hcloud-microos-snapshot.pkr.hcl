@@ -8,13 +8,22 @@ variable "hcloud_token" {
   sensitive = true
 }
 
+# We download OpenSUSE MicroOS from an automatically selected mirror. In case it somehow does not work for you (you get a 403), you can try other mirrors.
+# You can find a working mirror at https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist
 variable "opensuse_microos_mirror_link" {
   type    = string
-  default = "https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  default = "https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+}
+
+# If you need to add other packages to the OS, do it here in the default value, like ["vim", "curl", "wget"]
+# When looking for packages, you need to search for OpenSUSE Tumbleweed packages, as MicroOS is based on Tumbleweed.
+variable "packages_to_install" {
+  type    = list(string)
+  default = []
 }
 
 locals {
-  needed_packages = "restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi nfs-client xfsprogs cryptsetup lvm2 git"
+  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi nfs-client xfsprogs cryptsetup lvm2 git"], var.packages_to_install))
 }
 
 source "hcloud" "microos-snapshot" {
@@ -52,10 +61,8 @@ build {
     pause_before = "5s"
     inline = [<<-EOT
       set -ex
-      echo First reboot successful, updating and installing basic packages...
-      # Update to latest MicroOS version
-      transactional-update dup
-      transactional-update --continue shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
+      echo "First reboot successful, updating and needed package..."
+      transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
       transactional-update --continue shell <<< "zypper addlock k3s-selinux"
       transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
       sleep 1 && udevadm settle && reboot
@@ -69,9 +76,7 @@ build {
     pause_before = "5s"
     inline = [<<-EOT
       set -ex
-      echo Second reboot successful, cleaning-up...
-      transactional-update cleanup
-      rm -rf /var/log/*
+      echo "Second reboot successful, cleaning-up..."
       rm -rf /etc/ssh/ssh_host_*
       sleep 1 && udevadm settle
       EOT

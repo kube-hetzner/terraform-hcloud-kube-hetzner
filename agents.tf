@@ -21,11 +21,11 @@ module "agents" {
   server_type                  = each.value.server_type
   backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  packages_to_install          = local.packages_to_install
   dns_servers                  = var.dns_servers
   k3s_registries               = var.k3s_registries
   k3s_registries_update_script = local.k3s_registries_update_script
-  opensuse_microos_mirror_link = var.opensuse_microos_mirror_link
+  cloudinit_write_files_common = local.cloudinit_write_files_common
+  cloudinit_runcmd_common      = local.cloudinit_runcmd_common
 
   private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
