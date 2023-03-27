@@ -26,13 +26,13 @@ fi
 
 # Download the required files only if they don't exist
 if [ ! -e "${folder_path}/kube.tf" ]; then
-    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/next/kube.tf.example -o "${folder_path}/kube.tf"
+    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example -o "${folder_path}/kube.tf"
 else
     echo "kube.tf already exists. Skipping download."
 fi
 
 if [ ! -e "${folder_path}/hcloud-microos-snapshot.pkr.hcl" ]; then
-    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/next/packer-template/hcloud-microos-snapshot.pkr.hcl -o "${folder_path}/hcloud-microos-snapshot.pkr.hcl"
+    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshot.pkr.hcl -o "${folder_path}/hcloud-microos-snapshot.pkr.hcl"
 else
     echo "hcloud-microos-snapshot.pkr.hcl already exists. Skipping download."
 fi
@@ -46,11 +46,11 @@ read -p "Do you want to create the MicroOS snapshot with packer now? (yes/no): "
 if [ "$create_snapshot" = "yes" ]; then
     read -p "Enter your HCLOUD_TOKEN: " hcloud_token
     export HCLOUD_TOKEN=$hcloud_token
-    echo "Running: packer build packer build -debug hcloud-microos-snapshot.pkr.hcl"
+    echo "Running: packer build packer build hcloud-microos-snapshot.pkr.hcl"
     cd "${folder_path}/${folder_name}" && packer build hcloud-microos-snapshot.pkr.hcl
 else
     echo " "
-    echo "You can create the snapshot later by running 'packer build -debug hcloud-microos-snapshot.pkr.hcl' in the folder."
+    echo "You can create the snapshot later by running 'packer build hcloud-microos-snapshot.pkr.hcl' in the folder."
 fi
 
 # Output commands

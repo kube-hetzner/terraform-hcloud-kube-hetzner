@@ -45,14 +45,15 @@ build {
 
   # Download the MicroOS image and write it to disk
   provisioner "shell" {
-    inline = [
-      "sleep 5",
-      "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${var.opensuse_microos_mirror_link}",
-      "echo 'MicroOS image loaded, writing to disk... '",
-      "qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda",
-      "echo 'done. Rebooting...'",
-      "sleep 2; reboot"
-    ]
+    inline = [<<-EOT
+      set -ex
+      wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${var.opensuse_microos_mirror_link}
+      echo 'MicroOS image loaded, writing to disk... '
+      qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda
+      echo 'done. Rebooting...'
+      sleep 1 && udevadm settle && reboot
+      EOT
+      ]
     expect_disconnect = true
   }
 
@@ -61,10 +62,13 @@ build {
     pause_before = "5s"
     inline = [<<-EOT
       set -ex
-      echo "First reboot successful, updating and needed package..."
-      transactional-update shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
-      transactional-update --continue shell <<< "zypper addlock k3s-selinux"
+      echo "First reboot successful, installing needed packages..."
+      transactional-update shell <<< "setenforce 0"
       transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
+      transactional-update --continue shell <<< "rpm --import https://rpm-testing.rancher.io/public.key"
+      transactional-update --continue shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
+      transactional-update --continue shell <<< "zypper addlock k3s-selinux"
+      transactional-update --continue shell <<< "restorecon -Rv /etc/selinux/targeted/policy && restorecon -Rv /var/lib && setenforce 1"
       sleep 1 && udevadm settle && reboot
       EOT
     ]

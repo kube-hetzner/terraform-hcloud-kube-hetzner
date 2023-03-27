@@ -79,7 +79,7 @@ data "cloudinit_config" "autoscaler-config" {
           node-label    = local.default_agent_labels
           node-taint    = local.default_agent_taints
         })
-        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["/etc/cloud/rename_interface.sh", "systemctl start k3s-agent"]))
+        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
         cloudinit_runcmd_common      = local.cloudinit_runcmd_common
       }

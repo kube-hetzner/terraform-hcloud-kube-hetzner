@@ -2,14 +2,26 @@
 
 DRY_RUN=1
 
-echo "Welcome to the Hetzner cluster deletion script!"
+echo "Welcome to the Kube-Hetzner cluster deletion script!"
 echo " "
 echo "We advise you to first run 'terraform destroy' and execute that script when it starts hanging because of ressources still attached to the network."
 echo "In order to run this script need to have the hcloud CLI installed and configured with a context for the cluster you want to delete."
 command -v hcloud >/dev/null 2>&1 || { echo "hcloud (Hetzner CLI) is not installed. Install it with 'brew install hcloud'."; exit 1; }
 echo "You can do so by running 'hcloud context create <cluster_name>' and inputting your HCLOUD_TOKEN."
 echo " "
-read -p "Enter the name of the cluster to delete: " CLUSTER_NAME
+
+# Try to guess the cluster name
+GUESSED_CLUSTER_NAME=$(grep -oP 'cluster_name\s*=\s*"\K([^"]+)' kube.tf)
+
+if [ -n "$GUESSED_CLUSTER_NAME" ]; then
+  echo "Cluster name '$GUESSED_CLUSTER_NAME' has been detected in the kube.tf file."
+  read -p "Enter the name of the cluster to delete (default: $GUESSED_CLUSTER_NAME): " CLUSTER_NAME
+  if [ -z "$CLUSTER_NAME" ]; then
+    CLUSTER_NAME="$GUESSED_CLUSTER_NAME"
+  fi
+else
+  read -p "Enter the name of the cluster to delete: " CLUSTER_NAME
+fi
 
 while true; do
   read -p "Do you want to perform a dry run? (yes/no): " dry_run_input

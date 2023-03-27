@@ -23,5 +23,3 @@ preserve_hostname: true
 runcmd:
 
 ${cloudinit_runcmd_common}
-
-- [systemctl, 'restart', 'sshd']

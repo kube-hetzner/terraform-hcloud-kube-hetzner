@@ -8,25 +8,11 @@ ${cloudinit_write_files_common}
 
 - content: ${base64encode(k3s_config)}
   encoding: base64
-  path: /etc/rancher/k3s/config.yaml
+  path: /tmp/config.yaml
 
 - content: ${base64encode(install_k3s_agent_script)}
   encoding: base64
   path: /var/pre_install/install-k3s-agent.sh
-
-- content: |
-    [Unit]
-    Description=Run install-k3s-agent once at boot time
-    After=network-online.target
-
-    [Service]
-    Type=oneshot
-    ExecStart=/bin/sh /var/pre_install/install-k3s-agent.sh
-
-    [Install]
-    WantedBy=network-online.target
-  permissions: '0644'
-  path: /etc/systemd/system/install-k3s-agent.service
 
 # Add ssh authorized keys
 ssh_authorized_keys:
@@ -46,12 +32,5 @@ runcmd:
 
 ${cloudinit_runcmd_common}
 
-# Enable install-k3s-agent service
-- [systemctl, enable, 'install-k3s-agent.service']
-
-# reboot!
-power_state:
-    delay: now
-    mode: reboot
-    message: MicroOS rebooting to reflect changes
-    condition: true
+# Start the install-k3s-agent service
+- ['/bin/bash', '/var/pre_install/install-k3s-agent.sh']

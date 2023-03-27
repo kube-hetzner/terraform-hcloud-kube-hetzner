@@ -25,9 +25,11 @@ locals {
   set -a; source /etc/environment; set +a;
   EOT
 
-  common_commands_install_k3s = concat(
+  common_pre_install_k3s_commands = concat(
     [
       "set -ex",
+      # rename the private network interface to eth1
+      "/etc/cloud/rename_interface.sh",
       # prepare the k3s config directory
       "mkdir -p /etc/rancher/k3s",
       # move the config file into place and adjust permissions
@@ -39,15 +41,17 @@ locals {
     ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
+    # Wait for a successful connection to the internet.
+    ["while ! ping -c 1 8.8.8.8 >/dev/null 2>&1; do echo 'Ready for k3s installation, waiting for a successful connection to the internet...'; sleep 5; done; echo 'Connected'"]
   )
 
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
 
-  install_k3s_server = concat(local.common_commands_install_k3s, [
+  install_k3s_server = concat(local.common_pre_install_k3s_commands, [
     "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"
   ], local.apply_k3s_selinux)
-  install_k3s_agent = concat(local.common_commands_install_k3s, [
+  install_k3s_agent = concat(local.common_pre_install_k3s_commands, [
     "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"
   ], local.apply_k3s_selinux)
 
@@ -547,39 +551,10 @@ EOF
     gpgkey=https://rpm.rancher.io/public.key
   path: /etc/zypp/repos.d/rancher-k3s-common.repo
 
-# Create the sshd_t.pp file, that allows in SELinux custom SSH ports via "semodule -i",
-# the encoding is binary in base64, created on a test machine with "audit2allow -a -M sshd_t",
-# it is only applied when the port is different then 22, see below in the runcmd section.
-- content: !!binary |
-    j/98+QEAAAABAAAAEAAAAI3/fPkPAAAAU0UgTGludXggTW9kdWxlAgAAABUAAAABAAAACAAAAAAA
-    AAAGAAAAc3NoZF90AwAAADEuMEAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAIAAAAKAAAAAAAAAAIA
-    AAABAAAAAQAAAAAAAAB0Y3Bfc29ja2V0CQAAAAEAAABuYW1lX2JpbmQDAAAAAAAAAAEAAAABAAAA
-    AQAAAAAAAABkaXIFAAAAAQAAAHdyaXRlAQAAAAEAAAAIAAAAAQAAAAAAAABvYmplY3RfckAAAAAA
-    AAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAABAAAAAQA
-    AAARAAAAAQAAAAEAAAABAAAAAAAAAEAAAAAAAAAAAAAAAGNocm9ueWRfdmFyX3J1bl90EQAAAAIA
-    AAABAAAAAQAAAAAAAABAAAAAAAAAAAAAAAB1bnJlc2VydmVkX3BvcnRfdAgAAAADAAAAAQAAAAEA
-    AAAAAAAAQAAAAAAAAAAAAAAAd2lja2VkX3QGAAAABAAAAAEAAAABAAAAAAAAAEAAAAAAAAAAAAAA
-    AHNzaGRfdAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAABAAAAAAAAAAAA
-    AAACAAAAAQAAAAAAAABAAAAAQAAAAAEAAAAAAAAACAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAA
-    AEAAAAABAAAAAAAAAAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAEAAAACAAAAAQAAAAEAAAAAAAAA
-    QAAAAEAAAAABAAAAAAAAAAQAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAQAAAAAAAAAB
-    AAAAAAAAAEAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAA
-    AAAAAAAAQAAAAEAAAAABAAAAAAAAAAMAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAEAAAAABAAAAAAAA
-    AA8AAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAA
-    AgAAAEAAAABAAAAAAQAAAAAAAAABAAAAAAAAAEAAAABAAAAAAQAAAAAAAAABAAAAAAAAAEAAAAAA
-    AAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAA
-    AAAAAAAAAAAAAEAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAKAAAA
-    dGNwX3NvY2tldAEAAAABAAAAAQAAAAMAAABkaXIBAAAAAQAAAAEAAAABAAAACAAAAG9iamVjdF9y
-    AgAAAAEAAAABAAAABAAAABEAAABjaHJvbnlkX3Zhcl9ydW5fdAEAAAABAAAAAQAAABEAAAB1bnJl
-    c2VydmVkX3BvcnRfdAEAAAABAAAAAQAAAAgAAAB3aWNrZWRfdAEAAAABAAAAAQAAAAYAAABzc2hk
-    X3QBAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-  path: /etc/selinux/sshd_t.pp
-
-# Create the iscsi_selinux.te file, that allows in SELinux the iscsi service to run
-- path: /root/iscsi_selinux.te
+# Create the kube_hetzner_selinux.te file, that allows in SELinux to not interfere with various needed services
+- path: /root/kube_hetzner_selinux.te
   content: |
-    module iscsi_selinux 1.0;
+    module kube_hetzner_selinux 1.0;
 
     require {
             type iscsid_t;
@@ -599,6 +574,34 @@ EOF
     # Allow iscsid to connect to unix_stream_socket
     allow iscsid_t var_run_t:unix_stream_socket connectto;
 
+    require {
+      type init_t;
+      type unlabeled_t;
+      class dir add_name;
+    }
+
+    #============= init_t ==============
+    allow init_t unlabeled_t:dir add_name;
+
+    require {
+      type unlabeled_t;
+      type init_t;
+      class dir remove_name;
+    }
+
+    #============= init_t ==============
+    allow init_t unlabeled_t:dir remove_name;
+
+    require {
+      type unlabeled_t;
+      type init_t;
+      class lnk_file create;
+    }
+
+    #============= init_t ==============
+    allow init_t unlabeled_t:lnk_file create;
+
+# Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
 # Create k3s registries file
 - content: ${base64encode(var.k3s_registries)}
@@ -606,6 +609,7 @@ EOF
   path: /etc/rancher/k3s/registries.yaml
 %{endif}
 
+# Apply new DNS config
 %{if length(var.dns_servers) > 0}
 # Set prepare for manual dns config
 - content: |
@@ -626,16 +630,19 @@ EOT
 # ensure that /var uses full available disk size, thanks to btrfs this is easy
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 
+# SELinux permission for the SSH alternative port
 %{if var.ssh_port != 22}
 # SELinux permission for the SSH alternative port.
-- [semodule, '-vi', '/etc/selinux/sshd_t.pp']
+- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, ${var.ssh_port}]
 %{endif}
 
-# Enable iscsid useful for distributed storage like Longhorn
-- ["checkmodule", "-M", "-m", "-o", "/root/iscsi_selinux.mod", "/root/iscsi_selinux.te"]
-- ["semodule_package", "-o", "/root/iscsi_selinux.pp", "-m", "/root/iscsi_selinux.mod"]
-- ["semodule", "-i", "/root/iscsi_selinux.pp"]
-- [systemctl, enable, '--now', iscsid]
+# Create and apply the necessary SELinux module for kube-hetzner
+- [checkmodule, '-M', '-m', '-o', '/root/kube_hetzner_selinux.mod', '/root/kube_hetzner_selinux.te']
+- ['semodule_package', '-o', '/root/kube_hetzner_selinux.pp', '-m', '/root/kube_hetzner_selinux.mod']
+- [semodule, '-i', '/root/kube_hetzner_selinux.pp']
+
+# Disable rebootmgr service as we use kured instead
+- [systemctl, disable, '--now', 'rebootmgr.service']
 
 %{if length(var.dns_servers) > 0}
 # Set the dns manually
@@ -653,7 +660,7 @@ EOT
 # Allow network interface
 - [chmod, '+x', '/etc/cloud/rename_interface.sh']
 
-# Disables unneeded services
-- [systemctl, disable, '--now', 'rebootmgr.service']
+# Restart the sshd service to apply the new config
+- [systemctl, 'restart', 'sshd']
 EOT
 }

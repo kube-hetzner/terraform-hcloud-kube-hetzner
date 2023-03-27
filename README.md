@@ -74,7 +74,6 @@ Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terra
 brew install terraform
 brew install kubectl
 brew install hcloud
-
 ```
 
 ### 💡 [Do not skip] Creating your kube.tf file and the OpenSUSE MicroOS snapshot
@@ -87,15 +86,27 @@ brew install hcloud
     tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
     ```
 
-    _Optionally, for future usage, save that command in an alias in your shell preferences, like so:_
+    _Optionally, for future usage, save that command as an alias in your shell preferences, like so:_
 
     ```sh
     alias create_kh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" <https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh> && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
     ```
 
+    _For the curious, here is what the script does:_
+
+    ```sh
+    mkdir /path/to/your/new/folder
+    cd /path/to/your/new/folder
+    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example -o kube.tf
+    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshot.pkr.hcl -o hcloud-microos-snapshot.pkr.hcl
+    export HCLOUD_TOKEN="your_hcloud_token"
+    packer build hcloud-microos-snapshot.pkr.hcl
+    hcloud context create <project-name>
+    ```
+
 1. In that new project folder that gets created, you will find your `kube.tf` and it must be customized to suit your needs. ✅
 
-_A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
+    _A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
 
 ### 🎯 Installation
 
@@ -629,6 +640,20 @@ Code contributions are very much **welcome**.
 
 1. Fork the Project
 1. Create your Branch (`git checkout -b AmazingFeature`)
+1. Develop your feature
+
+    In your kube.tf, point the `source` of module to your local clone of the repo.
+
+    Useful commands:
+
+    ```sh
+    # To cleanup a Hetzner project
+    ../kube-hetzner/scripts/cleanup.sh
+
+    # To build the Packer image
+    packer build ../kube-hetzner/packer-template/hcloud-microos-snapshot.pkr.hcl
+    ```
+
 1. Commit your Changes (`git commit -m 'Add some AmazingFeature')
 1. Push to the Branch (`git push origin AmazingFeature`)
 1. Open a Pull Request targeting the `staging` branch.
