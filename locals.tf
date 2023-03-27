@@ -576,30 +576,28 @@ EOF
     X3QBAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
   path: /etc/selinux/sshd_t.pp
 
-# Same process as above to allow iscsid to be started correctly when using Longhorn.
-- content: !!binary |
-    j/98+QEAAAABAAAAEAAAAI3/fPkPAAAAU0UgTGludXggTW9kdWxlAgAAABUAAAABAAAACAAAAAAA
-    AAAYAAAAbXlfaXNjc2lkX3BvbGljeV91cGRhdGVkAwAAADEuMEAAAAAAAAAAAAAAAAAAAAAAAAAA
-    AgAAAAIAAAADAAAAAAAAAAEAAAABAAAAAQAAAAAAAABkaXIIAAAAAQAAAGFkZF9uYW1lCAAAAAAA
-    AAACAAAAAQAAAAEAAAAAAAAAbG5rX2ZpbGUGAAAAAQAAAGNyZWF0ZQEAAAABAAAACAAAAAEAAAAA
-    AAAAb2JqZWN0X3JAAAAAAAAAAAAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAEAA
-    AAAAAAAAAAAAAAIAAAACAAAACwAAAAIAAAABAAAAAQAAAAAAAABAAAAAAAAAAAAAAAB1bmxhYmVs
-    ZWRfdAYAAAABAAAAAQAAAAEAAAAAAAAAQAAAAAAAAAAAAAAAaW5pdF90AAAAAAAAAAAAAAAAAAAA
-    AAAAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAEAAAAAAAAAAAAAAAIAAAABAAAAAAAAAEAAAABAAAAA
-    AQAAAAAAAAABAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAQAAAAAEAAAAAAAAAAgAAAAAAAABA
-    AAAAAAAAAAAAAAAAAAAAAQAAAAEAAAABAAAAAQAAAAAAAABAAAAAQAAAAAEAAAAAAAAAAQAAAAAA
-    AABAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAABAAAAAAAAAAIAAAAAAAAAQAAAAAAAAAAAAAAAAAAA
-    AAEAAAACAAAAAQAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAABAAAAAQAAAAAEAAAAAAAAA
-    AwAAAAAAAABAAAAAAAAAAAAAAABAAAAAQAAAAAEAAAAAAAAAAwAAAAAAAABAAAAAAAAAAAAAAABA
-    AAAAAAAAAAAAAABAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAACAAAAQAAAAEAAAAABAAAAAAAAAAEA
-    AAAAAAAAQAAAAEAAAAABAAAAAAAAAAEAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAA
-    AAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAA
-    QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-    AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAMAAABkaXIBAAAAAQAAAAEAAAAIAAAAbG5r
-    X2ZpbGUBAAAAAQAAAAEAAAABAAAACAAAAG9iamVjdF9yAgAAAAEAAAABAAAAAgAAAAsAAAB1bmxh
-    YmVsZWRfdAEAAAABAAAAAQAAAAYAAABpbml0X3QBAAAAAQAAAAEAAAAAAAAAAAAAAAAAAAAAAAAA
-    AAAAAA==
-  path: /etc/selinux/iscsid_policy.pp
+# Create the iscsi_selinux.te file, that allows in SELinux the iscsi service to run
+- path: /root/iscsi_selinux.te
+  content: |
+    module iscsi_selinux 1.0;
+
+    require {
+            type iscsid_t;
+            type iscsid_exec_t;
+            type var_run_t;
+            class file { execute execute_no_trans };
+            class sock_file write;
+            class unix_stream_socket connectto;
+    }
+
+    # Allow iscsid to execute in its own domain
+    allow iscsid_t iscsid_exec_t:file execute;
+
+    # Allow iscsid to write to sock_files
+    allow iscsid_t var_run_t:sock_file write;
+
+    # Allow iscsid to connect to unix_stream_socket
+    allow iscsid_t var_run_t:unix_stream_socket connectto;
 
 %{if var.k3s_registries != ""}
 # Create k3s registries file
@@ -634,7 +632,9 @@ EOT
 %{endif}
 
 # Enable iscsid useful for distributed storage like Longhorn
-- [semodule, '-vi', '/etc/selinux/iscsid_policy.pp']
+- ["checkmodule", "-M", "-m", "-o", "/root/iscsi_selinux.mod", "/root/iscsi_selinux.te"]
+- ["semodule_package", "-o", "/root/iscsi_selinux.pp", "-m", "/root/iscsi_selinux.mod"]
+- ["semodule", "-i", "/root/iscsi_selinux.pp"]
 - [systemctl, enable, '--now', iscsid]
 
 %{if length(var.dns_servers) > 0}
