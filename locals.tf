@@ -662,5 +662,10 @@ EOT
 
 # Restart the sshd service to apply the new config
 - [systemctl, 'restart', 'sshd']
+
+# Make sure the network is up
+- [systemctl, restart, NetworkManager]
+- [systemctl, status, NetworkManager]
+- [ip, route, add, default, via, '172.31.1.1', dev, 'eth0']
 EOT
 }

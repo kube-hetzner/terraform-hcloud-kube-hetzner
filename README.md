@@ -89,7 +89,7 @@ brew install hcloud
     _Optionally, for future usage, save that command as an alias in your shell preferences, like so:_
 
     ```sh
-    alias create_kh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" <https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh> && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
+    alias createkh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" <https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh> && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
     ```
 
     _For the curious, here is what the script does:_
@@ -610,7 +610,7 @@ tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubuserconte
 As a one time thing, for convenience, you can also save it as an alias in your shell config file, like so:
 
 ```sh
-alias cleanup_kh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/cleanup.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
+alias cleanupkh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/cleanup.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
 ```
 
 _Careful, the above commands will delete everything, including volumes in your projects. You can always try with a dry run, it will give you that option._
@@ -621,7 +621,7 @@ Usually, you will want to upgrade the module in your project to the latest versi
 
 When moving from 1.x to 2.x:
 
-- Within your project folder, run the create_kh installation command, see Do Not Skip section above. This will create the snapshot for you.
+- Within your project folder, run the createkh installation command, see Do Not Skip section above. This will create the snapshot for you.
 - Then modify your kube.tf to use version >= 2.0, and remove packages_to_install and opensuse_microos_mirror_link variables if used. This functionality has been moved to the packer snapshot state.
 - Then run terraform apply.
 

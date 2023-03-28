@@ -32,13 +32,13 @@ while true; do
   esac
 done
 
-read -p "Do you want to delete volumes? (yes/no): " delete_volumes_input
+read -p "Do you want to delete volumes? (yes/no, default: no): " delete_volumes_input
 DELETE_VOLUMES=0
 if [[ "$delete_volumes_input" =~ ^([Yy]es|[Yy])$ ]]; then
   DELETE_VOLUMES=1
 fi
 
-read -p "Do you want to delete MicroOS snapshots? (yes/no): " delete_snapshots_input
+read -p "Do you want to delete MicroOS snapshots? (yes/no, default: no): " delete_snapshots_input
 DELETE_SNAPSHOTS=0
 if [[ "$delete_snapshots_input" =~ ^([Yy]es|[Yy])$ ]]; then
   DELETE_SNAPSHOTS=1
