@@ -601,7 +601,7 @@ If you want to take down the cluster, you can proceed as follows:
 terraform destroy -auto-approve
 ```
 
-If you see the destroy hanging, it's probably because the Hetzner LB and the autoscaled nodes. You can use the following command to delete everything:
+If you see the destroy hanging, it's probably because of the Hetzner LB and the autoscaled nodes. You can use the following command to delete everything (dry run option is available don't worry, and it will only delete ressources specific to your cluster):
 
 ```sh
 tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/cleanup.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
@@ -622,7 +622,7 @@ Usually, you will want to upgrade the module in your project to the latest versi
 When moving from 1.x to 2.x:
 
 - Within your project folder, run the createkh installation command, see Do Not Skip section above. This will create the snapshot for you.
-- Then modify your kube.tf to use version >= 2.0, and remove packages_to_install and opensuse_microos_mirror_link variables if used. This functionality has been moved to the packer snapshot state.
+- Then modify your kube.tf to use version >= 2.0, and remove packages_to_install and opensuse_microos_mirror_link variables if used. This functionality has been moved to the packer snapshot definition, see packer-template/hcloud-microos-snapshot.pkr.hlc.
 - Then run terraform apply.
 
 <!-- CONTRIBUTING -->
