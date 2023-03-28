@@ -621,9 +621,9 @@ Usually, you will want to upgrade the module in your project to the latest versi
 
 When moving from 1.x to 2.x:
 
-- Within your project folder, run the createkh installation command, see Do Not Skip section above. This will create the snapshot for you.
-- Then modify your kube.tf to use version >= 2.0, and remove `extra_packages_to_install` and `opensuse_microos_mirror_link` variables if used. This functionality has been moved to the packer snapshot definition, see packer-template/hcloud-microos-snapshot.pkr.hlc.
-- Then run terraform apply.
+- Within your project folder, run the `createkh` installation command, see [Do Not Skip](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#-do-not-skip-creating-your-kubetf-file-and-the-opensuse-microos-snapshot) section above. This will create the snapshot for you. Don't worry, it's non-destructive and will leave your kube.tf and terraform state alone, but will download the required other packer file.
+- Then modify your kube.tf to use version >= 2.0, and remove `extra_packages_to_install` and `opensuse_microos_mirror_link` variables if used. This functionality has been moved to the packer snapshot definition, see [packer-template/hcloud-microos-snapshot.pkr.hlc](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/packer-template/hcloud-microos-snapshot.pkr.hcl).
+- Then run `terraform init -upgrade && terraform apply`.
 
 <!-- CONTRIBUTING -->
 ## History
