@@ -25,13 +25,15 @@ locals {
   set -a; source /etc/environment; set +a;
   EOT
 
-  common_commands_install_k3s = concat(
+  common_pre_install_k3s_commands = concat(
     [
       "set -ex",
+      # rename the private network interface to eth1
+      "/etc/cloud/rename_interface.sh",
       # prepare the k3s config directory
       "mkdir -p /etc/rancher/k3s",
       # move the config file into place and adjust permissions
-      "mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
+      "[ -f /tmp/config.yaml ] && mv /tmp/config.yaml /etc/rancher/k3s/config.yaml",
       "chmod 0600 /etc/rancher/k3s/config.yaml",
       # if the server has already been initialized just stop here
       "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
@@ -39,15 +41,17 @@ locals {
     ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
+    # Wait for a successful connection to the internet.
+    ["while ! ping -c 1 8.8.8.8 >/dev/null 2>&1; do echo 'Ready for k3s installation, waiting for a successful connection to the internet...'; sleep 5; done; echo 'Connected'"]
   )
 
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
 
-  install_k3s_server = concat(local.common_commands_install_k3s, [
+  install_k3s_server = concat(local.common_pre_install_k3s_commands, [
     "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=server sh -"
   ], local.apply_k3s_selinux)
-  install_k3s_agent = concat(local.common_commands_install_k3s, [
+  install_k3s_agent = concat(local.common_pre_install_k3s_commands, [
     "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC=agent sh -"
   ], local.apply_k3s_selinux)
 
@@ -113,12 +117,6 @@ locals {
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
-
-  packages_to_install = concat(
-    var.enable_wireguard ? ["wireguard-tools"] : [],
-    var.enable_longhorn ? ["open-iscsi", "nfs-client", "xfsprogs", "cryptsetup", "lvm2", "git"] : [],
-    var.extra_packages_to_install,
-  )
 
   # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
   # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
@@ -505,4 +503,169 @@ else
   echo "k3s service or k3s-agent service restarted successfully"
 fi
 EOF
+
+  cloudinit_write_files_common = <<EOT
+# Script to rename the private interface to eth1
+- path: /etc/cloud/rename_interface.sh
+  content: |
+    #!/bin/bash
+    set -euo pipefail
+
+    sleep 11
+    
+    INTERFACE=$(ip link show | awk '/^3:/{print $2}' | sed 's/://g')
+    MAC=$(cat /sys/class/net/$INTERFACE/address)
+    
+    cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
+    SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
+    EOF
+
+    ip link set $INTERFACE down
+    ip link set $INTERFACE name eth1
+    ip link set eth1 up
+
+# Disable ssh password authentication
+- content: |
+    Port ${var.ssh_port}
+    PasswordAuthentication no
+    X11Forwarding no
+    MaxAuthTries 2
+    AllowTcpForwarding no
+    AllowAgentForwarding no
+    AuthorizedKeysFile .ssh/authorized_keys
+  path: /etc/ssh/sshd_config.d/kube-hetzner.conf
+
+# Set reboot method as "kured"
+- content: |
+    REBOOT_METHOD=kured
+  path: /etc/transactional-update.conf
+
+# Create Rancher repo config
+- content: |
+    [rancher-k3s-common-stable]
+    name=Rancher K3s Common (stable)
+    baseurl=https://rpm.rancher.io/k3s/stable/common/microos/noarch
+    enabled=1
+    gpgcheck=1
+    repo_gpgcheck=0
+    gpgkey=https://rpm.rancher.io/public.key
+  path: /etc/zypp/repos.d/rancher-k3s-common.repo
+
+# Create the kube_hetzner_selinux.te file, that allows in SELinux to not interfere with various needed services
+- path: /root/kube_hetzner_selinux.te
+  content: |
+    module kube_hetzner_selinux 1.0;
+
+    require {
+            type iscsid_t;
+            type iscsid_exec_t;
+            type var_run_t;
+            class file { execute execute_no_trans };
+            class sock_file write;
+            class unix_stream_socket connectto;
+    }
+
+    # Allow iscsid to execute in its own domain
+    allow iscsid_t iscsid_exec_t:file execute;
+
+    # Allow iscsid to write to sock_files
+    allow iscsid_t var_run_t:sock_file write;
+
+    # Allow iscsid to connect to unix_stream_socket
+    allow iscsid_t var_run_t:unix_stream_socket connectto;
+
+    require {
+      type init_t;
+      type unlabeled_t;
+      class dir add_name;
+    }
+
+    #============= init_t ==============
+    allow init_t unlabeled_t:dir add_name;
+
+    require {
+      type unlabeled_t;
+      type init_t;
+      class dir remove_name;
+    }
+
+    #============= init_t ==============
+    allow init_t unlabeled_t:dir remove_name;
+
+    require {
+      type unlabeled_t;
+      type init_t;
+      class lnk_file create;
+    }
+
+    #============= init_t ==============
+    allow init_t unlabeled_t:lnk_file create;
+
+# Create the k3s registries file if needed
+%{if var.k3s_registries != ""}
+# Create k3s registries file
+- content: ${base64encode(var.k3s_registries)}
+  encoding: base64
+  path: /etc/rancher/k3s/registries.yaml
+%{endif}
+
+# Apply new DNS config
+%{if length(var.dns_servers) > 0}
+# Set prepare for manual dns config
+- content: |
+    [main]
+    dns=none
+  path: /etc/NetworkManager/conf.d/dns.conf
+
+- content: |
+    %{for server in var.dns_servers~}
+    nameserver ${server}
+    %{endfor}
+  path: /etc/resolv.conf
+  permissions: '0644'
+%{endif}
+EOT
+
+  cloudinit_runcmd_common = <<EOT
+# ensure that /var uses full available disk size, thanks to btrfs this is easy
+- [btrfs, 'filesystem', 'resize', 'max', '/var']
+
+# SELinux permission for the SSH alternative port
+%{if var.ssh_port != 22}
+# SELinux permission for the SSH alternative port.
+- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, ${var.ssh_port}]
+%{endif}
+
+# Create and apply the necessary SELinux module for kube-hetzner
+- [checkmodule, '-M', '-m', '-o', '/root/kube_hetzner_selinux.mod', '/root/kube_hetzner_selinux.te']
+- ['semodule_package', '-o', '/root/kube_hetzner_selinux.pp', '-m', '/root/kube_hetzner_selinux.mod']
+- [semodule, '-i', '/root/kube_hetzner_selinux.pp']
+
+# Disable rebootmgr service as we use kured instead
+- [systemctl, disable, '--now', 'rebootmgr.service']
+
+%{if length(var.dns_servers) > 0}
+# Set the dns manually
+- [systemctl, 'reload', 'NetworkManager']
+%{endif}
+
+# Bounds the amount of logs that can survive on the system
+- [sed, '-i', 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
+- [sed, '-i', 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
+
+# Reduces the default number of snapshots from 2-10 number limit, to 4 and from 4-10 number limit important, to 2
+- [sed, '-i', 's/NUMBER_LIMIT="2-10"/NUMBER_LIMIT="4"/g', /etc/snapper/configs/root]
+- [sed, '-i', 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g', /etc/snapper/configs/root]
+
+# Allow network interface
+- [chmod, '+x', '/etc/cloud/rename_interface.sh']
+
+# Restart the sshd service to apply the new config
+- [systemctl, 'restart', 'sshd']
+
+# Make sure the network is up
+- [systemctl, restart, NetworkManager]
+- [systemctl, status, NetworkManager]
+- [ip, route, add, default, via, '172.31.1.1', dev, 'eth0']
+EOT
 }

@@ -5,6 +5,12 @@ variable "hcloud_token" {
   default     = ""
 }
 
+variable "microos_snapshot_id" {
+  description = "MicroOS snapshot ID to be used. Per default empty, an initial snapshot will be created"
+  type        = string
+  default     = ""
+}
+
 variable "ssh_port" {
   description = "The main SSH port to connect to the nodes."
   type        = number
@@ -481,13 +487,6 @@ variable "preinstall_exec" {
   description = "Additional to execute before the install calls, for example fetching and installing certs."
 }
 
-
-variable "extra_packages_to_install" {
-  type        = list(string)
-  default     = []
-  description = "A list of additional packages to install on nodes."
-}
-
 variable "extra_kustomize_parameters" {
   type        = map(any)
   default     = {}
@@ -522,17 +521,6 @@ variable "k3s_registries" {
   description = "K3S registries.yml contents. It used to access private docker registries."
   default     = " "
   type        = string
-}
-
-variable "opensuse_microos_mirror_link" {
-  description = "The mirror link to use for the opensuse microos image."
-  default     = "https://mirror.dogado.de/opensuse/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
-  type        = string
-
-  validation {
-    condition     = can(regex("^https.*openSUSE-MicroOS\\.x86_64[\\-0-9\\.]*-OpenStack-Cloud.*\\.qcow2$", var.opensuse_microos_mirror_link))
-    error_message = "You need to use a mirror link from https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist"
-  }
 }
 
 variable "additional_tls_sans" {

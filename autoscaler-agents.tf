@@ -7,12 +7,12 @@ locals {
       ca_image         = var.cluster_autoscaler_image
       ca_version       = var.cluster_autoscaler_version
       ssh_key          = local.hcloud_ssh_key_id
-      ipv4_subnet_id   = hcloud_network.k3s.id
       # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
-      snapshot_id  = hcloud_snapshot.autoscaler_image[0].id
-      firewall_id  = hcloud_firewall.k3s.id
-      cluster_name = local.cluster_prefix
-      node_pools   = var.autoscaler_nodepools
+      ipv4_subnet_id = hcloud_network.k3s.id
+      snapshot_id    = data.hcloud_image.microos_snapshot.id
+      firewall_id    = hcloud_firewall.k3s.id
+      cluster_name   = local.cluster_prefix
+      node_pools     = var.autoscaler_nodepools
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
@@ -22,18 +22,6 @@ locals {
     ]...) : v.name => v
   }
 }
-
-resource "hcloud_snapshot" "autoscaler_image" {
-  count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
-
-  # using control_plane here as this one is always available
-  server_id   = values(module.control_planes)[0].id
-  description = "Initial snapshot used for autoscaler"
-  labels = merge(local.labels, {
-    autoscaler = "true"
-  })
-}
-
 resource "null_resource" "configure_autoscaler" {
   count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
 
@@ -64,7 +52,7 @@ resource "null_resource" "configure_autoscaler" {
 
   depends_on = [
     null_resource.first_control_plane,
-    hcloud_snapshot.autoscaler_image
+    data.hcloud_image.microos_snapshot
   ]
 }
 
@@ -82,10 +70,7 @@ data "cloudinit_config" "autoscaler-config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
-        sshPort           = var.ssh_port
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
-        dnsServers        = var.dns_servers
-        k3s_channel       = var.initial_k3s_channel
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
           token         = random_password.k3s_token.result
@@ -94,7 +79,9 @@ data "cloudinit_config" "autoscaler-config" {
           node-label    = local.default_agent_labels
           node-taint    = local.default_agent_taints
         })
-        k3s_registries = var.k3s_registries
+        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
+        cloudinit_write_files_common = local.cloudinit_write_files_common
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
       }
     )
   }
