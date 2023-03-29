@@ -104,14 +104,15 @@ variable "control_plane_nodepools" {
 variable "agent_nodepools" {
   description = "Number of agent nodes."
   type = list(object({
-    name        = string
-    server_type = string
-    location    = string
-    backups     = optional(bool)
-    floating_ip = optional(bool)
-    labels      = list(string)
-    taints      = list(string)
-    count       = number
+    name                 = string
+    server_type          = string
+    location             = string
+    backups              = optional(bool)
+    floating_ip          = optional(bool)
+    labels               = list(string)
+    taints               = list(string)
+    count                = number
+    longhorn_volume_size = optional(number)
   }))
   default = []
 }
