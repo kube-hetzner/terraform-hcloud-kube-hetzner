@@ -76,12 +76,12 @@ locals {
       format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
         nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
-        longhorn_volume_size : lookup(nodepool_obj, "longhorn_volume_size", 0),
+        longhorn_volume_size : coalesce(nodepool_obj.longhorn_volume_size, 0),
         floating_ip : lookup(nodepool_obj, "floating_ip", false),
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
-        backups : nodepool_obj.backups,
+        backups : lookup(nodepool_obj, "backups", false),
         index : node_index
       }
     }
@@ -557,14 +557,23 @@ EOF
     module kube_hetzner_selinux 1.0;
 
     require {
-            type iscsid_t;
-            type iscsid_exec_t;
-            type var_run_t;
-            class file { execute execute_no_trans };
-            class sock_file write;
-            class unix_stream_socket connectto;
+        type iscsid_t;
+        type iscsid_exec_t;
+        type var_run_t;
+        type init_t;
+        type unlabeled_t;
+        type systemd_logind_t;
+        type systemd_hostnamed_t;
+        type container_t;
+        type cert_t;
+        class file { open read execute execute_no_trans };
+        class sock_file write;
+        class unix_stream_socket connectto;
+        class dir { search rmdir read add_name remove_name };
+        class lnk_file { read create };
     }
 
+    #============= iscsid_t ==============
     # Allow iscsid to execute in its own domain
     allow iscsid_t iscsid_exec_t:file execute;
 
@@ -574,32 +583,33 @@ EOF
     # Allow iscsid to connect to unix_stream_socket
     allow iscsid_t var_run_t:unix_stream_socket connectto;
 
-    require {
-      type init_t;
-      type unlabeled_t;
-      class dir add_name;
-    }
-
     #============= init_t ==============
+    # Allow init_t to add names to unlabeled directories
     allow init_t unlabeled_t:dir add_name;
 
-    require {
-      type unlabeled_t;
-      type init_t;
-      class dir remove_name;
-    }
-
-    #============= init_t ==============
+    # Allow init_t to remove names from unlabeled directories
     allow init_t unlabeled_t:dir remove_name;
 
-    require {
-      type unlabeled_t;
-      type init_t;
-      class lnk_file create;
-    }
-
-    #============= init_t ==============
+    # Allow init_t to create symbolic links in unlabeled directories
     allow init_t unlabeled_t:lnk_file create;
+
+    # Allow init_t to remove unlabeled directories
+    allow init_t unlabeled_t:dir rmdir;
+
+    #============= systemd_logind_t ==============
+    # Allow search operation for systemd-logind
+    allow systemd_logind_t unlabeled_t:dir search;
+
+    #============= systemd_hostnamed_t ==============
+    # Allow search operation for systemd-hostnamed
+    allow systemd_hostnamed_t unlabeled_t:dir search;
+
+    #============= container_t ==============
+    # Allow read operation for cluster-autoscaler and system-upgrade containers
+    allow container_t cert_t:dir read;
+    allow container_t cert_t:lnk_file read;
+    allow container_t cert_t:file read;
+    allow container_t cert_t:file open;
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
@@ -667,5 +677,8 @@ EOT
 - [systemctl, restart, NetworkManager]
 - [systemctl, status, NetworkManager]
 - [ip, route, add, default, via, '172.31.1.1', dev, 'eth0']
+
+# Cleanup some logs
+- [truncate, '-s', '0', '/var/log/audit/audit.log']
 EOT
 }
