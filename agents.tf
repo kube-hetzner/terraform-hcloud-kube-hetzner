@@ -65,6 +65,7 @@ resource "null_resource" "agents" {
       node-ip       = module.agents[each.key].private_ipv4_address
       node-label    = each.value.labels
       node-taint    = each.value.taints
+      selinux       = true
     })
     destination = "/tmp/config.yaml"
   }

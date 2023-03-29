@@ -112,6 +112,7 @@ resource "null_resource" "control_planes" {
           advertise-address           = module.control_planes[each.key].private_ipv4_address
           node-label                  = each.value.labels
           node-taint                  = each.value.taints
+          selinux                     = true
           write-kubeconfig-mode       = "0644" # needed for import into rancher
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
