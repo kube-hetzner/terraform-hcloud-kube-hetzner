@@ -65,6 +65,7 @@ resource "null_resource" "agents" {
       node-ip       = module.agents[each.key].private_ipv4_address
       node-label    = each.value.labels
       node-taint    = each.value.taints
+      selinux       = true
     })
     destination = "/tmp/config.yaml"
   }
@@ -97,7 +98,7 @@ resource "null_resource" "agents" {
 }
 
 resource "hcloud_volume" "longhorn_volume" {
-  for_each = { for k, v in local.agent_nodes : k => v if((lookup(v, "longhorn_volume_size", 0) >= 10) && (lookup(v, "longhorn_volume_size", 0) <= 10000) && var.enable_longhorn) }
+  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.enable_longhorn) }
 
   labels = {
     provisioner = "terraform"
@@ -105,14 +106,14 @@ resource "hcloud_volume" "longhorn_volume" {
     scope       = "longhorn"
   }
   name      = "${var.cluster_name}-longhorn-${module.agents[each.key].name}"
-  size      = lookup(local.agent_nodes[each.key], "longhorn_volume_size", 0)
+  size      = local.agent_nodes[each.key].longhorn_volume_size
   server_id = module.agents[each.key].id
   automount = true
   format    = var.longhorn_fstype
 }
 
 resource "null_resource" "configure_longhorn_volume" {
-  for_each = { for k, v in local.agent_nodes : k => v if((lookup(v, "longhorn_volume_size", 0) >= 10) && (lookup(v, "longhorn_volume_size", 0) <= 10000) && var.enable_longhorn) }
+  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.enable_longhorn) }
 
   triggers = {
     agent_id = module.agents[each.key].id
