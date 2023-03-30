@@ -473,7 +473,7 @@ variable "use_control_plane_lb" {
 variable "dns_servers" {
   type        = list(string)
   default     = ["8.8.8.8", "8.8.4.4", "1.1.1.1"]
-  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner."
+  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. The length is limited to 3 entries, more entries is not supported by kubernetes"
   
    validation {
     condition = length(var.dns_servers) <= 3
