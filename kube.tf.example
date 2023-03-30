@@ -416,9 +416,8 @@ module "kube-hetzner" {
   # You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "true".
   # enable_cert_manager = false
 
-  # IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner, defaults to ["1.1.1.1", " 1.0.0.1", "8.8.8.8"].
-  # The number of different DNS servers is limited to 3 by Kubernetes itself.  
-  # For rancher installs, best to leave it as default.
+  # IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner, defaults to ["1.1.1.1", "8.8.8.8", "9.9.9.9"].
+  # The number of different DNS servers is limited to 3 by Kubernetes itself.
   # dns_servers = []
 
   # When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability.

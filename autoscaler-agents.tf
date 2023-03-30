@@ -51,7 +51,7 @@ resource "null_resource" "configure_autoscaler" {
   }
 
   depends_on = [
-    null_resource.first_control_plane,
+    null_resource.kustomization,
     data.hcloud_image.microos_snapshot
   ]
 }
