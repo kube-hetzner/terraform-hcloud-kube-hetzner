@@ -417,6 +417,7 @@ module "kube-hetzner" {
   # enable_cert_manager = false
 
   # IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner, defaults to ["1.1.1.1", " 1.0.0.1", "8.8.8.8"].
+  # The number of different DNS servers is limited to 3 by Kubernetes itself.  
   # For rancher installs, best to leave it as default.
   # dns_servers = []
 
