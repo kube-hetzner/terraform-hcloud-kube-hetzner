@@ -472,8 +472,13 @@ variable "use_control_plane_lb" {
 
 variable "dns_servers" {
   type        = list(string)
-  default     = ["8.8.8.8", "8.8.4.4", "1.1.1.1", "1.0.0.1"]
-  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner."
+  default     = ["8.8.8.8","1.1.1.1","9.9.9.9"]
+  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. The length is limited to 3 entries, more entries is not supported by kubernetes"
+  
+   validation {
+    condition = length(var.dns_servers) <= 3
+    error_message = "The list must have no more than 3 items."
+  }
 }
 
 variable "additional_k3s_environment" {
