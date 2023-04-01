@@ -2,12 +2,11 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: cilium
+  name: csi-driver-smb
   namespace: kube-system
 spec:
-  chart: cilium
-  repo: https://helm.cilium.io/
+  chart: csi-driver-smb
+  repo: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts
   targetNamespace: kube-system
-  bootstrap: true
   valuesContent: |-
     ${values}

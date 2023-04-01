@@ -94,6 +94,7 @@ resource "null_resource" "kustomization" {
       local.calico_values,
       local.cilium_values,
       local.longhorn_values,
+      local.csi_driver_smb_values,
       local.cert_manager_values,
       local.rancher_values
     ])
@@ -136,6 +137,7 @@ resource "null_resource" "kustomization" {
         lookup(local.ingress_controller_install_resources, local.ingress_controller, []),
         lookup(local.cni_install_resources, var.cni_plugin, []),
         var.enable_longhorn ? ["longhorn.yaml"] : [],
+        var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
         var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
         var.enable_rancher ? ["rancher.yaml"] : [],
         var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
@@ -225,6 +227,16 @@ resource "null_resource" "kustomization" {
         values              = indent(4, trimspace(local.longhorn_values))
     })
     destination = "/var/post_install/longhorn.yaml"
+  }
+
+  # Upload the csi-driver-smb config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/csi-driver-smb.yaml.tpl",
+      {
+        values = indent(4, trimspace(local.csi_driver_smb_values))
+    })
+    destination = "/var/post_install/csi-driver-smb.yaml"
   }
 
   # Upload the cert-manager config
