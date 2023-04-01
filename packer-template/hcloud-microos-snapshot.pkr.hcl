@@ -23,7 +23,7 @@ variable "packages_to_install" {
 }
 
 locals {
-  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi nfs-client xfsprogs cryptsetup lvm2 git"], var.packages_to_install))
+  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi nfs-client xfsprogs cryptsetup lvm2 git cifs-utils"], var.packages_to_install))
 }
 
 source "hcloud" "microos-snapshot" {
