@@ -390,7 +390,8 @@ persistence:
   %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
   EOT
 
-  csi_driver_smb_values = var.csi_driver_smb_values
+  csi_driver_smb_values = var.csi_driver_smb_values != "" ? var.csi_driver_smb_values : <<EOT
+  EOT
 
   nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
 controller:
