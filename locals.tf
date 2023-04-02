@@ -653,6 +653,7 @@ EOT
 - [checkmodule, '-M', '-m', '-o', '/root/kube_hetzner_selinux.mod', '/root/kube_hetzner_selinux.te']
 - ['semodule_package', '-o', '/root/kube_hetzner_selinux.pp', '-m', '/root/kube_hetzner_selinux.mod']
 - [semodule, '-i', '/root/kube_hetzner_selinux.pp']
+- [setsebool, '-P', 'virt_use_samba', '1']
 
 # Disable rebootmgr service as we use kured instead
 - [systemctl, disable, '--now', 'rebootmgr.service']
