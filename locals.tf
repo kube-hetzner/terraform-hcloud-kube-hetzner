@@ -390,6 +390,9 @@ persistence:
   %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
   EOT
 
+  csi_driver_smb_values = var.csi_driver_smb_values != "" ? var.csi_driver_smb_values : <<EOT
+  EOT
+
   nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
 controller:
   watchIngressWithoutClass: "true"
@@ -650,6 +653,7 @@ EOT
 - [checkmodule, '-M', '-m', '-o', '/root/kube_hetzner_selinux.mod', '/root/kube_hetzner_selinux.te']
 - ['semodule_package', '-o', '/root/kube_hetzner_selinux.pp', '-m', '/root/kube_hetzner_selinux.mod']
 - [semodule, '-i', '/root/kube_hetzner_selinux.pp']
+- [setsebool, '-P', 'virt_use_samba', '1']
 
 # Disable rebootmgr service as we use kured instead
 - [systemctl, disable, '--now', 'rebootmgr.service']

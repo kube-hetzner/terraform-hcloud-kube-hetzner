@@ -327,16 +327,19 @@ variable "enable_longhorn" {
   default     = false
   description = "Whether or not to enable Longhorn."
 }
+
 variable "longhorn_repository" {
   type        = string
   default     = "https://charts.longhorn.io"
   description = "By default the official chart which may be incompatible with rancher is used. If you need to fully support rancher switch to https://charts.rancher.io."
 }
+
 variable "longhorn_namespace" {
   type        = string
   default     = "longhorn-system"
   description = "Namespace for longhorn deployment, defaults to 'longhorn-system'"
 }
+
 variable "longhorn_fstype" {
   type        = string
   default     = "ext4"
@@ -369,6 +372,18 @@ variable "disable_hetzner_csi" {
   type        = bool
   default     = false
   description = "Disable hetzner csi driver."
+}
+
+variable "enable_csi_driver_smb" {
+  type        = bool
+  default     = false
+  description = "Whether or not to enable csi-driver-smb."
+}
+
+variable "csi_driver_smb_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to csi-driver-smb as 'valuesContent' at the HelmChart."
 }
 
 variable "enable_cert_manager" {

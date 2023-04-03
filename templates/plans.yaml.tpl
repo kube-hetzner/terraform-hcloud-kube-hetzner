@@ -1,3 +1,4 @@
+---
 # Doc: https://rancher.com/docs/k3s/latest/en/upgrades/automated/
 # agent plan
 apiVersion: upgrade.cattle.io/v1
