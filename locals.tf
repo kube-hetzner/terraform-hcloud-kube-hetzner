@@ -568,11 +568,12 @@ EOF
         type systemd_logind_t;
         type systemd_hostnamed_t;
         type container_t;
+        type etc_t;
         type cert_t;
         class file { open read execute execute_no_trans };
-        class sock_file write;
+        class sock_file { create unlink write };
         class unix_stream_socket connectto;
-        class dir { search rmdir read add_name remove_name };
+        class dir { search rmdir read add_name remove_name write };
         class lnk_file { read create };
     }
 
@@ -613,6 +614,12 @@ EOF
     allow container_t cert_t:lnk_file read;
     allow container_t cert_t:file read;
     allow container_t cert_t:file open;
+
+    # Allow managing sockets read write for application like vault
+    allow container_t etc_t:dir { add_name remove_name write };
+    allow container_t etc_t:sock_file create;
+    allow container_t etc_t:sock_file unlink;
+    
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
