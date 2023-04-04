@@ -557,24 +557,35 @@ EOF
 # Create the kube_hetzner_selinux.te file, that allows in SELinux to not interfere with various needed services
 - path: /root/kube_hetzner_selinux.te
   content: |
-    module kube_hetzner_selinux 1.0;
-
     require {
-        type iscsid_t;
-        type iscsid_exec_t;
-        type var_run_t;
-        type init_t;
-        type unlabeled_t;
-        type systemd_logind_t;
-        type systemd_hostnamed_t;
-        type container_t;
-        type cert_t;
-        class file { open read execute execute_no_trans };
-        class sock_file write;
-        class unix_stream_socket connectto;
-        class dir { search rmdir read add_name remove_name };
-        class lnk_file { read create };
+            type kernel_t;
+            type bin_t;
+            type kernel_generic_helper_t;
+            type iscsid_t;
+            type iscsid_exec_t;
+            type var_run_t;
+            type init_t;
+            type unlabeled_t;
+            type systemd_logind_t;
+            type systemd_hostnamed_t;
+            type container_t;
+            type cert_t;
+            type container_var_lib_t;
+            type etc_t;
+            type usr_t;
+            class key { read view };
+            class file { open read execute execute_no_trans create lock rename write append setattr unlink };
+            class sock_file { write create unlink };
+            class unix_dgram_socket create;
+            class unix_stream_socket connectto;
+            class dir { search rmdir read add_name remove_name write create setattr };
+            class lnk_file { read create };
     }
+
+    #============= kernel_generic_helper_t ==============
+    allow kernel_generic_helper_t bin_t:file execute_no_trans;
+    allow kernel_generic_helper_t kernel_t:key { read view };
+    allow kernel_generic_helper_t self:unix_dgram_socket create;
 
     #============= iscsid_t ==============
     # Allow iscsid to execute in its own domain
@@ -587,17 +598,9 @@ EOF
     allow iscsid_t var_run_t:unix_stream_socket connectto;
 
     #============= init_t ==============
-    # Allow init_t to add names to unlabeled directories
-    allow init_t unlabeled_t:dir add_name;
-
-    # Allow init_t to remove names from unlabeled directories
-    allow init_t unlabeled_t:dir remove_name;
-
-    # Allow init_t to create symbolic links in unlabeled directories
+    # Allow init_t to add names to, remove names from, create symbolic links in, and remove unlabeled directories
+    allow init_t unlabeled_t:dir { add_name remove_name rmdir };
     allow init_t unlabeled_t:lnk_file create;
-
-    # Allow init_t to remove unlabeled directories
-    allow init_t unlabeled_t:dir rmdir;
 
     #============= systemd_logind_t ==============
     # Allow search operation for systemd-logind
@@ -608,11 +611,22 @@ EOF
     allow systemd_hostnamed_t unlabeled_t:dir search;
 
     #============= container_t ==============
-    # Allow read operation for cluster-autoscaler and system-upgrade containers
+    # Allow read and open operations for cluster-autoscaler and system-upgrade containers
     allow container_t cert_t:dir read;
     allow container_t cert_t:lnk_file read;
-    allow container_t cert_t:file read;
-    allow container_t cert_t:file open;
+    allow container_t cert_t:file { read open };
+
+    # Allow container_t to create, open, read, write, rename, and lock files in container_var_lib_t
+    allow container_t container_var_lib_t:file { create open read write rename lock };
+
+    # Allow container_t to add names to, remove names from, write to, create, and set attributes of etc_t directories, and create and unlink etc_t sock_files
+    allow container_t etc_t:dir { add_name remove_name write create setattr };
+    allow container_t etc_t:sock_file { create unlink };
+
+    # Allow container_t to add names to, create, remove names from, set attributes of, and write to usr_t directories, and append, create, rename, set attributes of, unlink, and write to usr_t files
+    allow container_t usr_t:dir { add_name create remove_name setattr write };
+    allow container_t usr_t:file { append create rename setattr unlink write };
+
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
