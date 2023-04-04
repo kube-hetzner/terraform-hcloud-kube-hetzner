@@ -526,6 +526,7 @@ EOF
     ip link set $INTERFACE down
     ip link set $INTERFACE name eth1
     ip link set eth1 up
+  permissions: "0744"
 
 # Disable ssh password authentication
 - content: |
@@ -557,15 +558,18 @@ EOF
 # Create the kube_hetzner_selinux.te file, that allows in SELinux to not interfere with various needed services
 - path: /root/kube_hetzner_selinux.te
   content: |
+    module kube_hetzner_selinux 1.0;
+
     require {
       type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t,
       init_t, unlabeled_t, systemd_logind_t, systemd_hostnamed_t, container_t,
-      cert_t, container_var_lib_t, etc_t, usr_t;
+      cert_t, container_var_lib_t, etc_t, usr_t, container_file_t, container_log_t,
+      container_share_t, container_runtime_exec_t, container_runtime_t;
       class key { read view };
-      class file { open read execute execute_no_trans create lock rename write append setattr unlink };
+      class file { open read execute execute_no_trans create lock rename write append setattr unlink getattr };
       class sock_file { write create unlink };
       class unix_dgram_socket create;
-      class unix_stream_socket connectto;
+      class unix_stream_socket { connectto read write };
       class dir { search rmdir read add_name remove_name write create setattr };
       class lnk_file { read create };
     }
@@ -584,10 +588,14 @@ EOF
     allow init_t unlabeled_t:dir { add_name remove_name rmdir };
     allow init_t unlabeled_t:lnk_file create;
 
-    #============= systemd_logind_t & systemd_hostnamed_t ==============
-    allow systemd_logind_t,systemd_hostnamed_t unlabeled_t:dir search;
+    #============= systemd_logind_t ==============
+    allow systemd_logind_t unlabeled_t:dir search;
+
+    #============= systemd_hostnamed_t ==============
+    allow systemd_hostnamed_t unlabeled_t:dir search;
 
     #============= container_t ==============
+    # Basic file and directory operations for specific types
     allow container_t cert_t:dir read;
     allow container_t cert_t:lnk_file read;
     allow container_t cert_t:file { read open };
@@ -596,7 +604,14 @@ EOF
     allow container_t etc_t:sock_file { create unlink };
     allow container_t usr_t:dir { add_name create remove_name setattr write };
     allow container_t usr_t:file { append create rename setattr unlink write };
-    
+
+    # Additional rules for container_t
+    allow container_t container_file_t:file { open read write append getattr setattr };
+    allow container_t container_log_t:file { open read write append getattr setattr };
+    allow container_t container_share_t:dir { read write add_name remove_name };
+    allow container_t container_share_t:file { read write create unlink };
+    allow container_t container_runtime_exec_t:file { read execute execute_no_trans open };
+    allow container_t container_runtime_t:unix_stream_socket { connectto read write };
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
