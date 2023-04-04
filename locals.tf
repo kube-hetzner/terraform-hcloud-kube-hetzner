@@ -558,28 +558,16 @@ EOF
 - path: /root/kube_hetzner_selinux.te
   content: |
     require {
-            type kernel_t;
-            type bin_t;
-            type kernel_generic_helper_t;
-            type iscsid_t;
-            type iscsid_exec_t;
-            type var_run_t;
-            type init_t;
-            type unlabeled_t;
-            type systemd_logind_t;
-            type systemd_hostnamed_t;
-            type container_t;
-            type cert_t;
-            type container_var_lib_t;
-            type etc_t;
-            type usr_t;
-            class key { read view };
-            class file { open read execute execute_no_trans create lock rename write append setattr unlink };
-            class sock_file { write create unlink };
-            class unix_dgram_socket create;
-            class unix_stream_socket connectto;
-            class dir { search rmdir read add_name remove_name write create setattr };
-            class lnk_file { read create };
+      type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t,
+      init_t, unlabeled_t, systemd_logind_t, systemd_hostnamed_t, container_t,
+      cert_t, container_var_lib_t, etc_t, usr_t;
+      class key { read view };
+      class file { open read execute execute_no_trans create lock rename write append setattr unlink };
+      class sock_file { write create unlink };
+      class unix_dgram_socket create;
+      class unix_stream_socket connectto;
+      class dir { search rmdir read add_name remove_name write create setattr };
+      class lnk_file { read create };
     }
 
     #============= kernel_generic_helper_t ==============
@@ -588,45 +576,27 @@ EOF
     allow kernel_generic_helper_t self:unix_dgram_socket create;
 
     #============= iscsid_t ==============
-    # Allow iscsid to execute in its own domain
     allow iscsid_t iscsid_exec_t:file execute;
-
-    # Allow iscsid to write to sock_files
     allow iscsid_t var_run_t:sock_file write;
-
-    # Allow iscsid to connect to unix_stream_socket
     allow iscsid_t var_run_t:unix_stream_socket connectto;
 
     #============= init_t ==============
-    # Allow init_t to add names to, remove names from, create symbolic links in, and remove unlabeled directories
     allow init_t unlabeled_t:dir { add_name remove_name rmdir };
     allow init_t unlabeled_t:lnk_file create;
 
-    #============= systemd_logind_t ==============
-    # Allow search operation for systemd-logind
-    allow systemd_logind_t unlabeled_t:dir search;
-
-    #============= systemd_hostnamed_t ==============
-    # Allow search operation for systemd-hostnamed
-    allow systemd_hostnamed_t unlabeled_t:dir search;
+    #============= systemd_logind_t & systemd_hostnamed_t ==============
+    allow systemd_logind_t,systemd_hostnamed_t unlabeled_t:dir search;
 
     #============= container_t ==============
-    # Allow read and open operations for cluster-autoscaler and system-upgrade containers
     allow container_t cert_t:dir read;
     allow container_t cert_t:lnk_file read;
     allow container_t cert_t:file { read open };
-
-    # Allow container_t to create, open, read, write, rename, and lock files in container_var_lib_t
     allow container_t container_var_lib_t:file { create open read write rename lock };
-
-    # Allow container_t to add names to, remove names from, write to, create, and set attributes of etc_t directories, and create and unlink etc_t sock_files
     allow container_t etc_t:dir { add_name remove_name write create setattr };
     allow container_t etc_t:sock_file { create unlink };
-
-    # Allow container_t to add names to, create, remove names from, set attributes of, and write to usr_t directories, and append, create, rename, set attributes of, unlink, and write to usr_t files
     allow container_t usr_t:dir { add_name create remove_name setattr write };
     allow container_t usr_t:file { append create rename setattr unlink write };
-
+    
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
