@@ -564,14 +564,16 @@ EOF
       type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t,
       init_t, unlabeled_t, systemd_logind_t, systemd_hostnamed_t, container_t,
       cert_t, container_var_lib_t, etc_t, usr_t, container_file_t, container_log_t,
-      container_share_t, container_runtime_exec_t, container_runtime_t;
+      container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t;
       class key { read view };
-      class file { open read execute execute_no_trans create link lock read rename write append setattr unlink getattr };
+      class file { open read execute execute_no_trans create link lock rename write append setattr unlink getattr watch };
       class sock_file { write create unlink };
       class unix_dgram_socket create;
       class unix_stream_socket { connectto read write };
       class dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write };
       class lnk_file { read create };
+      class system module_request;
+      class filesystem associate;
     }
 
     #============= kernel_generic_helper_t ==============
@@ -587,6 +589,7 @@ EOF
     #============= init_t ==============
     allow init_t unlabeled_t:dir { add_name remove_name rmdir };
     allow init_t unlabeled_t:lnk_file create;
+    allow init_t container_t:file { open read };
 
     #============= systemd_logind_t ==============
     allow systemd_logind_t unlabeled_t:dir search;
@@ -612,6 +615,15 @@ EOF
     allow container_t container_share_t:file { read write create unlink };
     allow container_t container_runtime_exec_t:file { read execute execute_no_trans open };
     allow container_t container_runtime_t:unix_stream_socket { connectto read write };
+    allow container_t kernel_t:system module_request;
+    allow container_t container_log_t:dir read;
+    allow container_t container_log_t:file { open read watch };
+    allow container_t container_log_t:lnk_file read;
+    allow container_t var_log_t:dir { add_name write };
+    allow container_t var_log_t:file { create lock open read setattr write };
+    allow container_t var_log_t:dir remove_name;
+    allow container_t var_log_t:file unlink;
+    allow container_t proc_t:filesystem associate;
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
