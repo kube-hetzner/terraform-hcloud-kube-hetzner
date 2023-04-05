@@ -566,11 +566,11 @@ EOF
       cert_t, container_var_lib_t, etc_t, usr_t, container_file_t, container_log_t,
       container_share_t, container_runtime_exec_t, container_runtime_t;
       class key { read view };
-      class file { open read execute execute_no_trans create lock rename write append setattr unlink getattr };
+      class file { open read execute execute_no_trans create link lock read rename write append setattr unlink getattr };
       class sock_file { write create unlink };
       class unix_dgram_socket create;
       class unix_stream_socket { connectto read write };
-      class dir { search rmdir read add_name remove_name write create setattr };
+      class dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write };
       class lnk_file { read create };
     }
 
@@ -602,8 +602,8 @@ EOF
     allow container_t container_var_lib_t:file { create open read write rename lock };
     allow container_t etc_t:dir { add_name remove_name write create setattr };
     allow container_t etc_t:sock_file { create unlink };
-    allow container_t usr_t:dir { add_name create remove_name setattr write };
-    allow container_t usr_t:file { append create rename setattr unlink write };
+    allow container_t usr_t:dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write };
+    allow container_t usr_t:file { append create execute getattr link lock read rename setattr unlink write };
 
     # Additional rules for container_t
     allow container_t container_file_t:file { open read write append getattr setattr };
