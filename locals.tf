@@ -660,11 +660,12 @@ EOT
 - [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, ${var.ssh_port}]
 %{endif}
 
-# Create and apply the necessary SELinux module for kube-hetzner
+# Create and apply the necessary SELinux module for kube-hetzner, csi-driver-smb and wireguard
 - [checkmodule, '-M', '-m', '-o', '/root/kube_hetzner_selinux.mod', '/root/kube_hetzner_selinux.te']
 - ['semodule_package', '-o', '/root/kube_hetzner_selinux.pp', '-m', '/root/kube_hetzner_selinux.mod']
 - [semodule, '-i', '/root/kube_hetzner_selinux.pp']
 - [setsebool, '-P', 'virt_use_samba', '1']
+- [setsebool, '-P', 'domain_kernel_load_modules', '1']
 
 # Disable rebootmgr service as we use kured instead
 - [systemctl, disable, '--now', 'rebootmgr.service']
