@@ -208,12 +208,13 @@ module "kube-hetzner" {
 
   # Cluster Autoscaler
   # Providing at least one map for the array enables the cluster autoscaler feature, default is disabled
-  # Please note that the autoscaler should not be used with initial_k3s_channel < "v1.25". So ideally lock it to "v1.25".
+  # By default we set a compatible version with the default initial_k3s_channel, to set another one,
+  # have a look at the tag value in https://github.com/kubernetes/autoscaler/blob/master/charts/cluster-autoscaler/values.yaml
   # * Example below:
   # autoscaler_nodepools = [
   #   {
   #     name        = "autoscaled-small"
-  #     server_type = "cpx21" # must be same or better than the control_plane server type (regarding disk size)!
+  #     server_type = "cpx21"
   #     location    = "fsn1"
   #     min_nodes   = 0
   #     max_nodes   = 5
@@ -329,8 +330,7 @@ module "kube-hetzner" {
   # Allows you to specify either stable, latest, testing or supported minor versions.
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to latest - 0.01,
-  # at the time of writing the latest is v1.26, so setting the value below to "v1.25" will insure maximum compatibility with Rancher, Longhorn and so on!
-  # The default is "v1.25".
+  # The default is "v1.26".
   # initial_k3s_channel = "stable"
 
   # The cluster name, by default "k3s"
