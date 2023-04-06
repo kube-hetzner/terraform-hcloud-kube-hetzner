@@ -570,7 +570,7 @@ EOF
       class sock_file { write create unlink };
       class unix_dgram_socket create;
       class unix_stream_socket { connectto read write };
-      class dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write };
+      class dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write watch };
       class lnk_file { read create };
       class system module_request;
       class filesystem associate;
@@ -616,7 +616,7 @@ EOF
     allow container_t container_runtime_exec_t:file { read execute execute_no_trans open };
     allow container_t container_runtime_t:unix_stream_socket { connectto read write };
     allow container_t kernel_t:system module_request;
-    allow container_t container_log_t:dir read;
+    allow container_t container_log_t:dir { read watch };
     allow container_t container_log_t:file { open read watch };
     allow container_t container_log_t:lnk_file read;
     allow container_t var_log_t:dir { add_name write };
