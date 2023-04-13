@@ -7,7 +7,7 @@ terraform {
     }
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.35.2"
+      version = ">= 1.38.1"
     }
     local = {
       source  = "hashicorp/local"
