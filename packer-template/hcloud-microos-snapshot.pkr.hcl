@@ -39,7 +39,7 @@ source "hcloud" "microos-x86-snapshot" {
   location    = "fsn1"
   server_type = "cpx11" # disk size of >= 40GiB is needed to install the MicroOS image
   snapshot_labels = {
-    microos-snapshot = "x86"
+    microos-snapshot = "yes"
     creator          = "kube-hetzner"
   }
   snapshot_name = "OpenSUSE MicroOS x86 by Kube-Hetzner"
@@ -53,7 +53,7 @@ source "hcloud" "microos-aarch64-snapshot" {
   location    = "fsn1"
   server_type = "cax11" # disk size of >= 40GiB is needed to install the MicroOS image
   snapshot_labels = {
-    microos-snapshot = "aarch64"
+    microos-snapshot = "yes"
     creator          = "kube-hetzner"
   }
   snapshot_name = "OpenSUSE MicroOS aarch64 by Kube-Hetzner"
