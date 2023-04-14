@@ -33,7 +33,7 @@ locals {
   needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi nfs-client xfsprogs cryptsetup lvm2 git cifs-utils"], var.packages_to_install))
 }
 
-source "hcloud" "microos-snapshot-x86" {
+source "hcloud" "microos-x86-snapshot" {
   image       = "ubuntu-22.04"
   rescue      = "linux64"
   location    = "fsn1"
@@ -47,7 +47,7 @@ source "hcloud" "microos-snapshot-x86" {
   token         = var.hcloud_token
 }
 
-source "hcloud" "microos-snapshot-aarch64" {
+source "hcloud" "microos-aarch64-snapshot" {
   image       = "ubuntu-22.04"
   rescue      = "linux64"
   location    = "fsn1"
@@ -62,7 +62,7 @@ source "hcloud" "microos-snapshot-aarch64" {
 }
 
 build {
-  sources = ["source.hcloud.microos-snapshot-x86"]
+  sources = ["source.hcloud.microos-x86-snapshot"]
 
   # Download the MicroOS x86 image and write it to disk
   provisioner "shell" {
@@ -110,7 +110,7 @@ build {
 }
 
 build {
-  sources = ["source.hcloud.microos-snapshot-aarch64"]
+  sources = ["source.hcloud.microos-aarch64-snapshot"]
 
   # Download the MicroOS aarch64 image and write it to disk
   provisioner "shell" {
