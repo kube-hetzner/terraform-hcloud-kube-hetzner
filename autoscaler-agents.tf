@@ -9,7 +9,7 @@ locals {
       ssh_key          = local.hcloud_ssh_key_id
       # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
       ipv4_subnet_id = hcloud_network.k3s.id
-      #! for now we use x86 snapshot, this needs to implement logic to autodetect between x86 and aarch64 based on server type
+      # for now we use x86 snapshot, this needs to implement logic to autodetect between x86 and aarch64 based on server type
       snapshot_id    = data.hcloud_image.microos_x86_snapshot.id
       firewall_id    = hcloud_firewall.k3s.id
       cluster_name   = local.cluster_prefix
