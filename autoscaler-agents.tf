@@ -10,10 +10,10 @@ locals {
       # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
       ipv4_subnet_id = hcloud_network.k3s.id
       # for now we use x86 snapshot, this needs to implement logic to autodetect between x86 and aarch64 based on server type
-      snapshot_id    = data.hcloud_image.microos_x86_snapshot.id
-      firewall_id    = hcloud_firewall.k3s.id
-      cluster_name   = local.cluster_prefix
-      node_pools     = var.autoscaler_nodepools
+      snapshot_id  = data.hcloud_image.microos_x86_snapshot.id
+      firewall_id  = hcloud_firewall.k3s.id
+      cluster_name = local.cluster_prefix
+      node_pools   = var.autoscaler_nodepools
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
@@ -53,7 +53,7 @@ resource "null_resource" "configure_autoscaler" {
 
   depends_on = [
     null_resource.kustomization,
-    data.hcloud_image.microos_snapshot
+    data.hcloud_image.microos_x86_snapshot
   ]
 }
 
