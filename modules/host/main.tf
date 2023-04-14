@@ -21,7 +21,7 @@ resource "random_string" "identity_file" {
 
 resource "hcloud_server" "server" {
   name               = local.name
-  image              = var.microos_snapshot_id
+  image              = substr(var.server_type, 0, 3) == "cax" ? var.microos_aarch64_snapshot_id : var.microos_x86_snapshot_id
   server_type        = var.server_type
   location           = var.location
   ssh_keys           = var.ssh_keys

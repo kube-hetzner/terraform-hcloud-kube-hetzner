@@ -2,8 +2,13 @@ variable "name" {
   description = "Host name"
   type        = string
 }
-variable "microos_snapshot_id" {
-  description = "MicroOS snapshot ID to be used. Per default empty, an initial snapshot will be created"
+variable "microos_x86_snapshot_id" {
+  description = "MicroOS x86 snapshot ID to be used. Per default empty, an initial snapshot will be created"
+  type        = string
+  default     = ""
+}
+variable "microos_aarch64_snapshot_id" {
+  description = "MicroOS aarch64 snapshot ID to be used. Per default empty, an initial snapshot will be created"
   type        = string
   default     = ""
 }
