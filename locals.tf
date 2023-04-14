@@ -42,7 +42,7 @@ locals {
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
-    ["while ! ping -c 1 8.8.8.8 >/dev/null 2>&1; do echo 'Ready for k3s installation, waiting for a successful connection to the internet...'; sleep 5; done; echo 'Connected'"]
+    ["while ! ping -c 1 1.1.1.1 >/dev/null 2>&1; do echo 'Ready for k3s installation, waiting for a successful connection to the internet...'; sleep 5; done; echo 'Connected'"]
   )
 
 
