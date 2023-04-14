@@ -4,15 +4,15 @@ resource "random_password" "k3s_token" {
 }
 
 data "hcloud_image" "microos_x86_snapshot" {
-  with_selector = "microos-snapshot=yes"
+  with_selector     = "microos-snapshot=yes"
   with_architecture = "x86"
-  most_recent   = true
+  most_recent       = true
 }
 
 data "hcloud_image" "microos_aarch64_snapshot" {
-  with_selector = "microos-snapshot=yes"
+  with_selector     = "microos-snapshot=yes"
   with_architecture = "arm"
-  most_recent   = true
+  most_recent       = true
 }
 
 resource "hcloud_ssh_key" "k3s" {
