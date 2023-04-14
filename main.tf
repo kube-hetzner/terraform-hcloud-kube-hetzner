@@ -3,12 +3,12 @@ resource "random_password" "k3s_token" {
   special = false
 }
 
-data "hcloud_image" "microos_snapshot_x86" {
+data "hcloud_image" "microos_x86_snapshot" {
   with_selector = "microos-snapshot=x86"
   most_recent   = true
 }
 
-data "hcloud_image" "microos_snapshot_aarch64" {
+data "hcloud_image" "microos_aarch64_snapshot" {
   with_selector = "microos-snapshot=aarch64"
   most_recent   = true
 }
