@@ -22,7 +22,7 @@ variable "opensuse_microos_mirror_link_x86_64" {
 
 variable "opensuse_microos_mirror_link_arm64" {
   type    = string
-  default = "https://ftp.gwdg.de/pub/opensuse/ports/aarch64/tumbleweed/appliances/openSUSE-MicroOS.aarch64-16.0.0-OpenStack-Cloud-Snapshot20230403.qcow2"
+  default = "https://ftp.gwdg.de/pub/opensuse/ports/aarch64/tumbleweed/appliances/openSUSE-MicroOS.aarch64-OpenStack-Cloud.qcow2"
 }
 
 # If you need to add other packages to the OS, do it here in the default value, like ["vim", "curl", "wget"]
