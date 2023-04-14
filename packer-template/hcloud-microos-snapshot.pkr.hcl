@@ -2,6 +2,11 @@
  * Creates a MicroOS snapshot for Hetzner Cloud
  */
 
+variable "use_arm" {
+  type = bool
+  default = false
+}
+
 variable "hcloud_token" {
   type      = string
   default   = env("HCLOUD_TOKEN")
@@ -10,9 +15,14 @@ variable "hcloud_token" {
 
 # We download OpenSUSE MicroOS from an automatically selected mirror. In case it somehow does not work for you (you get a 403), you can try other mirrors.
 # You can find a working mirror at https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist
-variable "opensuse_microos_mirror_link" {
+variable "opensuse_microos_mirror_link_x86_64" {
   type    = string
   default = "https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+}
+
+variable "opensuse_microos_mirror_link_arm64" {
+  type    = string
+  default = "https://ftp.gwdg.de/pub/opensuse/ports/aarch64/tumbleweed/appliances/openSUSE-MicroOS.aarch64-16.0.0-OpenStack-Cloud-Snapshot20230403.qcow2"
 }
 
 # If you need to add other packages to the OS, do it here in the default value, like ["vim", "curl", "wget"]
@@ -29,13 +39,13 @@ locals {
 source "hcloud" "microos-snapshot" {
   image       = "ubuntu-20.04"
   rescue      = "linux64"
-  location    = "nbg1"
-  server_type = "cpx11" # at least a disk size of >= 40GiB is needed to install the MicroOS image
+  location    = "fsn1"
+  server_type = var.use_arm ? "cax11" : "cpx11" # at least a disk size of >= 40GiB is needed to install the MicroOS image
   snapshot_labels = {
     microos-snapshot = "yes"
     creator          = "kube-hetzner"
   }
-  snapshot_name = "OpenSUSE MicroOS by Kube-Hetzner"
+  snapshot_name = "OpenSUSE MicroOS ${var.use_arm ? "arm64" : "x86_64"} by Kube-Hetzner"
   ssh_username  = "root"
   token         = var.hcloud_token
 }
@@ -47,7 +57,7 @@ build {
   provisioner "shell" {
     inline = [<<-EOT
       set -ex
-      wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${var.opensuse_microos_mirror_link}
+      wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only ${ var.use_arm ? var.opensuse_microos_mirror_link_arm64 : var.opensuse_microos_mirror_link_x86_64 }
       echo 'MicroOS image loaded, writing to disk... '
       qemu-img convert -p -f qcow2 -O host_device $(ls -a | grep -ie '^opensuse.*microos.*qcow2$') /dev/sda
       echo 'done. Rebooting...'
