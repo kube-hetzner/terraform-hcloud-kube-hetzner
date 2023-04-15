@@ -450,7 +450,7 @@ module "kube-hetzner" {
   # lb_hostname = ""
 
   # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
-  # ⚠️ Rancher currently only supports Kubernetes v1.25 and earlier, you will need to set initial_k3s_channel to the supported version: https://github.com/rancher/rancher/issues/41113
+  # ⚠️ Rancher currently only supports Kubernetes v1.25 and earlier, you will need to set initial_k3s_channel to a supported version: https://github.com/rancher/rancher/issues/41113
   # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own self-signed certificates.
   # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
   # The easiest thing is to leave everything as is (using the default rancher self-signed certificate) and put Cloudflare in front of it.
