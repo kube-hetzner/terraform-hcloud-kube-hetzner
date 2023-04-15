@@ -571,7 +571,7 @@ EOF
       container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t;
       class key { read view };
       class file { open read execute execute_no_trans create link lock rename write append setattr unlink getattr watch };
-      class sock_file { write create unlink };
+      class sock_file { watch write create unlink };
       class unix_dgram_socket create;
       class unix_stream_socket { connectto read write };
       class dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write watch };
@@ -614,6 +614,7 @@ EOF
 
     # Additional rules for container_t
     allow container_t container_file_t:file { open read write append getattr setattr };
+    allow container_t container_file_t:sock_file watch;
     allow container_t container_log_t:file { open read write append getattr setattr };
     allow container_t container_share_t:dir { read write add_name remove_name };
     allow container_t container_share_t:file { read write create unlink };
