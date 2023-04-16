@@ -31,29 +31,31 @@ else
     echo "kube.tf already exists. Skipping download."
 fi
 
-if [ ! -e "${folder_path}/hcloud-microos-snapshot.pkr.hcl" ]; then
-    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshot.pkr.hcl -o "${folder_path}/hcloud-microos-snapshot.pkr.hcl"
+if [ ! -e "${folder_path}/hcloud-microos-snapshots.pkr.hcl" ]; then
+    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshots.pkr.hcl -o "${folder_path}/hcloud-microos-snapshots.pkr.hcl"
 else
-    echo "hcloud-microos-snapshot.pkr.hcl already exists. Skipping download."
+    echo "hcloud-microos-snapshots.pkr.hcl already exists. Skipping download."
 fi
 
-# Ask if they want to create the MicroOS snapshot
+# Ask if they want to create the MicroOS snapshots
 echo " "
-echo "The snapshot is required and deployed using packer. If you need specific extra packages, you need to choose no and edit hcloud-microos-snapshot.pkr.hcl file manually. This is not needed in 99% of cases, as we already include the most common packages."
+echo "The snapshots are required and deployed using packer. If you need specific extra packages, you need to choose no and edit hcloud-microos-snapshots.pkr.hcl file manually. This is not needed in 99% of cases, as we already include the most common packages."
 echo " "
-read -p "Do you want to create the MicroOS snapshot with packer now? (yes/no): " create_snapshot
+read -p "Do you want to create the MicroOS snapshots (we create one for x86 and one for ARM architectures) with packer now? (yes/no): " create_snapshots
 
-if [ "$create_snapshot" = "yes" ]; then
+if [[ "$create_snapshots" =~ ^([Yy]es|[Yy])$ ]]; then
     read -p "Enter your HCLOUD_TOKEN: " hcloud_token
     export HCLOUD_TOKEN=$hcloud_token
-    echo "Running: packer build packer build hcloud-microos-snapshot.pkr.hcl"
-    cd "${folder_path}/${folder_name}" && packer build hcloud-microos-snapshot.pkr.hcl
+    echo " "
+    echo "Running: packer build packer build hcloud-microos-snapshots.pkr.hcl"
+    cd "${folder_path}/${folder_name}" && packer build hcloud-microos-snapshots.pkr.hcl
 else
     echo " "
-    echo "You can create the snapshot later by running 'packer build hcloud-microos-snapshot.pkr.hcl' in the folder."
+    echo "You can create the snapshots later by running 'packer build hcloud-microos-snapshots.pkr.hcl' in the folder."
 fi
 
 # Output commands
 echo " "
-echo "Before running 'terraform apply', go through the kube.tf file and complete your desired values there."
-echo "To activate the hcloud CLI for this project, run 'hcloud context create <project-name>'. It is a lot more practical than using the Hetzner UI, and allows for easy cleanup or debugging."
+echo "Remember, don't skip the hcloud cli, to activate it run 'hcloud context create <project-name>'. It is ideal to quickly debug and allows targetted cleanup when needed!"
+echo " "
+echo "Before running 'terraform apply', go through the kube.tf file and fill it with your desired values."

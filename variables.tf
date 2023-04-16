@@ -11,8 +11,8 @@ variable "microos_x86_snapshot_id" {
   default     = ""
 }
 
-variable "microos_aarch64_snapshot_id" {
-  description = "MicroOS aarch64 snapshot ID to be used. Per default empty, image created using create.sh will be used"
+variable "microos_arm_snapshot_id" {
+  description = "MicroOS ARM snapshot ID to be used. Per default empty, image created using create.sh will be used"
   type        = string
   default     = ""
 }
