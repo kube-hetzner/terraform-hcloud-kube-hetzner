@@ -42,7 +42,7 @@ locals {
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
-    ["while ! ping -c 1 8.8.8.8 >/dev/null 2>&1; do echo 'Ready for k3s installation, waiting for a successful connection to the internet...'; sleep 5; done; echo 'Connected'"]
+    ["while ! ping -c 1 1.1.1.1 >/dev/null 2>&1; do echo 'Ready for k3s installation, waiting for a successful connection to the internet...'; sleep 5; done; echo 'Connected'"]
   )
 
 
@@ -474,6 +474,10 @@ additionalArguments:
 hostname: "${var.rancher_hostname != "" ? var.rancher_hostname : var.lb_hostname}"
 replicas: ${length(local.control_plane_nodes)}
 bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
+global:
+  cattle:
+    psp:
+      enabled: false
   EOT
 
   cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
@@ -567,7 +571,7 @@ EOF
       container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t;
       class key { read view };
       class file { open read execute execute_no_trans create link lock rename write append setattr unlink getattr watch };
-      class sock_file { write create unlink };
+      class sock_file { watch write create unlink };
       class unix_dgram_socket create;
       class unix_stream_socket { connectto read write };
       class dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write watch };
@@ -610,6 +614,7 @@ EOF
 
     # Additional rules for container_t
     allow container_t container_file_t:file { open read write append getattr setattr };
+    allow container_t container_file_t:sock_file watch;
     allow container_t container_log_t:file { open read write append getattr setattr };
     allow container_t container_share_t:dir { read write add_name remove_name };
     allow container_t container_share_t:file { read write create unlink };
