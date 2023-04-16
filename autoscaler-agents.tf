@@ -1,5 +1,8 @@
 locals {
   cluster_prefix = var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""
+  first_nodepool_snapshot_id = length(var.autoscaler_nodepools) == 0 ? "" : (
+    substr(var.autoscaler_nodepools[0].server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
+  )
   autoscaler_yaml = length(var.autoscaler_nodepools) == 0 ? "" : templatefile(
     "${path.module}/templates/autoscaler.yaml.tpl",
     {
@@ -7,13 +10,11 @@ locals {
       ca_image         = var.cluster_autoscaler_image
       ca_version       = var.cluster_autoscaler_version
       ssh_key          = local.hcloud_ssh_key_id
-      # for now we use the k3s network, as we cannot reference subnet-ids in autoscaler
-      ipv4_subnet_id = hcloud_network.k3s.id
-      # for now we use x86 snapshot, this needs to implement logic to autodetect between x86 and aarch64 based on server type
-      snapshot_id  = data.hcloud_image.microos_x86_snapshot.id
-      firewall_id  = hcloud_firewall.k3s.id
-      cluster_name = local.cluster_prefix
-      node_pools   = var.autoscaler_nodepools
+      ipv4_subnet_id   = hcloud_network.k3s.id
+      snapshot_id      = local.first_nodepool_snapshot_id
+      firewall_id      = hcloud_firewall.k3s.id
+      cluster_name     = local.cluster_prefix
+      node_pools       = var.autoscaler_nodepools
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
@@ -23,6 +24,7 @@ locals {
     ]...) : v.name => v
   }
 }
+
 resource "null_resource" "configure_autoscaler" {
   count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
 

@@ -41,7 +41,10 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 ### Features
 
 - [x] **Maintenance-free** with auto-upgrades to the latest version of MicroOS and k3s.
+- [x] **Multi-architecture support**, choose any Hetzner cloud instances, including the cheaper CAX ARM instances.
 - [x] Proper use of the **Hetzner private network** to minimize latency.
+- [x] Choose between **Flannel, Calico, or Cilium** as CNI.
+- [x] Optional **Wireguard** encryption of the Kube network for added security.
 - [x] **Traefik** or **Nginx** as ingress controller attached to a Hetzner load balancer with Proxy Protocol turned on.
 - [x] **Automatic HA** with the default setting of three control-plane nodes and two agent nodes.
 - [x] **Autoscaling** nodes via the [kubernetes autoscaler](https://github.com/kubernetes/autoscaler).
@@ -51,8 +54,6 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Ability to **add nodes and nodepools** when the cluster is running.
 - [x] Possibility to toggle **Longhorn** and **Hetzner CSI**.
 - [x] Encryption at rest fully functional in both **Longhorn** and **Hetzner CSI**.
-- [x] Choose between **Flannel, Calico, or Cilium** as CNI.
-- [x] Optional **Wireguard** encryption of the Kube network for added security.
 - [x] Optional use of **Floating IPs** for use via Cilium's Egress Gateway.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
 
@@ -99,9 +100,9 @@ brew install hcloud
     mkdir /path/to/your/new/folder
     cd /path/to/your/new/folder
     curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example -o kube.tf
-    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshot.pkr.hcl -o hcloud-microos-snapshot.pkr.hcl
+    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshots.pkr.hcl -o hcloud-microos-snapshots.pkr.hcl
     export HCLOUD_TOKEN="your_hcloud_token"
-    packer build hcloud-microos-snapshot.pkr.hcl
+    packer build hcloud-microos-snapshots.pkr.hcl
     hcloud context create <project-name>
     ```
 
@@ -428,7 +429,7 @@ To create a snapshot, run the following command:
 
 ```bash
 export HCLOUD_TOKEN=<your-token>
-packer build ./packer-template/hcloud-microos-snapshot.pkr.hcl
+packer build ./packer-template/hcloud-microos-snapshots.pkr.hcl
 ```
 
 To delete a snapshot, first find it with:
@@ -623,7 +624,7 @@ Usually, you will want to upgrade the module in your project to the latest versi
 When moving from 1.x to 2.x:
 
 - Within your project folder, run the `createkh` installation command, see [Do Not Skip](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#-do-not-skip-creating-your-kubetf-file-and-the-opensuse-microos-snapshot) section above. This will create the snapshot for you. Don't worry, it's non-destructive and will leave your kube.tf and terraform state alone, but will download the required other packer file.
-- Then modify your kube.tf to use version >= 2.0, and remove `extra_packages_to_install` and `opensuse_microos_mirror_link` variables if used. This functionality has been moved to the packer snapshot definition, see [packer-template/hcloud-microos-snapshot.pkr.hlc](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/packer-template/hcloud-microos-snapshot.pkr.hcl).
+- Then modify your kube.tf to use version >= 2.0, and remove `extra_packages_to_install` and `opensuse_microos_mirror_link` variables if used. This functionality has been moved to the packer snapshot definition, see [packer-template/hcloud-microos-snapshots.pkr.hlc](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/packer-template/hcloud-microos-snapshots.pkr.hcl).
 - Then run `terraform init -upgrade && terraform apply`.
 
 <!-- CONTRIBUTING -->
@@ -652,7 +653,7 @@ Code contributions are very much **welcome**.
     ../kube-hetzner/scripts/cleanup.sh
 
     # To build the Packer image
-    packer build ../kube-hetzner/packer-template/hcloud-microos-snapshot.pkr.hcl
+    packer build ../kube-hetzner/packer-template/hcloud-microos-snapshots.pkr.hcl
     ```
 
 1. Commit your Changes (`git commit -m 'Add some AmazingFeature')

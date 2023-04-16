@@ -9,7 +9,7 @@ data "hcloud_image" "microos_x86_snapshot" {
   most_recent       = true
 }
 
-data "hcloud_image" "microos_aarch64_snapshot" {
+data "hcloud_image" "microos_arm_snapshot" {
   with_selector     = "microos-snapshot=yes"
   with_architecture = "arm"
   most_recent       = true
