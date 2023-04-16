@@ -559,6 +559,12 @@ variable "preinstall_exec" {
   description = "Additional to execute before the install calls, for example fetching and installing certs."
 }
 
+variable "extra_kustomize_deployment_commands" {
+  type        = string
+  default     = ""
+  description = "Commands to be executed after the `kubectl apply -k <dir>` step."
+}
+
 variable "extra_kustomize_parameters" {
   type        = map(any)
   default     = {}
