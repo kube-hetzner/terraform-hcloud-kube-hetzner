@@ -561,3 +561,9 @@ variable "calico_version" {
   default     = null
   description = "Version of Calico."
 }
+
+variable "k3s_exec_server_args" {
+  type        = string
+  default     = ""
+  description = "The control plane is started with `k3s server {k3s_exec_server_args}`. Use this to add kube-apiserver-arg for example."
+}

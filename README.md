@@ -574,6 +574,41 @@ For more details, see [Longhorn's documentation](https://longhorn.io/docs/1.4.0/
 
 </details>
 
+<details>
+<summary>Default nodeSelectors let you assign namespaces to arm64/amd64 nodes</summary>
+
+To enable the [PodNodeSelector and optionally the PodTolerationRestriction](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#podnodeselector) api modules, set the following value:
+```terraform
+k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
+```
+
+Next, you can set default nodeSelector values per namespace. This lets you assign namespaces to specific nodes. Note though, that this is the default only, so if a pod sets its own nodeSelector value, that will take precedence.
+
+Then set the according annotations on your namespaces:
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    scheduler.alpha.kubernetes.io/node-selector: kubernetes.io/arch=amd64
+  name: this-runs-on-amd64
+```
+or with taints and tolerations:
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    scheduler.alpha.kubernetes.io/node-selector: kubernetes.io/arch=arm64
+    scheduler.alpha.kubernetes.io/defaultTolerations: [{ "operator" : "Equal", "effect" : "NoSchedule", "key" : "workload-type", "value" : "machine-learning" }])
+  name: this-runs-on-arm64
+```
+
+This can be helpful when you setup a mixed-architecture cluster, and there are many other use cases.
+
+
+</details>
+
 ## Debugging
 
 First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without logging in to the UI. That is where the `hcloud` cli comes in.
