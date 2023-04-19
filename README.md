@@ -600,7 +600,7 @@ kind: Namespace
 metadata:
   annotations:
     scheduler.alpha.kubernetes.io/node-selector: kubernetes.io/arch=arm64
-    scheduler.alpha.kubernetes.io/defaultTolerations: [{ "operator" : "Equal", "effect" : "NoSchedule", "key" : "workload-type", "value" : "machine-learning" }])
+    scheduler.alpha.kubernetes.io/defaultTolerations: "[{ \"operator\" : \"Equal\", \"effect\" : \"NoSchedule\", \"key\" : \"workload-type\", \"value\" : \"machine-learning\" }]"
   name: this-runs-on-arm64
 ```
 
