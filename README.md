@@ -149,7 +149,7 @@ As Cilium has a lot of interesting and powerful config possibilities, we give yo
 
 ## Scaling Nodes
 
-Two things can be scaled: the number of nodepools or the number of nodes in these nodepools. You have two lists of nodepools you can add to your `kube.tf`, the control plane nodepool and the agent nodepool list. Combined, they cannot exceed 255 nodepools (you are extremely unlikely to reach this limit). As for the count of nodes per nodepools, if you raise your limits in Hetzner, you can have up to 64,670 nodes per nodepool (also very unlikely to need that much).
+Two things can be scaled: the number of nodepools or the number of nodes in these nodepools.
 
 There are some limitations (to scaling down mainly) that you need to be aware of:
 
