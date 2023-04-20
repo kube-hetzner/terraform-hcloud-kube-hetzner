@@ -575,14 +575,14 @@ For more details, see [Longhorn's documentation](https://longhorn.io/docs/1.4.0/
 </details>
 
 <details>
-<summary>Default nodeSelectors let you assign namespaces to arm64/amd64 nodes</summary>
+<summary>Assign all pods in a namespace to either arm64 or amd64 nodes with admission controllers</summary>
 
 To enable the [PodNodeSelector and optionally the PodTolerationRestriction](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#podnodeselector) api modules, set the following value:
 ```terraform
 k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
 ```
 
-Next, you can set default nodeSelector values per namespace. This lets you assign namespaces to specific nodes. Note though, that this is the default only, so if a pod sets its own nodeSelector value, that will take precedence.
+Next, you can set default nodeSelector values per namespace. This lets you assign namespaces to specific nodes. Note though, that this is the default as well as the whitelist, so if a pod sets its own nodeSelector value that must be a subset of the default. Otherwise the pod will not be scheduled.
 
 Then set the according annotations on your namespaces:
 ```yaml
