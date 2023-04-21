@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Check if terraform, packer and hcloud CLIs are present
 command -v terraform >/dev/null 2>&1 || { echo "terraform is not installed. Install it with 'brew install terraform'."; exit 1; }
