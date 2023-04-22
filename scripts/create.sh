@@ -37,6 +37,12 @@ else
     echo "hcloud-microos-snapshots.pkr.hcl already exists. Skipping download."
 fi
 
+if [ ! -e "${folder_path}/hcloud-microos-mgmt-snapshots.pkr.hcl" ]; then
+    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-mgmt-snapshots.pkr.hcl -o "${folder_path}/hcloud-microos-mgmt-snapshots.pkr.hcl"
+else
+    echo "hcloud-microos-mgmt-snapshots.pkr.hcl already exists. Skipping download."
+fi
+
 # Ask if they want to create the MicroOS snapshots
 echo " "
 echo "The snapshots are required and deployed using packer. If you need specific extra packages, you need to choose no and edit hcloud-microos-snapshots.pkr.hcl file manually. This is not needed in 99% of cases, as we already include the most common packages."
@@ -46,6 +52,9 @@ read -p "Do you want to create the MicroOS snapshots (we create one for x86 and 
 if [[ "$create_snapshots" =~ ^([Yy]es|[Yy])$ ]]; then
     read -p "Enter your HCLOUD_TOKEN: " hcloud_token
     export HCLOUD_TOKEN=$hcloud_token
+    echo " "
+    echo "Running: packer build packer build hcloud-microos-mgmt-snapshots.pkr.hcl"
+    cd "${folder_path}/${folder_name}" && packer build hcloud-microos-mgmt-snapshots.pkr.hcl
     echo " "
     echo "Running: packer build packer build hcloud-microos-snapshots.pkr.hcl"
     cd "${folder_path}/${folder_name}" && packer build hcloud-microos-snapshots.pkr.hcl

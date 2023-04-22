@@ -265,6 +265,12 @@ variable "extra_firewall_rules" {
   description = "Additional firewall rules to apply to the cluster."
 }
 
+variable "enable_vpn" {
+  type        = bool
+  default     = false
+  description = "Adds an VPN server in the project and only allow the API server to be accessible via VPN."
+}
+
 variable "use_cluster_name_in_node_name" {
   type        = bool
   default     = true
