@@ -48,7 +48,7 @@ if [[ "$create_snapshots" =~ ^([Yy]es|[Yy])$ ]]; then
     export HCLOUD_TOKEN=$hcloud_token
     echo " "
     echo "Running: packer build packer build hcloud-microos-snapshots.pkr.hcl"
-    cd "${folder_path}/${folder_name}" && packer build hcloud-microos-snapshots.pkr.hcl
+    cd "${folder_path}" && packer build hcloud-microos-snapshots.pkr.hcl
 else
     echo " "
     echo "You can create the snapshots later by running 'packer build hcloud-microos-snapshots.pkr.hcl' in the folder."
