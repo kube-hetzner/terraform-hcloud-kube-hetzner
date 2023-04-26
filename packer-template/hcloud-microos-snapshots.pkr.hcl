@@ -12,7 +12,7 @@ variable "hcloud_token" {
 # You can find a working mirror at https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist
 variable "opensuse_microos_x86_mirror_link" {
   type    = string
-  default = "https://ftp.gwdg.de/pub/opensuse/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  default = "https://download.opensuse.org/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
 }
 
 # We download the OpenSUSE MicroOS ARM image from an automatically selected mirror. In case it somehow does not work for you (you get a 403), you can try other mirrors.
