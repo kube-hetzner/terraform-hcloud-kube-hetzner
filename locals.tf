@@ -475,12 +475,12 @@ ports:
 %{endfor~}
 %{endif~}
 %{endif~}
-podDisruptionBudget:
 %{if var.traefik_pod_disruption_budget~}
+podDisruptionBudget:
   enabled: true
-%{endif~}
   maxUnavailable: 33%
   minAvailable: 1
+%{endif~}
 %{if var.traefik_additional_options != ""~}
 additionalArguments:
 %{for option in var.traefik_additional_options~}

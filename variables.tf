@@ -206,6 +206,12 @@ variable "traefik_redirect_to_https" {
   description = "Should traefik redirect http traffic to https."
 }
 
+variable "traefik_pod_disruption_budget" {
+  type        = bool
+  default     = true
+  description = "Should traefik enable pod disruption budget. Default values are maxUnavailable: 33% and minAvailable: 1."
+}
+
 variable "traefik_additional_ports" {
   type        = list(string)
   default     = []
