@@ -206,6 +206,12 @@ variable "traefik_redirect_to_https" {
   description = "Should traefik redirect http traffic to https."
 }
 
+variable "traefik_additional_ports" {
+  type        = list(string)
+  default     = []
+  description = "Additional ports to pass to Traefik as a list of strings. These are the ones that go into the ports section of the Traefik helm values file."
+}
+
 variable "traefik_additional_options" {
   type        = list(string)
   default     = []

@@ -461,6 +461,7 @@ ports:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
+%{if var.traefik_additional_ports != ""~}
 %{for option in var.traefik_additional_ports~}
   ${option}:
     proxyProtocol:
@@ -472,6 +473,7 @@ ports:
         - 127.0.0.1/32
         - 10.0.0.0/8
 %{endfor~}
+%{endif~}
 %{endif~}
 podDisruptionBudget:
 %{if var.traefik_pod_disruption_budget~}
