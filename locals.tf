@@ -463,7 +463,11 @@ ports:
         - 10.0.0.0/8
 %{if var.traefik_additional_ports != ""~}
 %{for option in var.traefik_additional_ports~}
-  ${option}:
+  ${option.name}:
+    port: ${option.port}
+    expose: true
+    exposedPort: ${option.exposedPort}
+    protocol: ${option.protocol}
     proxyProtocol:
       trustedIPs:
         - 127.0.0.1/32
