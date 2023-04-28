@@ -461,13 +461,15 @@ ports:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
+%{endif~}
 %{if var.traefik_additional_ports != ""~}
 %{for option in var.traefik_additional_ports~}
   ${option.name}:
     port: ${option.port}
     expose: true
     exposedPort: ${option.exposedPort}
-    protocol: ${option.protocol}
+    protocol: TCP
+%{if !local.using_klipper_lb~}
     proxyProtocol:
       trustedIPs:
         - 127.0.0.1/32
@@ -476,8 +478,8 @@ ports:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
-%{endfor~}
 %{endif~}
+%{endfor~}
 %{endif~}
 %{if var.traefik_pod_disruption_budget~}
 podDisruptionBudget:
