@@ -537,7 +537,7 @@ EOF
     Port ${var.ssh_port}
     PasswordAuthentication no
     X11Forwarding no
-    MaxAuthTries 2
+    MaxAuthTries ${var.ssh_max_auth_tries}
     AllowTcpForwarding no
     AllowAgentForwarding no
     AuthorizedKeysFile .ssh/authorized_keys

@@ -57,6 +57,12 @@ variable "hcloud_ssh_key_id" {
   default     = null
 }
 
+variable "ssh_max_auth_tries" {
+  description = "The maximum number of authentication attempts permitted per connection."
+  type        = number
+  default     = 2
+}
+
 variable "network_region" {
   description = "Default region for network."
   type        = string
