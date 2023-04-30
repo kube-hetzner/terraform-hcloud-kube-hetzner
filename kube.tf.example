@@ -218,6 +218,9 @@ module "kube-hetzner" {
   # You can refine a base domain name to be use in this form of nodename.base_domain for setting the reserve dns inside Hetzner
   # base_domain = "mycluster.example.com"
 
+  # If you have issues with SSH connection to your nodes, you can increase the number of auth tries here
+  # ssh_max_auth_tries = 2
+
   # Cluster Autoscaler
   # Providing at least one map for the array enables the cluster autoscaler feature, default is disabled
   # By default we set a compatible version with the default initial_k3s_channel, to set another one,
