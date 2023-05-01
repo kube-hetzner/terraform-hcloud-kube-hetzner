@@ -5,7 +5,7 @@ data "remote_file" "kustomization_backup" {
     user        = "root"
     private_key = var.ssh_private_key
     agent       = var.ssh_private_key == null
-    timeout     = tonumber(trim(var.ssh_connection_timeout, "m"))*1000*60
+    timeout     = tonumber(trim(var.ssh_connection_timeout, "m")) * 1000 * 60
   }
   path = "/var/post_install/kustomization.yaml"
 
