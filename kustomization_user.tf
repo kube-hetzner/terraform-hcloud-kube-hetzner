@@ -11,9 +11,13 @@ resource "null_resource" "kustomization_user" {
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   provisioner "remote-exec" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     inline = [
       "echo 'Create kustomize dir'",
       "mkdir -p /var/user_kustomize"
@@ -21,16 +25,25 @@ resource "null_resource" "kustomization_user" {
   }
 
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     source      = "extra-manifests/"
     destination = "/var/user_kustomize"
   }
 
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content     = templatefile("extra-manifests/kustomization.yaml.tpl", var.extra_kustomize_parameters)
     destination = "/var/user_kustomize/kustomization.yaml"
   }
 
   provisioner "remote-exec" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     inline = [
       "rm /var/user_kustomize/kustomization.yaml.tpl",
       "kubectl apply -k /var/user_kustomize/"

@@ -37,6 +37,7 @@ resource "null_resource" "configure_autoscaler" {
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   # Upload the autoscaler resource defintion
@@ -108,6 +109,7 @@ resource "null_resource" "autoscaled_nodes_registries" {
     agent_identity = local.ssh_agent_identity
     host           = each.value.ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   provisioner "file" {

@@ -5,6 +5,7 @@ resource "null_resource" "first_control_plane" {
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   # Generating k3s master config file
@@ -118,10 +119,14 @@ resource "null_resource" "kustomization" {
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = yamlencode({
       apiVersion = "kustomize.config.k8s.io/v1beta1"
       kind       = "Kustomization"
@@ -157,6 +162,9 @@ resource "null_resource" "kustomization" {
 
   # Upload traefik ingress controller config
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
@@ -167,6 +175,9 @@ resource "null_resource" "kustomization" {
 
   # Upload nginx ingress controller config
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
@@ -177,6 +188,9 @@ resource "null_resource" "kustomization" {
 
   # Upload the CCM patch config
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/ccm.yaml.tpl",
       {
@@ -190,6 +204,9 @@ resource "null_resource" "kustomization" {
   # Upload the calico patch config, for the kustomization of the calico manifest
   # This method is a stub which could be replaced by a more practical helm implementation
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/calico.yaml.tpl",
       {
@@ -200,6 +217,9 @@ resource "null_resource" "kustomization" {
 
   # Upload the cilium install file
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
@@ -210,6 +230,9 @@ resource "null_resource" "kustomization" {
 
   # Upload the system upgrade controller plans config
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/plans.yaml.tpl",
       {
@@ -220,6 +243,9 @@ resource "null_resource" "kustomization" {
 
   # Upload the Longhorn config
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/longhorn.yaml.tpl",
       {
@@ -232,6 +258,9 @@ resource "null_resource" "kustomization" {
 
   # Upload the csi-driver-smb config
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/csi-driver-smb.yaml.tpl",
       {
@@ -242,6 +271,9 @@ resource "null_resource" "kustomization" {
 
   # Upload the cert-manager config
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/cert_manager.yaml.tpl",
       {
@@ -252,6 +284,9 @@ resource "null_resource" "kustomization" {
 
   # Upload the Rancher config
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/rancher.yaml.tpl",
       {
@@ -262,6 +297,9 @@ resource "null_resource" "kustomization" {
   }
 
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = templatefile(
       "${path.module}/templates/kured.yaml.tpl",
       {
@@ -273,6 +311,9 @@ resource "null_resource" "kustomization" {
 
   # Deploy secrets, logging is automatically disabled due to sensitive variables
   provisioner "remote-exec" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     inline = [
       "set -ex",
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
@@ -283,6 +324,9 @@ resource "null_resource" "kustomization" {
 
   # Deploy our post-installation kustomization
   provisioner "remote-exec" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     inline = concat([
       "set -ex",
 

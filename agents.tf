@@ -15,6 +15,7 @@ module "agents" {
   ssh_public_key               = var.ssh_public_key
   ssh_private_key              = var.ssh_private_key
   ssh_additional_public_keys   = length(var.ssh_hcloud_key_label) > 0 ? concat(var.ssh_additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh_additional_public_keys
+  ssh_connection_timeout       = var.ssh_connection_timeout
   firewall_ids                 = [hcloud_firewall.k3s.id]
   placement_group_id           = var.placement_group_disable ? null : hcloud_placement_group.agent[floor(index(keys(local.agent_nodes), each.key) / 10)].id
   location                     = each.value.location
@@ -52,6 +53,7 @@ resource "null_resource" "agents" {
     agent_identity = local.ssh_agent_identity
     host           = module.agents[each.key].ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   # Generating k3s agent config file
@@ -135,6 +137,7 @@ resource "null_resource" "configure_longhorn_volume" {
     agent_identity = local.ssh_agent_identity
     host           = module.agents[each.key].ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   depends_on = [
@@ -190,6 +193,7 @@ resource "null_resource" "configure_floating_ip" {
     agent_identity = local.ssh_agent_identity
     host           = module.agents[each.key].ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   depends_on = [

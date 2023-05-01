@@ -49,6 +49,7 @@ resource "hcloud_server" "server" {
     agent_identity = local.ssh_agent_identity
     host           = self.ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   # Prepare ssh identity file
@@ -103,6 +104,7 @@ resource "null_resource" "registries" {
     agent_identity = local.ssh_agent_identity
     host           = hcloud_server.server.ipv4_address
     port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
   }
 
   provisioner "file" {

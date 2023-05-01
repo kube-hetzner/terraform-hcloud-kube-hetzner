@@ -48,6 +48,12 @@ module "kube-hetzner" {
   # If you use SSH agent and have issues with SSH connecting to your nodes, you can increase the number of auth tries (default is 2)
   # ssh_max_auth_tries = 10
 
+  # Customize the ssh-timeout (by default 10m)
+  # Note that in some regions and under some circumstances the full network-wise availability of the nodes might be delayed after a restart, which causes the installation to fail.
+  # Increasing the ssh-connection timeout gives the local ssh client used by terraform more time before aborting.
+  # ssh_connection_timeout = "60m"
+
+
   # If you want to use an ssh key that is already registered within hetzner cloud, you can pass its id.
   # If no id is passed, a new ssh key will be registered within hetzner cloud.
   # It is important that exactly this key is passed via `ssh_public_key` & `ssh_private_key` vars.

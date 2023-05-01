@@ -118,3 +118,9 @@ variable "cloudinit_runcmd_common" {
   default = ""
   type    = string
 }
+
+variable "ssh_connection_timeout" {
+  description = "SSH connection timeout"
+  type        = string
+  default     = "10m"
+}

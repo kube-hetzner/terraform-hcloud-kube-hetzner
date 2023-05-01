@@ -5,6 +5,7 @@ data "remote_file" "kubeconfig" {
     user        = "root"
     private_key = var.ssh_private_key
     agent       = var.ssh_private_key == null
+    timeout     = tonumber(trim(var.ssh_connection_timeout, "m"))*1000*60
   }
   path = "/etc/rancher/k3s/k3s.yaml"
 
