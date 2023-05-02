@@ -22,7 +22,7 @@ data "github_release" "kured" {
 
 // github_release for kured
 data "github_release" "calico" {
-  count       = var.calico_version == null ? 1 : 0
+  count       = var.calico_version == null && var.cni_plugin == "calico" ? 1 : 0
   repository  = "calico"
   owner       = "projectcalico"
   retrieve_by = "latest"
