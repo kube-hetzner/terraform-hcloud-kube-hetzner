@@ -10,7 +10,7 @@ locals {
   ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version    = var.hetzner_csi_version != null ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
-  calico_version = var.calico_version != null ? var.calico_version : data.github_release.calico[0].release_tag
+  calico_version = (var.calico_version != null || var.cni_plugin != "calico") ? var.calico_version : data.github_release.calico[0].release_tag
 
   additional_k3s_environment = join("\n",
     [
