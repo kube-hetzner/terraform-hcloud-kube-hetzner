@@ -147,6 +147,7 @@
 | <a name="input_restrict_outbound_traffic"></a> [restrict\_outbound\_traffic](#input\_restrict\_outbound\_traffic) | Whether or not to restrict the outbound traffic. | `bool` | `true` | no |
 | <a name="input_ssh_additional_public_keys"></a> [ssh\_additional\_public\_keys](#input\_ssh\_additional\_public\_keys) | Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes. | `list(string)` | `[]` | no |
 | <a name="input_ssh_hcloud_key_label"></a> [ssh\_hcloud\_key\_label](#input\_ssh\_hcloud\_key\_label) | Additional SSH public Keys by hcloud label. e.g. role=admin | `string` | `""` | no |
+| <a name="input_ssh_max_auth_tries"></a> [ssh\_max\_auth\_tries](#input\_ssh\_max\_auth\_tries) | The maximum number of authentication attempts permitted per connection. | `number` | `2` | no |
 | <a name="input_ssh_port"></a> [ssh\_port](#input\_ssh\_port) | The main SSH port to connect to the nodes. | `number` | `22` | no |
 | <a name="input_ssh_private_key"></a> [ssh\_private\_key](#input\_ssh\_private\_key) | SSH private Key. | `string` | n/a | yes |
 | <a name="input_ssh_public_key"></a> [ssh\_public\_key](#input\_ssh\_public\_key) | SSH public Key. | `string` | n/a | yes |
