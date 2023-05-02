@@ -289,7 +289,7 @@ locals {
   }
 
   cni_install_resources = {
-    "calico" = ["https://raw.githubusercontent.com/projectcalico/calico/${local.calico_version}/manifests/calico.yaml"]
+    "calico" = ["https://raw.githubusercontent.com/projectcalico/calico/${coalesce(local.calico_version, "NA")}/manifests/calico.yaml"]
     "cilium" = ["cilium.yaml"]
   }
 
