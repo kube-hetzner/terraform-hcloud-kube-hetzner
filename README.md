@@ -55,6 +55,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Possibility to toggle **Longhorn** and **Hetzner CSI**.
 - [x] Encryption at rest fully functional in both **Longhorn** and **Hetzner CSI**.
 - [x] Optional use of **Floating IPs** for use via Cilium's Egress Gateway.
+- [x] Proper IPv6 support for inbound/outbound traffic.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
