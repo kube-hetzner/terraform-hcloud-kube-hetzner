@@ -57,6 +57,12 @@ variable "hcloud_ssh_key_id" {
   default     = null
 }
 
+variable "ssh_max_auth_tries" {
+  description = "The maximum number of authentication attempts permitted per connection."
+  type        = number
+  default     = 2
+}
+
 variable "network_region" {
   description = "Default region for network."
   type        = string
@@ -258,7 +264,7 @@ variable "initial_k3s_channel" {
   description = "Allows you to specify an initial k3s channel."
 
   validation {
-    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26"], var.initial_k3s_channel)
+    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26", "v1.27"], var.initial_k3s_channel)
     error_message = "The initial k3s channel must be one of stable, latest or testing, or any of the minor kube versions like v1.26."
   }
 }
