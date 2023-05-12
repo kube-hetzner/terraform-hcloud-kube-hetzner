@@ -173,7 +173,7 @@ WantedBy=multi-user.target
   }
 
   provisioner "remote-exec" {
-    inline = concat(each.value.zram == true && each.value.zram_size != null  ? [
+    inline = concat(each.value.zram == true && each.value.zram_size != null ? [
       "modprobe zram",
       "echo '${each.value.zram_size}' > /sys/block/zram0/disksize",
       "mkdir -p /etc/modules-load.d",
