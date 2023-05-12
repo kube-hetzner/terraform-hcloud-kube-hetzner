@@ -107,7 +107,7 @@ variable "control_plane_nodepools" {
     location    = string
     backups     = optional(bool)
     swap        = optional(bool)
-    swap_size   = optional(number)
+    swap_size   = optional(string)
     labels      = list(string)
     taints      = list(string)
     count       = number
@@ -123,7 +123,7 @@ variable "agent_nodepools" {
     location             = string
     backups              = optional(bool)
     swap                 = optional(bool)
-    swap_size            = optional(number)
+    swap_size            = optional(string)
     floating_ip          = optional(bool)
     labels               = list(string)
     taints               = list(string)
