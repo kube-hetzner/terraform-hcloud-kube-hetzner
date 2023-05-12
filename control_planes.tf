@@ -154,7 +154,7 @@ resource "null_resource" "control_planes" {
 
   # Add swap if it's enabled
   provisioner "remote-exec" {
-    inline = concat(each.value.swap ? [
+    inline = concat(each.value.swap == true ? [
       "if [ ${each.value.swap_size} -eq 0 ]; then SWAP_SIZE=$(free -g | grep Mem | awk '{print $2}')G; else SWAP_SIZE=${each.value.swap_size}; fi",
       "fallocate -l $SWAP_SIZE /var/swapfile",
       "chmod 600 /var/swapfile",
