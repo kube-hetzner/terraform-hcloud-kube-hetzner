@@ -100,6 +100,8 @@ module "kube-hetzner" {
       taints      = [],
       count       = 1,
 
+      # Keep in mind, both zram _AND_ zram_size has to be defined, otherwise zram will not be enabled
+      # It should also be a value lower than the total amount of RAM on the system
       # Enable zram (default: false)
       zram        = true,
       # ZRam size (Remember the suffix M or G))
@@ -116,6 +118,8 @@ module "kube-hetzner" {
       taints      = [],
       count       = 1,
 
+      # Keep in mind, both zram _AND_ zram_size has to be defined, otherwise zram will not be enabled
+      # It should also be a value lower than the total amount of RAM on the system
       # Enable zram (default: false)
       zram        = true,
       # ZRam size (Remember the suffix M or G))
@@ -132,6 +136,8 @@ module "kube-hetzner" {
       taints      = [],
       count       = 1,
 
+      # Keep in mind, both zram _AND_ zram_size has to be defined, otherwise zram will not be enabled
+      # It should also be a value lower than the total amount of RAM on the system
       # Enable zram (default: false)
       zram        = true,
       # ZRam size (Remember the suffix M or G))
@@ -151,6 +157,8 @@ module "kube-hetzner" {
       taints      = [],
       count       = 1,
 
+      # Keep in mind, both zram _AND_ zram_size has to be defined, otherwise zram will not be enabled
+      # It should also be a value lower than the total amount of RAM on the system
       # Enable zram (default: false)
       zram        = true,
       # ZRam size (Remember the suffix M or G))
@@ -167,6 +175,8 @@ module "kube-hetzner" {
       taints      = [],
       count       = 1,
 
+      # Keep in mind, both zram _AND_ zram_size has to be defined, otherwise zram will not be enabled
+      # It should also be a value lower than the total amount of RAM on the system
       # Enable zram (default: false)
       zram        = true,
       # ZRam size (Remember the suffix M or G))
@@ -186,6 +196,8 @@ module "kube-hetzner" {
       taints      = [],
       count       = 1,
 
+      # Keep in mind, both zram _AND_ zram_size has to be defined, otherwise zram will not be enabled
+      # It should also be a value lower than the total amount of RAM on the system
       # Enable zram (default: false)
       zram        = true,
       # ZRam size (Remember the suffix M or G))
