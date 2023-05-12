@@ -106,6 +106,8 @@ variable "control_plane_nodepools" {
     server_type = string
     location    = string
     backups     = optional(bool)
+    zram        = optional(bool)
+    zram_size   = optional(string)
     labels      = list(string)
     taints      = list(string)
     count       = number
@@ -120,6 +122,8 @@ variable "agent_nodepools" {
     server_type          = string
     location             = string
     backups              = optional(bool)
+    zram                 = optional(bool)
+    zram_size            = optional(string)
     floating_ip          = optional(bool)
     labels               = list(string)
     taints               = list(string)

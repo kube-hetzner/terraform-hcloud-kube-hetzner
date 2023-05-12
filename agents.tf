@@ -91,6 +91,43 @@ resource "null_resource" "agents" {
     ])
   }
 
+  # Setup zram if it's enabled
+  provisioner "file" {
+    content     = <<-EOT
+[Unit]
+Description=Swap with zram
+After=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStartPre=/sbin/mkswap /dev/zram0
+ExecStart=/sbin/swapon /dev/zram0
+ExecStop=/sbin/swapoff /dev/zram0
+
+[Install]
+WantedBy=multi-user.target
+    EOT
+    destination = "/tmp/zram.service"
+  }
+
+  provisioner "remote-exec" {
+    inline = concat(each.value.zram == true ? [
+      "modprobe zram",
+      "echo '${each.value.zram_size}' > /sys/block/zram0/disksize",
+      "mkdir -p /etc/modules-load.d",
+      "echo 'zram' > /etc/modules-load.d/zram.conf",
+      "mkdir -p /etc/modprobe.d",
+      "echo 'options zram num_devices=1' > /etc/modprobe.d/zram.conf",
+      "mkdir -p /etc/udev/rules.d/",
+      "echo 'KERNEL==\"zram0\", ATTR{disksize}=\"${each.value.zram_size}\"' > /etc/udev/rules.d/99-zram.rules",
+      "cp /tmp/zram.service /etc/systemd/system/",
+      "setenforce 0",
+      "systemctl enable --now zram.service",
+      "setenforce 1"
+    ] : [])
+  }
+
   depends_on = [
     null_resource.first_control_plane,
     hcloud_network_subnet.agent

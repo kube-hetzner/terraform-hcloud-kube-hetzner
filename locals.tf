@@ -65,6 +65,8 @@ locals {
         labels : concat(local.default_control_plane_labels, nodepool_obj.labels),
         taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
         backups : nodepool_obj.backups,
+        zram : lookup(nodepool_obj, "zram", false),
+        zram_size : lookup(nodepool_obj, "zram_size", 0),
         index : node_index
       }
     }
@@ -82,6 +84,8 @@ locals {
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
         backups : lookup(nodepool_obj, "backups", false),
+        zram : lookup(nodepool_obj, "zram", false),
+        zram_size : lookup(nodepool_obj, "zram_size", 0),
         index : node_index
       }
     }
@@ -519,10 +523,10 @@ EOF
     set -euo pipefail
 
     sleep 11
-    
+
     INTERFACE=$(ip link show | awk '/^3:/{print $2}' | sed 's/://g')
     MAC=$(cat /sys/class/net/$INTERFACE/address)
-    
+
     cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
     SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
     EOF
