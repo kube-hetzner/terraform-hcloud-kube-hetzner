@@ -106,8 +106,6 @@ variable "control_plane_nodepools" {
     server_type = string
     location    = string
     backups     = optional(bool)
-    swap        = optional(bool)
-    swap_size   = optional(string)
     labels      = list(string)
     taints      = list(string)
     count       = number
@@ -122,8 +120,6 @@ variable "agent_nodepools" {
     server_type          = string
     location             = string
     backups              = optional(bool)
-    swap                 = optional(bool)
-    swap_size            = optional(string)
     floating_ip          = optional(bool)
     labels               = list(string)
     taints               = list(string)
@@ -576,4 +572,16 @@ variable "k3s_exec_server_args" {
   type        = string
   default     = ""
   description = "The control plane is started with `k3s server {k3s_exec_server_args}`. Use this to add kube-apiserver-arg for example."
+}
+
+variable "swap_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable swap on the nodes."
+}
+
+variable "swap_size" {
+  type        = string
+  default     = "2G"
+  description = "Size of the swap file."
 }

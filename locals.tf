@@ -65,8 +65,6 @@ locals {
         labels : concat(local.default_control_plane_labels, nodepool_obj.labels),
         taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
         backups : nodepool_obj.backups,
-        swap : lookup(nodepool_obj, "swap", false),
-        swap_size : lookup(nodepool_obj, "swap_size", 0),
         index : node_index
       }
     }
@@ -84,8 +82,6 @@ locals {
         labels : concat(local.default_agent_labels, nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
         backups : lookup(nodepool_obj, "backups", false),
-        swap : lookup(nodepool_obj, "swap", false),
-        swap_size : lookup(nodepool_obj, "swap_size", 0),
         index : node_index
       }
     }
@@ -697,6 +693,15 @@ EOT
 
 # Restart the sshd service to apply the new config
 - [systemctl, 'restart', 'sshd']
+
+# Enable swap if swap_enabled is true (And the swapfile hasn't already been created)
+%{if var.swap_enabled == true && var.swap_size != ""}
+- [fallocate, '-l', '${var.swap_size}', '/var/swapfile']
+- [chmod, '600', '/var/swapfile']
+- [mkswap, '/var/swapfile']
+- [swapon, '/var/swapfile']
+- ["sh", "-c", "echo '/var/swapfile swap swap defaults 0 0' >> /etc/fstab"]
+%{endif}
 
 # Make sure the network is up
 - [systemctl, restart, NetworkManager]

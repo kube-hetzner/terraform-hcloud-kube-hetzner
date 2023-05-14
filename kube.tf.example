@@ -64,6 +64,10 @@ module "kube-hetzner" {
   # Cluster CIDR must be a part of the network CIDR!
   # cluster_ipv4_cidr = "10.42.0.0/16"
 
+  # If you want to enable swap on the nodes, you can turn it on here
+  # swap_enabled = true # default is false
+  # swap_size = "2G" # remember to add the suffix, examples: 512M, 1024M, 1G, 8G (it will be placed on the /var/ partition)
+
   # For the control planes, at least three nodes are the minimum for HA. Otherwise, you need to turn off the automatic upgrades (see README).
   # **It must always be an ODD number, never even!** Search the internet for "splitbrain problem with etcd" or see https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
   # For instance, one is ok (non-HA), two is not ok, and three is ok (becomes HA). It does not matter if they are in the same nodepool or not! So they can be in different locations and of various types.
@@ -98,12 +102,7 @@ module "kube-hetzner" {
       location    = "fsn1",
       labels      = [],
       taints      = [],
-      count       = 1,
-
-      # Enable SWAP space located at /var/swapfile (Default is false)
-      swap        = false,
-      # Set the size of the swapfile to 8G (0 means it sets it to the same size as memory)
-      swap_size   = 8G,
+      count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
@@ -114,12 +113,7 @@ module "kube-hetzner" {
       location    = "nbg1",
       labels      = [],
       taints      = [],
-      count       = 1,
-
-      # Enable SWAP space located at /var/swapfile (Default is false)
-      swap        = false,
-      # Set the size of the swapfile to 8G (0 means it sets it to the same size as memory)
-      swap_size   = 8G,
+      count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
@@ -130,12 +124,7 @@ module "kube-hetzner" {
       location    = "hel1",
       labels      = [],
       taints      = [],
-      count       = 1,
-
-      # Enable SWAP space located at /var/swapfile (Default is false)
-      swap        = false,
-      # Set the size of the swapfile to 8G (0 means it sets it to the same size as memory)
-      swap_size   = 8G,
+      count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
@@ -149,12 +138,7 @@ module "kube-hetzner" {
       location    = "fsn1",
       labels      = [],
       taints      = [],
-      count       = 1,
-
-      # Enable SWAP space located at /var/swapfile (Default is false)
-      swap        = false,
-      # Set the size of the swapfile to 8G (0 means it sets it to the same size as memory)
-      swap_size   = 8G,
+      count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
@@ -165,12 +149,7 @@ module "kube-hetzner" {
       location    = "nbg1",
       labels      = [],
       taints      = [],
-      count       = 1,
-
-      # Enable SWAP space located at /var/swapfile (Default is false)
-      swap        = false,
-      # Set the size of the swapfile to 8G (0 means it sets it to the same size as memory)
-      swap_size   = 8G,
+      count       = 1
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
@@ -184,12 +163,7 @@ module "kube-hetzner" {
         "node.kubernetes.io/server-usage=storage"
       ],
       taints      = [],
-      count       = 1,
-
-      # Enable SWAP space located at /var/swapfile (Default is false)
-      swap        = false,
-      # Set the size of the swapfile to 8G (0 means it sets it to the same size as memory)
-      swap_size   = 8G,
+      count       = 1
 
       # In the case of using Longhorn, you can use Hetzner volumes instead of using the node's own storage by specifying a value from 10 to 10000 (in GB)
       # It will create one volume per node in the nodepool, and configure Longhorn to use them.
@@ -223,12 +197,7 @@ module "kube-hetzner" {
       location    = "fsn1",
       labels      = [],
       taints      = [],
-      count       = 1,
-
-      # Enable SWAP space located at /var/swapfile (Default is false)
-      swap        = false,
-      # Set the size of the swapfile to 8G (0 means it sets it to the same size as memory)
-      swap_size   = 8G,
+      count       = 1
     }
   ]
   # Add custom control plane configuration options here.

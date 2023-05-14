@@ -118,3 +118,15 @@ variable "cloudinit_runcmd_common" {
   default = ""
   type    = string
 }
+
+variable "swap_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable swap on the nodes."
+}
+
+variable "swap_size" {
+  type        = string
+  default     = "2G"
+  description = "Size of the swap file."
+}
