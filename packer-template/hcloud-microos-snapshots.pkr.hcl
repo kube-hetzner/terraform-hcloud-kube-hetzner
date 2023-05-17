@@ -28,6 +28,16 @@ variable "packages_to_install" {
   type    = list(string)
   default = []
 }
+variable "start_retry_timeout" {
+  description = "SSH connection timeout"
+  type        = string
+  default     = "20m"
+}
+variable "ssh_timeout" {
+  description = "connection timeout"
+  type        = string
+  default     = "20m"
+}
 
 locals {
   needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi nfs-client xfsprogs cryptsetup lvm2 git cifs-utils"], var.packages_to_install))
@@ -80,6 +90,7 @@ source "hcloud" "microos-x86-snapshot" {
   }
   snapshot_name = "OpenSUSE MicroOS x86 by Kube-Hetzner"
   ssh_username  = "root"
+  ssh_timeout   = var.ssh_timeout
   token         = var.hcloud_token
 }
 
@@ -95,6 +106,7 @@ source "hcloud" "microos-arm-snapshot" {
   }
   snapshot_name = "OpenSUSE MicroOS ARM by Kube-Hetzner"
   ssh_username  = "root"
+  ssh_timeout   = var.ssh_timeout
   token         = var.hcloud_token
 }
 
@@ -105,12 +117,16 @@ build {
   # Download the MicroOS x86 image
   provisioner "shell" {
     inline = ["${local.download_image}${var.opensuse_microos_x86_mirror_link}"]
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 
   # Write the MicroOS x86 image to disk
   provisioner "shell" {
     inline            = [local.write_image]
     expect_disconnect = true
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 
   # Ensure connection to MicroOS x86 and do house-keeping
@@ -118,17 +134,23 @@ build {
     pause_before      = "5s"
     inline            = [local.install_packages]
     expect_disconnect = true
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 
   # Ensure connection to MicroOS x86 and do house-keeping
   provisioner "shell" {
     pause_before = "5s"
     inline       = [local.clean_up]
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 
   # Create an empty config file, so cloud-init will generate NetworkManager system-connection files properly
   provisioner "shell" {
     inline = [local.cloud_init_network]
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 }
 
@@ -139,12 +161,16 @@ build {
   # Download the MicroOS ARM image
   provisioner "shell" {
     inline = ["${local.download_image}${var.opensuse_microos_arm_mirror_link}"]
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 
   # Write the MicroOS ARM image to disk
   provisioner "shell" {
     inline            = [local.write_image]
     expect_disconnect = true
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 
   # Ensure connection to MicroOS ARM and do house-keeping
@@ -152,16 +178,22 @@ build {
     pause_before      = "5s"
     inline            = [local.install_packages]
     expect_disconnect = true
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 
   # Ensure connection to MicroOS ARM and do house-keeping
   provisioner "shell" {
     pause_before = "5s"
     inline       = [local.clean_up]
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 
   # Create an empty config file, so cloud-init will generate NetworkManager system-connection files properly
   provisioner "shell" {
     inline = [local.cloud_init_network]
+    start_retry_timeout   = var.start_retry_timeout
+    timeout      = var.ssh_timeout
   }
 }
