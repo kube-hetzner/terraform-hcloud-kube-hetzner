@@ -487,11 +487,21 @@ podDisruptionBudget:
   maxUnavailable: 33%
   minAvailable: 1
 %{endif~}
-%{if var.traefik_additional_options != ""~}
 additionalArguments:
+  - "--entrypoints.tcp=true"
+%{if var.traefik_additional_options != ""~}
 %{for option in var.traefik_additional_options~}
-- "${option}"
+  - "${option}"
 %{endfor~}
+%{endif~}
+%{if var.traefik_resource_limits~}
+resources:
+  requests:
+    cpu: "100m"
+    memory: "50Mi"
+  limits:
+    cpu: "300m"
+    memory: "150Mi"
 %{endif~}
   EOT
 
