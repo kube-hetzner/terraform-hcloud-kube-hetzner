@@ -61,6 +61,11 @@ locals {
     rm -rf /etc/ssh/ssh_host_*
     sleep 1 && udevadm settle
   EOT
+
+  cloud_init_network = <<-EOT
+    echo 'Make sure to use NetworkManager'
+    touch /etc/NetworkManager/NetworkManager.conf
+  EOT
 }
 
 # Source for the MicroOS x86 snapshot
@@ -120,6 +125,11 @@ build {
     pause_before = "5s"
     inline       = [local.clean_up]
   }
+
+  # Create an empty config file, so cloud-init will generate NetworkManager system-connection files properly
+  provisioner "shell" {
+    inline = [local.cloud_init_network]
+  }
 }
 
 # Build the MicroOS ARM snapshot
@@ -148,5 +158,10 @@ build {
   provisioner "shell" {
     pause_before = "5s"
     inline       = [local.clean_up]
+  }
+
+  # Create an empty config file, so cloud-init will generate NetworkManager system-connection files properly
+  provisioner "shell" {
+    inline = [local.cloud_init_network]
   }
 }
