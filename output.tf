@@ -3,6 +3,16 @@ output "cluster_name" {
   description = "Shared suffix for all resources belonging to this cluster."
 }
 
+output "network_id" {
+  value       = hcloud_network.k3s.id
+  description = "The ID of the HCloud network."
+}
+
+output "ssh_key_id" {
+  value       = local.hcloud_ssh_key_id
+  description = "The ID of the HCloud SSH key."
+}
+
 output "control_planes_public_ipv4" {
   value = [
     for obj in module.control_planes : obj.ipv4_address
