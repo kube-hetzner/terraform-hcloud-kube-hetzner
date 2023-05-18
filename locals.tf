@@ -485,7 +485,6 @@ ports:
 podDisruptionBudget:
   enabled: true
   maxUnavailable: 33%
-  minAvailable: 1
 %{endif~}
 additionalArguments:
   - "--entrypoints.tcp=true"
