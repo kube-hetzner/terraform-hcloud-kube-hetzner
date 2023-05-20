@@ -506,7 +506,7 @@ resources:
 autoscaling:
   enabled: true
   minReplicas: ${local.ingress_replica_count}
-  maxReplicas: ${local.ingress_max_replica_count}
+  maxReplicas: ${var.ingress_max_replica_count}
 %{endif~}
   EOT
 
