@@ -206,6 +206,23 @@ variable "ingress_replica_count" {
   }
 }
 
+variable "ingress_max_replica_count" {
+  type        = number
+  default     = 10
+  description = "Number of maximum replicas per ingress controller. Used for ingress HPA."
+
+  validation {
+    condition     = var.ingress_max_replica_count > var.ingress_replica_count
+    error_message = "Number of ingress maximum replicas can't be below or equal to number of replicas."
+  }
+}
+
+variable "traefik_autoscaling" {
+  type        = bool
+  default     = true
+  description = "Should traefik enable Horizontal Pod Autoscaler."
+}
+
 variable "traefik_redirect_to_https" {
   type        = bool
   default     = true

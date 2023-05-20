@@ -502,6 +502,12 @@ resources:
     cpu: "300m"
     memory: "150Mi"
 %{endif~}
+%{if var.traefik_autoscaling~}
+autoscaling:
+  enabled: true
+  minReplicas: ${local.ingress_replica_count}
+  maxReplicas: ${local.ingress_max_replica_count}
+%{endif~}
   EOT
 
   rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
