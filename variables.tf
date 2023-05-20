@@ -209,11 +209,11 @@ variable "ingress_replica_count" {
 variable "ingress_max_replica_count" {
   type        = number
   default     = 10
-  description = "Number of maximum replicas per ingress controller. Used for ingress HPA."
+  description = "Number of maximum replicas per ingress controller. Used for ingress HPA. Must be higher than number of replicas."
 
   validation {
-    condition     = var.ingress_max_replica_count > var.ingress_replica_count
-    error_message = "Number of ingress maximum replicas can't be below or equal to number of replicas."
+    condition     = var.ingress_max_replica_count >= 0
+    error_message = "Number of ingress maximum replicas can't be below 0."
   }
 }
 
