@@ -100,7 +100,8 @@ locals {
 
   has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
 
-  ingress_replica_count = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+  ingress_replica_count     = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+  ingress_max_replica_count = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
 
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
@@ -506,7 +507,7 @@ resources:
 autoscaling:
   enabled: true
   minReplicas: ${local.ingress_replica_count}
-  maxReplicas: ${var.ingress_max_replica_count}
+  maxReplicas: ${local.ingress_max_replica_count}
 %{endif~}
   EOT
 
