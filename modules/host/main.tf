@@ -1,3 +1,7 @@
+locals {
+  is_windows = local.os == "windows"
+}
+
 resource "random_string" "server" {
   length  = 3
   lower   = true
@@ -52,10 +56,23 @@ resource "hcloud_server" "server" {
   }
 
   # Prepare ssh identity file
+  # linux:
   provisioner "local-exec" {
+    count = local.is_windows ? 0 : 1
+
     command = <<-EOT
       install -b -m 600 /dev/null /tmp/${random_string.identity_file.id}
       echo "${local.ssh_client_identity}" > /tmp/${random_string.identity_file.id}
+    EOT
+  }
+  
+  # windows:
+  provisioner "local-exec" {
+    count = local.is_windows ? 1 : 0
+
+    command = <<-EOT
+      mkdir ./tmp
+      ${local.ssh_client_identity} | Out-File -FilePath /tmp/${random_string.identity_file.id} -Encoding UTF8
     EOT
   }
 
