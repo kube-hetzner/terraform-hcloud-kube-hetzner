@@ -86,7 +86,7 @@ resource "random_password" "rancher_bootstrap" {
 }
 
 # This is where all the setup of Kubernetes components happen
-resource "null_resource" "kustomization" {
+resource "null_resource" "kustomization0" {
   triggers = {
     # Redeploy helm charts when the underlying values change
     helm_values_yaml = join("---\n", [
@@ -308,7 +308,42 @@ resource "null_resource" "kustomization" {
     )
     destination = "/var/post_install/kured.yaml"
   }
+}
+resource "null_resource" "kustomization" {
+  triggers = {
+    # Redeploy helm charts when the underlying values change
+    helm_values_yaml = join("---\n", [
+      local.traefik_values,
+      local.nginx_values,
+      local.calico_values,
+      local.cilium_values,
+      local.longhorn_values,
+      local.csi_driver_smb_values,
+      local.cert_manager_values,
+      local.rancher_values
+    ])
+    # Redeploy when versions of addons need to be updated
+    versions = join("\n", [
+      coalesce(var.initial_k3s_channel, "N/A"),
+      coalesce(var.cluster_autoscaler_version, "N/A"),
+      coalesce(var.hetzner_ccm_version, "N/A"),
+      coalesce(var.hetzner_csi_version, "N/A"),
+      coalesce(var.kured_version, "N/A"),
+      coalesce(var.calico_version, "N/A"),
+    ])
+    options = join("\n", [
+      for option, value in var.kured_options : "${option}=${value}"
+    ])
+  }
 
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    port           = var.ssh_port
+    timeout        = var.ssh_connection_timeout
+  }
   # Deploy secrets, logging is automatically disabled due to sensitive variables
   provisioner "remote-exec" {
     connection {
@@ -374,6 +409,7 @@ resource "null_resource" "kustomization" {
   }
 
   depends_on = [
+    null_resource.kustomization0,
     null_resource.first_control_plane,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume

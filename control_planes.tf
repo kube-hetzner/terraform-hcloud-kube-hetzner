@@ -95,6 +95,9 @@ resource "null_resource" "control_planes" {
 
   # Generating k3s server config file
   provisioner "file" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     content = yamlencode(
       merge(
         {
@@ -135,11 +138,17 @@ resource "null_resource" "control_planes" {
 
   # Install k3s server
   provisioner "remote-exec" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     inline = local.install_k3s_server
   }
 
   # Start the k3s server and wait for it to have started correctly
   provisioner "remote-exec" {
+    connection {
+      timeout = var.ssh_connection_timeout
+    }
     inline = [
       "systemctl start k3s 2> /dev/null",
       <<-EOT
