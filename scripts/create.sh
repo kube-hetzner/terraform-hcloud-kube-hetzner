@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Check if terraform, packer and hcloud CLIs are present
+command -v ssh >/dev/null 2>&1 || { echo "openssh is not installed. Install it with 'brew install openssh'."; exit 1; }
 command -v terraform >/dev/null 2>&1 || { echo "terraform is not installed. Install it with 'brew install terraform'."; exit 1; }
 command -v packer >/dev/null 2>&1 || { echo "packer is not installed. Install it with 'brew install packer'."; exit 1; }
 command -v hcloud >/dev/null 2>&1 || { echo "hcloud (Hetzner CLI) is not installed. Install it with 'brew install hcloud'."; exit 1; }

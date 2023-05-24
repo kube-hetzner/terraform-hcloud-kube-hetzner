@@ -206,10 +206,49 @@ variable "ingress_replica_count" {
   }
 }
 
+variable "ingress_max_replica_count" {
+  type        = number
+  default     = 10
+  description = "Number of maximum replicas per ingress controller. Used for ingress HPA. Must be higher than number of replicas."
+
+  validation {
+    condition     = var.ingress_max_replica_count >= 0
+    error_message = "Number of ingress maximum replicas can't be below 0."
+  }
+}
+
+variable "traefik_autoscaling" {
+  type        = bool
+  default     = true
+  description = "Should traefik enable Horizontal Pod Autoscaler."
+}
+
 variable "traefik_redirect_to_https" {
   type        = bool
   default     = true
   description = "Should traefik redirect http traffic to https."
+}
+
+variable "traefik_pod_disruption_budget" {
+  type        = bool
+  default     = true
+  description = "Should traefik enable pod disruption budget. Default values are maxUnavailable: 33% and minAvailable: 1."
+}
+
+variable "traefik_resource_limits" {
+  type        = bool
+  default     = true
+  description = "Should traefik enable default resource requests and limits. Default values are requests: 100m & 50Mi and limits: 300m & 150Mi."
+}
+
+variable "traefik_additional_ports" {
+  type = list(object({
+    name        = string
+    port        = number
+    exposedPort = number
+  }))
+  default     = []
+  description = "Additional ports to pass to Traefik. These are the ones that go into the ports section of the Traefik helm values file."
 }
 
 variable "traefik_additional_options" {

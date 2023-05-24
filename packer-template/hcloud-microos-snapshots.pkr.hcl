@@ -52,6 +52,8 @@ locals {
     transactional-update --continue shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
     transactional-update --continue shell <<< "zypper addlock k3s-selinux"
     transactional-update --continue shell <<< "restorecon -Rv /etc/selinux/targeted/policy && restorecon -Rv /var/lib && setenforce 1"
+    echo "Make sure to use NetworkManager"
+    touch /etc/NetworkManager/NetworkManager.conf
     sleep 1 && udevadm settle && reboot
   EOT
 
@@ -60,11 +62,6 @@ locals {
     echo "Second reboot successful, cleaning-up..."
     rm -rf /etc/ssh/ssh_host_*
     sleep 1 && udevadm settle
-  EOT
-
-  cloud_init_network = <<-EOT
-    echo 'Make sure to use NetworkManager'
-    touch /etc/NetworkManager/NetworkManager.conf
   EOT
 }
 
@@ -125,11 +122,6 @@ build {
     pause_before = "5s"
     inline       = [local.clean_up]
   }
-
-  # Create an empty config file, so cloud-init will generate NetworkManager system-connection files properly
-  provisioner "shell" {
-    inline = [local.cloud_init_network]
-  }
 }
 
 # Build the MicroOS ARM snapshot
@@ -158,10 +150,5 @@ build {
   provisioner "shell" {
     pause_before = "5s"
     inline       = [local.clean_up]
-  }
-
-  # Create an empty config file, so cloud-init will generate NetworkManager system-connection files properly
-  provisioner "shell" {
-    inline = [local.cloud_init_network]
   }
 }
