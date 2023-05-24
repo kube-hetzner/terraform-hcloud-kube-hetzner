@@ -100,7 +100,8 @@ locals {
 
   has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
 
-  ingress_replica_count = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+  ingress_replica_count     = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+  ingress_max_replica_count = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
 
   # disable k3s extras
   disable_extras = concat(["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
@@ -462,11 +463,51 @@ ports:
         - 127.0.0.1/32
         - 10.0.0.0/8
 %{endif~}
-%{if var.traefik_additional_options != ""~}
-additionalArguments:
-%{for option in var.traefik_additional_options~}
-- "${option}"
+%{if var.traefik_additional_ports != ""~}
+%{for option in var.traefik_additional_ports~}
+  ${option.name}:
+    port: ${option.port}
+    expose: true
+    exposedPort: ${option.exposedPort}
+    protocol: TCP
+%{if !local.using_klipper_lb~}
+    proxyProtocol:
+      trustedIPs:
+        - 127.0.0.1/32
+        - 10.0.0.0/8
+    forwardedHeaders:
+      trustedIPs:
+        - 127.0.0.1/32
+        - 10.0.0.0/8
+%{endif~}
 %{endfor~}
+%{endif~}
+%{if var.traefik_pod_disruption_budget~}
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 33%
+%{endif~}
+additionalArguments:
+  - "--entrypoints.tcp=true"
+%{if var.traefik_additional_options != ""~}
+%{for option in var.traefik_additional_options~}
+  - "${option}"
+%{endfor~}
+%{endif~}
+%{if var.traefik_resource_limits~}
+resources:
+  requests:
+    cpu: "100m"
+    memory: "50Mi"
+  limits:
+    cpu: "300m"
+    memory: "150Mi"
+%{endif~}
+%{if var.traefik_autoscaling~}
+autoscaling:
+  enabled: true
+  minReplicas: ${local.ingress_replica_count}
+  maxReplicas: ${local.ingress_max_replica_count}
 %{endif~}
   EOT
 
