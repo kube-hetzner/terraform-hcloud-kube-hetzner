@@ -59,11 +59,8 @@ read -p "Do you want to create the MicroOS snapshots (we create one for x86 and 
 if [[ "$create_snapshots" =~ ^([Yy]es|[Yy])$ ]]; then
     read -p "Enter your HCLOUD_TOKEN: " hcloud_token
     export HCLOUD_TOKEN=$hcloud_token
-    echo "Running: packer init hcloud-microos-snapshots.pkr.hcl"
-    cd "${folder_path}" && packer init hcloud-microos-snapshots.pkr.hcl
-    echo " "
-    echo "Running: packer build hcloud-microos-snapshots.pkr.hcl"
-    cd "${folder_path}" && packer build hcloud-microos-snapshots.pkr.hcl
+    echo "Running packer build for hcloud-microos-snapshots.pkr.hcl"
+    cd "${folder_path}" && packer init hcloud-microos-snapshots.pkr.hcl && packer build hcloud-microos-snapshots.pkr.hcl
 else
     echo " "
     echo "You can create the snapshots later by running 'packer build hcloud-microos-snapshots.pkr.hcl' in the folder."

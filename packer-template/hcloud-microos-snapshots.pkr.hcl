@@ -54,14 +54,16 @@ locals {
   install_packages = <<-EOT
     set -ex
     echo "First reboot successful, installing needed packages..."
-    transactional-update shell <<< "setenforce 0"
-    transactional-update --continue shell <<< "zypper --gpg-auto-import-keys install -y ${local.needed_packages}"
-    transactional-update --continue shell <<< "rpm --import https://rpm-testing.rancher.io/public.key"
-    transactional-update --continue shell <<< "zypper --no-gpg-checks --non-interactive install https://github.com/k3s-io/k3s-selinux/releases/download/v1.3.testing.4/k3s-selinux-1.3-4.sle.noarch.rpm"
-    transactional-update --continue shell <<< "zypper addlock k3s-selinux"
-    transactional-update --continue shell <<< "restorecon -Rv /etc/selinux/targeted/policy && restorecon -Rv /var/lib && setenforce 1"
-    echo "Make sure to use NetworkManager"
-    touch /etc/NetworkManager/NetworkManager.conf
+    transactional-update --continue pkg install -y ${local.needed_packages}
+    transactional-update --continue shell <<- EOF
+    setenforce 0
+    rpm --import https://rpm.rancher.io/public.key
+    zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.4.stable.1/k3s-selinux-1.4-1.sle.noarch.rpm
+    zypper addlock k3s-selinux
+    restorecon -Rv /etc/selinux/targeted/policy
+    restorecon -Rv /var/lib
+    setenforce 1
+    EOF
     sleep 1 && udevadm settle && reboot
   EOT
 
@@ -69,6 +71,8 @@ locals {
     set -ex
     echo "Second reboot successful, cleaning-up..."
     rm -rf /etc/ssh/ssh_host_*
+    echo "Make sure to use NetworkManager"
+    touch /etc/NetworkManager/NetworkManager.conf
     sleep 1 && udevadm settle
   EOT
 }
