@@ -115,6 +115,7 @@ brew install hcloud
     curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example -o kube.tf
     curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshots.pkr.hcl -o hcloud-microos-snapshots.pkr.hcl
     export HCLOUD_TOKEN="your_hcloud_token"
+    packer init hcloud-microos-snapshots.pkr.hcl
     packer build hcloud-microos-snapshots.pkr.hcl
     hcloud context create <project-name>
     ```
