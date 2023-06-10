@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
 
 # Check if terraform, packer and hcloud CLIs are present
-command -v ssh >/dev/null 2>&1 || { echo "openssh is not installed. Install it with 'brew install openssh'."; exit 1; }
-command -v terraform >/dev/null 2>&1 || { echo "terraform is not installed. Install it with 'brew install terraform'."; exit 1; }
-command -v packer >/dev/null 2>&1 || { echo "packer is not installed. Install it with 'brew install packer'."; exit 1; }
-command -v hcloud >/dev/null 2>&1 || { echo "hcloud (Hetzner CLI) is not installed. Install it with 'brew install hcloud'."; exit 1; }
+command -v ssh >/dev/null 2>&1 || {
+    echo "openssh is not installed. Install it with 'brew install openssh'."
+    exit 1
+}
+command -v terraform >/dev/null 2>&1 || {
+    echo "terraform is not installed. Install it with 'brew install terraform'."
+    exit 1
+}
+command -v packer >/dev/null 2>&1 || {
+    echo "packer is not installed. Install it with 'brew install packer'."
+    exit 1
+}
+command -v hcloud >/dev/null 2>&1 || {
+    echo "hcloud (Hetzner CLI) is not installed. Install it with 'brew install hcloud'."
+    exit 1
+}
 
 # Ask for the folder name
 read -p "Enter the name of the folder you want to create (leave empty to use the current directory instead, useful for upgrades): " folder_name
@@ -47,9 +59,8 @@ read -p "Do you want to create the MicroOS snapshots (we create one for x86 and 
 if [[ "$create_snapshots" =~ ^([Yy]es|[Yy])$ ]]; then
     read -p "Enter your HCLOUD_TOKEN: " hcloud_token
     export HCLOUD_TOKEN=$hcloud_token
-    echo " "
-    echo "Running: packer build packer build hcloud-microos-snapshots.pkr.hcl"
-    cd "${folder_path}" && packer build hcloud-microos-snapshots.pkr.hcl
+    echo "Running packer build for hcloud-microos-snapshots.pkr.hcl"
+    cd "${folder_path}" && packer init hcloud-microos-snapshots.pkr.hcl && packer build hcloud-microos-snapshots.pkr.hcl
 else
     echo " "
     echo "You can create the snapshots later by running 'packer build hcloud-microos-snapshots.pkr.hcl' in the folder."
