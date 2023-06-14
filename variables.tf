@@ -141,6 +141,12 @@ variable "cluster_autoscaler_version" {
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
 
+variable "cluster_autoscaler_extra_args" {
+  type        = list(string)
+  default     = []
+  description = "Extra arguments for the Cluster Autoscaler deployment."
+}
+
 variable "autoscaler_nodepools" {
   description = "Cluster autoscaler nodepools."
   type = list(object({
@@ -151,6 +157,18 @@ variable "autoscaler_nodepools" {
     max_nodes   = number
   }))
   default = []
+}
+
+variable "autoscaler_labels" {
+  description = "Labels for nodes created by the Cluster Autoscaler."
+  type        = list(string)
+  default     = []
+}
+
+variable "autoscaler_taints" {
+  description = "Taints for nodes created by the Cluster Autoscaler."
+  type        = list(string)
+  default     = []
 }
 
 variable "hetzner_ccm_version" {
