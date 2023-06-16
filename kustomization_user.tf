@@ -1,5 +1,6 @@
 locals {
-  user_kustomization_templates = fileset("extra-manifests", "*.yaml.tpl")
+  extra_manifests_exists       = fileexists("extra-manifests")
+  user_kustomization_templates = local.extra_manifests_exists ? fileset("extra-manifests", "*.yaml.tpl") : toset([])
 }
 
 resource "null_resource" "kustomization_user_setup" {
@@ -66,6 +67,8 @@ resource "null_resource" "kustomization_user" {
 }
 
 resource "null_resource" "kustomization_user_deploy" {
+  count = length(local.user_kustomization_templates) > 0 ? 1 : 0
+
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
