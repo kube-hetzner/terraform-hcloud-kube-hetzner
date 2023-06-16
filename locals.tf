@@ -157,15 +157,7 @@ locals {
       source_ips  = ["0.0.0.0/0", "::/0"]
     },
 
-    # Allow all traffic to the ssh ports
-    {
-      description = "Allow Incoming SSH Traffic"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "22"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    }
-    ], var.ssh_port == 22 ? [] : [
+    # Allow all traffic to the ssh port
     {
       description = "Allow Incoming SSH Traffic"
       direction   = "in"
