@@ -344,6 +344,8 @@ encryption:
   enabled: true
   type: wireguard
 %{endif~}
+extraConfig:
+  mtu: "1450"
   EOT
 
   # Not to be confused with the other helm values, this is used for the calico.yaml kustomize patch
