@@ -1,6 +1,5 @@
 locals {
-  extra_manifests_exists       = fileexists("extra-manifests")
-  user_kustomization_templates = local.extra_manifests_exists ? fileset("extra-manifests", "*.yaml.tpl") : toset([])
+  user_kustomization_templates = try(fileset("extra-manifests", "*.yaml.tpl"), [])
 }
 
 resource "null_resource" "kustomization_user_setup" {
