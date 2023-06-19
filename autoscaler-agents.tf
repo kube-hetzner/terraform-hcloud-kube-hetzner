@@ -6,15 +6,16 @@ locals {
   autoscaler_yaml = length(var.autoscaler_nodepools) == 0 ? "" : templatefile(
     "${path.module}/templates/autoscaler.yaml.tpl",
     {
-      cloudinit_config = base64encode(data.cloudinit_config.autoscaler-config[0].rendered)
-      ca_image         = var.cluster_autoscaler_image
-      ca_version       = var.cluster_autoscaler_version
-      ssh_key          = local.hcloud_ssh_key_id
-      ipv4_subnet_id   = hcloud_network.k3s.id
-      snapshot_id      = local.first_nodepool_snapshot_id
-      firewall_id      = hcloud_firewall.k3s.id
-      cluster_name     = local.cluster_prefix
-      node_pools       = var.autoscaler_nodepools
+      cloudinit_config              = base64encode(data.cloudinit_config.autoscaler-config[0].rendered)
+      ca_image                      = var.cluster_autoscaler_image
+      ca_version                    = var.cluster_autoscaler_version
+      cluster_autoscaler_extra_args = var.cluster_autoscaler_extra_args
+      ssh_key                       = local.hcloud_ssh_key_id
+      ipv4_subnet_id                = hcloud_network.k3s.id
+      snapshot_id                   = local.first_nodepool_snapshot_id
+      firewall_id                   = hcloud_firewall.k3s.id
+      cluster_name                  = local.cluster_prefix
+      node_pools                    = var.autoscaler_nodepools
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
@@ -79,8 +80,8 @@ data "cloudinit_config" "autoscaler-config" {
           token         = random_password.k3s_token.result
           kubelet-arg   = local.kubelet_arg
           flannel-iface = local.flannel_iface
-          node-label    = local.default_agent_labels
-          node-taint    = local.default_agent_taints
+          node-label    = concat(local.default_agent_labels, var.autoscaler_labels)
+          node-taint    = concat(local.default_agent_taints, var.autoscaler_taints)
           selinux       = true
         })
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
