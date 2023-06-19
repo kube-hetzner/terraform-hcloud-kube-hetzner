@@ -371,6 +371,8 @@ bpf:
   masquerade: "true"
 egressGateway:
   enabled: "true"
+extraConfig:
+  mtu: "1450"
 EOT
 ```
 

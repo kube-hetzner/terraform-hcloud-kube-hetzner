@@ -527,6 +527,8 @@ l7Proxy: false
 encryption:
   enabled: true
   type: wireguard
+extraConfig:
+  mtu: "1450"
   EOT */
 
   # Cert manager, all cert-manager helm values can be found at https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
