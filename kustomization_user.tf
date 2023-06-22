@@ -1,5 +1,5 @@
 locals {
-  user_kustomization_templates = try(fileset("extra-manifests", "*.yaml.tpl"), [])
+  user_kustomization_templates = try(fileset("extra-manifests", "*.yaml.tpl"), toset([]))
 }
 
 resource "null_resource" "kustomization_user_setup" {

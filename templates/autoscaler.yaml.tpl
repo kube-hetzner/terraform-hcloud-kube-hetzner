@@ -172,6 +172,9 @@ spec:
             %{~ for pool in node_pools ~}
             - --nodes=${pool.min_nodes}:${pool.max_nodes}:${pool.server_type}:${pool.location}:${cluster_name}${pool.name}
             %{~ endfor ~}
+            %{~ for extra_arg in cluster_autoscaler_extra_args ~}
+            - ${extra_arg}
+            %{~ endfor ~}
           env:
           - name: HCLOUD_TOKEN
             valueFrom:
