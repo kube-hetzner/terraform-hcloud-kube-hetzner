@@ -579,7 +579,7 @@ variable "preinstall_exec" {
 
 variable "extra_kustomize_deployment_commands" {
   type        = string
-  default     = ""
+  default     = "echo 'No extra commands provided'"
   description = "Commands to be executed after the `kubectl apply -k <dir>` step."
 }
 
