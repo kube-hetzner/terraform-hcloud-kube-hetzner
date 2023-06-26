@@ -79,12 +79,12 @@ resource "null_resource" "kustomization_user_deploy" {
   # Remove templates after rendering, and apply changes.
   provisioner "remote-exec" {
     # Debugging: "sh -c 'for file in $(find /var/user_kustomize -type f -name \"*.yaml\" | sort -n); do echo \"\n### Template $${file}.tpl after rendering:\" && cat $${file}; done'",
-    inline = [
+    inline = compact([
       "rm -f /var/user_kustomize/*.yaml.tpl",
       "echo 'Deploying manifests from /var/user_kustomize/:' && ls -alh /var/user_kustomize",
       "kubectl kustomize /var/user_kustomize/ | kubectl apply --wait=true -f -",
       "${var.extra_kustomize_deployment_commands}"
-    ]
+    ])
   }
 
   lifecycle {
