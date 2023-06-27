@@ -6,16 +6,19 @@ locals {
   autoscaler_yaml = length(var.autoscaler_nodepools) == 0 ? "" : templatefile(
     "${path.module}/templates/autoscaler.yaml.tpl",
     {
-      cloudinit_config              = base64encode(data.cloudinit_config.autoscaler-config[0].rendered)
-      ca_image                      = var.cluster_autoscaler_image
-      ca_version                    = var.cluster_autoscaler_version
-      cluster_autoscaler_extra_args = var.cluster_autoscaler_extra_args
-      ssh_key                       = local.hcloud_ssh_key_id
-      ipv4_subnet_id                = hcloud_network.k3s.id
-      snapshot_id                   = local.first_nodepool_snapshot_id
-      firewall_id                   = hcloud_firewall.k3s.id
-      cluster_name                  = local.cluster_prefix
-      node_pools                    = var.autoscaler_nodepools
+      cloudinit_config                    = base64encode(data.cloudinit_config.autoscaler-config[0].rendered)
+      ca_image                            = var.cluster_autoscaler_image
+      ca_version                          = var.cluster_autoscaler_version
+      cluster_autoscaler_extra_args       = var.cluster_autoscaler_extra_args
+      cluster_autoscaler_log_level        = var.cluster_autoscaler_log_level
+      cluster_autoscaler_log_to_stderr    = var.cluster_autoscaler_log_to_stderr
+      cluster_autoscaler_stderr_threshold = var.cluster_autoscaler_stderr_threshold
+      ssh_key                             = local.hcloud_ssh_key_id
+      ipv4_subnet_id                      = hcloud_network.k3s.id
+      snapshot_id                         = local.first_nodepool_snapshot_id
+      firewall_id                         = hcloud_firewall.k3s.id
+      cluster_name                        = local.cluster_prefix
+      node_pools                          = var.autoscaler_nodepools
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
