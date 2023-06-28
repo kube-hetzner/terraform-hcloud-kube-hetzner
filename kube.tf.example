@@ -582,9 +582,9 @@ module "kube-hetzner" {
   # Don't create the kustomize backup. This can be helpful for automation.
   # create_kustomization = false
 
-  # MicroOS x86 snapshot IDs to be used. Per default empty, the most recent image created using createkh will be used. 
+  # MicroOS snapshot IDs to be used. Per default empty, the most recent image created using createkh will be used. 
   # We recommend the default, but if you want to use specific IDs you can. 
-  # You can fetch the ids with the hcloud cti by running the "hcloud image list --selector 'microos-snapshot=yes'" command.
+  # You can fetch the ids with the hcloud cli by running the "hcloud image list --selector 'microos-snapshot=yes'" command.
   # microos_x86_snapshot_id = "1234567"
   # microos_arm_snapshot_id = "1234567"
 
