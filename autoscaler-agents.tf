@@ -51,10 +51,7 @@ resource "null_resource" "configure_autoscaler" {
 
   # Create/Apply the definition
   provisioner "remote-exec" {
-    inline = [
-      "set -ex",
-      "kubectl apply -f /tmp/autoscaler.yaml",
-    ]
+    inline = ["kubectl apply -f /tmp/autoscaler.yaml"]
   }
 
   depends_on = [
