@@ -161,15 +161,7 @@ locals {
       source_ips  = ["0.0.0.0/0", "::/0"]
     },
 
-    # Allow all traffic to the ssh ports
-    {
-      description = "Allow Incoming SSH Traffic"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "22"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    }
-    ], var.ssh_port == 22 ? [] : [
+    # Allow all traffic to the ssh port
     {
       description = "Allow Incoming SSH Traffic"
       direction   = "in"
@@ -356,6 +348,8 @@ encryption:
   enabled: true
   type: wireguard
 %{endif~}
+extraConfig:
+  mtu: "1450"
   EOT
 
   # Not to be confused with the other helm values, this is used for the calico.yaml kustomize patch
@@ -388,6 +382,9 @@ spec:
 
   longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT
 defaultSettings:
+%{if length(var.autoscaler_nodepools) != 0~}
+  kubernetesClusterAutoscalerEnabled: true
+%{endif~}
   defaultDataPath: /var/longhorn
 persistence:
   defaultFsType: ${var.longhorn_fstype}
