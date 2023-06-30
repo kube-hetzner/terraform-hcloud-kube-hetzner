@@ -6,13 +6,13 @@ variable "hcloud_token" {
 }
 
 variable "microos_x86_snapshot_id" {
-  description = "MicroOS x86 snapshot ID to be used. Per default empty, image created using create.sh will be used"
+  description = "MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
   type        = string
   default     = ""
 }
 
 variable "microos_arm_snapshot_id" {
-  description = "MicroOS ARM snapshot ID to be used. Per default empty, image created using create.sh will be used"
+  description = "MicroOS ARM snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
   type        = string
   default     = ""
 }
@@ -94,7 +94,7 @@ variable "load_balancer_type" {
 }
 
 variable "load_balancer_disable_ipv6" {
-  description = "Disable ipv6 for the load balancer."
+  description = "Disable IPv6 for the load balancer."
   type        = bool
   default     = false
 }
@@ -141,6 +141,40 @@ variable "cluster_autoscaler_version" {
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
 
+variable "cluster_autoscaler_log_level" {
+  description = "Verbosity level of the logs for cluster-autoscaler"
+  type        = number
+  default     = 1
+
+  validation {
+    condition     = var.cluster_autoscaler_log_level >= 0 && var.cluster_autoscaler_log_level <= 5
+    error_message = "The log level must be between 0 and 5."
+  }
+}
+
+variable "cluster_autoscaler_log_to_stderr" {
+  description = "Determines whether to log to stderr or not"
+  type        = bool
+  default     = true
+}
+
+variable "cluster_autoscaler_stderr_threshold" {
+  description = "Severity level above which logs are sent to stderr instead of stdout"
+  type        = string
+  default     = "INFO"
+
+  validation {
+    condition     = var.cluster_autoscaler_stderr_threshold == "INFO" || var.cluster_autoscaler_stderr_threshold == "WARNING" || var.cluster_autoscaler_stderr_threshold == "ERROR" || var.cluster_autoscaler_stderr_threshold == "FATAL"
+    error_message = "The stderr threshold must be one of the following: INFO, WARNING, ERROR, FATAL."
+  }
+}
+
+variable "cluster_autoscaler_extra_args" {
+  type        = list(string)
+  default     = []
+  description = "Extra arguments for the Cluster Autoscaler deployment."
+}
+
 variable "autoscaler_nodepools" {
   description = "Cluster autoscaler nodepools."
   type = list(object({
@@ -151,6 +185,18 @@ variable "autoscaler_nodepools" {
     max_nodes   = number
   }))
   default = []
+}
+
+variable "autoscaler_labels" {
+  description = "Labels for nodes created by the Cluster Autoscaler."
+  type        = list(string)
+  default     = []
+}
+
+variable "autoscaler_taints" {
+  description = "Taints for nodes created by the Cluster Autoscaler."
+  type        = list(string)
+  default     = []
 }
 
 variable "hetzner_ccm_version" {
@@ -557,6 +603,12 @@ variable "preinstall_exec" {
   type        = list(string)
   default     = []
   description = "Additional to execute before the install calls, for example fetching and installing certs."
+}
+
+variable "extra_kustomize_deployment_commands" {
+  type        = string
+  default     = ""
+  description = "Commands to be executed after the `kubectl apply -k <dir>` step."
 }
 
 variable "extra_kustomize_parameters" {
