@@ -664,3 +664,9 @@ variable "k3s_exec_server_args" {
   default     = ""
   description = "The control plane is started with `k3s server {k3s_exec_server_args}`. Use this to add kube-apiserver-arg for example."
 }
+
+variable "k3s_exec_agent_args" {
+  type        = string
+  default     = ""
+  description = "Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example."
+}
