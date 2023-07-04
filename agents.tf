@@ -171,6 +171,12 @@ resource "null_resource" "configure_floating_ip" {
 
   provisioner "remote-exec" {
     inline = [
+      # Reconfigure eth0:
+      #  - add floating_ip as first and other IP as second address
+      #  - add 172.31.1.1 as default gateway (In the Hetzner Cloud, the
+      #    special private IP address 172.31.1.1 is the default
+      #    gateway for the public network)
+      # The configuration is stored in file /etc/NetworkManager/system-connections/cloud-init-eth0.nmconnection
       <<-EOT
       NM_CONNECTION=$(nmcli -g GENERAL.CONNECTION device show eth0)
       nmcli connection modify "$NM_CONNECTION" \
