@@ -171,16 +171,20 @@ resource "null_resource" "configure_floating_ip" {
 
   provisioner "remote-exec" {
     inline = [
-      "echo \"BOOTPROTO='static'\nSTARTMODE='auto'\nIPADDR=${hcloud_floating_ip.agents[each.key].ip_address}/32\nIPADDR_1=${module.agents[each.key].ipv4_address}/32\" > /etc/sysconfig/network/ifcfg-eth0",
-      "echo \"172.31.1.1 - 255.255.255.255 eth0\ndefault 172.31.1.1 - eth0 src ${hcloud_floating_ip.agents[each.key].ip_address}\" > /etc/sysconfig/network/ifroute-eth0",
-
-      "ip addr add ${hcloud_floating_ip.agents[each.key].ip_address}/32 dev eth0",
-      "ip route replace default via 172.31.1.1 dev eth0 src ${hcloud_floating_ip.agents[each.key].ip_address}",
-
-      # its important: floating IP should be first on the interface IP list
-      # move main IP to the second position
-      "ip addr del ${module.agents[each.key].ipv4_address}/32 dev eth0",
-      "ip addr add ${module.agents[each.key].ipv4_address}/32 dev eth0",
+      # Reconfigure eth0:
+      #  - add floating_ip as first and other IP as second address
+      #  - add 172.31.1.1 as default gateway (In the Hetzner Cloud, the
+      #    special private IP address 172.31.1.1 is the default
+      #    gateway for the public network)
+      # The configuration is stored in file /etc/NetworkManager/system-connections/cloud-init-eth0.nmconnection
+      <<-EOT
+      NM_CONNECTION=$(nmcli -g GENERAL.CONNECTION device show eth0)
+      nmcli connection modify "$NM_CONNECTION" \
+        ipv4.method manual \
+        ipv4.addresses ${hcloud_floating_ip.agents[each.key].ip_address}/32,${module.agents[each.key].ipv4_address}/32 gw4 172.31.1.1 \
+        ipv4.route-metric 100 \
+      && nmcli connection up "$NM_CONNECTION"
+      EOT
     ]
   }
 
