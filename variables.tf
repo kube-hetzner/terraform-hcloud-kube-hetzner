@@ -642,7 +642,7 @@ variable "enable_wireguard" {
 }
 
 variable "control_planes_custom_config" {
-  type        = map(any)
+  type        = any
   default     = {}
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }
