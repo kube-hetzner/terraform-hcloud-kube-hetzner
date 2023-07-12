@@ -576,7 +576,7 @@ module "kube-hetzner" {
   # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
   # extra_kustomize_parameters={}
 
-  # See an working example for just a manifest.yaml, a HelmChart and a HelmChartConfig examples/kustmoization_user_deploy/Readme.md
+  # See an working example for just a manifest.yaml, a HelmChart and a HelmChartConfig examples/kustomization_user_deploy/README.md
   
   # It is best practice to turn this off, but for backwards compatibility it is set to "true" by default.
   # See https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/349
