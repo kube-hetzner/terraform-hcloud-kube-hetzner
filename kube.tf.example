@@ -1,6 +1,6 @@
 locals {
   # You have the choice of setting your Hetzner API token here or define the TF_VAR_hcloud_token env
-  # within your shell, such as such: export TF_VAR_hcloud_token=xxxxxxxxxxx 
+  # within your shell, such as such: export TF_VAR_hcloud_token=xxxxxxxxxxx
   # If you choose to define it in the shell, this can be left as is.
 
   # Your Hetzner token can be found in your Project > Security > API Token (Read & Write is required).
@@ -160,7 +160,7 @@ module "kube-hetzner" {
       ],
       taints      = [],
       count       = 1
-      
+
       # In the case of using Longhorn, you can use Hetzner volumes instead of using the node's own storage by specifying a value from 10 to 10000 (in GB)
       # It will create one volume per node in the nodepool, and configure Longhorn to use them.
       # Something worth noting is that Volume storage is slower than node storage, which is achieved by not mentioning longhorn_volume_size or setting it to 0.
@@ -206,7 +206,7 @@ module "kube-hetzner" {
   # }
 
   # You can enable encrypted wireguard for the CNI by setting this to "true". Default is "false".
-  # FYI, Hetzner says "Traffic between cloud servers inside a Network is private and isolated, but not automatically encrypted." 
+  # FYI, Hetzner says "Traffic between cloud servers inside a Network is private and isolated, but not automatically encrypted."
   # Source: https://docs.hetzner.com/cloud/networks/faq/#is-traffic-inside-hetzner-cloud-networks-encrypted
   # It works with all CNIs that we support.
   # Just note, that if Cilium with cilium_values, the responsability of enabling of disabling Wireguard falls on you.
@@ -316,7 +316,7 @@ module "kube-hetzner" {
   # enable_longhorn = true
 
   # By default, longhorn is pulled from https://charts.longhorn.io.
-  # If you need a version of longhorn which assures compatibility with rancher you can set this variable to https://charts.rancher.io. 
+  # If you need a version of longhorn which assures compatibility with rancher you can set this variable to https://charts.rancher.io.
   # longhorn_repository = "https://charts.rancher.io"
 
   # The namespace for longhorn deployment, default is "longhorn-system".
@@ -448,7 +448,7 @@ module "kube-hetzner" {
           password: password
   EOT */
 
-  # Additional environment variables for the host OS on which k3s runs. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . 
+  # Additional environment variables for the host OS on which k3s runs. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy .
   # additional_k3s_environment = {
   #   "CONTAINERD_HTTP_PROXY" : "http://your.proxy:port",
   #   "CONTAINERD_HTTPS_PROXY" : "http://your.proxy:port",
@@ -571,6 +571,7 @@ module "kube-hetzner" {
   # rancher_registration_manifest_url = "https://rancher.xyz.dev/v3/import/xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz.yaml"
 
   # Extra commands to be executed after the `kubectl apply -k` (useful for post-install actions, e.g. wait for CRD, apply additional manifests, etc.).
+  # See an working example for just a manifest.yaml, a HelmChart and a HelmChartConfig examples/kustmoization_user_deploy/Readme.md
   # extra_kustomize_deployment_commands=""
 
   # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
@@ -585,8 +586,8 @@ module "kube-hetzner" {
   # Don't create the kustomize backup. This can be helpful for automation.
   # create_kustomization = false
 
-  # MicroOS snapshot IDs to be used. Per default empty, the most recent image created using createkh will be used. 
-  # We recommend the default, but if you want to use specific IDs you can. 
+  # MicroOS snapshot IDs to be used. Per default empty, the most recent image created using createkh will be used.
+  # We recommend the default, but if you want to use specific IDs you can.
   # You can fetch the ids with the hcloud cli by running the "hcloud image list --selector 'microos-snapshot=yes'" command.
   # microos_x86_snapshot_id = "1234567"
   # microos_arm_snapshot_id = "1234567"
