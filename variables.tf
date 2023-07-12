@@ -2,7 +2,6 @@ variable "hcloud_token" {
   description = "Hetzner Cloud API Token."
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "microos_x86_snapshot_id" {
@@ -642,7 +641,7 @@ variable "enable_wireguard" {
 }
 
 variable "control_planes_custom_config" {
-  type        = map(any)
+  type        = any
   default     = {}
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }

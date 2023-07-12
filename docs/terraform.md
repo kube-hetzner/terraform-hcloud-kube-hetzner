@@ -104,7 +104,7 @@
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Name of the cluster. | `string` | `"k3s"` | no |
 | <a name="input_cni_plugin"></a> [cni\_plugin](#input\_cni\_plugin) | CNI plugin for k3s. | `string` | `"flannel"` | no |
 | <a name="input_control_plane_nodepools"></a> [control\_plane\_nodepools](#input\_control\_plane\_nodepools) | Number of control plane nodes. | <pre>list(object({<br>    name        = string<br>    server_type = string<br>    location    = string<br>    backups     = optional(bool)<br>    labels      = list(string)<br>    taints      = list(string)<br>    count       = number<br>  }))</pre> | `[]` | no |
-| <a name="input_control_planes_custom_config"></a> [control\_planes\_custom\_config](#input\_control\_planes\_custom\_config) | Custom control plane configuration e.g to allow etcd monitoring. | `map(any)` | `{}` | no |
+| <a name="input_control_planes_custom_config"></a> [control\_planes\_custom\_config](#input\_control\_planes\_custom\_config) | Custom control plane configuration e.g to allow etcd monitoring. | `any` | `{}` | no |
 | <a name="input_create_kubeconfig"></a> [create\_kubeconfig](#input\_create\_kubeconfig) | Create the kubeconfig as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |
 | <a name="input_create_kustomization"></a> [create\_kustomization](#input\_create\_kustomization) | Create the kustomization backup as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |
 | <a name="input_csi_driver_smb_values"></a> [csi\_driver\_smb\_values](#input\_csi\_driver\_smb\_values) | Additional helm values file to pass to csi-driver-smb as 'valuesContent' at the HelmChart. | `string` | `""` | no |
@@ -123,7 +123,7 @@
 | <a name="input_extra_kustomize_deployment_commands"></a> [extra\_kustomize\_deployment\_commands](#input\_extra\_kustomize\_deployment\_commands) | Commands to be executed after the `kubectl apply -k <dir>` step. | `string` | `""` | no |
 | <a name="input_extra_kustomize_parameters"></a> [extra\_kustomize\_parameters](#input\_extra\_kustomize\_parameters) | All values will be passed to the `kustomization.tmp.yml` template. | `map(any)` | `{}` | no |
 | <a name="input_hcloud_ssh_key_id"></a> [hcloud\_ssh\_key\_id](#input\_hcloud\_ssh\_key\_id) | If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module. | `string` | `null` | no |
-| <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token. | `string` | `""` | no |
+| <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token. | `string` | n/a | yes |
 | <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. | `string` | `null` | no |
 | <a name="input_hetzner_csi_version"></a> [hetzner\_csi\_version](#input\_hetzner\_csi\_version) | Version of Container Storage Interface driver for Hetzner Cloud. | `string` | `null` | no |
 | <a name="input_ingress_controller"></a> [ingress\_controller](#input\_ingress\_controller) | The name of the ingress controller. | `string` | `"traefik"` | no |
