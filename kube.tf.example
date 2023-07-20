@@ -219,6 +219,18 @@ module "kube-hetzner" {
   # Disable IPv6 for the load balancer, the default is false.
   # load_balancer_disable_ipv6 = true
 
+  # Specifies the algorithm type of the load balancer. (default: round_robin).
+  # load_balancer_algorithm_type = "least_connections"
+
+  # Specifies the interval at which a health check is performed. Minimum is 3s (default: 15s).
+  # load_balancer_health_check_interval = "5s"
+
+  # Specifies the timeout of a single health check. Must not be greater than the health check interval. Minimum is 1s (default: 10s).
+  # load_balancer_health_check_timeout = "3s"
+
+  # Specifies the number of times a health check is retried before a target is marked as unhealthy. (default: 3)
+  # load_balancer_health_check_retries = 3
+
   ### The following values are entirely optional (and can be removed from this if unused)
 
   # You can refine a base domain name to be use in this form of nodename.base_domain for setting the reserve dns inside Hetzner

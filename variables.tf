@@ -99,6 +99,30 @@ variable "load_balancer_disable_ipv6" {
   default     = false
 }
 
+variable "load_balancer_algorithm_type" {
+  description = "Specifies the algorithm type of the load balancer."
+  type        = string
+  default     = "round_robin"
+}
+
+variable "load_balancer_health_check_interval" {
+  description = "Specifies the interval at which a health check is performed. Minimum is 3s."
+  type        = string
+  default     = "15s"
+}
+
+variable "load_balancer_health_check_timeout" {
+  description = "Specifies the timeout of a single health check. Must not be greater than the health check interval. Minimum is 1s."
+  type        = string
+  default     = "10s"
+}
+
+variable "load_balancer_health_check_retries" {
+  description = "Specifies the number of times a health check is retried before a target is marked as unhealthy."
+  type        = number
+  default     = 3
+}
+
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
