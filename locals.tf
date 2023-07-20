@@ -25,6 +25,21 @@ locals {
   set -a; source /etc/environment; set +a;
   EOT
 
+  install_system_alias = <<-EOT
+  cat > /etc/profile.d/00-alias.sh <<EOF
+  alias k=kubectl
+  EOF
+  EOT
+
+  install_kubectl_bash_completion = <<-EOT
+  cat > /etc/bash_completion.d/kubectl <<EOF
+  if command -v kubectl >/dev/null; then
+    source <(kubectl completion bash)
+    complete -o default -F __start_kubectl k
+  fi
+  EOF
+  EOT
+
   common_pre_install_k3s_commands = concat(
     [
       "set -ex",
@@ -38,6 +53,8 @@ locals {
       # if the server has already been initialized just stop here
       "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
       local.install_additional_k3s_environment,
+      local.install_system_alias,
+      local.install_kubectl_bash_completion,
     ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
