@@ -42,7 +42,7 @@ data "hcloud_ssh_keys" "keys_by_selector" {
 
 data "http" "client_public_ipv4" {
   url = "https://ipv4.icanhazip.com"
-  
+
   lifecycle {
     postcondition {
       condition     = self.status_code == 200

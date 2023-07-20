@@ -121,90 +121,90 @@ locals {
 
   base_firewall_rules = concat(
     var.firewall_ssh_source == null ? [] : [
-    # Allow all traffic to the ssh port
-    {
-      description = "Allow Incoming SSH Traffic"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = var.ssh_port
-      source_ips  = coalescelist(var.firewall_ssh_source, ["${chomp(data.http.client_public_ipv4.response_body)}/32"])
-    },
-    ], !var.restrict_outbound_traffic ? [] : [
-    # Allow basic out traffic
-    # ICMP to ping outside services
-    {
-      description     = "Allow Outbound ICMP Ping Requests"
-      direction       = "out"
-      protocol        = "icmp"
-      port            = ""
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
+      # Allow all traffic to the ssh port
+      {
+        description = "Allow Incoming SSH Traffic"
+        direction   = "in"
+        protocol    = "tcp"
+        port        = var.ssh_port
+        source_ips  = coalescelist(var.firewall_ssh_source, ["${chomp(data.http.client_public_ipv4.response_body)}/32"])
+      },
+      ], !var.restrict_outbound_traffic ? [] : [
+      # Allow basic out traffic
+      # ICMP to ping outside services
+      {
+        description     = "Allow Outbound ICMP Ping Requests"
+        direction       = "out"
+        protocol        = "icmp"
+        port            = ""
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
 
-    # DNS
-    {
-      description     = "Allow Outbound TCP DNS Requests"
-      direction       = "out"
-      protocol        = "tcp"
-      port            = "53"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      description     = "Allow Outbound UDP DNS Requests"
-      direction       = "out"
-      protocol        = "udp"
-      port            = "53"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
+      # DNS
+      {
+        description     = "Allow Outbound TCP DNS Requests"
+        direction       = "out"
+        protocol        = "tcp"
+        port            = "53"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
+      {
+        description     = "Allow Outbound UDP DNS Requests"
+        direction       = "out"
+        protocol        = "udp"
+        port            = "53"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
 
-    # HTTP(s)
-    {
-      description     = "Allow Outbound HTTP Requests"
-      direction       = "out"
-      protocol        = "tcp"
-      port            = "80"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      description     = "Allow Outbound HTTPS Requests"
-      direction       = "out"
-      protocol        = "tcp"
-      port            = "443"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
+      # HTTP(s)
+      {
+        description     = "Allow Outbound HTTP Requests"
+        direction       = "out"
+        protocol        = "tcp"
+        port            = "80"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
+      {
+        description     = "Allow Outbound HTTPS Requests"
+        direction       = "out"
+        protocol        = "tcp"
+        port            = "443"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
 
-    #NTP
-    {
-      description     = "Allow Outbound UDP NTP Requests"
-      direction       = "out"
-      protocol        = "udp"
-      port            = "123"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    }
-    ], !local.using_klipper_lb ? [] : [
-    # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
-    # not an external load-balancer.
-    {
-      description = "Allow Incoming HTTP Connections"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "80"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      description = "Allow Incoming HTTPS Connections"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "443"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    }
-    ], var.block_icmp_ping_in ? [] : [
-    {
-      description = "Allow Incoming ICMP Ping Requests"
-      direction   = "in"
-      protocol    = "icmp"
-      port        = ""
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    }
+      #NTP
+      {
+        description     = "Allow Outbound UDP NTP Requests"
+        direction       = "out"
+        protocol        = "udp"
+        port            = "123"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      }
+      ], !local.using_klipper_lb ? [] : [
+      # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
+      # not an external load-balancer.
+      {
+        description = "Allow Incoming HTTP Connections"
+        direction   = "in"
+        protocol    = "tcp"
+        port        = "80"
+        source_ips  = ["0.0.0.0/0", "::/0"]
+      },
+      {
+        description = "Allow Incoming HTTPS Connections"
+        direction   = "in"
+        protocol    = "tcp"
+        port        = "443"
+        source_ips  = ["0.0.0.0/0", "::/0"]
+      }
+      ], var.block_icmp_ping_in ? [] : [
+      {
+        description = "Allow Incoming ICMP Ping Requests"
+        direction   = "in"
+        protocol    = "icmp"
+        port        = ""
+        source_ips  = ["0.0.0.0/0", "::/0"]
+      }
     ]
   )
 
