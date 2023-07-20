@@ -129,7 +129,8 @@ locals {
         port        = var.ssh_port
         source_ips  = coalescelist(var.firewall_ssh_source, ["${chomp(data.http.client_public_ipv4.response_body)}/32"])
       },
-      ], !var.restrict_outbound_traffic ? [] : [
+    ],
+    !var.restrict_outbound_traffic ? [] : [
       # Allow basic out traffic
       # ICMP to ping outside services
       {
@@ -180,7 +181,8 @@ locals {
         port            = "123"
         destination_ips = ["0.0.0.0/0", "::/0"]
       }
-      ], !local.using_klipper_lb ? [] : [
+    ],
+    !local.using_klipper_lb ? [] : [
       # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
       # not an external load-balancer.
       {
@@ -197,7 +199,8 @@ locals {
         port        = "443"
         source_ips  = ["0.0.0.0/0", "::/0"]
       }
-      ], var.block_icmp_ping_in ? [] : [
+    ],
+    var.block_icmp_ping_in ? [] : [
       {
         description = "Allow Incoming ICMP Ping Requests"
         direction   = "in"
