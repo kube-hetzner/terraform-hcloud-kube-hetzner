@@ -143,6 +143,32 @@ _Once you start with Terraform, it's best not to change the state of the project
 
 When your brand-new cluster is up and running, the sky is your limit! 🎉
 
+You can view all kinds of details about the cluster by running `terraform output kubeconfig` or `terraform output -json kubeconfig | jq`.
+
+### Connect via SSH
+
+Connect to one of the control plane nodes via SSH with `ssh root@<cp-ipv4-address>`. Now you can use kubectl to manage your workloads right away. By default, the firewall only allows SSH connections from your public IPv4 address unless `firewall_ssh_source` is set to a different value in your kube.tf.
+
+To update your current public IPv4 address to the firewall, you can run:
+```bash
+terraform apply -target=module.kube-hetzner.hcloud_firewall.k3s
+```
+
+### Connect via Kube API
+
+Add an additional firewall rule to your kube.tf to access the Kube API. Be careful when exposing the Kube API. It is recommended not to expose it to the public world. If possible, only allow connections from trusted source IPs. Example configuration:
+```hcl
+extra_firewall_rules = [
+  {
+    description = "Allow Incoming Requests to Kube API Server"
+    direction   = "in"
+    protocol    = "tcp"
+    port        = "6443"
+    source_ips  = ["1.2.3.4/32"]
+  }
+]
+```
+
 You can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
 ```sh
@@ -153,7 +179,6 @@ If chose to turn `create_kubeconfig` to false in your kube.tf (good practice), y
 
 You can also use it in an automated flow, in which case `create_kubeconfig` should be set to false, and you can use the `kubeconfig` output variable to get the kubeconfig file in a structured data format.
 
-_You can view all kinds of details about the cluster by running `terraform output kubeconfig` or `terraform output -json kubeconfig | jq`._
 
 ## CNI
 

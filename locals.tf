@@ -119,51 +119,15 @@ locals {
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
-  # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
-  # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
-  hetzner_metadata_service_ipv4 = "169.254.169.254/32"
-  hetzner_cloud_api_ipv4        = "213.239.246.21/32"
-
-  whitelisted_ips = [
-    var.network_ipv4_cidr,
-    local.hetzner_metadata_service_ipv4,
-    local.hetzner_cloud_api_ipv4,
-    "127.0.0.1/32",
-  ]
-
-  base_firewall_rules = concat([
-    # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
-    {
-      description = "Allow Internal Cluster TCP Traffic"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "any"
-      source_ips  = local.whitelisted_ips
-    },
-    {
-      description = "Allow Internal Cluster UDP Traffic"
-      direction   = "in"
-      protocol    = "udp"
-      port        = "any"
-      source_ips  = local.whitelisted_ips
-    },
-
-    # Allow all traffic to the kube api server
-    {
-      description = "Allow Incoming Requests to Kube API Server"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "6443"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    },
-
+  base_firewall_rules = concat(
+    var.firewall_ssh_source == null ? [] : [
     # Allow all traffic to the ssh port
     {
       description = "Allow Incoming SSH Traffic"
       direction   = "in"
       protocol    = "tcp"
       port        = var.ssh_port
-      source_ips  = ["0.0.0.0/0", "::/0"]
+      source_ips  = coalescelist(var.firewall_ssh_source, ["${chomp(data.http.client_public_ipv4.response_body)}/32"])
     },
     ], !var.restrict_outbound_traffic ? [] : [
     # Allow basic out traffic
@@ -241,15 +205,8 @@ locals {
       port        = ""
       source_ips  = ["0.0.0.0/0", "::/0"]
     }
-    ], var.cni_plugin != "cilium" ? [] : [
-    {
-      description = "Allow Incoming Requests to Hubble Server & Hubble Relay (Cilium)"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "4244-4245"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    }
-  ])
+    ]
+  )
 
   # create a new firewall list based on base_firewall_rules but with direction-protocol-port as key
   # this is needed to avoid duplicate rules

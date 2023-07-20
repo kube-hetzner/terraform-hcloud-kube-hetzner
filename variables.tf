@@ -356,6 +356,12 @@ variable "extra_firewall_rules" {
   description = "Additional firewall rules to apply to the cluster."
 }
 
+variable "firewall_ssh_source" {
+  type        = list(string)
+  default     = []
+  description = "Source networks that have SSH access to the servers."
+}
+
 variable "use_cluster_name_in_node_name" {
   type        = bool
   default     = true

@@ -39,3 +39,14 @@ data "hcloud_ssh_keys" "keys_by_selector" {
   count         = length(var.ssh_hcloud_key_label) > 0 ? 1 : 0
   with_selector = var.ssh_hcloud_key_label
 }
+
+data "http" "client_public_ipv4" {
+  url = "https://ipv4.icanhazip.com"
+  
+  lifecycle {
+    postcondition {
+      condition     = self.status_code == 200
+      error_message = "Status code invalid"
+    }
+  }
+}
