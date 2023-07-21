@@ -581,6 +581,12 @@ variable "use_control_plane_lb" {
   description = "When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability."
 }
 
+variable "control_plane_lb_type" {
+  type        = string
+  default     = "lb11"
+  description = "The type of load balancer to use for the control plane load balancer. Defaults to lb11, which is the cheapest one."
+}
+
 variable "dns_servers" {
   type        = list(string)
   default     = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]

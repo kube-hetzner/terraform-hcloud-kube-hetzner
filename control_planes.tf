@@ -45,7 +45,7 @@ resource "hcloud_load_balancer" "control_plane" {
   count = var.use_control_plane_lb ? 1 : 0
   name  = "${var.cluster_name}-control-plane"
 
-  load_balancer_type = var.load_balancer_type
+  load_balancer_type = var.control_plane_lb_type
   location           = var.load_balancer_location
   labels             = merge(local.labels, local.labels_control_plane_lb)
 }
