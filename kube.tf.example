@@ -1,6 +1,6 @@
 locals {
   # You have the choice of setting your Hetzner API token here or define the TF_VAR_hcloud_token env
-  # within your shell, such as such: export TF_VAR_hcloud_token=xxxxxxxxxxx 
+  # within your shell, such as such: export TF_VAR_hcloud_token=xxxxxxxxxxx
   # If you choose to define it in the shell, this can be left as is.
 
   # Your Hetzner token can be found in your Project > Security > API Token (Read & Write is required).
@@ -160,7 +160,7 @@ module "kube-hetzner" {
       ],
       taints      = [],
       count       = 1
-      
+
       # In the case of using Longhorn, you can use Hetzner volumes instead of using the node's own storage by specifying a value from 10 to 10000 (in GB)
       # It will create one volume per node in the nodepool, and configure Longhorn to use them.
       # Something worth noting is that Volume storage is slower than node storage, which is achieved by not mentioning longhorn_volume_size or setting it to 0.
@@ -206,7 +206,7 @@ module "kube-hetzner" {
   # }
 
   # You can enable encrypted wireguard for the CNI by setting this to "true". Default is "false".
-  # FYI, Hetzner says "Traffic between cloud servers inside a Network is private and isolated, but not automatically encrypted." 
+  # FYI, Hetzner says "Traffic between cloud servers inside a Network is private and isolated, but not automatically encrypted."
   # Source: https://docs.hetzner.com/cloud/networks/faq/#is-traffic-inside-hetzner-cloud-networks-encrypted
   # It works with all CNIs that we support.
   # Just note, that if Cilium with cilium_values, the responsability of enabling of disabling Wireguard falls on you.
@@ -218,6 +218,18 @@ module "kube-hetzner" {
 
   # Disable IPv6 for the load balancer, the default is false.
   # load_balancer_disable_ipv6 = true
+
+  # Specifies the algorithm type of the load balancer. (default: round_robin).
+  # load_balancer_algorithm_type = "least_connections"
+
+  # Specifies the interval at which a health check is performed. Minimum is 3s (default: 15s).
+  # load_balancer_health_check_interval = "5s"
+
+  # Specifies the timeout of a single health check. Must not be greater than the health check interval. Minimum is 1s (default: 10s).
+  # load_balancer_health_check_timeout = "3s"
+
+  # Specifies the number of times a health check is retried before a target is marked as unhealthy. (default: 3)
+  # load_balancer_health_check_retries = 3
 
   ### The following values are entirely optional (and can be removed from this if unused)
 
@@ -316,7 +328,7 @@ module "kube-hetzner" {
   # enable_longhorn = true
 
   # By default, longhorn is pulled from https://charts.longhorn.io.
-  # If you need a version of longhorn which assures compatibility with rancher you can set this variable to https://charts.rancher.io. 
+  # If you need a version of longhorn which assures compatibility with rancher you can set this variable to https://charts.rancher.io.
   # longhorn_repository = "https://charts.rancher.io"
 
   # The namespace for longhorn deployment, default is "longhorn-system".
@@ -448,7 +460,7 @@ module "kube-hetzner" {
           password: password
   EOT */
 
-  # Additional environment variables for the host OS on which k3s runs. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . 
+  # Additional environment variables for the host OS on which k3s runs. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy .
   # additional_k3s_environment = {
   #   "CONTAINERD_HTTP_PROXY" : "http://your.proxy:port",
   #   "CONTAINERD_HTTPS_PROXY" : "http://your.proxy:port",
@@ -536,6 +548,8 @@ module "kube-hetzner" {
   # When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability.
   # The default is false.
   # use_control_plane_lb = true
+  # when this use_control_plane_lb is enabled, change the load balancer type to lb21, the default is "lb11"
+  # control_plane_lb_type = lb21
 
   # Let's say you are not using the control plane LB solution above, and still want to have one hostname point to all your control-plane nodes.
   # You could create multiple A records of to let's say cp.cluster.my.org pointing to all of your control-plane nodes ips.
@@ -588,6 +602,8 @@ module "kube-hetzner" {
   # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
   # extra_kustomize_parameters={}
 
+  # See an working example for just a manifest.yaml, a HelmChart and a HelmChartConfig examples/kustomization_user_deploy/README.md
+  
   # It is best practice to turn this off, but for backwards compatibility it is set to "true" by default.
   # See https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/349
   # When "false". The kubeconfig file can instead be created by executing: "terraform output --raw kubeconfig > cluster_kubeconfig.yaml"
@@ -597,8 +613,8 @@ module "kube-hetzner" {
   # Don't create the kustomize backup. This can be helpful for automation.
   # create_kustomization = false
 
-  # MicroOS snapshot IDs to be used. Per default empty, the most recent image created using createkh will be used. 
-  # We recommend the default, but if you want to use specific IDs you can. 
+  # MicroOS snapshot IDs to be used. Per default empty, the most recent image created using createkh will be used.
+  # We recommend the default, but if you want to use specific IDs you can.
   # You can fetch the ids with the hcloud cli by running the "hcloud image list --selector 'microos-snapshot=yes'" command.
   # microos_x86_snapshot_id = "1234567"
   # microos_arm_snapshot_id = "1234567"

@@ -25,6 +25,21 @@ locals {
   set -a; source /etc/environment; set +a;
   EOT
 
+  install_system_alias = <<-EOT
+  cat > /etc/profile.d/00-alias.sh <<EOF
+  alias k=kubectl
+  EOF
+  EOT
+
+  install_kubectl_bash_completion = <<-EOT
+  cat > /etc/bash_completion.d/kubectl <<EOF
+  if command -v kubectl >/dev/null; then
+    source <(kubectl completion bash)
+    complete -o default -F __start_kubectl k
+  fi
+  EOF
+  EOT
+
   common_pre_install_k3s_commands = concat(
     [
       "set -ex",
@@ -38,11 +53,13 @@ locals {
       # if the server has already been initialized just stop here
       "[ -e /etc/rancher/k3s/k3s.yaml ] && exit 0",
       local.install_additional_k3s_environment,
+      local.install_system_alias,
+      local.install_kubectl_bash_completion,
     ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
-    ["while ! ping -c 1 1.1.1.1 >/dev/null 2>&1; do echo 'Ready for k3s installation, waiting for a successful connection to the internet...'; sleep 5; done; echo 'Connected'"]
+    ["timeout 180s /bin/sh -c 'while ! ping -c 1 ${var.address_for_connectivity_test} >/dev/null 2>&1; do echo \"Ready for k3s installation, waiting for a successful connection to the internet...\"; sleep 5; done; echo Connected'"]
   )
 
 
@@ -370,6 +387,10 @@ controller:
       "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
       "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
       "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
+      "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer_algorithm_type}"
+      "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer_health_check_interval}"
+      "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer_health_check_timeout}"
+      "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer_health_check_retries}"
 %{if var.lb_hostname != ""~}
       "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
@@ -392,6 +413,10 @@ service:
     "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
     "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
     "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
+    "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer_algorithm_type}"
+    "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer_health_check_interval}"
+    "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer_health_check_timeout}"
+    "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer_health_check_retries}"
 %{if var.lb_hostname != ""~}
     "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}

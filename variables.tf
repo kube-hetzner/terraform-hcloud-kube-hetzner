@@ -2,7 +2,6 @@ variable "hcloud_token" {
   description = "Hetzner Cloud API Token."
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "microos_x86_snapshot_id" {
@@ -97,6 +96,30 @@ variable "load_balancer_disable_ipv6" {
   description = "Disable IPv6 for the load balancer."
   type        = bool
   default     = false
+}
+
+variable "load_balancer_algorithm_type" {
+  description = "Specifies the algorithm type of the load balancer."
+  type        = string
+  default     = "round_robin"
+}
+
+variable "load_balancer_health_check_interval" {
+  description = "Specifies the interval at which a health check is performed. Minimum is 3s."
+  type        = string
+  default     = "15s"
+}
+
+variable "load_balancer_health_check_timeout" {
+  description = "Specifies the timeout of a single health check. Must not be greater than the health check interval. Minimum is 1s."
+  type        = string
+  default     = "10s"
+}
+
+variable "load_balancer_health_check_retries" {
+  description = "Specifies the number of times a health check is retried before a target is marked as unhealthy."
+  type        = number
+  default     = 3
 }
 
 variable "control_plane_nodepools" {
@@ -588,6 +611,12 @@ variable "use_control_plane_lb" {
   description = "When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability."
 }
 
+variable "control_plane_lb_type" {
+  type        = string
+  default     = "lb11"
+  description = "The type of load balancer to use for the control plane load balancer. Defaults to lb11, which is the cheapest one."
+}
+
 variable "dns_servers" {
   type        = list(string)
   default     = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]
@@ -597,6 +626,12 @@ variable "dns_servers" {
     condition     = length(var.dns_servers) <= 3
     error_message = "The list must have no more than 3 items."
   }
+}
+
+variable "address_for_connectivity_test" {
+  type        = string
+  default     = "1.1.1.1"
+  description = "Before installing k3s, we actually verify that there is internet connectivity. By default we ping 1.1.1.1, but if you use a proxy, you may simply want to ping that proxy instead (assuming that the proxy has its own checks for internet connectivity)."
 }
 
 variable "additional_k3s_environment" {
@@ -642,7 +677,7 @@ variable "enable_wireguard" {
 }
 
 variable "control_planes_custom_config" {
-  type        = map(any)
+  type        = any
   default     = {}
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }
