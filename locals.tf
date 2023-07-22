@@ -410,6 +410,10 @@ controller:
       "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
       "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
       "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
+      "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer_algorithm_type}"
+      "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer_health_check_interval}"
+      "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer_health_check_timeout}"
+      "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer_health_check_retries}"
 %{if var.lb_hostname != ""~}
       "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
@@ -432,6 +436,10 @@ service:
     "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
     "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
     "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
+    "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer_algorithm_type}"
+    "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer_health_check_interval}"
+    "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer_health_check_timeout}"
+    "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer_health_check_retries}"
 %{if var.lb_hostname != ""~}
     "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
