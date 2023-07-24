@@ -482,21 +482,17 @@ module "kube-hetzner" {
   # If you want to allow all outbound traffic you can set this to "false". Default is "true".
   # restrict_outbound_traffic = false
 
-  # Allow SSH access from the specified networks. By default the public IPv4 address is automatically determined and applied to the firewall.
-  # If you want to update the firewall with your current public IP, you can execute `terraform apply -target=module.kube-hetzner.hcloud_firewall.k3s`.
-  # Allowed values: null (disable ssh rule entirely), [] (automatic IPv4 detection) or a list of allowed networks with CIDR notation (detection disabled) 
-  # firewall_ssh_source = ["0.0.0.0/0", "::/0"]
+  # Allow access to the Kube API from the specified networks. Default: ["0.0.0.0/0", "::/0"]
+  # Allowed values: null (disable Kube API rule entirely) or a list of allowed networks with CIDR notation
+  firewall_kube_api_source = null
+
+  # Allow SSH access from the specified networks. Default: ["0.0.0.0/0", "::/0"]
+  # Allowed values: null (disable SSH rule entirely) or a list of allowed networks with CIDR notation
+  # firewall_ssh_source = ["1.2.3.4/32", "1234::1/128"]
 
   # Adding extra firewall rules, like opening a port
   # More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall
   # extra_firewall_rules = [
-  #   {
-  #     description = "Allow Incoming Requests to Kube API Server"
-  #     direction   = "in"
-  #     protocol    = "tcp"
-  #     port        = "6443"
-  #     source_ips  = ["1.2.3.4/32"]
-  #   },
   #   {
   #     description = "For Postgres"
   #     direction       = "in"

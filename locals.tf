@@ -144,8 +144,17 @@ locals {
         direction   = "in"
         protocol    = "tcp"
         port        = var.ssh_port
-        source_ips  = coalescelist(var.firewall_ssh_source, ["${chomp(data.http.client_public_ipv4.response_body)}/32"])
+        source_ips  = var.firewall_ssh_source
       },
+    ],
+    var.firewall_kube_api_source == null ? [] : [
+      {
+        description = "Allow Incoming Requests to Kube API Server"
+        direction   = "in"
+        protocol    = "tcp"
+        port        = "6443"
+        source_ips  = var.firewall_kube_api_source
+      }
     ],
     !var.restrict_outbound_traffic ? [] : [
       # Allow basic out traffic

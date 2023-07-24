@@ -379,9 +379,15 @@ variable "extra_firewall_rules" {
   description = "Additional firewall rules to apply to the cluster."
 }
 
+variable "firewall_kube_api_source" {
+  type        = list(string)
+  default     = ["0.0.0.0/0", "::/0"]
+  description = "Source networks that have Kube API access to the servers."
+}
+
 variable "firewall_ssh_source" {
   type        = list(string)
-  default     = []
+  default     = ["0.0.0.0/0", "::/0"]
   description = "Source networks that have SSH access to the servers."
 }
 

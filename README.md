@@ -145,31 +145,21 @@ When your brand-new cluster is up and running, the sky is your limit! 🎉
 
 You can view all kinds of details about the cluster by running `terraform output kubeconfig` or `terraform output -json kubeconfig | jq`.
 
+To manage your cluster with `kubectl`, you can either use SSH to connect to a control plane node or connect to the Kube API directly.
+
 ### Connect via SSH
 
-Connect to one of the control plane nodes via SSH with `ssh root@<cp-ipv4-address>`. Now you can use kubectl to manage your workloads right away. By default, the firewall only allows SSH connections from your public IPv4 address unless `firewall_ssh_source` is set to a different value in your kube.tf.
-
-To update your current public IPv4 address to the firewall, you can run:
-```bash
-terraform apply -target=module.kube-hetzner.hcloud_firewall.k3s
-```
+You can connect to one of the control plane nodes via SSH with `ssh root@<cp-ip-address>`. Now you are able to use `kubectl` to manage your workloads right away. By default, the firewall allows SSH connections from everywhere. You can change that by configuring the `firewall_ssh_source` in your kube.tf file.
 
 ### Connect via Kube API
 
-Add an additional firewall rule to your kube.tf to access the Kube API. Be careful when exposing the Kube API. It is recommended not to expose it to the public world. If possible, only allow connections from trusted source IPs. Example configuration:
+Make sure you can connect to the Kube API from a trusted network by configuring `firewall_kube_api_source` in your kube.tf file like that:
 ```hcl
-extra_firewall_rules = [
-  {
-    description = "Allow Incoming Requests to Kube API Server"
-    direction   = "in"
-    protocol    = "tcp"
-    port        = "6443"
-    source_ips  = ["1.2.3.4/32"]
-  }
-]
+firewall_kube_api_source = ["1.2.3.4/32"]
 ```
+**Info:** Opening the Kube API to the public (`["0.0.0.0/0", "::/0"]`) is not recommended!
 
-You can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
+If you have access to the Kube API, you can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
 ```sh
 export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
