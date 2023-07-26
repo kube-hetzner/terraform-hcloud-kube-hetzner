@@ -143,7 +143,23 @@ _Once you start with Terraform, it's best not to change the state of the project
 
 When your brand-new cluster is up and running, the sky is your limit! 🎉
 
-You can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
+You can view all kinds of details about the cluster by running `terraform output kubeconfig` or `terraform output -json kubeconfig | jq`.
+
+To manage your cluster with `kubectl`, you can either use SSH to connect to a control plane node or connect to the Kube API directly.
+
+### Connect via SSH
+
+You can connect to one of the control plane nodes via SSH with `ssh root@<cp-ip-address>`. Now you are able to use `kubectl` to manage your workloads right away. By default, the firewall allows SSH connections from everywhere. You can change that by configuring the `firewall_ssh_source` in your kube.tf file.
+
+### Connect via Kube API
+
+Make sure you can connect to the Kube API from a trusted network by configuring `firewall_kube_api_source` in your kube.tf file like that:
+```hcl
+firewall_kube_api_source = ["1.2.3.4/32"]
+```
+**Info:** Opening the Kube API to the public (`["0.0.0.0/0", "::/0"]`) is not recommended!
+
+If you have access to the Kube API, you can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
 ```sh
 export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
@@ -153,7 +169,6 @@ If chose to turn `create_kubeconfig` to false in your kube.tf (good practice), y
 
 You can also use it in an automated flow, in which case `create_kubeconfig` should be set to false, and you can use the `kubeconfig` output variable to get the kubeconfig file in a structured data format.
 
-_You can view all kinds of details about the cluster by running `terraform output kubeconfig` or `terraform output -json kubeconfig | jq`._
 
 ## CNI
 

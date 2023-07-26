@@ -136,137 +136,106 @@ locals {
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
-  # The following IPs are important to be whitelisted because they communicate with Hetzner services and enable the CCM and CSI to work properly.
-  # Source https://github.com/hetznercloud/csi-driver/issues/204#issuecomment-848625566
-  hetzner_metadata_service_ipv4 = "169.254.169.254/32"
-  hetzner_cloud_api_ipv4        = "213.239.246.21/32"
+  base_firewall_rules = concat(
+    var.firewall_ssh_source == null ? [] : [
+      # Allow all traffic to the ssh port
+      {
+        description = "Allow Incoming SSH Traffic"
+        direction   = "in"
+        protocol    = "tcp"
+        port        = var.ssh_port
+        source_ips  = var.firewall_ssh_source
+      },
+    ],
+    var.firewall_kube_api_source == null ? [] : [
+      {
+        description = "Allow Incoming Requests to Kube API Server"
+        direction   = "in"
+        protocol    = "tcp"
+        port        = "6443"
+        source_ips  = var.firewall_kube_api_source
+      }
+    ],
+    !var.restrict_outbound_traffic ? [] : [
+      # Allow basic out traffic
+      # ICMP to ping outside services
+      {
+        description     = "Allow Outbound ICMP Ping Requests"
+        direction       = "out"
+        protocol        = "icmp"
+        port            = ""
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
 
-  whitelisted_ips = [
-    var.network_ipv4_cidr,
-    local.hetzner_metadata_service_ipv4,
-    local.hetzner_cloud_api_ipv4,
-    "127.0.0.1/32",
-  ]
+      # DNS
+      {
+        description     = "Allow Outbound TCP DNS Requests"
+        direction       = "out"
+        protocol        = "tcp"
+        port            = "53"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
+      {
+        description     = "Allow Outbound UDP DNS Requests"
+        direction       = "out"
+        protocol        = "udp"
+        port            = "53"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
 
-  base_firewall_rules = concat([
-    # Allowing internal cluster traffic and Hetzner metadata service and cloud API IPs
-    {
-      description = "Allow Internal Cluster TCP Traffic"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "any"
-      source_ips  = local.whitelisted_ips
-    },
-    {
-      description = "Allow Internal Cluster UDP Traffic"
-      direction   = "in"
-      protocol    = "udp"
-      port        = "any"
-      source_ips  = local.whitelisted_ips
-    },
+      # HTTP(s)
+      {
+        description     = "Allow Outbound HTTP Requests"
+        direction       = "out"
+        protocol        = "tcp"
+        port            = "80"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
+      {
+        description     = "Allow Outbound HTTPS Requests"
+        direction       = "out"
+        protocol        = "tcp"
+        port            = "443"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
 
-    # Allow all traffic to the kube api server
-    {
-      description = "Allow Incoming Requests to Kube API Server"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "6443"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    },
-
-    # Allow all traffic to the ssh port
-    {
-      description = "Allow Incoming SSH Traffic"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = var.ssh_port
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    },
-    ], !var.restrict_outbound_traffic ? [] : [
-    # Allow basic out traffic
-    # ICMP to ping outside services
-    {
-      description     = "Allow Outbound ICMP Ping Requests"
-      direction       = "out"
-      protocol        = "icmp"
-      port            = ""
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
-
-    # DNS
-    {
-      description     = "Allow Outbound TCP DNS Requests"
-      direction       = "out"
-      protocol        = "tcp"
-      port            = "53"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      description     = "Allow Outbound UDP DNS Requests"
-      direction       = "out"
-      protocol        = "udp"
-      port            = "53"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
-
-    # HTTP(s)
-    {
-      description     = "Allow Outbound HTTP Requests"
-      direction       = "out"
-      protocol        = "tcp"
-      port            = "80"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      description     = "Allow Outbound HTTPS Requests"
-      direction       = "out"
-      protocol        = "tcp"
-      port            = "443"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    },
-
-    #NTP
-    {
-      description     = "Allow Outbound UDP NTP Requests"
-      direction       = "out"
-      protocol        = "udp"
-      port            = "123"
-      destination_ips = ["0.0.0.0/0", "::/0"]
-    }
-    ], !local.using_klipper_lb ? [] : [
-    # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
-    # not an external load-balancer.
-    {
-      description = "Allow Incoming HTTP Connections"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "80"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    },
-    {
-      description = "Allow Incoming HTTPS Connections"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "443"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    }
-    ], var.block_icmp_ping_in ? [] : [
-    {
-      description = "Allow Incoming ICMP Ping Requests"
-      direction   = "in"
-      protocol    = "icmp"
-      port        = ""
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    }
-    ], var.cni_plugin != "cilium" ? [] : [
-    {
-      description = "Allow Incoming Requests to Hubble Server & Hubble Relay (Cilium)"
-      direction   = "in"
-      protocol    = "tcp"
-      port        = "4244-4245"
-      source_ips  = ["0.0.0.0/0", "::/0"]
-    }
-  ])
+      #NTP
+      {
+        description     = "Allow Outbound UDP NTP Requests"
+        direction       = "out"
+        protocol        = "udp"
+        port            = "123"
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      }
+    ],
+    !local.using_klipper_lb ? [] : [
+      # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
+      # not an external load-balancer.
+      {
+        description = "Allow Incoming HTTP Connections"
+        direction   = "in"
+        protocol    = "tcp"
+        port        = "80"
+        source_ips  = ["0.0.0.0/0", "::/0"]
+      },
+      {
+        description = "Allow Incoming HTTPS Connections"
+        direction   = "in"
+        protocol    = "tcp"
+        port        = "443"
+        source_ips  = ["0.0.0.0/0", "::/0"]
+      }
+    ],
+    var.block_icmp_ping_in ? [] : [
+      {
+        description = "Allow Incoming ICMP Ping Requests"
+        direction   = "in"
+        protocol    = "icmp"
+        port        = ""
+        source_ips  = ["0.0.0.0/0", "::/0"]
+      }
+    ]
+  )
 
   # create a new firewall list based on base_firewall_rules but with direction-protocol-port as key
   # this is needed to avoid duplicate rules
