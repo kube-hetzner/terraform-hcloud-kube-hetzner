@@ -143,7 +143,17 @@ _Once you start with Terraform, it's best not to change the state of the project
 
 When your brand-new cluster is up and running, the sky is your limit! 🎉
 
-You can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
+You can view all kinds of details about the cluster by running `terraform output kubeconfig` or `terraform output -json kubeconfig | jq`.
+
+To manage your cluster with `kubectl`, you can either use SSH to connect to a control plane node or connect to the Kube API directly.
+
+### Connect via SSH
+
+You can connect to one of the control plane nodes via SSH with `ssh root@<control-plane-ip> -i /path/to/private_key -o StrictHostKeyChecking=no`. Now you are able to use `kubectl` to manage your workloads right away. By default, the firewall allows SSH connections from everywhere. Best to change that to your own IP by configuring the `firewall_ssh_source` in your kube.tf file (don't worry, you can always change it for deploy if your IP changes).
+
+### Connect via Kube API
+
+If you have access to the Kube API (depending of the value of your `firewall_kube_api_source` variable, best to have the value of your own IP and not open to the world), you can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
 ```sh
 export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
@@ -151,9 +161,7 @@ export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
 
 If chose to turn `create_kubeconfig` to false in your kube.tf (good practice), you can still create this file by running `terraform output --raw kubeconfig > clustername_kubeconfig.yaml` and then use it as described above.
 
-You can also use it in an automated flow, in which case `create_kubeconfig` should be set to false, and you can use the `kubeconfig` output variable to get the kubeconfig file in a structured data format.
-
-_You can view all kinds of details about the cluster by running `terraform output kubeconfig` or `terraform output -json kubeconfig | jq`._
+_You can also use it in an automated flow, in which case `create_kubeconfig` should be set to false, and you can use the `kubeconfig` output variable to get the kubeconfig file in a structured data format._
 
 ## CNI
 
@@ -659,7 +667,7 @@ First and foremost, it depends, but it's always good to have a quick look into H
 Then for the rest, you'll often need to log in to your cluster via ssh, to do that, use:
 
 ```sh
-ssh root@xxx.xxx.xxx.xxx -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no
+ssh root@<control-plane-ip> -i /path/to/private_key -o StrictHostKeyChecking=no
 ```
 
 Then, for control-plane nodes, use `journalctl -u k3s` to see the k3s logs, and for agents, use `journalctl -u k3s-agent` instead.

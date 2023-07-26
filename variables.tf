@@ -80,6 +80,12 @@ variable "cluster_ipv4_cidr" {
   default     = "10.42.0.0/16"
 }
 
+variable "service_ipv4_cidr" {
+  description = "Internal Service CIDR, used for the controller and currently for calico."
+  type        = string
+  default     = "10.43.0.0/16"
+}
+
 variable "load_balancer_location" {
   description = "Default load balancer location."
   type        = string
@@ -377,6 +383,18 @@ variable "extra_firewall_rules" {
   type        = list(any)
   default     = []
   description = "Additional firewall rules to apply to the cluster."
+}
+
+variable "firewall_kube_api_source" {
+  type        = list(string)
+  default     = ["0.0.0.0/0", "::/0"]
+  description = "Source networks that have Kube API access to the servers."
+}
+
+variable "firewall_ssh_source" {
+  type        = list(string)
+  default     = ["0.0.0.0/0", "::/0"]
+  description = "Source networks that have SSH access to the servers."
 }
 
 variable "use_cluster_name_in_node_name" {
