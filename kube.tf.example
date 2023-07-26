@@ -60,9 +60,18 @@ module "kube-hetzner" {
   # If you must change the network CIDR you can do so below, but it is highly advised against.
   # network_ipv4_cidr = "10.0.0.0/8"
 
+  # Using the default configuration you can only create a maximum of 42 agent-nodepools.
+  # This is due to the creation of a subnet for each nodepool with cidrs being `10.[nodepool-index].0.0/16` which collides with k3s' cluster and service IP ranges (defaults below).
+  # Furthermore the maximum number of nodepools (controlplane and agent) is 50, due to a hard limit of 50 subnets per network (https://docs.hetzner.com/cloud/networks/faq/#:~:text=You%20can%20create%20up%20to%2050%20subnets.)
+  # So to be able to create a maximum of 50 nodepools in total, the values below have to be changed to something outside that range, e.g. `10.200.0.0/16` and `10.201.0.0/16` for cluster and service respectively.
+  
   # If you must change the cluster CIDR you can do so below, but it is highly advised against.
   # Cluster CIDR must be a part of the network CIDR!
   # cluster_ipv4_cidr = "10.42.0.0/16"
+
+  # If you must change the service CIDR you can do so below, but it is highly advised against.
+  # Cluster CIDR must be a part of the network CIDR!
+  # cluster_ipv4_cidr = "10.43.0.0/16"
 
   # For the control planes, at least three nodes are the minimum for HA. Otherwise, you need to turn off the automatic upgrades (see README).
   # **It must always be an ODD number, never even!** Search the internet for "splitbrain problem with etcd" or see https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
@@ -76,7 +85,8 @@ module "kube-hetzner" {
   # You can also rename it (if the count is 0), but do not remove a nodepool from the list.
 
   # The only nodepools that are safe to remove from the list are at the end. That is due to how subnets and IPs get allocated (FILO).
-  # You can, however, freely add other nodepools at the end of each list if you want. The maximum number of nodepools you can create combined for both lists is 255.
+  # You can, however, freely add other nodepools at the end of each list if you want. The theoratical maximum number of nodepools you can create combined for both lists is 255.
+  # But due to a limitation of 50 subnets per network by hetzner, the realistic limit is 50 (see ipv4_cidr above).)
   # Also, before decreasing the count of any nodepools to 0, it's essential to drain and cordon the nodes in question. Otherwise, it will leave your cluster in a bad state.
 
   # Before initializing the cluster, you can change all parameters and add or remove any nodepools. You need at least one nodepool of each kind, control plane, and agent.

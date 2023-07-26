@@ -80,6 +80,12 @@ variable "cluster_ipv4_cidr" {
   default     = "10.42.0.0/16"
 }
 
+variable "service_ipv4_cidr" {
+  description = "Internal Service CIDR, used for the controller and currently for calico."
+  type        = string
+  default     = "10.43.0.0/16"
+}
+
 variable "load_balancer_location" {
   description = "Default load balancer location."
   type        = string
