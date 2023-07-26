@@ -24,6 +24,8 @@ resource "null_resource" "first_control_plane" {
           advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
           node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
+          cluster-cidr                = var.cluster_ipv4_cidr
+          service-cidr                = var.service_ipv4_cidr
           selinux                     = true
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),

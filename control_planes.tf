@@ -112,6 +112,8 @@ resource "null_resource" "control_planes" {
           advertise-address           = module.control_planes[each.key].private_ipv4_address
           node-label                  = each.value.labels
           node-taint                  = each.value.taints
+          cluster-cidr                = var.cluster_ipv4_cidr
+          service-cidr                = var.service_ipv4_cidr
           selinux                     = true
           write-kubeconfig-mode       = "0644" # needed for import into rancher
         },
