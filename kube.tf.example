@@ -565,11 +565,33 @@ module "kube-hetzner" {
   # In which case, you need to define that hostname in the k3s TLS-SANs config to allow connection through it. It can be hostnames or IP addresses.
   # additional_tls_sans = ["cp.cluster.my.org"]
 
-  # Oftentimes, you need to communicate to the cluster from inside the cluster itself, in which case it is important to set this value, as it will configure the hostname
-  # at the load balancer level, and will save you from many slows downs when initiating communications from inside. Later on, you can point your DNS to the IP given
-  # to the LB. And if you have other services pointing to it, you are also free to create CNAMES to point to it, or whatever you see fit.
-  # If set, it will apply to either ingress controllers, Traefik or Ingress-Nginx.
-  # lb_hostname = ""
+  # lb_hostname Configuration:
+  # 
+  # Purpose:
+  # The lb_hostname setting optimizes communication between services within the Kubernetes cluster 
+  # when they use domain names instead of direct service names. By associating a domain name directly 
+  # with the Hetzner Load Balancer, this setting can help reduce potential communication delays.
+  # 
+  # Scenario:
+  # If Service B communicates with Service A using a domain (e.g., `a.mycluster.domain.com`) that points 
+  # to an external Load Balancer, there can be a slowdown in communication.
+  # 
+  # Guidance:
+  # - If your internal services use domain names pointing to an external LB, set lb_hostname to a domain 
+  #   like `mycluster.domain.com`.
+  # - Create an A record pointing `mycluster.domain.com` to your LB's IP.
+  # - Create a CNAME record for `a.mycluster.domain.com` (or xyz.com) pointing to `mycluster.domain.com`.
+  # 
+  # Technical Note:
+  # This setting sets the `load-balancer.hetzner.cloud/hostname` in the Hetzner LB definition, suitable for 
+  # both Nginx and Traefik ingress controllers.
+  # 
+  # Recommendation:
+  # This setting is optional. If services communicate using direct service names, you can leave this unset.
+  # For inter-namespace communication, use `.service_name` as per Kubernetes norms.
+  # 
+  # Example:
+  # lb_hostname = "mycluster.domain.com"
 
   # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
   # ⚠️ Rancher currently only supports Kubernetes v1.25 and earlier, you will need to set initial_k3s_channel to a supported version: https://github.com/rancher/rancher/issues/41113

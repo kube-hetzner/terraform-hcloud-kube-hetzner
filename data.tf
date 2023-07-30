@@ -30,7 +30,7 @@ data "github_release" "calico" {
 
 data "hcloud_load_balancer" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
-  name  = "${var.cluster_name}-control-plane"
+  name  = var.cluster_name
 
   depends_on = [null_resource.kustomization]
 }
