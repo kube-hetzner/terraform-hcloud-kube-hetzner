@@ -124,36 +124,7 @@ resource "null_resource" "kustomization" {
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
   provisioner "file" {
-    content = yamlencode({
-      apiVersion = "kustomize.config.k8s.io/v1beta1"
-      kind       = "Kustomization"
-
-      resources = concat(
-        [
-          "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
-          "https://github.com/weaveworks/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
-          "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
-        ],
-        var.disable_hetzner_csi ? [] : [
-          "hcloud-csi.yml"
-        ],
-        lookup(local.ingress_controller_install_resources, local.ingress_controller, []),
-        lookup(local.cni_install_resources, var.cni_plugin, []),
-        var.enable_longhorn ? ["longhorn.yaml"] : [],
-        var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
-        var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
-        var.enable_rancher ? ["rancher.yaml"] : [],
-        var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
-      ),
-      patchesStrategicMerge = concat(
-        [
-          file("${path.module}/kustomize/system-upgrade-controller.yaml"),
-          "kured.yaml",
-          "ccm.yaml",
-        ],
-        lookup(local.cni_install_resource_patches, var.cni_plugin, [])
-      )
-    })
+    content     = local.kustomization_backup_yaml
     destination = "/var/post_install/kustomization.yaml"
   }
 

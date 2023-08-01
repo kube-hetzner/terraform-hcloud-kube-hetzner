@@ -143,7 +143,7 @@ resource "null_resource" "control_planes" {
     inline = [
       "systemctl start k3s 2> /dev/null",
       <<-EOT
-      timeout 120 bash <<EOF
+      timeout 360 bash <<EOF
         until systemctl status k3s > /dev/null; do
           systemctl start k3s 2> /dev/null
           echo "Waiting for the k3s server to start..."
