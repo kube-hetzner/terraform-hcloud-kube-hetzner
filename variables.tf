@@ -104,6 +104,12 @@ variable "load_balancer_disable_ipv6" {
   default     = false
 }
 
+variable "load_balancer_disable_public_network" {
+  description = "Disables the public network of the load balancer."
+  type        = bool
+  default     = false
+}
+
 variable "load_balancer_algorithm_type" {
   description = "Specifies the algorithm type of the load balancer."
   type        = string
