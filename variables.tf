@@ -629,6 +629,12 @@ variable "control_plane_lb_type" {
   description = "The type of load balancer to use for the control plane load balancer. Defaults to lb11, which is the cheapest one."
 }
 
+variable "control_plane_lb_enable_public_interface" {
+  type        = bool
+  default     = true
+  description = "Enable or disable public interface for the control plane load balancer . Defaults to true."
+}
+
 variable "dns_servers" {
   type        = list(string)
   default     = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]
