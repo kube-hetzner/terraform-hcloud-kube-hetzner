@@ -229,7 +229,7 @@ module "kube-hetzner" {
   # load_balancer_disable_ipv6 = true
 
   # Disables the public network of the load balancer. (default: false).
-  # load_balancer_disable_public_network = "true"
+  # load_balancer_disable_public_network = true
 
   # Specifies the algorithm type of the load balancer. (default: round_robin).
   # load_balancer_algorithm_type = "least_connections"
