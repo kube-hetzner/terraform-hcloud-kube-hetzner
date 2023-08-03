@@ -199,7 +199,7 @@ Otherwise, it is essential to turn off automatic OS upgrades (k3s can continue t
 
 ### The Default Setting
 
-By default, MicroOS gets upgraded automatically on each node and reboot safely via [Kured](https://github.com/weaveworks/kured) installed in the cluster.
+By default, MicroOS gets upgraded automatically on each node and reboot safely via [Kured](https://github.com/kubereboot/kured) installed in the cluster.
 
 As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default, it will be set to the `initial_k3s_channel`, but you can also set it to `stable`, `latest`, or one more specific like `v1.23` if needed or specify a target version to upgrade to via the upgrade plan (this also allows for downgrades).
 

@@ -608,7 +608,7 @@ variable "rancher_values" {
 
 variable "kured_version" {
   type        = string
-  default     = null
+  default     = "1.13.1"
   description = "Version of Kured."
 }
 

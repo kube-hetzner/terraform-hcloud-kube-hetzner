@@ -16,7 +16,7 @@ data "github_release" "hetzner_csi" {
 data "github_release" "kured" {
   count       = var.kured_version == null ? 1 : 0
   repository  = "kured"
-  owner       = "weaveworks"
+  owner       = "kubereboot"
   retrieve_by = "latest"
 }
 
