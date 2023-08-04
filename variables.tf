@@ -172,7 +172,7 @@ variable "cluster_autoscaler_image" {
 
 variable "cluster_autoscaler_version" {
   type        = string
-  default     = "v1.26.2"
+  default     = "v1.27.3"
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
 
@@ -364,7 +364,7 @@ variable "enable_metrics_server" {
 
 variable "initial_k3s_channel" {
   type        = string
-  default     = "v1.26"
+  default     = "v1.27"
   description = "Allows you to specify an initial k3s channel."
 
   validation {
@@ -608,7 +608,7 @@ variable "rancher_values" {
 
 variable "kured_version" {
   type        = string
-  default     = "1.13.1"
+  default     = null
   description = "Version of Kured."
 }
 
