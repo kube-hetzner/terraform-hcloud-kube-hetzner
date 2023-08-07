@@ -576,7 +576,7 @@ fi
 EOF
 
   cloudinit_write_files_common = <<EOT
-# Script to rename the private interface to eth1
+# Script to rename the private interface to eth1 and unify NetworkManager connection naming
 - path: /etc/cloud/rename_interface.sh
   content: |
     #!/bin/bash
@@ -594,6 +594,18 @@ EOF
     ip link set $INTERFACE down
     ip link set $INTERFACE name eth1
     ip link set eth1 up
+
+    eth0_connection=$(nmcli -g GENERAL.CONNECTION device show eth0)
+    nmcli connection modify "$eth0_connection" \
+      con-name eth0 \
+      connection.interface-name eth0
+
+    eth1_connection=$(nmcli -g GENERAL.CONNECTION device show eth1)
+    nmcli connection modify "$eth1_connection" \
+      con-name eth1 \
+      connection.interface-name eth1
+
+    systemctl restart NetworkManager
   permissions: "0744"
 
 # Disable ssh password authentication
