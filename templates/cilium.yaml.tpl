@@ -7,6 +7,7 @@ metadata:
 spec:
   chart: cilium
   repo: https://helm.cilium.io/
+  version: "${version}"
   targetNamespace: kube-system
   bootstrap: true
   valuesContent: |-

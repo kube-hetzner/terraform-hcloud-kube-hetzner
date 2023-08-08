@@ -454,10 +454,39 @@ variable "cni_plugin" {
   }
 }
 
+variable "cilium_egress_gateway_enabled" {
+  type        = bool
+  default     = false
+  description = "Enables egress gateway to redirect and SNAT the traffic that leaves the cluster."
+}
+
+variable "cilium_ipv4_native_routing_cidr" {
+  type        = string
+  default     = null
+  description = "Used when Cilium is configured in native routing mode. The CNI assumes that the underlying network stack will forward packets to this destination without the need to apply SNAT. Default: value of \"cluster_ipv4_cidr\""
+}
+
+variable "cilium_routing_mode" {
+  type        = string
+  default     = "tunnel"
+  description = "Set native-routing mode (\"native\") or tunneling mode (\"tunnel\")."
+
+  validation {
+    condition     = contains(["tunnel", "native"], var.cilium_routing_mode)
+    error_message = "The cilium_routing_mode must be one of \"tunnel\" or \"native\"."
+  }
+}
+
 variable "cilium_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart."
+}
+
+variable "cilium_version" {
+  type        = string
+  default     = "v1.14.0"
+  description = "Version of Cilium."
 }
 
 variable "calico_values" {

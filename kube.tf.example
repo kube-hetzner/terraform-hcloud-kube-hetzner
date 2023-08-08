@@ -532,6 +532,18 @@ module "kube-hetzner" {
   # Also, see the cilium_values at towards the end of this file, in the advanced section.
   # cni_plugin = "cilium"
 
+  # You can choose the version of Cilium that you want. By default we keep the version up to date and configure Cilium with compatible settings according to the version.
+  # cilium_version = "v1.14.0"
+  
+  # Set native-routing mode ("native") or tunneling mode ("tunnel"). Default: tunnel
+  # cilium_routing_mode = "native"
+
+  # Used when Cilium is configured in native routing mode. The CNI assumes that the underlying network stack will forward packets to this destination without the need to apply SNAT. Default: value of "cluster_ipv4_cidr"
+  # cilium_ipv4_native_routing_cidr = "10.0.0.0/8"
+
+  # Enables egress gateway to redirect and SNAT the traffic that leaves the cluster. Default: false
+  # cilium_egress_gateway_enabled = true
+
   # You can choose the version of Calico that you want. By default, the latest is used.
   # More info on available versions can be found at https://github.com/projectcalico/calico/releases
   # Please note that if you are getting 403s from Github, it's also useful to set the version manually. However there is rarely a need for that!
@@ -662,20 +674,26 @@ module "kube-hetzner" {
   # We advise you to use the default values, and only change them if you know what you are doing!
 
   # Cilium, all Cilium helm values can be found at https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml
+  # Be careful when maintaining your own cilium_values, as the choice of available settings depends on the Cilium version used. See also the cilium_version setting to fix a specific version.
   # The following is an example, please note that the current indentation inside the EOT is important.
   /*   cilium_values = <<EOT
 ipam:
   mode: kubernetes
-devices: "eth1"
 k8s:
   requireIPv4PodCIDR: true
-kubeProxyReplacement: strict
-l7Proxy: false
+kubeProxyReplacement: true
+routingMode: native
+ipv4NativeRoutingCIDR: "10.0.0.0/8"
+endpointRoutes:
+  enabled: true
+loadBalancer:
+  acceleration: native
+bpf:
+  masquerade: true
 encryption:
   enabled: true
   type: wireguard
-extraConfig:
-  mtu: "1450"
+MTU: 1450
   EOT */
 
   # Cert manager, all cert-manager helm values can be found at https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
