@@ -411,6 +411,8 @@ spec:
 
   destinationCIDRs:
   - "0.0.0.0/0"
+  excludedCIDRs:
+  - "10.0.0.0/8"
 
   egressGateway:
     nodeSelector:
