@@ -108,6 +108,7 @@ resource "null_resource" "kustomization" {
       coalesce(var.hetzner_csi_version, "N/A"),
       coalesce(var.kured_version, "N/A"),
       coalesce(var.calico_version, "N/A"),
+      coalesce(var.cilium_version, "N/A"),
     ])
     options = join("\n", [
       for option, value in var.kured_options : "${option}=${value}"
@@ -176,7 +177,8 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        values = indent(4, trimspace(local.cilium_values))
+        values  = indent(4, trimspace(local.cilium_values))
+        version = var.cilium_version
     })
     destination = "/var/post_install/cilium.yaml"
   }

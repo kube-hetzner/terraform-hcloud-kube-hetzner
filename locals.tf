@@ -12,6 +12,8 @@ locals {
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
   calico_version = length(data.github_release.calico) == 0 ? var.calico_version : data.github_release.calico[0].release_tag
 
+  cilium_ipv4_native_routing_cidr = coalesce(var.cilium_ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
+
   additional_k3s_environment = join("\n",
     [
       for var_name, var_value in var.additional_k3s_environment :
@@ -349,19 +351,43 @@ locals {
   }
 
   cilium_values = var.cilium_values != "" ? var.cilium_values : <<EOT
+# Enable Kubernetes host-scope IPAM mode (required for K3s + Hetzner CCM)
 ipam:
- operator:
-  clusterPoolIPv4PodCIDRList:
-   - ${var.cluster_ipv4_cidr}
-devices: "eth1"
-%{if var.enable_wireguard~}
-l7Proxy: false
+  mode: kubernetes
+k8s:
+  requireIPv4PodCIDR: true
+
+# Replace kube-proxy with Cilium
+kubeProxyReplacement: true
+
+# Set Tunnel Mode or Native Routing Mode (supported by Hetzner CCM Route Controller)
+routingMode: "${var.cilium_routing_mode}"
+%{if var.cilium_routing_mode == "native"~}
+ipv4NativeRoutingCIDR: "${local.cilium_ipv4_native_routing_cidr}"
+%{endif~}
+
+endpointRoutes:
+  # Enable use of per endpoint routes instead of routing via the cilium_host interface.
+  enabled: true
+
+loadBalancer:
+  # Enable LoadBalancer & NodePort XDP Acceleration (direct routing (routingMode=native) is recommended to achieve optimal performance)
+  acceleration: native
+
+bpf:
+  # Enable eBPF-based Masquerading ("The eBPF-based implementation is the most efficient implementation")
+  masquerade: true
+%{if var.enable_wireguard}
 encryption:
   enabled: true
   type: wireguard
 %{endif~}
-extraConfig:
-  mtu: "1450"
+%{if var.cilium_egress_gateway_enabled}
+egressGateway:
+  enabled: true
+%{endif~}
+
+MTU: 1450
   EOT
 
   # Not to be confused with the other helm values, this is used for the calico.yaml kustomize patch

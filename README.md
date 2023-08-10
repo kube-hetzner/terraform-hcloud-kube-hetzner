@@ -372,17 +372,21 @@ cluster_ipv4_cidr = local.cluster_ipv4_cidr
 
 cilium_values = <<EOT
 ipam:
-  operator:
-    clusterPoolIPv4PodCIDRList:
-      - ${local.cluster_ipv4_cidr}
-kubeProxyReplacement: strict
-l7Proxy: "false"
+  mode: kubernetes
+k8s:
+  requireIPv4PodCIDR: true
+kubeProxyReplacement: true
+routingMode: native
+ipv4NativeRoutingCIDR: "10.0.0.0/8"
+endpointRoutes:
+  enabled: true
+loadBalancer:
+  acceleration: native
 bpf:
-  masquerade: "true"
+  masquerade: true
 egressGateway:
-  enabled: "true"
-extraConfig:
-  mtu: "1450"
+  enabled: true
+MTU: 1450
 EOT
 ```
 
