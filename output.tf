@@ -37,6 +37,14 @@ output "ingress_public_ipv6" {
   value       = (local.has_external_load_balancer || var.load_balancer_disable_ipv6) ? null : data.hcloud_load_balancer.cluster[0].ipv6
 }
 
+output "k3s_endpoint" {
+  value = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+}
+
+output "k3s_token" {
+  value = random_password.k3s_token.result
+}
+
 # Keeping for backward compatibility
 output "kubeconfig_file" {
   value       = local.kubeconfig_external
