@@ -16,6 +16,7 @@ spec:
             - "--allow-untagged-cloud"
             - "--allocate-node-cidrs=true"
             - "--cluster-cidr=${cluster_cidr_ipv4}"
+            - "--webhook-secure-port=0"
 %{if using_klipper_lb~}
             - "--secure-port=10288"
 %{endif~}
