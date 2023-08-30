@@ -7,6 +7,9 @@ locals {
   # Otherwise, a new one will be created by the module.
   hcloud_ssh_key_id = var.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.hcloud_ssh_key_id
 
+  # if given as a variable, we want to use the given token. This is needed to restore the cluster
+  k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
+
   ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
@@ -609,10 +612,10 @@ EOF
     set -euo pipefail
 
     sleep 11
-    
+
     INTERFACE=$(ip link show | awk '/^3:/{print $2}' | sed 's/://g')
     MAC=$(cat /sys/class/net/$INTERFACE/address)
-    
+
     cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
     SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
     EOF
