@@ -669,12 +669,38 @@ K3s allows for automated etcd backups to S3.
 
 For backup you need to the following steps
 1. fill the kube.tf config `etcd_s3_backup`, it will trigger a regular automated backup to S3
-2. [Optional] You can also trigger a manual backup by `ssh` into your first control-plane node, and running `k3s etcd-snapshot`. This will create a manual backup.
-3. `ssh` into your first control-plane node, `cat /etc/rancher/k3s/config.yaml`, and copy the `token` field. This token is the secret use for encrypting sensible parts in the backup. You won't be able to restore the backup without this key. Store at a safe place, it is like an admin password.
+2. [Optional] You can also trigger a manual backup by `ssh` into your first control-plane node, and running `k3s etcd-snapshot`. This will create a manual backup. It is good to do this at least once to see that your configuration is actually working.
+3. Note down the terraform output `k3s_token` - you need it for restoration
 
-For restoration you need to initiate the cluster creation with the `token` you stored safely in backup step 3.
+For restoration you need to initiate the cluster creation with the mentioned `k3s_token`.
 1. Before cluster creation, set the environment variable `export TF_VAR_k3s_token="..."` to your backedup token.
-2. start the cluster as usual
+2. Start the cluster as usual.
+
+    Note, for the backup to work correctly, it is important that your cluster has the same cluster name, but be cautious if you do this for testing purposes to not accidentally messs with your production cluster (e.g. by having the wrong hcloud context activated and running the cleanup script you may be able to accidentally delete everything on production). Be extra cautious, so it may be good advise to first test with another cluster name.
+3. login into controlplane node and run the following
+    ```bash
+    # k3s needs to be stopped before doing the backup restoration
+    systemctl stop k3s
+
+    # restore a specific backup - you need to fill in all the variables
+    k3s server \
+    --cluster-init \
+    --cluster-reset \
+    --etcd-s3 \
+    --cluster-reset-restore-path=$SNAPSHOT_NAME \
+    --etcd-s3-endpoint=$ETCD_S3_ENDPOINT \
+    --etcd-s3-bucket=$ETCD_S3_BUCKET \
+    --etcd-s3-access-key=$ETCD_S3_ACCESS_KEY \
+    --etcd-s3-secret-key=$ETCD_S3_SECRET_KEY
+
+    # if everything worked out
+    systemctl start k3s
+
+    # note down the changed kubeconfig and adapt your config respectively
+    cat /etc/rancher/k3s/k3s.yaml
+    ```
+
+Awesome! You restored a whole cluster from a backup.
 
 </details>
 
