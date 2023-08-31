@@ -706,6 +706,13 @@ variable "preinstall_exec" {
   description = "Additional to execute before the install calls, for example fetching and installing certs."
 }
 
+variable "postinstall_exec" {
+  type        = list(string)
+  default     = []
+  description = "Additional to execute after the install calls, for example restoring a backup."
+}
+
+
 variable "extra_kustomize_deployment_commands" {
   type        = string
   default     = ""
