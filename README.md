@@ -672,11 +672,27 @@ For backup you need to the following steps
 2. [Optional] You can also trigger a manual backup by `ssh` into your first control-plane node, and running `k3s etcd-snapshot`. This will create a manual backup. It is good to do this at least once to see that your configuration is actually working.
 3. Note down the terraform output `k3s_token` - you need it for restoration
 
-For restoration you need to initiate the cluster creation with the mentioned `k3s_token`.
-1. Before cluster creation, set the environment variable `export TF_VAR_k3s_token="..."` to your backedup token.
-2. Start the cluster as usual.
+For restoration you need to initiate the cluster creation with the mentioned `k3s_token`. For instance do the following
+1. Before cluster creation, adapt your `kube.tf` file to include
+    ```tf
+    module "kube-hetzner" {
+      k3s_token = var.k3s_token
+    }
+    ```
+    and
+    ```tf
+    variable "k3s_token" {
+      sensitive = true
+      type      = string
+      default   = null
+    }
+    ```
+    and set the environment variable `export TF_VAR_k3s_token="..."` to your backedup token. (Be careful, this token is like an admin password to the entire cluster.)
+
+2. Create the cluster as usual.
 
     Note, for the backup to work correctly, it is important that your cluster has the same cluster name, but be cautious if you do this for testing purposes to not accidentally messs with your production cluster (e.g. by having the wrong hcloud context activated and running the cleanup script you may be able to accidentally delete everything on production). Be extra cautious, so it may be good advise to first test with another cluster name.
+
 3. login into controlplane node and run the following
     ```bash
     # k3s needs to be stopped before doing the backup restoration
