@@ -13,7 +13,7 @@ resource "null_resource" "first_control_plane" {
       merge(
         {
           node-name                   = module.control_planes[keys(module.control_planes)[0]].name
-          token                       = random_password.k3s_token.result
+          token                       = local.k3s_token
           cluster-init                = true
           disable-cloud-controller    = true
           disable                     = local.disable_extras

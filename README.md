@@ -25,7 +25,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 
 **Why OpenSUSE MicroOS (and not Ubuntu)?**
 
-- Optimized container OS that is fully locked down, most of the filesystem is read-only! 
+- Optimized container OS that is fully locked down, most of the filesystem is read-only!
 - Hardened by default with an automatic ban for abusive IPs on SSH for instance.
 - Evergreen release, your node will stay valid forever, as it piggy-backs into OpenSUSE Tumbleweed's rolling release!
 - Automatic updates by default and automatic roll-backs if something breaks, thanks to its use of BTRFS snapshots.
@@ -306,7 +306,7 @@ However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://
 </details>
 
 <details>
-  
+
 <summary>Useful Cilium commands</summary>
 
 With Kube-Hetzner, you have the possibility to use Cilium as a CNI. It's very powerful and has great observability features. Below you will find a few useful commands.
@@ -331,7 +331,7 @@ kubectl -n kube-system exec --stdin --tty cilium-xxxx -- cilium service list
 ```
 
 _For more cilium commands, please refer to their corresponding [Documentation](https://docs.cilium.io/en/latest/cheatsheet)._
-  
+
 </details>
 
 <details>
@@ -464,9 +464,9 @@ spec:
             port:
               number: 80
 ```
-  
+
 _⚠️ In case of using Ingress-Nginx as an ingress controller if you choose to use the HTTP challenge method you need to do an additional step of adding variable `lb_hostname = "cluster.example.org"` to your kube.tf. You must set it to an FQDN that points to your LB address._
-  
+
 _This is to circumvent this known issue [cert-manager/cert-manager/issues/466](https://github.com/cert-manager/cert-manager/issues/466). Otherwise, you can just use the DNS challenge, which does not require any additional tweaks to work._
 
 </details>
@@ -489,9 +489,9 @@ To delete a snapshot, first find it with:
 ```bash
 hcloud image list
 ```
-  
+
 Then delete it with:
-  
+
 ```bash
 hcloud image delete <image-id>
 ```
@@ -660,6 +660,7 @@ This can be helpful when you setup a mixed-architecture cluster, and there are m
 
 
 </details>
+
 
 ## Debugging
 

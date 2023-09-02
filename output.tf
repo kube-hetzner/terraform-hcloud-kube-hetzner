@@ -44,7 +44,7 @@ output "k3s_endpoint" {
 
 output "k3s_token" {
   description = "The k3s token to register new nodes"
-  value       = random_password.k3s_token.result
+  value       = local.k3s_token
 }
 
 # Keeping for backward compatibility
