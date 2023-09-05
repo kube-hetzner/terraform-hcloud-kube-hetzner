@@ -103,7 +103,7 @@ resource "null_resource" "control_planes" {
             module.control_planes[each.key].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
             module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
           module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-          token                       = random_password.k3s_token.result
+          token                       = local.k3s_token
           disable-cloud-controller    = true
           disable                     = local.disable_extras
           kubelet-arg                 = local.kubelet_arg

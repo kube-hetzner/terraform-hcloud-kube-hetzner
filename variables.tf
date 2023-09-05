@@ -4,6 +4,13 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "k3s_token" {
+  description = "k3s master token (must match when restoring a cluster)."
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
 variable "microos_x86_snapshot_id" {
   description = "MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
   type        = string

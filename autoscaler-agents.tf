@@ -77,7 +77,7 @@ data "cloudinit_config" "autoscaler-config" {
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-          token         = random_password.k3s_token.result
+          token         = local.k3s_token
           kubelet-arg   = local.kubelet_arg
           flannel-iface = local.flannel_iface
           node-label    = concat(local.default_agent_labels, var.autoscaler_labels)
