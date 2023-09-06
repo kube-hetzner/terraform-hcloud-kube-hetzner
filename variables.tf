@@ -186,7 +186,7 @@ variable "cluster_autoscaler_version" {
 variable "cluster_autoscaler_log_level" {
   description = "Verbosity level of the logs for cluster-autoscaler"
   type        = number
-  default     = 1
+  default     = 4
 
   validation {
     condition     = var.cluster_autoscaler_log_level >= 0 && var.cluster_autoscaler_log_level <= 5
