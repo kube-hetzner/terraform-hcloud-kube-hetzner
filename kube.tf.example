@@ -195,7 +195,7 @@ module "kube-hetzner" {
       floating_ip = true
       count = 1
     },
-    # Arm based nodes, currently available only in FSN location
+    # Arm based nodes, currently available only in FSN and HEL locations
     {
       name        = "agent-arm-small",
       server_type = "cax11",
