@@ -90,6 +90,12 @@ resource "hcloud_server" "server" {
       EOT
     ]
   }
+  provisioner "remote-exec" {
+    inline = [
+      "cloud-init status --wait"
+    ]
+  }
+
 }
 
 resource "null_resource" "registries" {
