@@ -78,7 +78,7 @@ module "kube-hetzner" {
   # For instance, one is ok (non-HA), two is not ok, and three is ok (becomes HA). It does not matter if they are in the same nodepool or not! So they can be in different locations and of various types.
 
   # Of course, you can choose any number of nodepools you want, with the location you want. The only constraint on the location is that you need to stay in the same network region, Europe, or the US.
-  # For the server type, the minimum instance supported is cpx11 (just a few cents more than cx11); see https://www.hetzner.com/cloud.
+  # For the server type, the minimum instance supported is cpx11 (just a few cents more than cx11) but the cax11 is even cheaper and more powerful (arm64); see https://www.hetzner.com/cloud.
 
   # IMPORTANT: Before you create your cluster, you can do anything you want with the nodepools, but you need at least one of each, control plane and agent.
   # Once the cluster is up and running, you can change nodepool count and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1).
@@ -95,7 +95,7 @@ module "kube-hetzner" {
 
   # Please note that changing labels and taints after the first run will have no effect. If needed, you can do that through Kubernetes directly.
 
-  # ⚠️ When choosing ARM cax* server types, for the moment they are only available in fsn1.
+  # ⚠️ When choosing ARM cax* server types, for the moment they are only available in fsn1 and hel1.
   # Muli-architecture clusters are OK for most use cases, as container underlying images tend to be multi-architecture too.
 
   # * Example below:
@@ -195,7 +195,7 @@ module "kube-hetzner" {
       floating_ip = true
       count = 1
     },
-    # Arm based nodes, currently available only in FSN location
+    # Arm based nodes, currently available only in FSN and HEL locations
     {
       name        = "agent-arm-small",
       server_type = "cax11",
