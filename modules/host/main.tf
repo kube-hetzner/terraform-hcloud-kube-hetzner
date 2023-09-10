@@ -90,6 +90,7 @@ resource "hcloud_server" "server" {
       EOT
     ]
   }
+
 }
 
 resource "null_resource" "registries" {

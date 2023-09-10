@@ -99,7 +99,7 @@
 | <a name="input_cilium_version"></a> [cilium\_version](#input\_cilium\_version) | Version of Cilium. | `string` | `"v1.14.0"` | no |
 | <a name="input_cluster_autoscaler_extra_args"></a> [cluster\_autoscaler\_extra\_args](#input\_cluster\_autoscaler\_extra\_args) | Extra arguments for the Cluster Autoscaler deployment. | `list(string)` | `[]` | no |
 | <a name="input_cluster_autoscaler_image"></a> [cluster\_autoscaler\_image](#input\_cluster\_autoscaler\_image) | Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used. | `string` | `"registry.k8s.io/autoscaling/cluster-autoscaler"` | no |
-| <a name="input_cluster_autoscaler_log_level"></a> [cluster\_autoscaler\_log\_level](#input\_cluster\_autoscaler\_log\_level) | Verbosity level of the logs for cluster-autoscaler | `number` | `1` | no |
+| <a name="input_cluster_autoscaler_log_level"></a> [cluster\_autoscaler\_log\_level](#input\_cluster\_autoscaler\_log\_level) | Verbosity level of the logs for cluster-autoscaler | `number` | `4` | no |
 | <a name="input_cluster_autoscaler_log_to_stderr"></a> [cluster\_autoscaler\_log\_to\_stderr](#input\_cluster\_autoscaler\_log\_to\_stderr) | Determines whether to log to stderr or not | `bool` | `true` | no |
 | <a name="input_cluster_autoscaler_stderr_threshold"></a> [cluster\_autoscaler\_stderr\_threshold](#input\_cluster\_autoscaler\_stderr\_threshold) | Severity level above which logs are sent to stderr instead of stdout | `string` | `"INFO"` | no |
 | <a name="input_cluster_autoscaler_version"></a> [cluster\_autoscaler\_version](#input\_cluster\_autoscaler\_version) | Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version | `string` | `"v1.27.3"` | no |
@@ -163,6 +163,7 @@
 | <a name="input_network_region"></a> [network\_region](#input\_network\_region) | Default region for network. | `string` | `"eu-central"` | no |
 | <a name="input_nginx_values"></a> [nginx\_values](#input\_nginx\_values) | Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_placement_group_disable"></a> [placement\_group\_disable](#input\_placement\_group\_disable) | Whether to disable placement groups. | `bool` | `false` | no |
+| <a name="input_postinstall_exec"></a> [postinstall\_exec](#input\_postinstall\_exec) | Additional to execute after the install calls, for example restoring a backup. | `list(string)` | `[]` | no |
 | <a name="input_preinstall_exec"></a> [preinstall\_exec](#input\_preinstall\_exec) | Additional to execute before the install calls, for example fetching and installing certs. | `list(string)` | `[]` | no |
 | <a name="input_rancher_bootstrap_password"></a> [rancher\_bootstrap\_password](#input\_rancher\_bootstrap\_password) | Rancher bootstrap password. | `string` | `""` | no |
 | <a name="input_rancher_hostname"></a> [rancher\_hostname](#input\_rancher\_hostname) | The rancher hostname. | `string` | `""` | no |
