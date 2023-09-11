@@ -866,6 +866,8 @@ Code contributions are very much **welcome**.
     packer build ../kube-hetzner/packer-template/hcloud-microos-snapshots.pkr.hcl
     ```
 
+1. Update examples in `kube.tf.example` if required.
+1. Run [terraform-docs](https://github.com/terraform-docs/terraform-docs) generator `docker run --rm --volume "$(pwd):/terraform-docs" -u $(id -u) quay.io/terraform-docs/terraform-docs:0.16.0 markdown /terraform-docs > docs/terraform.md` if you changed default variables.
 1. Commit your Changes (`git commit -m 'Add some AmazingFeature')
 1. Push to the Branch (`git push origin AmazingFeature`)
 1. Open a Pull Request targeting the `staging` branch.
