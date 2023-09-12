@@ -866,6 +866,7 @@ Code contributions are very much **welcome**.
     packer build ../kube-hetzner/packer-template/hcloud-microos-snapshots.pkr.hcl
     ```
 
+1. Update examples in `kube.tf.example` if required.
 1. Commit your Changes (`git commit -m 'Add some AmazingFeature')
 1. Push to the Branch (`git push origin AmazingFeature`)
 1. Open a Pull Request targeting the `staging` branch.
