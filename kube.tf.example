@@ -294,7 +294,7 @@ module "kube-hetzner" {
   # Example (using the default values):
   #
   # cluster_autoscaler_image = "registry.k8s.io/autoscaling/cluster-autoscaler"
-  # cluster_autoscaler_version = "v1.27.3"
+  # cluster_autoscaler_version = "v1.28.0"
   # cluster_autoscaler_log_level = 4
   # cluster_autoscaler_log_to_stderr = true
   # cluster_autoscaler_stderr_threshold = "INFO"

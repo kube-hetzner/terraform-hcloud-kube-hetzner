@@ -179,7 +179,7 @@ variable "cluster_autoscaler_image" {
 
 variable "cluster_autoscaler_version" {
   type        = string
-  default     = "v1.27.3"
+  default     = "v1.28.0"
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
 
