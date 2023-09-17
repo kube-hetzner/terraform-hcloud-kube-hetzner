@@ -35,7 +35,7 @@ module "kube-hetzner" {
 
   # * Your ssh public key
   ssh_public_key = file("~/.ssh/id_ed25519.pub")
-  # * Your private key must be "ssh_private_key = null" when you want to use ssh-agent for a Yubikey-like device authentification or an SSH key-pair with a passphrase.
+  # * Your private key must be "ssh_private_key = null" when you want to use ssh-agent for a Yubikey-like device authentication or an SSH key-pair with a passphrase.
   # For more details on SSH see https://github.com/kube-hetzner/kube-hetzner/blob/master/docs/ssh.md
   ssh_private_key = file("~/.ssh/id_ed25519")
   # You can add additional SSH public Keys to grant other team members root access to your cluster nodes.
@@ -74,7 +74,7 @@ module "kube-hetzner" {
   # service_ipv4_cidr = "10.43.0.0/16"
 
   # For the control planes, at least three nodes are the minimum for HA. Otherwise, you need to turn off the automatic upgrades (see README).
-  # **It must always be an ODD number, never even!** Search the internet for "splitbrain problem with etcd" or see https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
+  # **It must always be an ODD number, never even!** Search the internet for "split-brain problem with etcd" or see https://rancher.com/docs/k3s/latest/en/installation/ha-embedded/
   # For instance, one is ok (non-HA), two is not ok, and three is ok (becomes HA). It does not matter if they are in the same nodepool or not! So they can be in different locations and of various types.
 
   # Of course, you can choose any number of nodepools you want, with the location you want. The only constraint on the location is that you need to stay in the same network region, Europe, or the US.
@@ -96,7 +96,7 @@ module "kube-hetzner" {
   # Please note that changing labels and taints after the first run will have no effect. If needed, you can do that through Kubernetes directly.
 
   # ⚠️ When choosing ARM cax* server types, for the moment they are only available in fsn1 and hel1.
-  # Muli-architecture clusters are OK for most use cases, as container underlying images tend to be multi-architecture too.
+  # Multi-architecture clusters are OK for most use cases, as container underlying images tend to be multi-architecture too.
 
   # * Example below:
 
@@ -218,7 +218,7 @@ module "kube-hetzner" {
   # FYI, Hetzner says "Traffic between cloud servers inside a Network is private and isolated, but not automatically encrypted."
   # Source: https://docs.hetzner.com/cloud/networks/faq/#is-traffic-inside-hetzner-cloud-networks-encrypted
   # It works with all CNIs that we support.
-  # Just note, that if Cilium with cilium_values, the responsability of enabling of disabling Wireguard falls on you.
+  # Just note, that if Cilium with cilium_values, the responsibility of enabling of disabling Wireguard falls on you.
   # enable_wireguard = true
 
   # * LB location and type, the latter will depend on how much load you want it to handle, see https://www.hetzner.com/cloud/load-balancer
@@ -252,7 +252,7 @@ module "kube-hetzner" {
   # Providing at least one map for the array enables the cluster autoscaler feature, default is disabled
   # By default we set a compatible version with the default initial_k3s_channel, to set another one,
   # have a look at the tag value in https://github.com/kubernetes/autoscaler/blob/master/charts/cluster-autoscaler/values.yaml
-  # ⚠️ Based on how the autoscaler works with this project, you can only choose either x86 instances or ARM server types for ALL autocaler nodepools.
+  # ⚠️ Based on how the autoscaler works with this project, you can only choose either x86 instances or ARM server types for ALL autoscaler nodepools.
   # Also, as mentioned above, for the time being ARM cax* instances are only available in fsn1.
   # If you are curious, it's ok to have a multi-architecture cluster, as most underlying container images are multi-architecture too.
   # * Example below:
@@ -616,7 +616,7 @@ module "kube-hetzner" {
   # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own self-signed certificates.
   # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
   # The easiest thing is to leave everything as is (using the default rancher self-signed certificate) and put Cloudflare in front of it.
-  # As for the number of replicas, by default it is set to the numbe of control plane nodes.
+  # As for the number of replicas, by default it is set to the number of control plane nodes.
   # You can customized all of the above by adding a rancher_values variable see at the end of this file in the advanced section.
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # IMPORTANT: Rancher's install is quite memory intensive, you will require at least 4GB if RAM, meaning cx21 server type (for your control plane).

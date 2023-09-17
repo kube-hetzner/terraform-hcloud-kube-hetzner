@@ -4,7 +4,7 @@ DRY_RUN=1
 
 echo "Welcome to the Kube-Hetzner cluster deletion script!"
 echo " "
-echo "We advise you to first run 'terraform destroy' and execute that script when it starts hanging because of ressources still attached to the network."
+echo "We advise you to first run 'terraform destroy' and execute that script when it starts hanging because of resources still attached to the network."
 echo "In order to run this script need to have the hcloud CLI installed and configured with a context for the cluster you want to delete."
 command -v hcloud >/dev/null 2>&1 || { echo "hcloud (Hetzner CLI) is not installed. Install it with 'brew install hcloud'."; exit 1; }
 echo "You can do so by running 'hcloud context create <cluster_name>' and inputting your HCLOUD_TOKEN."
