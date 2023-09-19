@@ -67,6 +67,8 @@ locals {
     ["timeout 180s /bin/sh -c 'while ! ping -c 1 ${var.address_for_connectivity_test} >/dev/null 2>&1; do echo \"Ready for k3s installation, waiting for a successful connection to the internet...\"; sleep 5; done; echo Connected'"]
   )
 
+  common_post_install_k3s_commands = var.postinstall_exec
+
   kustomization_backup_yaml = yamlencode({
     apiVersion = "kustomize.config.k8s.io/v1beta1"
     kind       = "Kustomization"
@@ -102,10 +104,10 @@ locals {
 
   install_k3s_server = concat(local.common_pre_install_k3s_commands, [
     "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC='server ${var.k3s_exec_server_args}' sh -"
-  ], local.apply_k3s_selinux)
+  ], local.apply_k3s_selinux, local.common_post_install_k3s_commands)
   install_k3s_agent = concat(local.common_pre_install_k3s_commands, [
     "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC='agent ${var.k3s_exec_agent_args}' sh -"
-  ], local.apply_k3s_selinux)
+  ], local.apply_k3s_selinux, local.common_post_install_k3s_commands)
 
   control_plane_nodes = merge([
     for pool_index, nodepool_obj in var.control_plane_nodepools : {

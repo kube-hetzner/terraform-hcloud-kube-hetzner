@@ -99,7 +99,7 @@
 | <a name="input_cilium_version"></a> [cilium\_version](#input\_cilium\_version) | Version of Cilium. | `string` | `"v1.14.0"` | no |
 | <a name="input_cluster_autoscaler_extra_args"></a> [cluster\_autoscaler\_extra\_args](#input\_cluster\_autoscaler\_extra\_args) | Extra arguments for the Cluster Autoscaler deployment. | `list(string)` | `[]` | no |
 | <a name="input_cluster_autoscaler_image"></a> [cluster\_autoscaler\_image](#input\_cluster\_autoscaler\_image) | Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used. | `string` | `"registry.k8s.io/autoscaling/cluster-autoscaler"` | no |
-| <a name="input_cluster_autoscaler_log_level"></a> [cluster\_autoscaler\_log\_level](#input\_cluster\_autoscaler\_log\_level) | Verbosity level of the logs for cluster-autoscaler | `number` | `1` | no |
+| <a name="input_cluster_autoscaler_log_level"></a> [cluster\_autoscaler\_log\_level](#input\_cluster\_autoscaler\_log\_level) | Verbosity level of the logs for cluster-autoscaler | `number` | `4` | no |
 | <a name="input_cluster_autoscaler_log_to_stderr"></a> [cluster\_autoscaler\_log\_to\_stderr](#input\_cluster\_autoscaler\_log\_to\_stderr) | Determines whether to log to stderr or not | `bool` | `true` | no |
 | <a name="input_cluster_autoscaler_stderr_threshold"></a> [cluster\_autoscaler\_stderr\_threshold](#input\_cluster\_autoscaler\_stderr\_threshold) | Severity level above which logs are sent to stderr instead of stdout | `string` | `"INFO"` | no |
 | <a name="input_cluster_autoscaler_version"></a> [cluster\_autoscaler\_version](#input\_cluster\_autoscaler\_version) | Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version | `string` | `"v1.27.3"` | no |
@@ -115,7 +115,7 @@
 | <a name="input_csi_driver_smb_values"></a> [csi\_driver\_smb\_values](#input\_csi\_driver\_smb\_values) | Additional helm values file to pass to csi-driver-smb as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_disable_hetzner_csi"></a> [disable\_hetzner\_csi](#input\_disable\_hetzner\_csi) | Disable hetzner csi driver. | `bool` | `false` | no |
 | <a name="input_disable_network_policy"></a> [disable\_network\_policy](#input\_disable\_network\_policy) | Disable k3s default network policy controller (default false, automatically true for calico and cilium). | `bool` | `false` | no |
-| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. The length is limited to 3 entries, more entries is not supported by kubernetes | `list(string)` | <pre>[<br>  "1.1.1.1",<br>  "8.8.8.8",<br>  "9.9.9.9"<br>]</pre> | no |
+| <a name="input_dns_servers"></a> [dns\_servers](#input\_dns\_servers) | IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. The length is limited to 3 entries, more entries is not supported by kubernetes | `list(string)` | `[]` | no |
 | <a name="input_enable_cert_manager"></a> [enable\_cert\_manager](#input\_enable\_cert\_manager) | Enable cert manager. | `bool` | `true` | no |
 | <a name="input_enable_csi_driver_smb"></a> [enable\_csi\_driver\_smb](#input\_enable\_csi\_driver\_smb) | Whether or not to enable csi-driver-smb. | `bool` | `false` | no |
 | <a name="input_enable_klipper_metal_lb"></a> [enable\_klipper\_metal\_lb](#input\_enable\_klipper\_metal\_lb) | Use klipper load balancer. | `bool` | `false` | no |
@@ -163,6 +163,7 @@
 | <a name="input_network_region"></a> [network\_region](#input\_network\_region) | Default region for network. | `string` | `"eu-central"` | no |
 | <a name="input_nginx_values"></a> [nginx\_values](#input\_nginx\_values) | Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_placement_group_disable"></a> [placement\_group\_disable](#input\_placement\_group\_disable) | Whether to disable placement groups. | `bool` | `false` | no |
+| <a name="input_postinstall_exec"></a> [postinstall\_exec](#input\_postinstall\_exec) | Additional to execute after the install calls, for example restoring a backup. | `list(string)` | `[]` | no |
 | <a name="input_preinstall_exec"></a> [preinstall\_exec](#input\_preinstall\_exec) | Additional to execute before the install calls, for example fetching and installing certs. | `list(string)` | `[]` | no |
 | <a name="input_rancher_bootstrap_password"></a> [rancher\_bootstrap\_password](#input\_rancher\_bootstrap\_password) | Rancher bootstrap password. | `string` | `""` | no |
 | <a name="input_rancher_hostname"></a> [rancher\_hostname](#input\_rancher\_hostname) | The rancher hostname. | `string` | `""` | no |

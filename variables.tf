@@ -186,7 +186,7 @@ variable "cluster_autoscaler_version" {
 variable "cluster_autoscaler_log_level" {
   description = "Verbosity level of the logs for cluster-autoscaler"
   type        = number
-  default     = 1
+  default     = 4
 
   validation {
     condition     = var.cluster_autoscaler_log_level >= 0 && var.cluster_autoscaler_log_level <= 5
@@ -685,7 +685,7 @@ variable "control_plane_lb_enable_public_interface" {
 
 variable "dns_servers" {
   type        = list(string)
-  default     = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]
+  default     = []
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. The length is limited to 3 entries, more entries is not supported by kubernetes"
 
   validation {
@@ -711,6 +711,13 @@ variable "preinstall_exec" {
   default     = []
   description = "Additional to execute before the install calls, for example fetching and installing certs."
 }
+
+variable "postinstall_exec" {
+  type        = list(string)
+  default     = []
+  description = "Additional to execute after the install calls, for example restoring a backup."
+}
+
 
 variable "extra_kustomize_deployment_commands" {
   type        = string

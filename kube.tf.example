@@ -78,7 +78,7 @@ module "kube-hetzner" {
   # For instance, one is ok (non-HA), two is not ok, and three is ok (becomes HA). It does not matter if they are in the same nodepool or not! So they can be in different locations and of various types.
 
   # Of course, you can choose any number of nodepools you want, with the location you want. The only constraint on the location is that you need to stay in the same network region, Europe, or the US.
-  # For the server type, the minimum instance supported is cpx11 (just a few cents more than cx11); see https://www.hetzner.com/cloud.
+  # For the server type, the minimum instance supported is cpx11 (just a few cents more than cx11) but the cax11 is even cheaper and more powerful (arm64); see https://www.hetzner.com/cloud.
 
   # IMPORTANT: Before you create your cluster, you can do anything you want with the nodepools, but you need at least one of each, control plane and agent.
   # Once the cluster is up and running, you can change nodepool count and even set it to 0 (in the case of the first control-plane nodepool, the minimum is 1).
@@ -95,7 +95,7 @@ module "kube-hetzner" {
 
   # Please note that changing labels and taints after the first run will have no effect. If needed, you can do that through Kubernetes directly.
 
-  # ⚠️ When choosing ARM cax* server types, for the moment they are only available in fsn1.
+  # ⚠️ When choosing ARM cax* server types, for the moment they are only available in fsn1 and hel1.
   # Muli-architecture clusters are OK for most use cases, as container underlying images tend to be multi-architecture too.
 
   # * Example below:
@@ -195,7 +195,7 @@ module "kube-hetzner" {
       floating_ip = true
       count = 1
     },
-    # Arm based nodes, currently available only in FSN location
+    # Arm based nodes, currently available only in FSN and HEL locations
     {
       name        = "agent-arm-small",
       server_type = "cax11",
@@ -287,17 +287,17 @@ module "kube-hetzner" {
   #   - cluster_autoscaler_version: Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version.
   #
   # Logging related arguments are managed using separate variables:
-  #   - cluster_autoscaler_log_level: Controls the verbosity of logs (--v)
-  #   - cluster_autoscaler_log_to_stderr: Determines whether to log to stderr (--logtostderr)
-  #   - cluster_autoscaler_stderr_threshold: Sets the threshold for logs that go to stderr (--stderrthreshold)
+  #   - cluster_autoscaler_log_level: Controls the verbosity of logs (--v), the value is from 0 to 5, default is 4, for max debug info set it to 5.
+  #   - cluster_autoscaler_log_to_stderr: Determines whether to log to stderr (--logtostderr).
+  #   - cluster_autoscaler_stderr_threshold: Sets the threshold for logs that go to stderr (--stderrthreshold).
   #
   # Example (using the default values):
   #
   # cluster_autoscaler_image = "registry.k8s.io/autoscaling/cluster-autoscaler"
-  # cluster_autoscaler_version = "v1.26.2"
+  # cluster_autoscaler_version = "v1.27.3"
   # cluster_autoscaler_log_level = 4
   # cluster_autoscaler_log_to_stderr = true
-  # cluster_autoscaler_stderr_threshold = "WARNING"
+  # cluster_autoscaler_stderr_threshold = "INFO"
 
   # Additional Cluster Autoscaler binary configuration
   #
@@ -564,9 +564,9 @@ module "kube-hetzner" {
   # You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "true".
   # enable_cert_manager = false
 
-  # IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner, defaults to ["1.1.1.1", "8.8.8.8", "9.9.9.9"].
+  # IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner https://docs.hetzner.com/dns-console/dns/general/recursive-name-servers/, (defaults is []).
   # The number of different DNS servers is limited to 3 by Kubernetes itself.
-  # dns_servers = []
+  # dns_servers = ["1.1.1.1", "8.8.8.8", "9.9.9.10"]
 
   # When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability.
   # The default is false.
