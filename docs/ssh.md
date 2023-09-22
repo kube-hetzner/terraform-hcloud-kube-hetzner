@@ -8,7 +8,7 @@ If your key-pair is of the `ssh-ed25519` sort (useful command `ssh-keygen -t ed2
 
 ---
 
-Otherwise, for a key-pair with passphrase or a device like a Yubikey, make sure you have have an SSH agent running and your key is loaded with:
+Otherwise, for a key-pair with passphrase or a device like a Yubikey, make sure you have an SSH agent running and your key is loaded with:
 
 ```bash
 eval ssh-agent $SHELL

@@ -68,6 +68,6 @@ fi
 
 # Output commands
 echo " "
-echo "Remember, don't skip the hcloud cli, to activate it run 'hcloud context create <project-name>'. It is ideal to quickly debug and allows targetted cleanup when needed!"
+echo "Remember, don't skip the hcloud cli, to activate it run 'hcloud context create <project-name>'. It is ideal to quickly debug and allows targeted cleanup when needed!"
 echo " "
 echo "Before running 'terraform apply', go through the kube.tf file and fill it with your desired values."
