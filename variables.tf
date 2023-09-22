@@ -345,6 +345,12 @@ variable "traefik_additional_options" {
   description = "Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file."
 }
 
+variable "traefik_additional_trusted_ips" {
+  type        = list(string)
+  default     = []
+  description = "Additional Trusted IPs to pass to Traefik. These are the ones that go into the trustedIPs section of the Traefik helm values file."
+}
+
 variable "traefik_values" {
   type        = string
   default     = ""
