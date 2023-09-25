@@ -27,8 +27,8 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 
 - Optimized container OS that is fully locked down, most of the filesystem is read-only!
 - Hardened by default with an automatic ban for abusive IPs on SSH for instance.
-- Evergreen release, your node will stay valid forever, as it piggy-backs into OpenSUSE Tumbleweed's rolling release!
-- Automatic updates by default and automatic roll-backs if something breaks, thanks to its use of BTRFS snapshots.
+- Evergreen release, your node will stay valid forever, as it piggybacks into OpenSUSE Tumbleweed's rolling release!
+- Automatic updates by default and automatic rollbacks if something breaks, thanks to its use of BTRFS snapshots.
 - Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
 
 **Why k3s?**
@@ -82,8 +82,8 @@ brew install hcloud
 ### 💡 [Do not skip] Creating your kube.tf file and the OpenSUSE MicroOS snapshot
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key, it needs to be Read & Write. Take note of the key! ✅
-1. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/ssh.md). ✅
-1. Now navigate to where you want to have your project live and execute the following command, which will help you get started with a **a new folder** along with the required files, and will propose you to create a needed MicroOS snapshot. ✅
+2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/ssh.md). ✅
+3. Now navigate to where you want to have your project live and execute the following command, which will help you get started with a **new folder** along with the required files, and will propose you to create a needed MicroOS snapshot. ✅
 
     ```sh
     tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
@@ -153,7 +153,7 @@ You can connect to one of the control plane nodes via SSH with `ssh root@<contro
 
 ### Connect via Kube API
 
-If you have access to the Kube API (depending of the value of your `firewall_kube_api_source` variable, best to have the value of your own IP and not open to the world), you can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
+If you have access to the Kube API (depending on the value of your `firewall_kube_api_source` variable, best to have the value of your own IP and not open to the world), you can immediately kubectl into it (using the `clustername_kubeconfig.yaml` saved to the project's directory after the installation). By doing `kubectl --kubeconfig clustername_kubeconfig.yaml`, but for more convenience, either create a symlink from `~/.kube/config` to `clustername_kubeconfig.yaml` or add an export statement to your `~/.bashrc` or `~/.zshrc` file, as follows (you can get the path of `clustername_kubeconfig.yaml` by running `pwd`):
 
 ```sh
 export KUBECONFIG=/<path-to>/clustername_kubeconfig.yaml
@@ -258,14 +258,14 @@ reboot
 Rarely needed, but can be handy in the long run. During the installation, we automatically download a backup of the kustomization to a `kustomization_backup.yaml` file. You will find it next to your `clustername_kubeconfig.yaml` at the root of your project.
 
 1. First create a duplicate of that file and name it `kustomization.yaml`, keeping the original file intact, in case you need to restore the old config.
-1. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on GitHub, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
-1. Apply the updated `kustomization.yaml` with `kubectl apply -k ./`.
+2. Edit the `kustomization.yaml` file; you want to go to the very bottom where you have the links to the different source files; grab the latest versions for each on GitHub, and replace. If present, remove any local reference to traefik_config.yaml, as Traefik is updated automatically by the system upgrade controller.
+3. Apply the updated `kustomization.yaml` with `kubectl apply -k ./`.
 
 ## Customizing the Cluster Components
 
 Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Chart](https://rancher.com/docs/k3s/latest/en/helm/) yaml definition and managed by the Helm Controller inside k3s.
 
-By default, we strive to give you optimal defaults, but if wish, you can customize them.
+By default, we strive to give you optimal defaults, but if you wish, you can customize them.
 
 For Traefik, Nginx, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
 
@@ -291,7 +291,7 @@ _That said, you can also use pure Terraform and import the kube-hetzner module a
 
 After the initial bootstrapping of your Kubernetes cluster, you might want to deploy applications using the same terraform mechanism. For many scenarios it is sufficient to create a `kustomization.yaml.tpl` file (see [Adding Extras](#adding-extras)). All applied kustomizations will be applied at once by executing a single `kubectl apply -k` command.
 
-However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://argoproj.github.io/cd/)) need a different deployment strategy: one has to deploy CRDs first, then wait for the deployment, before being able to install the actual application. In the ArgoCD case, not waiting for the CRD setup to finish will cause failures. Therefore an additional mechanism is available to support these kind of deployments. Specify `extra_kustomize_deployment_commands` in your `kube.tf` file containing a series of commands to be executed, after the `Kustomization` step finished:
+However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://argoproj.github.io/cd/)) need a different deployment strategy: one has to deploy CRDs first, then wait for the deployment, before being able to install the actual application. In the ArgoCD case, not waiting for the CRD setup to finish will cause failures. Therefore, an additional mechanism is available to support these kind of deployments. Specify `extra_kustomize_deployment_commands` in your `kube.tf` file containing a series of commands to be executed, after the `Kustomization` step finished:
 
 ```
   extra_kustomize_deployment_commands = <<-EOT
@@ -634,7 +634,7 @@ To enable the [PodNodeSelector and optionally the PodTolerationRestriction](http
 k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
 ```
 
-Next, you can set default nodeSelector values per namespace. This lets you assign namespaces to specific nodes. Note though, that this is the default as well as the whitelist, so if a pod sets its own nodeSelector value that must be a subset of the default. Otherwise the pod will not be scheduled.
+Next, you can set default nodeSelector values per namespace. This lets you assign namespaces to specific nodes. Note though, that this is the default as well as the whitelist, so if a pod sets its own nodeSelector value that must be a subset of the default. Otherwise, the pod will not be scheduled.
 
 Then set the according annotations on your namespaces:
 ```yaml
@@ -656,7 +656,7 @@ metadata:
   name: this-runs-on-arm64
 ```
 
-This can be helpful when you setup a mixed-architecture cluster, and there are many other use cases.
+This can be helpful when you set up a mixed-architecture cluster, and there are many other use cases.
 
 
 </details>
@@ -777,7 +777,7 @@ module "kube-hetzner" {
     - `export TF_VAR_k3s_token="..."` (Be careful, this token is like an admin password to the entire cluster. You need to use the same k3s_token which you saved when creating the backup.)
     - `export etcd_s3_secret_key="..."`
 
-3. Create the cluster as usual. You can also change the cluster-name and deploy it next to the original backuped cluster.
+3. Create the cluster as usual. You can also change the cluster-name and deploy it next to the original backed up cluster.
 
 Awesome! You restored a whole cluster from a backup.
 
@@ -813,7 +813,7 @@ If you want to take down the cluster, you can proceed as follows:
 terraform destroy -auto-approve
 ```
 
-If you see the destroy hanging, it's probably because of the Hetzner LB and the autoscaled nodes. You can use the following command to delete everything (dry run option is available don't worry, and it will only delete ressources specific to your cluster):
+If you see the destroy hanging, it's probably because of the Hetzner LB and the autoscaled nodes. You can use the following command to delete everything (dry run option is available don't worry, and it will only delete resources specific to your cluster):
 
 ```sh
 tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/cleanup.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
