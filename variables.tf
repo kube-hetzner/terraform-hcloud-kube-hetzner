@@ -74,7 +74,20 @@ variable "network_region" {
   type        = string
   default     = "eu-central"
 }
-
+variable "use_existing_network" {
+  # Unfortunately, we need this extra boolean variable. If we only check that existing_network_id is null,
+  # terraform will complain that it cannot set `count` variables based on existing_network_id != null, because
+  # that id is an output value from hcloud_network.your_network.id, which terraform will only know 
+  # after its construction.
+  description = "If you want to create the private network before calling this module, you can do so and set this value to true. Then you must set existing_network_id, and set network_ipv4_cidr to a range which does not collide with your other nodes."
+  type        = bool
+  default     = false
+}
+variable "existing_network_id" {
+  description = "If you want to create the private network before calling this module, you can do so and pass its id here. NOTE: make sure to adapt network_ipv4_cidr accordingly to a range which does not collide with your other nodes. Only used if use_existing_network == true."
+  type        = string
+  default     = null
+}
 variable "network_ipv4_cidr" {
   description = "The main network cidr that all subnets will be created upon."
   type        = string

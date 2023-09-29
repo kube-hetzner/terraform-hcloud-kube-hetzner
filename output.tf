@@ -4,7 +4,7 @@ output "cluster_name" {
 }
 
 output "network_id" {
-  value       = hcloud_network.k3s.id
+  value       = data.hcloud_network.k3s.id
   description = "The ID of the HCloud network."
 }
 
