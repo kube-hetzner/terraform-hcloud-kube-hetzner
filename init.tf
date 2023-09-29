@@ -1,3 +1,17 @@
+resource "hcloud_load_balancer" "cluster" {
+  count = local.has_external_load_balancer ? 0 : 1
+  name  = var.cluster_name
+
+  load_balancer_type = var.load_balancer_type
+  location           = var.load_balancer_location
+  labels             = local.labels
+
+  algorithm {
+    type = var.load_balancer_algorithm_type
+  }
+}
+
+
 resource "null_resource" "first_control_plane" {
   connection {
     user           = "root"
@@ -305,6 +319,7 @@ resource "null_resource" "kustomization" {
   }
 
   depends_on = [
+    hcloud_load_balancer.cluster,
     null_resource.first_control_plane,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume
