@@ -756,11 +756,23 @@ module "kube-hetzner" {
         etcd --version
         etcdctl version
 
-        # delete traefik service so that no load-balancer is accidently changed
+        # start etcd server in the background
         nohup etcd --data-dir /var/lib/rancher/k3s/server/db/etcd &
         echo $! > save_pid.txt
+
+        # delete traefik service so that no load-balancer is accidently changed
         etcdctl del /registry/services/specs/traefik/traefik
         etcdctl del /registry/services/endpoints/traefik/traefik
+
+        # delete old nodes (they interfere with load balancer)
+        # minions is the old name for "nodes"
+        OLD_NODES=$(etcdctl get "" --prefix --keys-only | grep /registry/minions/ | cut -c 19-)
+        for NODE in $OLD_NODES; do
+          for KEY in $(etcdctl get "" --prefix --keys-only | grep $NODE); do
+            etcdctl del $KEY
+          done
+        done
+
         kill -9 `cat save_pid.txt`
         rm save_pid.txt
       else
