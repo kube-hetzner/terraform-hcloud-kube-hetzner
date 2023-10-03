@@ -153,6 +153,16 @@ variable "control_plane_nodepools" {
     count       = number
   }))
   default = []
+  validation {
+    condition = length(
+      [for control_plane_nodepool in var.control_plane_nodepools : control_plane_nodepool.name]
+      ) == length(
+      distinct(
+        [for control_plane_nodepool in var.control_plane_nodepools : control_plane_nodepool.name]
+      )
+    )
+    error_message = "Names in agent_nodepools must be unique."
+  }
 }
 
 variable "agent_nodepools" {
@@ -169,6 +179,16 @@ variable "agent_nodepools" {
     longhorn_volume_size = optional(number)
   }))
   default = []
+  validation {
+    condition = length(
+      [for agent_nodepool in var.agent_nodepools : agent_nodepool.name]
+      ) == length(
+      distinct(
+        [for agent_nodepool in var.agent_nodepools : agent_nodepool.name]
+      )
+    )
+    error_message = "Names in agent_nodepools must be unique."
+  }
 }
 
 variable "cluster_autoscaler_image" {
