@@ -70,7 +70,7 @@ Follow those simple steps, and your world's cheapest Kubernetes cluster will be 
 
 First and foremost, you need to have a Hetzner Cloud account. You can sign up for free [here](https://hetzner.com/cloud/).
 
-Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli), [packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli#installing-packer) (for the initial snapshot creation only, no longer needed once that's done), [kubectl](https://kubernetes.io/docs/tasks/tools/) cli and [hcloud](<https://github.com/hetznercloud/cli>) the Hetzner cli for convenience. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem).
+Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli), [packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli#installing-packer) (for the initial snapshot creation only, no longer needed once that's done), [kubectl](https://kubernetes.io/docs/tasks/tools/) cli and [hcloud](https://github.com/hetznercloud/cli) the Hetzner cli for convenience. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem).
 
 ```sh
 brew install terraform
@@ -85,44 +85,44 @@ brew install hcloud
 2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/ssh.md). ✅
 3. Now navigate to where you want to have your project live and execute the following command, which will help you get started with a **new folder** along with the required files, and will propose you to create a needed MicroOS snapshot. ✅
 
-    ```sh
-    tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
-    ```
+   ```sh
+   tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
+   ```
 
-    Or for fish shell:
+   Or for fish shell:
 
-    ```fish
-    set tmp_script (mktemp); curl -sSL -o "{tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh; chmod +x "{tmp_script}"; bash "{tmp_script}"; rm "{tmp_script}"
-    ```
+   ```fish
+   set tmp_script (mktemp); curl -sSL -o "{tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh; chmod +x "{tmp_script}"; bash "{tmp_script}"; rm "{tmp_script}"
+   ```
 
-    _Optionally, for future usage, save that command as an alias in your shell preferences, like so:_
+   _Optionally, for future usage, save that command as an alias in your shell preferences, like so:_
 
-    ```sh
-    alias createkh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
-    ```
+   ```sh
+   alias createkh='tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"'
+   ```
 
-    Or for fish shell:
+   Or for fish shell:
 
-    ```fish
-    alias createkh='set tmp_script (mktemp); curl -sSL -o "{tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh; chmod +x "{tmp_script}"; bash "{tmp_script}"; rm "{tmp_script}"'
-    ```
+   ```fish
+   alias createkh='set tmp_script (mktemp); curl -sSL -o "{tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh; chmod +x "{tmp_script}"; bash "{tmp_script}"; rm "{tmp_script}"'
+   ```
 
-    _For the curious, here is what the script does:_
+   _For the curious, here is what the script does:_
 
-    ```sh
-    mkdir /path/to/your/new/folder
-    cd /path/to/your/new/folder
-    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example -o kube.tf
-    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshots.pkr.hcl -o hcloud-microos-snapshots.pkr.hcl
-    export HCLOUD_TOKEN="your_hcloud_token"
-    packer init hcloud-microos-snapshots.pkr.hcl
-    packer build hcloud-microos-snapshots.pkr.hcl
-    hcloud context create <project-name>
-    ```
+   ```sh
+   mkdir /path/to/your/new/folder
+   cd /path/to/your/new/folder
+   curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example -o kube.tf
+   curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshots.pkr.hcl -o hcloud-microos-snapshots.pkr.hcl
+   export HCLOUD_TOKEN="your_hcloud_token"
+   packer init hcloud-microos-snapshots.pkr.hcl
+   packer build hcloud-microos-snapshots.pkr.hcl
+   hcloud context create <project-name>
+   ```
 
-1. In that new project folder that gets created, you will find your `kube.tf` and it must be customized to suit your needs. ✅
+4. In that new project folder that gets created, you will find your `kube.tf` and it must be customized to suit your needs. ✅
 
-    _A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
+   _A complete reference of all inputs, outputs, modules etc. can be found in the [terraform.md](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/terraform.md) file._
 
 ### 🎯 Installation
 
@@ -403,16 +403,16 @@ metadata:
   name: egress-sample
 spec:
   selectors:
-  - podSelector:
-      matchLabels:
-        org: empire
-        class: mediabot
-        io.kubernetes.pod.namespace: default
+    - podSelector:
+        matchLabels:
+          org: empire
+          class: mediabot
+          io.kubernetes.pod.namespace: default
 
   destinationCIDRs:
-  - "0.0.0.0/0"
+    - "0.0.0.0/0"
   excludedCIDRs:
-  - "10.0.0.0/8"
+    - "10.0.0.0/8"
 
   egressGateway:
     nodeSelector:
@@ -421,7 +421,7 @@ spec:
 
     # Specify the IP address used to SNAT traffic matched by the policy.
     # It must exist as an IP associated with a network interface on the instance.
-    egressIP: {FLOATING_IP}
+    egressIP: { FLOATING_IP }
 ```
 
 </details>
@@ -449,20 +449,20 @@ metadata:
     cert-manager.io/cluster-issuer: letsencrypt
 spec:
   tls:
-  - hosts:
-    - '*.example.com'
-    secretName: example-com-letsencrypt-tls
+    - hosts:
+        - "*.example.com"
+      secretName: example-com-letsencrypt-tls
   rules:
-  - host: '*.example.com'
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: my-service
-            port:
-              number: 80
+    - host: "*.example.com"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: my-service
+                port:
+                  number: 80
 ```
 
 _⚠️ In case of using Ingress-Nginx as an ingress controller if you choose to use the HTTP challenge method you need to do an additional step of adding variable `lb_hostname = "cluster.example.org"` to your kube.tf. You must set it to an FQDN that points to your LB address._
@@ -562,17 +562,17 @@ stringData:
 And to create a new storage class:
 
 ```yaml
-  apiVersion: storage.k8s.io/v1
-  kind: StorageClass
-  metadata:
-    name: hcloud-volumes-encrypted
-  provisioner: csi.hetzner.cloud
-  reclaimPolicy: Delete
-  volumeBindingMode: WaitForFirstConsumer
-  allowVolumeExpansion: true
-  parameters:
-    csi.storage.k8s.io/node-publish-secret-name: encryption-secret
-    csi.storage.k8s.io/node-publish-secret-namespace: kube-system
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: hcloud-volumes-encrypted
+provisioner: csi.hetzner.cloud
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  csi.storage.k8s.io/node-publish-secret-name: encryption-secret
+  csi.storage.k8s.io/node-publish-secret-namespace: kube-system
 ```
 
 </details>
@@ -630,6 +630,7 @@ For more details, see [Longhorn's documentation](https://longhorn.io/docs/1.4.0/
 <summary>Assign all pods in a namespace to either arm64 or amd64 nodes with admission controllers</summary>
 
 To enable the [PodNodeSelector and optionally the PodTolerationRestriction](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#podnodeselector) api modules, set the following value:
+
 ```terraform
 k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
 ```
@@ -637,6 +638,7 @@ k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerat
 Next, you can set default nodeSelector values per namespace. This lets you assign namespaces to specific nodes. Note though, that this is the default as well as the whitelist, so if a pod sets its own nodeSelector value that must be a subset of the default. Otherwise, the pod will not be scheduled.
 
 Then set the according annotations on your namespaces:
+
 ```yaml
 apiVersion: v1
 kind: Namespace
@@ -645,24 +647,22 @@ metadata:
     scheduler.alpha.kubernetes.io/node-selector: kubernetes.io/arch=amd64
   name: this-runs-on-amd64
 ```
+
 or with taints and tolerations:
+
 ```yaml
 apiVersion: v1
 kind: Namespace
 metadata:
   annotations:
     scheduler.alpha.kubernetes.io/node-selector: kubernetes.io/arch=arm64
-    scheduler.alpha.kubernetes.io/defaultTolerations: "[{ \"operator\" : \"Equal\", \"effect\" : \"NoSchedule\", \"key\" : \"workload-type\", \"value\" : \"machine-learning\" }]"
+    scheduler.alpha.kubernetes.io/defaultTolerations: '[{ "operator" : "Equal", "effect" : "NoSchedule", "key" : "workload-type", "value" : "machine-learning" }]'
   name: this-runs-on-arm64
 ```
 
 This can be helpful when you set up a mixed-architecture cluster, and there are many other use cases.
 
-
 </details>
-
-
-
 
 <details>
 
@@ -671,17 +671,21 @@ This can be helpful when you set up a mixed-architecture cluster, and there are 
 K3s allows for automated etcd backups to S3. Etcd is the default storage backend on kube-hetzner, even for a single control plane cluster, hence this should work for all cluster deployments.
 
 **For backup do:**
+
 1. Fill the kube.tf config `etcd_s3_backup`, it will trigger a regular automated backup to S3.
 2. Add the k3s_token as an output to your kube.tf
+
 ```tf
 output "k3s_token" {
   value     = module.kube-hetzner.k3s_token
   sensitive = true
 }
 ```
+
 3. Make sure you can access the k3s_token via `terraform output k3s_token`.
 
 **For restoration do:**
+
 1. Before cluster creation, add the following to your kube.tf. Replace the local variables to match your values.
 
 ```tf
@@ -774,15 +778,69 @@ module "kube-hetzner" {
 ```
 
 2. Set the following sensible environment variables
-    - `export TF_VAR_k3s_token="..."` (Be careful, this token is like an admin password to the entire cluster. You need to use the same k3s_token which you saved when creating the backup.)
-    - `export etcd_s3_secret_key="..."`
+
+   - `export TF_VAR_k3s_token="..."` (Be careful, this token is like an admin password to the entire cluster. You need to use the same k3s_token which you saved when creating the backup.)
+   - `export etcd_s3_secret_key="..."`
 
 3. Create the cluster as usual. You can also change the cluster-name and deploy it next to the original backed up cluster.
 
 Awesome! You restored a whole cluster from a backup.
 
 </details>
+<details>
+<summary>Deploy in a pre-constructed private network (for proxies etc)</summary>
+If you want to deploy other machines on the private network before deploying the k3s cluster,
+you can. One use-case is if you want to setup a proxy or a NAT router on the private network,
+which is needed by the k3s cluster already at the time of construction.
 
+It is important to get all the address ranges right in this case, although the
+number of changes needed is minimal. If your network is created with 10.0.0.0/8,
+and you use subnet 10.128.0.0/9 for your non-k3s business, then adapting
+`network_ipv4_cidr = "10.0.0.0/9"` should be all you need.
+
+For example
+
+```
+resource "hcloud_network" "k3s_proxied" {
+  name     = "k3s-proxied"
+  ip_range = "10.0.0.0/8"
+}
+
+resource "hcloud_network_subnet" "k3s_proxy" {
+  network_id   = hcloud_network.k3s_proxied.id
+  type         = "cloud"
+  network_zone = "eu-central"
+  ip_range     = "10.128.0.0/9"
+}
+resource "hcloud_server" "your_proxy_server" {
+  ...
+}
+resource "hcloud_server_network" "your_proxy_server" {
+  depends_on = [
+    hcloud_server.your_proxy_server
+  ]
+  server_id  = hcloud_server.your_proxy_server.id
+  network_id = hcloud_network.k3s_proxied.id
+  ip         = "10.128.0.1"
+}
+module "kube-hetzner" {
+  ...
+  existing_network_id = [hcloud_network.your_network.id]
+  network_ipv4_cidr = "10.0.0.0/9"
+  additional_k3s_environment = {
+    "http_proxy" : "http://10.128.0.1:3128",
+    "HTTP_PROXY" : "http://10.128.0.1:3128",
+    "HTTPS_PROXY" : "http://10.128.0.1:3128",
+    "CONTAINERD_HTTP_PROXY" : "http://10.128.0.1:3128",
+    "CONTAINERD_HTTPS_PROXY" : "http://10.128.0.1:3128",
+    "NO_PROXY" : "127.0.0.0/8,10.0.0.0/8,",
+  }
+}
+```
+
+NOTE: square brackets in existing_network_id! This must be a list of length 1.
+
+</details>
 
 ## Debugging
 
@@ -838,6 +896,7 @@ When moving from 1.x to 2.x:
 - Then run `terraform init -upgrade && terraform apply`.
 
 <!-- CONTRIBUTING -->
+
 ## History
 
 This project has tried two other OS flavors before settling on MicroOS. Fedora Server, and k3OS. The latter, k3OS, is now defunct! However, our code base for it lives on in the [k3os branch](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/tree/k3os). Do not hesitate to check it out, it should still work.
@@ -854,17 +913,17 @@ Code contributions are very much **welcome**.
 1. Create your Branch (`git checkout -b AmazingFeature`)
 1. Develop your feature
 
-    In your kube.tf, point the `source` of module to your local clone of the repo.
+   In your kube.tf, point the `source` of module to your local clone of the repo.
 
-    Useful commands:
+   Useful commands:
 
-    ```sh
-    # To cleanup a Hetzner project
-    ../kube-hetzner/scripts/cleanup.sh
+   ```sh
+   # To cleanup a Hetzner project
+   ../kube-hetzner/scripts/cleanup.sh
 
-    # To build the Packer image
-    packer build ../kube-hetzner/packer-template/hcloud-microos-snapshots.pkr.hcl
-    ```
+   # To build the Packer image
+   packer build ../kube-hetzner/packer-template/hcloud-microos-snapshots.pkr.hcl
+   ```
 
 1. Update examples in `kube.tf.example` if required.
 1. Commit your Changes (`git commit -m 'Add some AmazingFeature')
@@ -872,6 +931,7 @@ Code contributions are very much **welcome**.
 1. Open a Pull Request targeting the `staging` branch.
 
 <!-- ACKNOWLEDGEMENTS -->
+
 ## Acknowledgements
 
 - [k-andy](https://github.com/StarpTech/k-andy) was the starting point for this project. It wouldn't have been possible without it.
@@ -882,4 +942,5 @@ Code contributions are very much **welcome**.
 - [openSUSE](https://www.opensuse.org) for MicroOS, which is just next-level Container OS technology.
 
 <!-- MARKDOWN LINKS & IMAGES -->
+
 [product-screenshot]: https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/raw/master/.images/kubectl-pod-all-17022022.png
