@@ -825,7 +825,7 @@ resource "hcloud_server_network" "your_proxy_server" {
 }
 module "kube-hetzner" {
   ...
-  existing_network_id = [hcloud_network.your_network.id]
+  existing_network_id = [hcloud_network.k3s_proxied.id]
   network_ipv4_cidr = "10.0.0.0/9"
   additional_k3s_environment = {
     "http_proxy" : "http://10.128.0.1:3128",
