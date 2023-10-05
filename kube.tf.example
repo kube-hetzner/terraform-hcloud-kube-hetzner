@@ -95,7 +95,6 @@ module "kube-hetzner" {
 
   # Please note that changing labels and taints after the first run will have no effect. If needed, you can do that through Kubernetes directly.
 
-  # ⚠️ When choosing ARM cax* server types, for the moment they are only available in fsn1 and hel1.
   # Multi-architecture clusters are OK for most use cases, as container underlying images tend to be multi-architecture too.
 
   # * Example below:
@@ -195,7 +194,7 @@ module "kube-hetzner" {
       floating_ip = true
       count = 1
     },
-    # Arm based nodes, currently available only in FSN and HEL locations
+    # Arm based nodes
     {
       name        = "agent-arm-small",
       server_type = "cax11",
@@ -253,7 +252,6 @@ module "kube-hetzner" {
   # By default we set a compatible version with the default initial_k3s_channel, to set another one,
   # have a look at the tag value in https://github.com/kubernetes/autoscaler/blob/master/charts/cluster-autoscaler/values.yaml
   # ⚠️ Based on how the autoscaler works with this project, you can only choose either x86 instances or ARM server types for ALL autoscaler nodepools.
-  # Also, as mentioned above, for the time being ARM cax* instances are only available in fsn1.
   # If you are curious, it's ok to have a multi-architecture cluster, as most underlying container images are multi-architecture too.
   # * Example below:
   # autoscaler_nodepools = [
