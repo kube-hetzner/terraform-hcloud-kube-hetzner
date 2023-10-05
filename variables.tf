@@ -83,8 +83,8 @@ variable "existing_network_id" {
   # construction.
   description = "If you want to create the private network before calling this module, you can do so and pass its id here. NOTE: make sure to adapt network_ipv4_cidr accordingly to a range which does not collide with your other nodes."
   type        = list(string)
-  default     = null
-  nullable    = true
+  default     = []
+  nullable    = false
   validation {
     condition     = var.existing_network_id == null || (can(var.existing_network_id[0]) && length(var.existing_network_id) == 1)
     error_message = "If you pass an existing_network_id, it must be enclosed in square brackets: [id]. This is necessary to be able to unambiguously distinguish between an empty network id (default) and a user-supplied network id."
