@@ -274,19 +274,16 @@ module "kube-hetzner" {
   #     location    = "fsn1"
   #     min_nodes   = 0
   #     max_nodes   = 5
+  #     labels      = {
+  #       "node.kubernetes.io/role=peak-workloads"
+  #     }
+  #     taints      = 
+  #     [{
+  #        key: "node.kubernetes.io/role"
+  #        value: "peak-workloads"
+  #        effect: "NoExecute"
+  #     }]  
   #   }
-  # ]
-
-  # Add extra labels on nodes started by the Cluster Autoscaler
-  # This argument is not used if autoscaler_nodepools is not set, because the Cluster Autoscaler is installed only if autoscaler_nodepools is set
-  # autoscaler_labels = [
-  #   "node.kubernetes.io/role=peak-workloads"
-  # ]
-
-  # Add extra taints on nodes started by the Cluster Autoscaler
-  # This argument is not used if autoscaler_nodepools is not set, because the Cluster Autoscaler is installed only if autoscaler_nodepools is set
-  # autoscaler_taints = [
-  #   "node.kubernetes.io/role=specific-workloads:NoExecute"
   # ]
 
   # Configuration of the Cluster Autoscaler binary
