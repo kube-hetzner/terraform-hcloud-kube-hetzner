@@ -622,6 +622,26 @@ else
 fi
 EOF
 
+  k3s_config_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/config.yaml /etc/rancher/k3s/config.yaml; then
+  echo "No update required to the config.yaml file"
+else
+  echo "Backing up /etc/rancher/k3s/config.yaml to /tmp/config_$DATE.yaml"
+  cp /etc/rancher/k3s/config.yaml /tmp/config_$DATE.yaml
+  echo "Updated config.yaml detected, restart of k3s service required"
+  cp /tmp/config.yaml /etc/rancher/k3s/config.yaml
+  if systemctl is-active --quiet k3s; then
+    systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/k3s/config.yaml && systemctl restart k3s)
+  elif systemctl is-active --quiet k3s-agent; then
+    systemctl restart k3s-agent || (echo "Error: Failed to restart k3s-agent. Restoring /etc/rancher/k3s/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/k3s/config.yaml && systemctl restart k3s-agent)
+  else
+    echo "No active k3s or k3s-agent service found"
+  fi
+  echo "k3s service or k3s-agent service restarted successfully"
+fi
+EOF
+
   cloudinit_write_files_common = <<EOT
 # Script to rename the private interface to eth1 and unify NetworkManager connection naming
 - path: /etc/cloud/rename_interface.sh
