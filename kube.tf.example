@@ -269,6 +269,9 @@ module "kube-hetzner" {
   # have a look at the tag value in https://github.com/kubernetes/autoscaler/blob/master/charts/cluster-autoscaler/values.yaml
   # ⚠️ Based on how the autoscaler works with this project, you can only choose either x86 instances or ARM server types for ALL autoscaler nodepools.
   # If you are curious, it's ok to have a multi-architecture cluster, as most underlying container images are multi-architecture too.
+  #
+  # ⚠️ Setting labels and taints will only work on cluster-autoscaler images versions released after > 20 October 2023. Or images built from master after that date.
+  #
   # * Example below:
   # autoscaler_nodepools = [
   #   {
@@ -287,6 +290,19 @@ module "kube-hetzner" {
   #        effect: "NoExecute"
   #     }]  
   #   }
+  # ]
+
+  # ⚠️ Deprecated, will be removed after a new Cluster Autoscaler version has been released which support the new way of setting labels and taints. See above.
+  # Add extra labels on nodes started by the Cluster Autoscaler
+  # This argument is not used if autoscaler_nodepools is not set, because the Cluster Autoscaler is installed only if autoscaler_nodepools is set
+  # autoscaler_labels = [
+  #   "node.kubernetes.io/role=peak-workloads"
+  # ]
+
+  # Add extra taints on nodes started by the Cluster Autoscaler
+  # This argument is not used if autoscaler_nodepools is not set, because the Cluster Autoscaler is installed only if autoscaler_nodepools is set
+  # autoscaler_taints = [
+  #   "node.kubernetes.io/role=specific-workloads:NoExecute"
   # ]
 
   # Configuration of the Cluster Autoscaler binary

@@ -265,10 +265,10 @@ variable "autoscaler_nodepools" {
     min_nodes   = number
     max_nodes   = number
     labels      = optional(map(string), {})
-    taints      = optional(list(object({
-      key       = string
-      value     = string
-      effect    = string
+    taints = optional(list(object({
+      key    = string
+      value  = string
+      effect = string
     })), [])
   }))
   default = []
