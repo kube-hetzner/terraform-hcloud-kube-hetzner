@@ -47,7 +47,13 @@
 | [hcloud_placement_group.control_plane](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/placement_group) | resource |
 | [hcloud_ssh_key.k3s](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/ssh_key) | resource |
 | [hcloud_volume.longhorn_volume](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/volume) | resource |
+| [local_file.cert_manager_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.cilium_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.csi_driver_smb_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.kustomization_backup](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.longhorn_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.nginx_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.traefik_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_sensitive_file.kubeconfig](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
 | [null_resource.agents](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.autoscaled_nodes_registries](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
@@ -126,6 +132,7 @@
 | <a name="input_enable_wireguard"></a> [enable\_wireguard](#input\_enable\_wireguard) | Use wireguard-native as the backend for CNI. | `bool` | `false` | no |
 | <a name="input_etcd_s3_backup"></a> [etcd\_s3\_backup](#input\_etcd\_s3\_backup) | Etcd cluster state backup to S3 storage | `map(any)` | `{}` | no |
 | <a name="input_existing_network_id"></a> [existing\_network\_id](#input\_existing\_network\_id) | If you want to create the private network before calling this module, you can do so and pass its id here. NOTE: make sure to adapt network\_ipv4\_cidr accordingly to a range which does not collide with your other nodes. | `list(string)` | `[]` | no |
+| <a name="input_export_values"></a> [export\_values](#input\_export\_values) | Export for deployment used values.yaml-files as local files. | `bool` | `false` | no |
 | <a name="input_extra_firewall_rules"></a> [extra\_firewall\_rules](#input\_extra\_firewall\_rules) | Additional firewall rules to apply to the cluster. | `list(any)` | `[]` | no |
 | <a name="input_extra_kustomize_deployment_commands"></a> [extra\_kustomize\_deployment\_commands](#input\_extra\_kustomize\_deployment\_commands) | Commands to be executed after the `kubectl apply -k <dir>` step. | `string` | `""` | no |
 | <a name="input_extra_kustomize_parameters"></a> [extra\_kustomize\_parameters](#input\_extra\_kustomize\_parameters) | All values will be passed to the `kustomization.tmp.yml` template. | `map(any)` | `{}` | no |
