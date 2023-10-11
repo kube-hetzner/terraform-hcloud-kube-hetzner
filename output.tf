@@ -45,6 +45,7 @@ output "k3s_endpoint" {
 output "k3s_token" {
   description = "The k3s token to register new nodes"
   value       = local.k3s_token
+  sensitive   = true
 }
 
 # Keeping for backward compatibility
