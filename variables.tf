@@ -778,6 +778,12 @@ variable "create_kustomization" {
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
 }
 
+variable "export_values" {
+  type        = bool
+  default     = false
+  description = "Export for deployment used values.yaml-files as local files."
+}
+
 variable "enable_wireguard" {
   type        = bool
   default     = false
