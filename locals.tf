@@ -503,19 +503,31 @@ ports:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
+%{for ip in var.traefik_additional_trusted_ips~}
+        - "${ip}"
+%{endfor~}
     forwardedHeaders:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
+%{for ip in var.traefik_additional_trusted_ips~}
+        - "${ip}"
+%{endfor~}
   websecure:
     proxyProtocol:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
+%{for ip in var.traefik_additional_trusted_ips~}
+        - "${ip}"
+%{endfor~}
     forwardedHeaders:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
+%{for ip in var.traefik_additional_trusted_ips~}
+        - "${ip}"
+%{endfor~}
 %{endif~}
 %{if var.traefik_additional_ports != ""~}
 %{for option in var.traefik_additional_ports~}
@@ -529,10 +541,16 @@ ports:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
+%{for ip in var.traefik_additional_trusted_ips~}
+        - "${ip}"
+%{endfor~}
     forwardedHeaders:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
+%{for ip in var.traefik_additional_trusted_ips~}
+        - "${ip}"
+%{endfor~}
 %{endif~}
 %{endfor~}
 %{endif~}
@@ -543,11 +561,9 @@ podDisruptionBudget:
 %{endif~}
 additionalArguments:
   - "--entrypoints.tcp=true"
-%{if var.traefik_additional_options != ""~}
 %{for option in var.traefik_additional_options~}
   - "${option}"
 %{endfor~}
-%{endif~}
 %{if var.traefik_resource_limits~}
 resources:
   requests:

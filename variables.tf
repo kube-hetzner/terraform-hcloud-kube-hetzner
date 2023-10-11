@@ -345,6 +345,12 @@ variable "traefik_additional_options" {
   description = "Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file."
 }
 
+variable "traefik_additional_trusted_ips" {
+  type        = list(string)
+  default     = []
+  description = "Additional Trusted IPs to pass to Traefik. These are the ones that go into the trustedIPs section of the Traefik helm values file."
+}
+
 variable "traefik_values" {
   type        = string
   default     = ""
@@ -679,7 +685,7 @@ variable "control_plane_lb_enable_public_interface" {
 
 variable "dns_servers" {
   type        = list(string)
-  default     = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]
+  default     = []
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. The length is limited to 3 entries, more entries is not supported by kubernetes"
 
   validation {
