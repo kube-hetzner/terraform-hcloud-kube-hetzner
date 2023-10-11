@@ -74,7 +74,22 @@ variable "network_region" {
   type        = string
   default     = "eu-central"
 }
-
+variable "existing_network_id" {
+  # Unfortunately, we need this to be a list or null. If we only use a plain
+  # string here, and check that existing_network_id is null, terraform will
+  # complain that it cannot set `count` variables based on existing_network_id
+  # != null, because that id is an output value from
+  # hcloud_network.your_network.id, which terraform will only know after its
+  # construction.
+  description = "If you want to create the private network before calling this module, you can do so and pass its id here. NOTE: make sure to adapt network_ipv4_cidr accordingly to a range which does not collide with your other nodes."
+  type        = list(string)
+  default     = []
+  nullable    = false
+  validation {
+    condition     = var.existing_network_id == null || (can(var.existing_network_id[0]) && length(var.existing_network_id) == 1)
+    error_message = "If you pass an existing_network_id, it must be enclosed in square brackets: [id]. This is necessary to be able to unambiguously distinguish between an empty network id (default) and a user-supplied network id."
+  }
+}
 variable "network_ipv4_cidr" {
   description = "The main network cidr that all subnets will be created upon."
   type        = string

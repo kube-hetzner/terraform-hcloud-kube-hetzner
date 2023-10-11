@@ -57,6 +57,18 @@ module "kube-hetzner" {
   # * For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
   network_region = "eu-central" # change to `us-east` if location is ash
 
+  # If you want to create the private network before calling this module,
+  # you can do so and pass its id here. For example if you want to use a proxy
+  # which only listens on your private network. Advanced use case.
+  # 
+  # NOTE1: make sure to adapt network_ipv4_cidr, cluster_ipv4_cidr, and service_ipv4_cidr accordingly.
+  #        If your network is created with 10.0.0.0/8, and you use subnet 10.128.0.0/9 for your
+  #        non-k3s business, then adapting `network_ipv4_cidr = "10.0.0.0/9"` should be all you need.
+  #
+  # NOTE2: square brackets! This must be a list of length 1.
+  #
+  # existing_network_id = [hcloud_network.your_network.id]
+
   # If you must change the network CIDR you can do so below, but it is highly advised against.
   # network_ipv4_cidr = "10.0.0.0/8"
 
