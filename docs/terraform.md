@@ -35,6 +35,7 @@
 | [hcloud_firewall.k3s](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall) | resource |
 | [hcloud_floating_ip.agents](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/floating_ip) | resource |
 | [hcloud_floating_ip_assignment.agents](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/floating_ip_assignment) | resource |
+| [hcloud_load_balancer.cluster](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/load_balancer) | resource |
 | [hcloud_load_balancer.control_plane](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/load_balancer) | resource |
 | [hcloud_load_balancer_network.control_plane](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/load_balancer_network) | resource |
 | [hcloud_load_balancer_service.control_plane](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/load_balancer_service) | resource |
@@ -68,7 +69,6 @@
 | [github_release.kured](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/release) | data source |
 | [hcloud_image.microos_arm_snapshot](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/image) | data source |
 | [hcloud_image.microos_x86_snapshot](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/image) | data source |
-| [hcloud_load_balancer.cluster](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/load_balancer) | data source |
 | [hcloud_network.k3s](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/network) | data source |
 | [hcloud_servers.autoscaled_nodes](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/servers) | data source |
 | [hcloud_ssh_keys.keys_by_selector](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/ssh_keys) | data source |
