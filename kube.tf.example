@@ -57,6 +57,18 @@ module "kube-hetzner" {
   # * For Hetzner locations see https://docs.hetzner.com/general/others/data-centers-and-connection/
   network_region = "eu-central" # change to `us-east` if location is ash
 
+  # If you want to create the private network before calling this module,
+  # you can do so and pass its id here. For example if you want to use a proxy
+  # which only listens on your private network. Advanced use case.
+  # 
+  # NOTE1: make sure to adapt network_ipv4_cidr, cluster_ipv4_cidr, and service_ipv4_cidr accordingly.
+  #        If your network is created with 10.0.0.0/8, and you use subnet 10.128.0.0/9 for your
+  #        non-k3s business, then adapting `network_ipv4_cidr = "10.0.0.0/9"` should be all you need.
+  #
+  # NOTE2: square brackets! This must be a list of length 1.
+  #
+  # existing_network_id = [hcloud_network.your_network.id]
+
   # If you must change the network CIDR you can do so below, but it is highly advised against.
   # network_ipv4_cidr = "10.0.0.0/8"
 
@@ -95,7 +107,6 @@ module "kube-hetzner" {
 
   # Please note that changing labels and taints after the first run will have no effect. If needed, you can do that through Kubernetes directly.
 
-  # ⚠️ When choosing ARM cax* server types, for the moment they are only available in fsn1 and hel1.
   # Multi-architecture clusters are OK for most use cases, as container underlying images tend to be multi-architecture too.
 
   # * Example below:
@@ -108,6 +119,7 @@ module "kube-hetzner" {
       labels      = [],
       taints      = [],
       count       = 1
+      swap_size   = "2G" # remember to add the suffix, examples: 512M, 1G
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
@@ -195,7 +207,7 @@ module "kube-hetzner" {
       floating_ip = true
       count = 1
     },
-    # Arm based nodes, currently available only in FSN and HEL locations
+    # Arm based nodes
     {
       name        = "agent-arm-small",
       server_type = "cax11",
@@ -253,7 +265,6 @@ module "kube-hetzner" {
   # By default we set a compatible version with the default initial_k3s_channel, to set another one,
   # have a look at the tag value in https://github.com/kubernetes/autoscaler/blob/master/charts/cluster-autoscaler/values.yaml
   # ⚠️ Based on how the autoscaler works with this project, you can only choose either x86 instances or ARM server types for ALL autoscaler nodepools.
-  # Also, as mentioned above, for the time being ARM cax* instances are only available in fsn1.
   # If you are curious, it's ok to have a multi-architecture cluster, as most underlying container images are multi-architecture too.
   # * Example below:
   # autoscaler_nodepools = [
@@ -411,6 +422,34 @@ module "kube-hetzner" {
   # If you want to configure additional ports for traefik, enter them here as a list of objects with name, port, and exposedPort properties.
   # Example:
   # traefik_additional_ports = [{name = "example", port = 1234, exposedPort = 1234}]
+
+
+  # If you want to configure additional trusted IPs for traefik, enter them here as a list of IPs (strings).
+  # Example for Cloudflare:
+  # traefik_additional_trusted_ips = [
+  #   "173.245.48.0/20",
+  #   "103.21.244.0/22",
+  #   "103.22.200.0/22",
+  #   "103.31.4.0/22",
+  #   "141.101.64.0/18",
+  #   "108.162.192.0/18",
+  #   "190.93.240.0/20",
+  #   "188.114.96.0/20",
+  #   "197.234.240.0/22",
+  #   "198.41.128.0/17",
+  #   "162.158.0.0/15",
+  #   "104.16.0.0/13",
+  #   "104.24.0.0/14",
+  #   "172.64.0.0/13",
+  #   "131.0.72.0/22",
+  #   "2400:cb00::/32",
+  #   "2606:4700::/32",
+  #   "2803:f800::/32",
+  #   "2405:b500::/32",
+  #   "2405:8100::/32",
+  #   "2a06:98c0::/29",
+  #   "2c0f:f248::/32"
+  # ]
 
   # If you want to disable the metric server set this to "false". Default is "true".
   # enable_metrics_server = false
@@ -662,6 +701,11 @@ module "kube-hetzner" {
   # Don't create the kustomize backup. This can be helpful for automation.
   # create_kustomization = false
 
+  # Export the values.yaml files used for the deployment of traefik, longhorn, cert-manager, etc.
+  # This can be helpful to use them for later deployments like with ArgoCD.
+  # The default is false.
+  # export_values = true
+
   # MicroOS snapshot IDs to be used. Per default empty, the most recent image created using createkh will be used.
   # We recommend the default, but if you want to use specific IDs you can.
   # You can fetch the ids with the hcloud cli by running the "hcloud image list --selector 'microos-snapshot=yes'" command.
@@ -826,11 +870,11 @@ provider "hcloud" {
 }
 
 terraform {
-  required_version = ">= 1.4.0"
+  required_version = ">= 1.5.0"
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.41.0"
+      version = ">= 1.43.0"
     }
   }
 }

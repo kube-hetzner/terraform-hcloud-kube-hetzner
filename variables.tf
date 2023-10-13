@@ -74,7 +74,22 @@ variable "network_region" {
   type        = string
   default     = "eu-central"
 }
-
+variable "existing_network_id" {
+  # Unfortunately, we need this to be a list or null. If we only use a plain
+  # string here, and check that existing_network_id is null, terraform will
+  # complain that it cannot set `count` variables based on existing_network_id
+  # != null, because that id is an output value from
+  # hcloud_network.your_network.id, which terraform will only know after its
+  # construction.
+  description = "If you want to create the private network before calling this module, you can do so and pass its id here. NOTE: make sure to adapt network_ipv4_cidr accordingly to a range which does not collide with your other nodes."
+  type        = list(string)
+  default     = []
+  nullable    = false
+  validation {
+    condition     = length(var.existing_network_id) == 0 || (can(var.existing_network_id[0]) && length(var.existing_network_id) == 1)
+    error_message = "If you pass an existing_network_id, it must be enclosed in square brackets: [id]. This is necessary to be able to unambiguously distinguish between an empty network id (default) and a user-supplied network id."
+  }
+}
 variable "network_ipv4_cidr" {
   description = "The main network cidr that all subnets will be created upon."
   type        = string
@@ -151,8 +166,19 @@ variable "control_plane_nodepools" {
     labels      = list(string)
     taints      = list(string)
     count       = number
+    swap_size   = optional(string, "")
   }))
   default = []
+  validation {
+    condition = length(
+      [for control_plane_nodepool in var.control_plane_nodepools : control_plane_nodepool.name]
+      ) == length(
+      distinct(
+        [for control_plane_nodepool in var.control_plane_nodepools : control_plane_nodepool.name]
+      )
+    )
+    error_message = "Names in agent_nodepools must be unique."
+  }
 }
 
 variable "agent_nodepools" {
@@ -167,8 +193,19 @@ variable "agent_nodepools" {
     taints               = list(string)
     count                = number
     longhorn_volume_size = optional(number)
+    swap_size            = optional(string, "")
   }))
   default = []
+  validation {
+    condition = length(
+      [for agent_nodepool in var.agent_nodepools : agent_nodepool.name]
+      ) == length(
+      distinct(
+        [for agent_nodepool in var.agent_nodepools : agent_nodepool.name]
+      )
+    )
+    error_message = "Names in agent_nodepools must be unique."
+  }
 }
 
 variable "cluster_autoscaler_image" {
@@ -741,6 +778,12 @@ variable "create_kustomization" {
   type        = bool
   default     = true
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
+}
+
+variable "export_values" {
+  type        = bool
+  default     = false
+  description = "Export for deployment used values.yaml-files as local files."
 }
 
 variable "enable_wireguard" {

@@ -1,3 +1,17 @@
+resource "hcloud_load_balancer" "cluster" {
+  count = local.has_external_load_balancer ? 0 : 1
+  name  = var.cluster_name
+
+  load_balancer_type = var.load_balancer_type
+  location           = var.load_balancer_location
+  labels             = local.labels
+
+  algorithm {
+    type = var.load_balancer_algorithm_type
+  }
+}
+
+
 resource "null_resource" "first_control_plane" {
   connection {
     user           = "root"
@@ -250,7 +264,7 @@ resource "null_resource" "kustomization" {
   provisioner "remote-exec" {
     inline = [
       "set -ex",
-      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
+      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
       local.csi_version != null ? "curl https://raw.githubusercontent.com/hetznercloud/csi-driver/${coalesce(local.csi_version, "v2.4.0")}/deploy/kubernetes/hcloud-csi.yml -o /var/post_install/hcloud-csi.yml" : "echo 'Skipping hetzner csi.'"
     ]
@@ -305,6 +319,7 @@ resource "null_resource" "kustomization" {
   }
 
   depends_on = [
+    hcloud_load_balancer.cluster,
     null_resource.first_control_plane,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume
