@@ -119,7 +119,7 @@ module "kube-hetzner" {
       labels      = [],
       taints      = [],
       count       = 1
-      swap_size   = "2G" # remember to add the suffix, examples: 512M, 1G
+      # swap_size   = "2G" # remember to add the suffix, examples: 512M, 1G
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
