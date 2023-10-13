@@ -78,6 +78,68 @@ resource "hcloud_load_balancer_service" "control_plane" {
   listen_port      = "6443"
 }
 
+locals {
+  k3s-config = { for k, v in local.control_plane_nodes : k => merge(
+    {
+      node-name = module.control_planes[k].name
+      server = length(module.control_planes) == 1 ? null : "https://${
+        var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] :
+        module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
+        module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
+      module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+      token                       = random_password.k3s_token.result
+      disable-cloud-controller    = true
+      disable                     = local.disable_extras
+      kubelet-arg                 = local.kubelet_arg
+      kube-controller-manager-arg = local.kube_controller_manager_arg
+      flannel-iface               = local.flannel_iface
+      node-ip                     = module.control_planes[k].private_ipv4_address
+      advertise-address           = module.control_planes[k].private_ipv4_address
+      node-label                  = v.labels
+      node-taint                  = v.taints
+      selinux                     = true
+      write-kubeconfig-mode       = "0644" # needed for import into rancher
+    },
+    lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+    var.use_control_plane_lb ? {
+      tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
+      } : {
+      tls-san = concat([
+        module.control_planes[k].ipv4_address
+      ], var.additional_tls_sans)
+    },
+    local.etcd_s3_snapshots,
+    var.control_planes_custom_config
+  ) }
+}
+
+resource "null_resource" "control_plane_config" {
+  for_each = local.control_plane_nodes
+
+  triggers = {
+    control_plane_id = module.control_planes[each.key].id
+    config           = sha1(yamlencode(local.k3s-config[each.key]))
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = module.control_planes[each.key].ipv4_address
+    port           = var.ssh_port
+  }
+
+  # Generating k3s server config file
+  provisioner "file" {
+    content     = yamlencode(local.k3s-config[each.key])
+    destination = "/tmp/config.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [local.k3s_config_update_script]
+  }
+}
+
 resource "null_resource" "control_planes" {
   for_each = local.control_plane_nodes
 
@@ -91,48 +153,6 @@ resource "null_resource" "control_planes" {
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[each.key].ipv4_address
     port           = var.ssh_port
-  }
-
-  # Generating k3s server config file
-  provisioner "file" {
-    content = yamlencode(
-      merge(
-        {
-          node-name = module.control_planes[each.key].name
-          server = length(module.control_planes) == 1 ? null : "https://${
-            var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] :
-            module.control_planes[each.key].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
-            module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
-          module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-          token                       = local.k3s_token
-          disable-cloud-controller    = true
-          disable                     = local.disable_extras
-          kubelet-arg                 = local.kubelet_arg
-          kube-controller-manager-arg = local.kube_controller_manager_arg
-          flannel-iface               = local.flannel_iface
-          node-ip                     = module.control_planes[each.key].private_ipv4_address
-          advertise-address           = module.control_planes[each.key].private_ipv4_address
-          node-label                  = each.value.labels
-          node-taint                  = each.value.taints
-          cluster-cidr                = var.cluster_ipv4_cidr
-          service-cidr                = var.service_ipv4_cidr
-          selinux                     = true
-          write-kubeconfig-mode       = "0644" # needed for import into rancher
-        },
-        lookup(local.cni_k3s_settings, var.cni_plugin, {}),
-        var.use_control_plane_lb ? {
-          tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
-          } : {
-          tls-san = concat([
-            module.control_planes[each.key].ipv4_address
-          ], var.additional_tls_sans)
-        },
-        local.etcd_s3_snapshots,
-        var.control_planes_custom_config
-      )
-    )
-
-    destination = "/tmp/config.yaml"
   }
 
   # Install k3s server
@@ -158,6 +178,7 @@ resource "null_resource" "control_planes" {
 
   depends_on = [
     null_resource.first_control_plane,
+    null_resource.control_plane_config,
     hcloud_network_subnet.control_plane
   ]
 }
