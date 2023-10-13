@@ -86,7 +86,7 @@ variable "existing_network_id" {
   default     = []
   nullable    = false
   validation {
-    condition     = var.existing_network_id == null || (can(var.existing_network_id[0]) && length(var.existing_network_id) == 1)
+    condition     = length(var.existing_network_id) == 0 || (can(var.existing_network_id[0]) && length(var.existing_network_id) == 1)
     error_message = "If you pass an existing_network_id, it must be enclosed in square brackets: [id]. This is necessary to be able to unambiguously distinguish between an empty network id (default) and a user-supplied network id."
   }
 }
