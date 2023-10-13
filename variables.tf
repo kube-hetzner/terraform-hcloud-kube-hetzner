@@ -166,6 +166,7 @@ variable "control_plane_nodepools" {
     labels      = list(string)
     taints      = list(string)
     count       = number
+    swap_size   = optional(string, "")
   }))
   default = []
   validation {
@@ -192,6 +193,7 @@ variable "agent_nodepools" {
     taints               = list(string)
     count                = number
     longhorn_volume_size = optional(number)
+    swap_size            = optional(string, "")
   }))
   default = []
   validation {
