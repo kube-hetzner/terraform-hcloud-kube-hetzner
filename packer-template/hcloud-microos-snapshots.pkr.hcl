@@ -38,7 +38,7 @@ variable "packages_to_install" {
 }
 
 locals {
-  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi xfsprogs cryptsetup lvm2 git cifs-utils bash-completion mtr tcpdump"], var.packages_to_install))
+  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console bind-utils wireguard-tools open-iscsi nfs-client xfsprogs cryptsetup lvm2 git cifs-utils bash-completion mtr tcpdump"], var.packages_to_install))
 
   # Add local variables for inline shell commands
   download_image = "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only "
@@ -60,8 +60,6 @@ locals {
     rpm --import https://rpm.rancher.io/public.key
     zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.4.stable.1/k3s-selinux-1.4-1.sle.noarch.rpm
     zypper addlock k3s-selinux
-    zypper install -y https://download.opensuse.org/history/20231008/tumbleweed/repo/oss/x86_64/nfs-client-2.6.3-39.4.x86_64.rpm
-    zypper addlock nfs-client
     restorecon -Rv /etc/selinux/targeted/policy
     restorecon -Rv /var/lib
     setenforce 1
