@@ -1,6 +1,6 @@
 resource "hcloud_load_balancer" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
-  name  = var.cluster_name
+  name  = local.load_balancer_name
 
   load_balancer_type = var.load_balancer_type
   location           = var.load_balancer_location
