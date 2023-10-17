@@ -633,8 +633,10 @@ DATE=`date +%Y-%m-%d_%H-%M-%S`
 if cmp -s /tmp/config.yaml /etc/rancher/k3s/config.yaml; then
   echo "No update required to the config.yaml file"
 else
-  echo "Backing up /etc/rancher/k3s/config.yaml to /tmp/config_$DATE.yaml"
-  cp /etc/rancher/k3s/config.yaml /tmp/config_$DATE.yaml
+  if [ -f "/etc/rancher/k3s/config.yaml" ]; then
+    echo "Backing up /etc/rancher/k3s/config.yaml to /tmp/config_$DATE.yaml"
+    cp /etc/rancher/k3s/config.yaml /tmp/config_$DATE.yaml
+  fi
   echo "Updated config.yaml detected, restart of k3s service required"
   cp /tmp/config.yaml /etc/rancher/k3s/config.yaml
   if systemctl is-active --quiet k3s; then
@@ -644,7 +646,7 @@ else
   else
     echo "No active k3s or k3s-agent service found"
   fi
-  echo "k3s service or k3s-agent service restarted successfully"
+  echo "k3s service or k3s-agent service (re)started successfully"
 fi
 EOF
 

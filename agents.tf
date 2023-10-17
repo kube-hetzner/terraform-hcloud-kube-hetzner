@@ -40,6 +40,49 @@ module "agents" {
   ]
 }
 
+locals {
+  k3s-agent-config = { for k, v in local.agent_nodes : k => merge(
+    {
+      node-name     = module.agents[k].name
+      server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+      token         = local.k3s_token
+      kubelet-arg   = local.kubelet_arg
+      flannel-iface = local.flannel_iface
+      node-ip       = module.agents[k].private_ipv4_address
+      node-label    = v.labels
+      node-taint    = v.taints
+      selinux       = true
+    },
+  ) }
+}
+
+resource "null_resource" "agent_config" {
+  for_each = local.agent_nodes
+
+  triggers = {
+    agent_id = module.agents[each.key].id
+    config   = sha1(yamlencode(local.k3s-agent-config[each.key]))
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = module.agents[each.key].ipv4_address
+    port           = var.ssh_port
+  }
+
+  # Generating k3s agent config file
+  provisioner "file" {
+    content     = yamlencode(local.k3s-agent-config[each.key])
+    destination = "/tmp/config.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [local.k3s_config_update_script]
+  }
+}
+
 resource "null_resource" "agents" {
   for_each = local.agent_nodes
 
@@ -53,22 +96,6 @@ resource "null_resource" "agents" {
     agent_identity = local.ssh_agent_identity
     host           = module.agents[each.key].ipv4_address
     port           = var.ssh_port
-  }
-
-  # Generating k3s agent config file
-  provisioner "file" {
-    content = yamlencode({
-      node-name     = module.agents[each.key].name
-      server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-      token         = local.k3s_token
-      kubelet-arg   = local.kubelet_arg
-      flannel-iface = local.flannel_iface
-      node-ip       = module.agents[each.key].private_ipv4_address
-      node-label    = each.value.labels
-      node-taint    = each.value.taints
-      selinux       = true
-    })
-    destination = "/tmp/config.yaml"
   }
 
   # Install k3s agent
@@ -94,6 +121,7 @@ resource "null_resource" "agents" {
 
   depends_on = [
     null_resource.first_control_plane,
+    null_resource.agent_config,
     hcloud_network_subnet.agent
   ]
 }
