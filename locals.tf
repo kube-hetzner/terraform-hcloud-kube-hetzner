@@ -101,7 +101,7 @@ locals {
   })
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
-  swap_node_label = ["node.kubernetes.io/server-swap=enabled"]
+  swap_node_label   = ["node.kubernetes.io/server-swap=enabled"]
 
   install_k3s_server = concat(local.common_pre_install_k3s_commands, [
     "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC='server ${var.k3s_exec_server_args}' sh -"
@@ -120,7 +120,7 @@ locals {
         labels : concat(local.default_control_plane_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
         taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
         backups : nodepool_obj.backups,
-        swap_size: nodepool_obj.swap_size,
+        swap_size : nodepool_obj.swap_size,
         index : node_index
       }
     }
@@ -138,7 +138,7 @@ locals {
         labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
         backups : lookup(nodepool_obj, "backups", false),
-        swap_size: nodepool_obj.swap_size,
+        swap_size : nodepool_obj.swap_size,
         index : node_index
       }
     }

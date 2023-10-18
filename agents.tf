@@ -61,7 +61,7 @@ resource "null_resource" "agents" {
       node-name     = module.agents[each.key].name
       server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token         = local.k3s_token
-      kubelet-arg   = local.kubelet_arg
+      kubelet-arg   = concat(local.kubelet_arg, each.value.kubelet_args)
       flannel-iface = local.flannel_iface
       node-ip       = module.agents[each.key].private_ipv4_address
       node-label    = each.value.labels
