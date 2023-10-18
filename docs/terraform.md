@@ -13,13 +13,13 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
-| <a name="provider_github"></a> [github](#provider\_github) | >= 5.38.0 |
-| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.43.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | >= 2.4.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | n/a |
-| <a name="provider_random"></a> [random](#provider\_random) | n/a |
-| <a name="provider_remote"></a> [remote](#provider\_remote) | >= 0.1.2 |
+| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | 2.3.2 |
+| <a name="provider_github"></a> [github](#provider\_github) | 5.38.0 |
+| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | 1.43.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.4.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.1 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.5.1 |
+| <a name="provider_remote"></a> [remote](#provider\_remote) | 0.1.2 |
 
 ### Modules
 
@@ -89,7 +89,7 @@
 | <a name="input_additional_k3s_environment"></a> [additional\_k3s\_environment](#input\_additional\_k3s\_environment) | Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . | `map(any)` | `{}` | no |
 | <a name="input_additional_tls_sans"></a> [additional\_tls\_sans](#input\_additional\_tls\_sans) | Additional TLS SANs to allow connection to control-plane through it. | `list(string)` | `[]` | no |
 | <a name="input_address_for_connectivity_test"></a> [address\_for\_connectivity\_test](#input\_address\_for\_connectivity\_test) | Before installing k3s, we actually verify that there is internet connectivity. By default we ping 1.1.1.1, but if you use a proxy, you may simply want to ping that proxy instead (assuming that the proxy has its own checks for internet connectivity). | `string` | `"1.1.1.1"` | no |
-| <a name="input_agent_nodepools"></a> [agent\_nodepools](#input\_agent\_nodepools) | Number of agent nodes. | <pre>list(object({<br>    name                 = string<br>    server_type          = string<br>    location             = string<br>    backups              = optional(bool)<br>    floating_ip          = optional(bool)<br>    labels               = list(string)<br>    taints               = list(string)<br>    count                = number<br>    longhorn_volume_size = optional(number)<br>    swap_size            = optional(string, "")<br>  }))</pre> | `[]` | no |
+| <a name="input_agent_nodepools"></a> [agent\_nodepools](#input\_agent\_nodepools) | Number of agent nodes. | <pre>list(object({<br>    name                 = string<br>    server_type          = string<br>    location             = string<br>    backups              = optional(bool)<br>    floating_ip          = optional(bool)<br>    labels               = list(string)<br>    taints               = list(string)<br>    count                = number<br>    longhorn_volume_size = optional(number)<br>    swap_size            = optional(string, "")<br>    kubelet_args         = optional(list(string), [])<br>  }))</pre> | `[]` | no |
 | <a name="input_allow_scheduling_on_control_plane"></a> [allow\_scheduling\_on\_control\_plane](#input\_allow\_scheduling\_on\_control\_plane) | Whether to allow non-control-plane workloads to run on the control-plane nodes. | `bool` | `false` | no |
 | <a name="input_automatically_upgrade_k3s"></a> [automatically\_upgrade\_k3s](#input\_automatically\_upgrade\_k3s) | Whether to automatically upgrade k3s based on the selected channel. | `bool` | `true` | no |
 | <a name="input_automatically_upgrade_os"></a> [automatically\_upgrade\_os](#input\_automatically\_upgrade\_os) | Whether to enable or disable automatic os updates. Defaults to true. Should be disabled for single-node clusters | `bool` | `true` | no |
@@ -117,7 +117,7 @@
 | <a name="input_cni_plugin"></a> [cni\_plugin](#input\_cni\_plugin) | CNI plugin for k3s. | `string` | `"flannel"` | no |
 | <a name="input_control_plane_lb_enable_public_interface"></a> [control\_plane\_lb\_enable\_public\_interface](#input\_control\_plane\_lb\_enable\_public\_interface) | Enable or disable public interface for the control plane load balancer . Defaults to true. | `bool` | `true` | no |
 | <a name="input_control_plane_lb_type"></a> [control\_plane\_lb\_type](#input\_control\_plane\_lb\_type) | The type of load balancer to use for the control plane load balancer. Defaults to lb11, which is the cheapest one. | `string` | `"lb11"` | no |
-| <a name="input_control_plane_nodepools"></a> [control\_plane\_nodepools](#input\_control\_plane\_nodepools) | Number of control plane nodes. | <pre>list(object({<br>    name        = string<br>    server_type = string<br>    location    = string<br>    backups     = optional(bool)<br>    labels      = list(string)<br>    taints      = list(string)<br>    count       = number<br>    swap_size   = optional(string, "")<br>  }))</pre> | `[]` | no |
+| <a name="input_control_plane_nodepools"></a> [control\_plane\_nodepools](#input\_control\_plane\_nodepools) | Number of control plane nodes. | <pre>list(object({<br>    name         = string<br>    server_type  = string<br>    location     = string<br>    backups      = optional(bool)<br>    labels       = list(string)<br>    taints       = list(string)<br>    count        = number<br>    swap_size    = optional(string, "")<br>    kubelet_args = optional(list(string), [])<br>  }))</pre> | `[]` | no |
 | <a name="input_control_planes_custom_config"></a> [control\_planes\_custom\_config](#input\_control\_planes\_custom\_config) | Custom control plane configuration e.g to allow etcd monitoring. | `any` | `{}` | no |
 | <a name="input_create_kubeconfig"></a> [create\_kubeconfig](#input\_create\_kubeconfig) | Create the kubeconfig as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |
 | <a name="input_create_kustomization"></a> [create\_kustomization](#input\_create\_kustomization) | Create the kustomization backup as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |
@@ -148,8 +148,11 @@
 | <a name="input_ingress_max_replica_count"></a> [ingress\_max\_replica\_count](#input\_ingress\_max\_replica\_count) | Number of maximum replicas per ingress controller. Used for ingress HPA. Must be higher than number of replicas. | `number` | `10` | no |
 | <a name="input_ingress_replica_count"></a> [ingress\_replica\_count](#input\_ingress\_replica\_count) | Number of replicas per ingress controller. 0 means autodetect based on the number of agent nodes. | `number` | `0` | no |
 | <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.27"` | no |
+| <a name="input_k3s_agent_kubelet_args"></a> [k3s\_agent\_kubelet\_args](#input\_k3s\_agent\_kubelet\_args) | Kubelet args for agentt nodes. | `list(string)` | `[]` | no |
+| <a name="input_k3s_control_plane_kubelet_args"></a> [k3s\_control\_plane\_kubelet\_args](#input\_k3s\_control\_plane\_kubelet\_args) | Kubelet args for control plane nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_exec_agent_args"></a> [k3s\_exec\_agent\_args](#input\_k3s\_exec\_agent\_args) | Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example. | `string` | `""` | no |
 | <a name="input_k3s_exec_server_args"></a> [k3s\_exec\_server\_args](#input\_k3s\_exec\_server\_args) | The control plane is started with `k3s server {k3s_exec_server_args}`. Use this to add kube-apiserver-arg for example. | `string` | `""` | no |
+| <a name="input_k3s_global_kubelet_args"></a> [k3s\_global\_kubelet\_args](#input\_k3s\_global\_kubelet\_args) | Global kubelet args for all nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_registries"></a> [k3s\_registries](#input\_k3s\_registries) | K3S registries.yml contents. It used to access private docker registries. | `string` | `" "` | no |
 | <a name="input_k3s_token"></a> [k3s\_token](#input\_k3s\_token) | k3s master token (must match when restoring a cluster). | `string` | `null` | no |
 | <a name="input_kured_options"></a> [kured\_options](#input\_kured\_options) | n/a | `map(string)` | `{}` | no |

@@ -159,14 +159,15 @@ variable "load_balancer_health_check_retries" {
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
-    name        = string
-    server_type = string
-    location    = string
-    backups     = optional(bool)
-    labels      = list(string)
-    taints      = list(string)
-    count       = number
-    swap_size   = optional(string, "")
+    name         = string
+    server_type  = string
+    location     = string
+    backups      = optional(bool)
+    labels       = list(string)
+    taints       = list(string)
+    count        = number
+    swap_size    = optional(string, "")
+    kubelet_args = optional(list(string), [])
   }))
   default = []
   validation {
@@ -194,6 +195,7 @@ variable "agent_nodepools" {
     count                = number
     longhorn_volume_size = optional(number)
     swap_size            = optional(string, "")
+    kubelet_args         = optional(list(string), [])
   }))
   default = []
   validation {
@@ -826,4 +828,22 @@ variable "k3s_exec_agent_args" {
   type        = string
   default     = ""
   description = "Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example."
+}
+
+variable "k3s_global_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Global kubelet args for all nodes."
+}
+
+variable "k3s_control_plane_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Kubelet args for control plane nodes."
+}
+
+variable "k3s_agent_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Kubelet args for agentt nodes."
 }

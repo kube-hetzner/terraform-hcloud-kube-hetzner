@@ -120,6 +120,7 @@ module "kube-hetzner" {
       taints      = [],
       count       = 1
       # swap_size   = "2G" # remember to add the suffix, examples: 512M, 1G
+      # kubelet_args = ["kube-reserved=cpu=100m,memory=200Mi,ephemeral-storage=1Gi", "system-reserved=cpu=memory=200Mi"]
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
@@ -156,6 +157,8 @@ module "kube-hetzner" {
       labels      = [],
       taints      = [],
       count       = 1
+      # swap_size   = "2G" # remember to add the suffix, examples: 512M, 1G
+      # kubelet_args = ["kube-reserved=cpu=100m,memory=200Mi,ephemeral-storage=1Gi", "system-reserved=cpu=memory=200Mi"]
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
@@ -529,6 +532,11 @@ module "kube-hetzner" {
 
   # Additional flags to pass to the k3s agent command (every agents nodes, including autoscaler nodepools).
   # k3s_exec_agent_args = "--kubelet-arg kube-reserved=cpu=100m,memory=200Mi,ephemeral-storage=1Gi"
+
+  # The vars below here passes it to the k3s config.yaml. This way it persist across reboots
+  # k3s_global_kubelet_args = ["kube-reserved=cpu=100m,ephemeral-storage=1Gi", "system-reserved=cpu=memory=200Mi", "image-gc-high-threshold=50", "image-gc-low-threshold=40"]
+  # k3s_control_plane_kubelet_args = []
+  # k3s_agent_kubelet_args = []
 
   # If you want to allow all outbound traffic you can set this to "false". Default is "true".
   # restrict_outbound_traffic = false
