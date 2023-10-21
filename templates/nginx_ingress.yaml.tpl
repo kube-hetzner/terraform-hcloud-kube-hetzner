@@ -12,7 +12,7 @@ metadata:
 spec:
   chart: ingress-nginx
   repo: https://kubernetes.github.io/ingress-nginx
-  targetNamespace: nginx
+  targetNamespace: ${target_namespace}
   bootstrap: true
   valuesContent: |-
     ${values}

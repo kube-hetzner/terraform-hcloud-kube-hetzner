@@ -148,7 +148,8 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
-        values = indent(4, trimspace(local.traefik_values))
+        values           = indent(4, trimspace(local.traefik_values))
+        target_namespace = local.ingress_target_namespace
     })
     destination = "/var/post_install/traefik_ingress.yaml"
   }
@@ -158,7 +159,8 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
-        values = indent(4, trimspace(local.nginx_values))
+        values           = indent(4, trimspace(local.nginx_values))
+        target_namespace = local.ingress_target_namespace
     })
     destination = "/var/post_install/nginx_ingress.yaml"
   }
