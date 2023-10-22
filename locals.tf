@@ -119,6 +119,7 @@ locals {
         location : nodepool_obj.location,
         labels : concat(local.default_control_plane_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
         taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
+        kubelet_args : nodepool_obj.kubelet_args,
         backups : nodepool_obj.backups,
         swap_size : nodepool_obj.swap_size,
         index : node_index
@@ -137,6 +138,7 @@ locals {
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
+        kubelet_args : nodepool_obj.kubelet_args,
         backups : lookup(nodepool_obj, "backups", false),
         swap_size : nodepool_obj.swap_size,
         index : node_index

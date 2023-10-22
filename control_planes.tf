@@ -90,7 +90,7 @@ locals {
       token                       = local.k3s_token
       disable-cloud-controller    = true
       disable                     = local.disable_extras
-      kubelet-arg                 = local.kubelet_arg
+      kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
       kube-controller-manager-arg = local.kube_controller_manager_arg
       flannel-iface               = local.flannel_iface
       node-ip                     = module.control_planes[k].private_ipv4_address

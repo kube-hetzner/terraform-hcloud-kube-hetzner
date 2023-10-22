@@ -13,13 +13,13 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
-| <a name="provider_github"></a> [github](#provider\_github) | >= 5.38.0 |
-| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.43.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | >= 2.4.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | n/a |
-| <a name="provider_random"></a> [random](#provider\_random) | n/a |
-| <a name="provider_remote"></a> [remote](#provider\_remote) | >= 0.1.2 |
+| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | 2.3.2 |
+| <a name="provider_github"></a> [github](#provider\_github) | 5.38.0 |
+| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | 1.43.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.4.0 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.1 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.5.1 |
+| <a name="provider_remote"></a> [remote](#provider\_remote) | 0.1.2 |
 
 ### Modules
 
@@ -89,7 +89,7 @@
 | <a name="input_additional_k3s_environment"></a> [additional\_k3s\_environment](#input\_additional\_k3s\_environment) | Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . | `map(any)` | `{}` | no |
 | <a name="input_additional_tls_sans"></a> [additional\_tls\_sans](#input\_additional\_tls\_sans) | Additional TLS SANs to allow connection to control-plane through it. | `list(string)` | `[]` | no |
 | <a name="input_address_for_connectivity_test"></a> [address\_for\_connectivity\_test](#input\_address\_for\_connectivity\_test) | Before installing k3s, we actually verify that there is internet connectivity. By default we ping 1.1.1.1, but if you use a proxy, you may simply want to ping that proxy instead (assuming that the proxy has its own checks for internet connectivity). | `string` | `"1.1.1.1"` | no |
-| <a name="input_agent_nodepools"></a> [agent\_nodepools](#input\_agent\_nodepools) | Number of agent nodes. | <pre>list(object({<br>    name                 = string<br>    server_type          = string<br>    location             = string<br>    backups              = optional(bool)<br>    floating_ip          = optional(bool)<br>    labels               = list(string)<br>    taints               = list(string)<br>    count                = number<br>    longhorn_volume_size = optional(number)<br>    swap_size            = optional(string, "")<br>  }))</pre> | `[]` | no |
+| <a name="input_agent_nodepools"></a> [agent\_nodepools](#input\_agent\_nodepools) | Number of agent nodes. | <pre>list(object({<br>    name                 = string<br>    server_type          = string<br>    location             = string<br>    backups              = optional(bool)<br>    floating_ip          = optional(bool)<br>    labels               = list(string)<br>    taints               = list(string)<br>    count                = number<br>    longhorn_volume_size = optional(number)<br>    swap_size            = optional(string, "")<br>    kubelet_args         = optional(list(string), [])<br>  }))</pre> | `[]` | no |
 | <a name="input_allow_scheduling_on_control_plane"></a> [allow\_scheduling\_on\_control\_plane](#input\_allow\_scheduling\_on\_control\_plane) | Whether to allow non-control-plane workloads to run on the control-plane nodes. | `bool` | `false` | no |
 | <a name="input_automatically_upgrade_k3s"></a> [automatically\_upgrade\_k3s](#input\_automatically\_upgrade\_k3s) | Whether to automatically upgrade k3s based on the selected channel. | `bool` | `true` | no |
 | <a name="input_automatically_upgrade_os"></a> [automatically\_upgrade\_os](#input\_automatically\_upgrade\_os) | Whether to enable or disable automatic os updates. Defaults to true. Should be disabled for single-node clusters | `bool` | `true` | no |
@@ -117,7 +117,7 @@
 | <a name="input_cni_plugin"></a> [cni\_plugin](#input\_cni\_plugin) | CNI plugin for k3s. | `string` | `"flannel"` | no |
 | <a name="input_control_plane_lb_enable_public_interface"></a> [control\_plane\_lb\_enable\_public\_interface](#input\_control\_plane\_lb\_enable\_public\_interface) | Enable or disable public interface for the control plane load balancer . Defaults to true. | `bool` | `true` | no |
 | <a name="input_control_plane_lb_type"></a> [control\_plane\_lb\_type](#input\_control\_plane\_lb\_type) | The type of load balancer to use for the control plane load balancer. Defaults to lb11, which is the cheapest one. | `string` | `"lb11"` | no |
-| <a name="input_control_plane_nodepools"></a> [control\_plane\_nodepools](#input\_control\_plane\_nodepools) | Number of control plane nodes. | <pre>list(object({<br>    name        = string<br>    server_type = string<br>    location    = string<br>    backups     = optional(bool)<br>    labels      = list(string)<br>    taints      = list(string)<br>    count       = number<br>    swap_size   = optional(string, "")<br>  }))</pre> | `[]` | no |
+| <a name="input_control_plane_nodepools"></a> [control\_plane\_nodepools](#input\_control\_plane\_nodepools) | Number of control plane nodes. | <pre>list(object({<br>    name         = string<br>    server_type  = string<br>    location     = string<br>    backups      = optional(bool)<br>    labels       = list(string)<br>    taints       = list(string)<br>    count        = number<br>    swap_size    = optional(string, "")<br>    kubelet_args = optional(list(string), [])<br>  }))</pre> | `[]` | no |
 | <a name="input_control_planes_custom_config"></a> [control\_planes\_custom\_config](#input\_control\_planes\_custom\_config) | Custom control plane configuration e.g to allow etcd monitoring. | `any` | `{}` | no |
 | <a name="input_create_kubeconfig"></a> [create\_kubeconfig](#input\_create\_kubeconfig) | Create the kubeconfig as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |
 | <a name="input_create_kustomization"></a> [create\_kustomization](#input\_create\_kustomization) | Create the kustomization backup as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |

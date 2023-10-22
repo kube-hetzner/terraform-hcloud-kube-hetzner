@@ -159,14 +159,15 @@ variable "load_balancer_health_check_retries" {
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
-    name        = string
-    server_type = string
-    location    = string
-    backups     = optional(bool)
-    labels      = list(string)
-    taints      = list(string)
-    count       = number
-    swap_size   = optional(string, "")
+    name         = string
+    server_type  = string
+    location     = string
+    backups      = optional(bool)
+    labels       = list(string)
+    taints       = list(string)
+    count        = number
+    swap_size    = optional(string, "")
+    kubelet_args = optional(list(string), [])
   }))
   default = []
   validation {
@@ -194,6 +195,7 @@ variable "agent_nodepools" {
     count                = number
     longhorn_volume_size = optional(number)
     swap_size            = optional(string, "")
+    kubelet_args         = optional(list(string), [])
   }))
   default = []
   validation {
