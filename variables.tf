@@ -827,3 +827,27 @@ variable "k3s_exec_agent_args" {
   default     = ""
   description = "Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example."
 }
+
+variable "k3s_global_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Global kubelet args for all nodes."
+}
+
+variable "k3s_control_plane_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Kubelet args for control plane nodes."
+}
+
+variable "k3s_agent_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Kubelet args for agent nodes."
+}
+
+variable "ingress_target_namespace" {
+  type        = string
+  default     = ""
+  description = "The namespace to deploy the ingress controller to. Defaults to ingress name."
+}

@@ -388,6 +388,7 @@ module "kube-hetzner" {
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # If you want to disable both controllers set this to "none"
   # ingress_controller = "nginx"
+  # ingress_target_namespace = "" // In which namespace to deploy the ingress controllers. Defaults to the ingress_controller variable, eg (nginx, traefik)
 
   # You can change the number of replicas for selected ingress controller here. The default 0 means autoselecting based on number of agent nodes (1 node = 1 replica, 2 nodes = 2 replicas, 3+ nodes = 3 replicas)
   # ingress_replica_count = 1
@@ -400,6 +401,7 @@ module "kube-hetzner" {
 
   # If you want to configure additional arguments for traefik, enter them here as a list and in the form of traefik CLI arguments; see https://doc.traefik.io/traefik/reference/static-configuration/cli/
   # They are the options that go into the additionalArguments section of the Traefik helm values file.
+  # We already add "providers.kubernetesingress.ingressendpoint.publishedservice" by default so that Traefik works automatically with services such as External-DNS and ArgoCD.
   # Example:
   # traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
 
