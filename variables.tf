@@ -845,5 +845,11 @@ variable "k3s_control_plane_kubelet_args" {
 variable "k3s_agent_kubelet_args" {
   type        = list(string)
   default     = []
-  description = "Kubelet args for agentt nodes."
+  description = "Kubelet args for agent nodes."
+}
+
+variable "ingress_target_namespace" {
+  type        = string
+  default     = ""
+  description = "The namespace to deploy the ingress controller to. Defaults to ingress name."
 }

@@ -162,6 +162,11 @@ locals {
   has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
   load_balancer_name         = "${var.cluster_name}-${var.ingress_controller}"
 
+  default_ingress_namespace_mapping = {
+    "traefik" = "traefik"
+    "nginx"   = "nginx"
+  }
+  ingress_target_namespace  = var.ingress_target_namespace != "" ? var.ingress_target_namespace : local.default_ingress_namespace_mapping[var.ingress_controller]
   ingress_replica_count     = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
   ingress_max_replica_count = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
 
@@ -569,6 +574,7 @@ podDisruptionBudget:
 %{endif~}
 additionalArguments:
   - "--entrypoints.tcp=true"
+  - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_target_namespace}/traefik"
 %{for option in var.traefik_additional_options~}
   - "${option}"
 %{endfor~}

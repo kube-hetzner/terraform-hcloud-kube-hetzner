@@ -12,7 +12,7 @@ metadata:
 spec:
   chart: traefik
   repo: https://traefik.github.io/charts
-  targetNamespace: traefik
+  targetNamespace: ${target_namespace}
   bootstrap: true
   valuesContent: |-
     ${values}
