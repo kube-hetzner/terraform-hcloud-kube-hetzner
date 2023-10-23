@@ -11,6 +11,7 @@ metadata:
   namespace: kube-system
 spec:
   chart: traefik
+  version: v24.0.0
   repo: https://traefik.github.io/charts
   targetNamespace: traefik
   bootstrap: true
