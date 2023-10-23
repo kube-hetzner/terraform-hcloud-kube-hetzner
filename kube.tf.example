@@ -820,7 +820,9 @@ service:
 
 ports:
   web:
-    redirectTo: websecure
+    redirectTo:
+      port: websecure
+      priority: 10
 
     proxyProtocol:
       trustedIPs:
