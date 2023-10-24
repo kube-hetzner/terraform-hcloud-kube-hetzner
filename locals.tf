@@ -122,6 +122,7 @@ locals {
         kubelet_args : nodepool_obj.kubelet_args,
         backups : nodepool_obj.backups,
         swap_size : nodepool_obj.swap_size,
+        zram_size : nodepool_obj.zram_size,
         index : node_index
       }
     }
@@ -141,6 +142,7 @@ locals {
         kubelet_args : nodepool_obj.kubelet_args,
         backups : lookup(nodepool_obj, "backups", false),
         swap_size : nodepool_obj.swap_size,
+        zram_size : nodepool_obj.zram_size,
         index : node_index
       }
     }

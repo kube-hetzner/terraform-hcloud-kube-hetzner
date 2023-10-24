@@ -167,6 +167,7 @@ variable "control_plane_nodepools" {
     taints       = list(string)
     count        = number
     swap_size    = optional(string, "")
+    zram_size    = optional(string, "")
     kubelet_args = optional(list(string), [])
   }))
   default = []
@@ -195,6 +196,7 @@ variable "agent_nodepools" {
     count                = number
     longhorn_volume_size = optional(number)
     swap_size            = optional(string, "")
+    zram_size            = optional(string, "")
     kubelet_args         = optional(list(string), [])
   }))
   default = []
