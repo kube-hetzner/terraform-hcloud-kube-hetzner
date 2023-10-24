@@ -128,3 +128,13 @@ variable "swap_size" {
     error_message = "Invalid swap size. Examples: 512M, 1G"
   }
 }
+
+variable "zram_size" {
+  default = ""
+  type    = string
+
+  validation {
+    condition     = can(regex("^$|[1-9][0-9]{0,3}(G|M)$", var.zram_size))
+    error_message = "Invalid zram size. Examples: 512M, 1G"
+  }
+}
