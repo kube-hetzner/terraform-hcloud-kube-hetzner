@@ -16,18 +16,16 @@ variable "hcloud_token" {
   sensitive = true
 }
 
-# We download the OpenSUSE MicroOS x86 image from an automatically selected mirror. In case it somehow does not work for you (you get a 403), you can try other mirrors.
-# You can find a working mirror at https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2.mirrorlist
+# We download the OpenSUSE MicroOS x86 image from an automatically selected mirror.
 variable "opensuse_microos_x86_mirror_link" {
   type    = string
-  default = "https://download.opensuse.org/repositories/devel:/kubic:/images/openSUSE_Tumbleweed/openSUSE-MicroOS.x86_64-OpenStack-Cloud.qcow2"
+  default = "https://download.opensuse.org/tumbleweed/appliances/openSUSE-MicroOS.x86_64-ContainerHost-OpenStack-Cloud.qcow2"
 }
 
-# We download the OpenSUSE MicroOS ARM image from an automatically selected mirror. In case it somehow does not work for you (you get a 403), you can try other mirrors.
-# You can find a working mirror at https://download.opensuse.org/ports/aarch64/tumbleweed/appliances/openSUSE-MicroOS.aarch64-OpenStack-Cloud.qcow2.mirrorlist
+# We download the OpenSUSE MicroOS ARM image from an automatically selected mirror.
 variable "opensuse_microos_arm_mirror_link" {
   type    = string
-  default = "https://download.opensuse.org/ports/aarch64/tumbleweed/appliances/openSUSE-MicroOS.aarch64-OpenStack-Cloud.qcow2"
+  default = "https://download.opensuse.org/ports/aarch64/tumbleweed/appliances/openSUSE-MicroOS.aarch64-ContainerHost-OpenStack-Cloud.qcow2"
 }
 
 # If you need to add other packages to the OS, do it here in the default value, like ["vim", "curl", "wget"]
