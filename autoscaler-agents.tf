@@ -2,19 +2,19 @@ locals {
   cluster_prefix = var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""
 
   imageList = {
-    arm64: tostring(data.hcloud_image.microos_arm_snapshot.id)
-    amd64: tostring(data.hcloud_image.microos_x86_snapshot.id)
+    arm64 : tostring(data.hcloud_image.microos_arm_snapshot.id)
+    amd64 : tostring(data.hcloud_image.microos_x86_snapshot.id)
   }
 
   nodeConfigName = var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""
   cluster_config = {
-    imagesForArch: local.imageList
-    nodeConfigs: {
-      for index, nodePool in var.autoscaler_nodepools:
+    imagesForArch : local.imageList
+    nodeConfigs : {
+      for index, nodePool in var.autoscaler_nodepools :
       ("${local.nodeConfigName}${nodePool.name}") => {
         cloudInit = data.cloudinit_config.autoscaler-config[index].rendered
-        labels = nodePool.labels
-        taints = nodePool.taints
+        labels    = nodePool.labels
+        taints    = nodePool.taints
       }
     }
   }
