@@ -101,6 +101,7 @@ locals {
   })
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
+  swap_node_label   = ["node.kubernetes.io/server-swap=enabled"]
 
   install_k3s_server = concat(local.common_pre_install_k3s_commands, [
     "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC='server ${var.k3s_exec_server_args}' sh -"
@@ -116,9 +117,11 @@ locals {
         nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
         location : nodepool_obj.location,
-        labels : concat(local.default_control_plane_labels, nodepool_obj.labels),
+        labels : concat(local.default_control_plane_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
         taints : concat(local.default_control_plane_taints, nodepool_obj.taints),
+        kubelet_args : nodepool_obj.kubelet_args,
         backups : nodepool_obj.backups,
+        swap_size : nodepool_obj.swap_size,
         index : node_index
       }
     }
@@ -133,13 +136,17 @@ locals {
         longhorn_volume_size : coalesce(nodepool_obj.longhorn_volume_size, 0),
         floating_ip : lookup(nodepool_obj, "floating_ip", false),
         location : nodepool_obj.location,
-        labels : concat(local.default_agent_labels, nodepool_obj.labels),
+        labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
+        kubelet_args : nodepool_obj.kubelet_args,
         backups : lookup(nodepool_obj, "backups", false),
+        swap_size : nodepool_obj.swap_size,
         index : node_index
       }
     }
   ]...)
+
+  use_existing_network = length(var.existing_network_id) > 0
 
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
@@ -153,7 +160,13 @@ locals {
   using_klipper_lb = var.enable_klipper_metal_lb || local.is_single_node_cluster
 
   has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
+  load_balancer_name         = "${var.cluster_name}-${var.ingress_controller}"
 
+  default_ingress_namespace_mapping = {
+    "traefik" = "traefik"
+    "nginx"   = "nginx"
+  }
+  ingress_target_namespace  = var.ingress_target_namespace != "" ? var.ingress_target_namespace : local.default_ingress_namespace_mapping[var.ingress_controller]
   ingress_replica_count     = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
   ingress_max_replica_count = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
 
@@ -450,7 +463,7 @@ controller:
 %{if !local.using_klipper_lb~}
   service:
     annotations:
-      "load-balancer.hetzner.cloud/name": "${var.cluster_name}"
+      "load-balancer.hetzner.cloud/name": "${local.load_balancer_name}"
       "load-balancer.hetzner.cloud/use-private-ip": "true"
       "load-balancer.hetzner.cloud/disable-private-ingress": "true"
       "load-balancer.hetzner.cloud/disable-public-network": "${var.load_balancer_disable_public_network}"
@@ -477,7 +490,7 @@ service:
   type: LoadBalancer
 %{if !local.using_klipper_lb~}
   annotations:
-    "load-balancer.hetzner.cloud/name": "${var.cluster_name}"
+    "load-balancer.hetzner.cloud/name": "${local.load_balancer_name}"
     "load-balancer.hetzner.cloud/use-private-ip": "true"
     "load-balancer.hetzner.cloud/disable-private-ingress": "true"
     "load-balancer.hetzner.cloud/disable-public-network": "${var.load_balancer_disable_public_network}"
@@ -496,7 +509,9 @@ service:
 ports:
   web:
 %{if var.traefik_redirect_to_https~}
-    redirectTo: websecure
+    redirectTo:
+      port: websecure
+      priority: 10
 %{endif~}
 %{if !local.using_klipper_lb~}
     proxyProtocol:
@@ -561,6 +576,7 @@ podDisruptionBudget:
 %{endif~}
 additionalArguments:
   - "--entrypoints.tcp=true"
+  - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_target_namespace}/traefik"
 %{for option in var.traefik_additional_options~}
   - "${option}"
 %{endfor~}
@@ -619,6 +635,28 @@ else
     echo "No active k3s or k3s-agent service found"
   fi
   echo "k3s service or k3s-agent service restarted successfully"
+fi
+EOF
+
+  k3s_config_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/config.yaml /etc/rancher/k3s/config.yaml; then
+  echo "No update required to the config.yaml file"
+else
+  if [ -f "/etc/rancher/k3s/config.yaml" ]; then
+    echo "Backing up /etc/rancher/k3s/config.yaml to /tmp/config_$DATE.yaml"
+    cp /etc/rancher/k3s/config.yaml /tmp/config_$DATE.yaml
+  fi
+  echo "Updated config.yaml detected, restart of k3s service required"
+  cp /tmp/config.yaml /etc/rancher/k3s/config.yaml
+  if systemctl is-active --quiet k3s; then
+    systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/k3s/config.yaml && systemctl restart k3s)
+  elif systemctl is-active --quiet k3s-agent; then
+    systemctl restart k3s-agent || (echo "Error: Failed to restart k3s-agent. Restoring /etc/rancher/k3s/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/k3s/config.yaml && systemctl restart k3s-agent)
+  else
+    echo "No active k3s or k3s-agent service found"
+  fi
+  echo "k3s service or k3s-agent service (re)started successfully"
 fi
 EOF
 

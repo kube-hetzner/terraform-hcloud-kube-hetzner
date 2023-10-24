@@ -74,7 +74,22 @@ variable "network_region" {
   type        = string
   default     = "eu-central"
 }
-
+variable "existing_network_id" {
+  # Unfortunately, we need this to be a list or null. If we only use a plain
+  # string here, and check that existing_network_id is null, terraform will
+  # complain that it cannot set `count` variables based on existing_network_id
+  # != null, because that id is an output value from
+  # hcloud_network.your_network.id, which terraform will only know after its
+  # construction.
+  description = "If you want to create the private network before calling this module, you can do so and pass its id here. NOTE: make sure to adapt network_ipv4_cidr accordingly to a range which does not collide with your other nodes."
+  type        = list(string)
+  default     = []
+  nullable    = false
+  validation {
+    condition     = length(var.existing_network_id) == 0 || (can(var.existing_network_id[0]) && length(var.existing_network_id) == 1)
+    error_message = "If you pass an existing_network_id, it must be enclosed in square brackets: [id]. This is necessary to be able to unambiguously distinguish between an empty network id (default) and a user-supplied network id."
+  }
+}
 variable "network_ipv4_cidr" {
   description = "The main network cidr that all subnets will be created upon."
   type        = string
@@ -144,15 +159,27 @@ variable "load_balancer_health_check_retries" {
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
-    name        = string
-    server_type = string
-    location    = string
-    backups     = optional(bool)
-    labels      = list(string)
-    taints      = list(string)
-    count       = number
+    name         = string
+    server_type  = string
+    location     = string
+    backups      = optional(bool)
+    labels       = list(string)
+    taints       = list(string)
+    count        = number
+    swap_size    = optional(string, "")
+    kubelet_args = optional(list(string), [])
   }))
   default = []
+  validation {
+    condition = length(
+      [for control_plane_nodepool in var.control_plane_nodepools : control_plane_nodepool.name]
+      ) == length(
+      distinct(
+        [for control_plane_nodepool in var.control_plane_nodepools : control_plane_nodepool.name]
+      )
+    )
+    error_message = "Names in agent_nodepools must be unique."
+  }
 }
 
 variable "agent_nodepools" {
@@ -167,8 +194,20 @@ variable "agent_nodepools" {
     taints               = list(string)
     count                = number
     longhorn_volume_size = optional(number)
+    swap_size            = optional(string, "")
+    kubelet_args         = optional(list(string), [])
   }))
   default = []
+  validation {
+    condition = length(
+      [for agent_nodepool in var.agent_nodepools : agent_nodepool.name]
+      ) == length(
+      distinct(
+        [for agent_nodepool in var.agent_nodepools : agent_nodepool.name]
+      )
+    )
+    error_message = "Names in agent_nodepools must be unique."
+  }
 }
 
 variable "cluster_autoscaler_image" {
@@ -225,6 +264,12 @@ variable "autoscaler_nodepools" {
     location    = string
     min_nodes   = number
     max_nodes   = number
+    labels      = optional(map(string), {})
+    taints      = optional(list(object({
+      key       = string
+      value     = string
+      effect    = string
+    })), [])
   }))
   default = []
 }
@@ -743,6 +788,12 @@ variable "create_kustomization" {
   description = "Create the kustomization backup as a local file resource. Should be disabled for automatic runs."
 }
 
+variable "export_values" {
+  type        = bool
+  default     = false
+  description = "Export for deployment used values.yaml-files as local files."
+}
+
 variable "enable_wireguard" {
   type        = bool
   default     = false
@@ -783,4 +834,28 @@ variable "k3s_exec_agent_args" {
   type        = string
   default     = ""
   description = "Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example."
+}
+
+variable "k3s_global_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Global kubelet args for all nodes."
+}
+
+variable "k3s_control_plane_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Kubelet args for control plane nodes."
+}
+
+variable "k3s_agent_kubelet_args" {
+  type        = list(string)
+  default     = []
+  description = "Kubelet args for agent nodes."
+}
+
+variable "ingress_target_namespace" {
+  type        = string
+  default     = ""
+  description = "The namespace to deploy the ingress controller to. Defaults to ingress name."
 }

@@ -118,3 +118,13 @@ variable "cloudinit_runcmd_common" {
   default = ""
   type    = string
 }
+
+variable "swap_size" {
+  default = ""
+  type    = string
+
+  validation {
+    condition     = can(regex("^$|[1-9][0-9]{0,3}(G|M)$", var.swap_size))
+    error_message = "Invalid swap size. Examples: 512M, 1G"
+  }
+}
