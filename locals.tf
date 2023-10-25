@@ -168,7 +168,7 @@ locals {
     "traefik" = "traefik"
     "nginx"   = "nginx"
   }
-  ingress_target_namespace  = var.ingress_target_namespace != "" ? var.ingress_target_namespace : local.default_ingress_namespace_mapping[var.ingress_controller]
+  ingress_target_namespace  = var.ingress_target_namespace != "" ? var.ingress_target_namespace : lookup(local.default_ingress_namespace_mapping, var.ingress_controller, "")
   ingress_replica_count     = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
   ingress_max_replica_count = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
 
