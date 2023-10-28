@@ -214,13 +214,13 @@ variable "agent_nodepools" {
 
 variable "cluster_autoscaler_image" {
   type        = string
-  default     = "registry.k8s.io/autoscaling/cluster-autoscaler"
+  default     = "ghcr.io/kube-hetzner/autoscaler/cluster-autoscaler"
   description = "Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used."
 }
 
 variable "cluster_autoscaler_version" {
   type        = string
-  default     = "v1.27.3"
+  default     = "20231027"
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
 
