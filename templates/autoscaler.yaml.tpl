@@ -184,12 +184,14 @@ spec:
                   key: token
           - name: HCLOUD_CLOUD_INIT
             value: ${cloudinit_config}
+          - name: HCLOUD_CLUSTER_CONFIG
+            value: ${cluster_config}
           - name: HCLOUD_SSH_KEY
             value: '${ssh_key}'
-          - name: HCLOUD_NETWORK
-            value: '${ipv4_subnet_id}'
           - name: HCLOUD_IMAGE
             value: '${snapshot_id}'
+          - name: HCLOUD_NETWORK
+            value: '${ipv4_subnet_id}'
           - name: HCLOUD_FIREWALL
             value: '${firewall_id}'
           volumeMounts:

@@ -3,10 +3,31 @@ locals {
   first_nodepool_snapshot_id = length(var.autoscaler_nodepools) == 0 ? "" : (
     substr(var.autoscaler_nodepools[0].server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
   )
+
+  imageList = {
+    arm64 : tostring(data.hcloud_image.microos_arm_snapshot.id)
+    amd64 : tostring(data.hcloud_image.microos_x86_snapshot.id)
+  }
+
+  nodeConfigName = var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""
+  cluster_config = {
+    imagesForArch : local.imageList
+    nodeConfigs : {
+      for index, nodePool in var.autoscaler_nodepools :
+      ("${local.nodeConfigName}${nodePool.name}") => {
+        cloudInit = data.cloudinit_config.autoscaler_config[index].rendered
+        labels    = nodePool.labels
+        taints    = nodePool.taints
+      }
+    }
+  }
+
+  isUsingLegacyConfig = length(var.autoscaler_labels) > 0 || length(var.autoscaler_taints) > 0
+
   autoscaler_yaml = length(var.autoscaler_nodepools) == 0 ? "" : templatefile(
     "${path.module}/templates/autoscaler.yaml.tpl",
     {
-      cloudinit_config                    = base64encode(data.cloudinit_config.autoscaler-config[0].rendered)
+      cloudinit_config                    = local.isUsingLegacyConfig ? base64encode(data.cloudinit_config.autoscaler_legacy_config[0].rendered) : ""
       ca_image                            = var.cluster_autoscaler_image
       ca_version                          = var.cluster_autoscaler_version
       cluster_autoscaler_extra_args       = var.cluster_autoscaler_extra_args
@@ -16,6 +37,7 @@ locals {
       ssh_key                             = local.hcloud_ssh_key_id
       ipv4_subnet_id                      = data.hcloud_network.k3s.id
       snapshot_id                         = local.first_nodepool_snapshot_id
+      cluster_config                      = base64encode(jsonencode(local.cluster_config))
       firewall_id                         = hcloud_firewall.k3s.id
       cluster_name                        = local.cluster_prefix
       node_pools                          = var.autoscaler_nodepools
@@ -60,8 +82,40 @@ resource "null_resource" "configure_autoscaler" {
   ]
 }
 
-data "cloudinit_config" "autoscaler-config" {
-  count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
+data "cloudinit_config" "autoscaler_config" {
+  count = length(var.autoscaler_nodepools)
+
+  gzip          = true
+  base64_encode = true
+
+  # Main cloud-config configuration file.
+  part {
+    filename     = "init.cfg"
+    content_type = "text/cloud-config"
+    content = templatefile(
+      "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
+      {
+        hostname          = "autoscaler"
+        sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        k3s_config = yamlencode({
+          server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+          token         = local.k3s_token
+          kubelet-arg   = local.kubelet_arg
+          flannel-iface = local.flannel_iface
+          node-label    = concat(local.default_agent_labels, [for k, v in var.autoscaler_nodepools[count.index].labels : "${k}=${v}"])
+          node-taint    = concat(local.default_agent_taints, [for taint in var.autoscaler_nodepools[count.index].taints : "${taint.key}=${taint.value}:${taint.effect}"])
+          selinux       = true
+        })
+        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
+        cloudinit_write_files_common = local.cloudinit_write_files_common
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+      }
+    )
+  }
+}
+
+data "cloudinit_config" "autoscaler_legacy_config" {
+  count = length(var.autoscaler_nodepools) > 0 && local.isUsingLegacyConfig ? 1 : 0
 
   gzip          = true
   base64_encode = true
