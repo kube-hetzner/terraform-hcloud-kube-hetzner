@@ -283,7 +283,7 @@ module "kube-hetzner" {
   #     min_nodes   = 0
   #     max_nodes   = 5
   #     labels      = {
-  #       "node.kubernetes.io/role=peak-workloads"
+  #       "node.kubernetes.io/role": "peak-workloads"
   #     }
   #     taints      = 
   #     [{
