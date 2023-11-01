@@ -179,7 +179,7 @@ variable "control_plane_nodepools" {
         [for control_plane_nodepool in var.control_plane_nodepools : control_plane_nodepool.name]
       )
     )
-    error_message = "Names in agent_nodepools must be unique."
+    error_message = "Names in control_plane_nodepools must be unique."
   }
 }
 
