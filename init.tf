@@ -40,6 +40,7 @@ resource "null_resource" "first_control_plane" {
           node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
           cluster-cidr                = var.cluster_ipv4_cidr
           service-cidr                = var.service_ipv4_cidr
+          cluster-dns                 = var.cluster_dns_ipv4
           selinux                     = true
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
