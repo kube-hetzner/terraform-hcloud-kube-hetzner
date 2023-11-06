@@ -323,7 +323,7 @@ resource "null_resource" "kustomization" {
 
   depends_on = [
     hcloud_load_balancer.cluster,
-    null_resource.first_control_plane,
+    null_resource.control_planes,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume
   ]

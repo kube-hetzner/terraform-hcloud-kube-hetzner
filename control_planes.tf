@@ -142,6 +142,11 @@ resource "null_resource" "control_plane_config" {
   provisioner "remote-exec" {
     inline = [local.k3s_config_update_script]
   }
+
+  depends_on = [
+    null_resource.first_control_plane,
+    hcloud_network_subnet.control_plane
+  ]
 }
 
 resource "null_resource" "control_planes" {
