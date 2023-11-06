@@ -99,6 +99,9 @@ locals {
       node-label                  = v.labels
       node-taint                  = v.taints
       selinux                     = true
+      cluster-cidr                = var.cluster_ipv4_cidr
+      service-cidr                = var.service_ipv4_cidr
+      cluster-dns                 = var.cluster_dns_ipv4
       write-kubeconfig-mode       = "0644" # needed for import into rancher
     },
     lookup(local.cni_k3s_settings, var.cni_plugin, {}),

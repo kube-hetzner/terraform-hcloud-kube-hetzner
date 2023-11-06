@@ -97,15 +97,21 @@ variable "network_ipv4_cidr" {
 }
 
 variable "cluster_ipv4_cidr" {
-  description = "Internal Pod CIDR, used for the controller and currently for calico."
+  description = "Internal Pod CIDR, used for the controller and currently for calico/cilium."
   type        = string
   default     = "10.42.0.0/16"
 }
 
 variable "service_ipv4_cidr" {
-  description = "Internal Service CIDR, used for the controller and currently for calico."
+  description = "Internal Service CIDR, used for the controller and currently for calico/cilium."
   type        = string
   default     = "10.43.0.0/16"
+}
+
+variable "cluster_dns_ipv4" {
+  description = "Internal Service IPv4 address of core-dns."
+  type        = string
+  default     = "10.43.0.10"
 }
 
 variable "load_balancer_location" {
