@@ -867,3 +867,9 @@ variable "ingress_target_namespace" {
   default     = ""
   description = "The namespace to deploy the ingress controller to. Defaults to ingress name."
 }
+
+variable "enable_local_storage" {
+  type        = bool
+  default     = false
+  description = "Whether to enable or disable k3s local-storage."
+}
