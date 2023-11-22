@@ -569,6 +569,8 @@ module "kube-hetzner" {
   # Allowed values: null (disable Kube API rule entirely) or a list of allowed networks with CIDR notation.
   # For maximum security, it's best to disable it completely by setting it to null. However, in that case, to get access to the kube api,
   # you would have to connect to any control plane node via SSH, as you can run kubectl from within these.
+  # Please be advised that this setting has no effect on the load balancer when the use_control_plane_lb variable is set to true. This is
+  # because firewall rules cannot be applied to load balancers yet. 
   # firewall_kube_api_source = null
 
   # Allow SSH access from the specified networks. Default: ["0.0.0.0/0", "::/0"]
