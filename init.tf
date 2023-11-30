@@ -9,6 +9,13 @@ resource "hcloud_load_balancer" "cluster" {
   algorithm {
     type = var.load_balancer_algorithm_type
   }
+
+  lifecycle {
+    ignore_changes = [
+      # Ignore changes to hcloud-ccm/service-uid label that is managed by the CCM.
+      labels["hcloud-ccm/service-uid"],
+    ]
+  }
 }
 
 
