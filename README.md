@@ -436,7 +436,7 @@ _We advise you to use `Cert-Manager`, as it supports HA setups without requiring
 
 Create your issuers as described here <https://cert-manager.io/docs/configuration/acme/>.
 
-Then in your Ingress definition, just mentioning the issuer as an annotation and giving a secret name will take care of instructing Cert-Manager to generate a certificate for it! You just have to configure your issuer(s) first with the method of your choice.
+Then in your Ingress definition, just mentioning the issuer as an annotation and giving a secret name will take care of instructing Cert-Manager to generate a certificate for it! You just have to configure your issuer(s) first with the method of your choice. Detailed instructions on how to configure `Cert-manager` with Traefik can be found at https://traefik.io/blog/secure-web-applications-with-traefik-proxy-cert-manager-and-lets-encrypt/.
 
 Ingress example:
 
