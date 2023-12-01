@@ -737,8 +737,13 @@ variable "control_plane_lb_enable_public_interface" {
 }
 
 variable "dns_servers" {
-  type        = list(string)
-  default     = []
+  type = list(string)
+
+  default = [
+    "185.12.64.1",
+    "185.12.64.2",
+    "2a01:4ff:ff00::add:1",
+  ]
   description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. The length is limited to 3 entries, more entries is not supported by kubernetes"
 
   validation {
