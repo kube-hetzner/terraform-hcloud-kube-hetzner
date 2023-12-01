@@ -4,7 +4,7 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
-| <a name="requirement_github"></a> [github](#requirement\_github) | >= 5.38.0, < 5.41.0 |
+| <a name="requirement_github"></a> [github](#requirement\_github) | >= 5.38.0 |
 | <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.43.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.4.0 |
 | <a name="requirement_remote"></a> [remote](#requirement\_remote) | >= 0.1.2 |
@@ -14,7 +14,7 @@
 | Name | Version |
 |------|---------|
 | <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
-| <a name="provider_github"></a> [github](#provider\_github) | >= 5.38.0, < 5.41.0 |
+| <a name="provider_github"></a> [github](#provider\_github) | >= 5.38.0 |
 | <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.43.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | >= 2.4.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
@@ -106,7 +106,7 @@
 | <a name="input_cilium_ipv4_native_routing_cidr"></a> [cilium\_ipv4\_native\_routing\_cidr](#input\_cilium\_ipv4\_native\_routing\_cidr) | Used when Cilium is configured in native routing mode. The CNI assumes that the underlying network stack will forward packets to this destination without the need to apply SNAT. Default: value of "cluster\_ipv4\_cidr" | `string` | `null` | no |
 | <a name="input_cilium_routing_mode"></a> [cilium\_routing\_mode](#input\_cilium\_routing\_mode) | Set native-routing mode ("native") or tunneling mode ("tunnel"). | `string` | `"tunnel"` | no |
 | <a name="input_cilium_values"></a> [cilium\_values](#input\_cilium\_values) | Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart. | `string` | `""` | no |
-| <a name="input_cilium_version"></a> [cilium\_version](#input\_cilium\_version) | Version of Cilium. | `string` | `"v1.14.0"` | no |
+| <a name="input_cilium_version"></a> [cilium\_version](#input\_cilium\_version) | Version of Cilium. | `string` | `"1.14.4"` | no |
 | <a name="input_cluster_autoscaler_extra_args"></a> [cluster\_autoscaler\_extra\_args](#input\_cluster\_autoscaler\_extra\_args) | Extra arguments for the Cluster Autoscaler deployment. | `list(string)` | `[]` | no |
 | <a name="input_cluster_autoscaler_image"></a> [cluster\_autoscaler\_image](#input\_cluster\_autoscaler\_image) | Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used. | `string` | `"ghcr.io/kube-hetzner/autoscaler/cluster-autoscaler"` | no |
 | <a name="input_cluster_autoscaler_log_level"></a> [cluster\_autoscaler\_log\_level](#input\_cluster\_autoscaler\_log\_level) | Verbosity level of the logs for cluster-autoscaler | `number` | `4` | no |
@@ -151,7 +151,7 @@
 | <a name="input_ingress_max_replica_count"></a> [ingress\_max\_replica\_count](#input\_ingress\_max\_replica\_count) | Number of maximum replicas per ingress controller. Used for ingress HPA. Must be higher than number of replicas. | `number` | `10` | no |
 | <a name="input_ingress_replica_count"></a> [ingress\_replica\_count](#input\_ingress\_replica\_count) | Number of replicas per ingress controller. 0 means autodetect based on the number of agent nodes. | `number` | `0` | no |
 | <a name="input_ingress_target_namespace"></a> [ingress\_target\_namespace](#input\_ingress\_target\_namespace) | The namespace to deploy the ingress controller to. Defaults to ingress name. | `string` | `""` | no |
-| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.27"` | no |
+| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.28"` | no |
 | <a name="input_k3s_agent_kubelet_args"></a> [k3s\_agent\_kubelet\_args](#input\_k3s\_agent\_kubelet\_args) | Kubelet args for agent nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_control_plane_kubelet_args"></a> [k3s\_control\_plane\_kubelet\_args](#input\_k3s\_control\_plane\_kubelet\_args) | Kubelet args for control plane nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_exec_agent_args"></a> [k3s\_exec\_agent\_args](#input\_k3s\_exec\_agent\_args) | Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example. | `string` | `""` | no |
