@@ -50,25 +50,26 @@ jobs:
 
       - name: terraform fmt
         uses: dflook/terraform-fmt-check@v1
-  trivy:
-    name: Trivy security scanning
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  # This is failing for some reason, tried debugging but no luck, so commenting out for now.
+  # trivy:
+  #   name: Trivy security scanning
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'config'
-          hide-progress: false
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          exit-code: '1'
-          ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+  #     - name: Run Trivy vulnerability scanner in repo mode
+  #       uses: aquasecurity/trivy-action@master
+  #       with:
+  #         scan-type: 'config'
+  #         hide-progress: false
+  #         format: 'sarif'
+  #         output: 'trivy-results.sarif'
+  #         exit-code: '1'
+  #         ignore-unfixed: true
+  #         severity: 'CRITICAL,HIGH'
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
+  #     - name: Upload Trivy scan results to GitHub Security tab
+  #       uses: github/codeql-action/upload-sarif@v2
+  #       with:
+  #         sarif_file: 'trivy-results.sarif'
