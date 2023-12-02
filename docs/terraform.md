@@ -4,7 +4,7 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
-| <a name="requirement_github"></a> [github](#requirement\_github) | >= 5.38.0 |
+| <a name="requirement_github"></a> [github](#requirement\_github) | >= 5.38.0, < 5.41.0 |
 | <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.43.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.4.0 |
 | <a name="requirement_remote"></a> [remote](#requirement\_remote) | >= 0.1.2 |
@@ -14,7 +14,7 @@
 | Name | Version |
 |------|---------|
 | <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
-| <a name="provider_github"></a> [github](#provider\_github) | >= 5.38.0 |
+| <a name="provider_github"></a> [github](#provider\_github) | >= 5.38.0, < 5.41.0 |
 | <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.43.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | >= 2.4.0 |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
