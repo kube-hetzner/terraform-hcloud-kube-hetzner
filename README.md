@@ -233,10 +233,10 @@ _If you wish to turn off automatic k3s upgrades, you need to set:_
 automatically_upgrade_k3s = false
 ```
 
-_Alternatively, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove it, apply:_
+_Alternatively, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove the node label completely, apply `-` at the end of the label:
 
 ```sh
-kubectl -n system-upgrade label node <node-name> k3s_upgrade-
+kubectl label node <node-name> k3s_upgrade-
 ```
 
 Alternatively, you can disable the k3s automatic upgrade without individually editing the labels on the nodes. Instead, you can just delete the two system controller upgrade plans with:
