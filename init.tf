@@ -133,7 +133,7 @@ resource "null_resource" "kustomization" {
       coalesce(var.cilium_version, "N/A"),
     ])
     options = join("\n", [
-      for option, value in var.kured_options : "${option}=${value}"
+      for option, value in local.kured_options : "${option}=${value}"
     ])
   }
 
