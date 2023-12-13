@@ -404,10 +404,22 @@ variable "traefik_additional_trusted_ips" {
   description = "Additional Trusted IPs to pass to Traefik. These are the ones that go into the trustedIPs section of the Traefik helm values file."
 }
 
+variable "traefik_version" {
+  type        = string
+  default     = ""
+  description = "Version of Traefik helm chart."
+}
+
 variable "traefik_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart."
+}
+
+variable "nginx_version" {
+  type        = string
+  default     = ""
+  description = "Version of Nginx helm chart."
 }
 
 variable "nginx_values" {

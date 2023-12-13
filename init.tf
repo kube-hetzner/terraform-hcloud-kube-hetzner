@@ -131,6 +131,8 @@ resource "null_resource" "kustomization" {
       coalesce(var.kured_version, "N/A"),
       coalesce(var.calico_version, "N/A"),
       coalesce(var.cilium_version, "N/A"),
+      coalesce(var.traefik_version, "N/A"),
+      coalesce(var.nginx_version, "N/A"),
     ])
     options = join("\n", [
       for option, value in var.kured_options : "${option}=${value}"
@@ -156,6 +158,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
+        version          = var.traefik_version
         values           = indent(4, trimspace(local.traefik_values))
         target_namespace = local.ingress_target_namespace
     })
@@ -167,6 +170,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
+        version          = var.nginx_version
         values           = indent(4, trimspace(local.nginx_values))
         target_namespace = local.ingress_target_namespace
     })
