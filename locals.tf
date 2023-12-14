@@ -484,6 +484,8 @@ controller:
   EOT
 
   traefik_values = var.traefik_values != "" ? var.traefik_values : <<EOT
+image:
+  tag: ${var.traefik_image_tag}
 deployment:
   replicas: ${local.ingress_replica_count}
 globalArguments: []
