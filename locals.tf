@@ -618,6 +618,7 @@ installCRDs: true
     "pre-reboot-node-labels" : "kured=rebooting",
     "post-reboot-node-labels" : "kured=done",
     "period" : "5m",
+    "lock-ttl" : "30m"
   }, var.kured_options)
 
   k3s_registries_update_script = <<EOF
