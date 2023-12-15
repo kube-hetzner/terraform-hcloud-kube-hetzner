@@ -430,6 +430,10 @@ module "kube-hetzner" {
   # Example:
   # traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
 
+  # By default traefik image tag is an empty string which uses latest image tag.
+  # The default is "".
+  # traefik_image_tag = "v3.0.0-beta5"
+
   # By default traefik is configured to redirect http traffic to https, you can set this to "false" to disable the redirection.
   # The default is true.
   # traefik_redirect_to_https = false

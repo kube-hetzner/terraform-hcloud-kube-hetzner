@@ -358,6 +358,12 @@ variable "ingress_max_replica_count" {
   }
 }
 
+variable "traefik_image_tag" {
+  type        = string
+  default     = ""
+  description = "Traefik image tag. Useful to use the beta version for new features. Example: v3.0.0-beta5"
+}
+
 variable "traefik_autoscaling" {
   type        = bool
   default     = true
