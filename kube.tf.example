@@ -430,6 +430,10 @@ module "kube-hetzner" {
   # Example:
   # traefik_additional_options = ["--log.level=DEBUG", "--tracing=true"]
 
+  # By default traefik image tag is an empty string which uses latest image tag.
+  # The default is "".
+  # traefik_image_tag = "v3.0.0-beta5"
+
   # By default traefik is configured to redirect http traffic to https, you can set this to "false" to disable the redirection.
   # The default is true.
   # traefik_redirect_to_https = false
@@ -833,6 +837,9 @@ persistence:
   defaultClass: true
   EOT */
 
+  # If you want to use a specific Traefik helm chart version, set it below; otherwise, leave them as-is for the latest versions.
+  # traefik_version = ""
+
   # Traefik, all Traefik helm values can be found at https://github.com/traefik/traefik-helm-chart/blob/master/traefik/values.yaml
   # The following is an example, please note that the current indentation inside the EOT is important.
   /*   traefik_values = <<EOT
@@ -874,6 +881,9 @@ ports:
         - 127.0.0.1/32
         - 10.0.0.0/8
   EOT */
+
+  # If you want to use a specific Nginx helm chart version, set it below; otherwise, leave them as-is for the latest versions.
+  # nginx_version = ""
 
   # Nginx, all Nginx helm values can be found at https://github.com/kubernetes/ingress-nginx/blob/main/charts/ingress-nginx/values.yaml
   # You can also have a look at https://kubernetes.github.io/ingress-nginx/, to understand how it works, and all the options at your disposal.
