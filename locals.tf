@@ -79,9 +79,7 @@ locals {
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
       ],
-      var.disable_hetzner_csi ? [] : [
-        "hcloud-csi.yml"
-      ],
+      var.disable_hetzner_csi ? [] : ["hcloud-csi.yml"],
       lookup(local.ingress_controller_install_resources, local.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
       var.enable_longhorn ? ["longhorn.yaml"] : [],
@@ -90,14 +88,24 @@ locals {
       var.enable_rancher ? ["rancher.yaml"] : [],
       var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
     ),
-    patchesStrategicMerge = concat(
-      [
-        file("${path.module}/kustomize/system-upgrade-controller.yaml"),
-        "kured.yaml",
-        "ccm.yaml",
-      ],
-      lookup(local.cni_install_resource_patches, var.cni_plugin, [])
-    )
+    patches = [
+      {
+        target = {
+          group     = "apps"
+          version   = "v1"
+          kind      = "Deployment"
+          name      = "system-upgrade-controller"
+          namespace = "system-upgrade"
+        }
+        patch = file("${path.module}/kustomize/system-upgrade-controller.yaml")
+      },
+      {
+        path = "kured.yaml"
+      },
+      {
+        path = "ccm.yaml"
+      }
+    ]
   })
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
