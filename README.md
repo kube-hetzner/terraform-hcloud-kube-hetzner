@@ -861,7 +861,7 @@ First and foremost, it depends, but it's always good to have a quick look into H
 - Activate it with `hcloud context create Kube-hetzner`; it will prompt for your Hetzner API token, paste that, and hit `enter`.
 - To check the nodes, if they are running, use `hcloud server list`.
 - To check the network, use `hcloud network describe k3s`.
-- To look at the LB, use `hcloud loadbalancer describe traefik`.
+- To look at the LB, use `hcloud loadbalancer describe k3s-traefik`.
 
 Then for the rest, you'll often need to log in to your cluster via ssh, to do that, use:
 
