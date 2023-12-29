@@ -581,7 +581,6 @@ podDisruptionBudget:
   maxUnavailable: 33%
 %{endif~}
 additionalArguments:
-  - "--entrypoints.tcp=true"
   - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_controller_namespace}/traefik"
 %{for option in var.traefik_additional_options~}
   - "${option}"
