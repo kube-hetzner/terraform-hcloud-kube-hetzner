@@ -73,8 +73,8 @@ resource "null_resource" "first_control_plane" {
   provisioner "remote-exec" {
     inline = [
       "systemctl start k3s",
-      # prepare the post_install directory
-      "mkdir -p /var/post_install",
+      # prepare the needed directories
+      "mkdir -p /var/post_install /var/user_kustomize",
       # wait for k3s to become ready
       <<-EOT
       timeout 120 bash <<EOF
