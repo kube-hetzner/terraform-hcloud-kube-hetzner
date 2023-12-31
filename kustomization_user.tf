@@ -43,7 +43,7 @@ resource "null_resource" "kustomization_user_deploy" {
     # Debugging: "sh -c 'for file in $(find /var/user_kustomize -type f -name \"*.yaml\" | sort -n); do echo \"\n### Template $${file}.tpl after rendering:\" && cat $${file}; done'",
     inline = compact([
       "rm -f /var/user_kustomize/*.yaml.tpl",
-      "echo 'Applying user kustomization...",
+      "echo 'Applying user kustomization...'",
       "kubectl apply -k /var/user_kustomize/ --wait=true",
       var.extra_kustomize_deployment_commands
     ])
