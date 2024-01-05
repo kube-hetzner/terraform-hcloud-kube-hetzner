@@ -10,6 +10,16 @@ command -v hcloud >/dev/null 2>&1 || { echo "hcloud (Hetzner CLI) is not install
 echo "You can do so by running 'hcloud context create <cluster_name>' and inputting your HCLOUD_TOKEN."
 echo " "
 
+if command -v tofu >/dev/null 2>&1 ; then
+    terraform_command=tofu
+elif command -v terraform >/dev/null 2>&1 ; then
+    terraform_command=terraform
+else
+    echo "terraform or tofu is not installed. Install it with 'brew install terraform' or 'brew install opentofu'."
+    exit 1
+fi
+
+
 # Try to guess the cluster name
 GUESSED_CLUSTER_NAME=$(grep -oP 'cluster_name\s*=\s*"\K([^"]+)' kube.tf)
 
@@ -52,7 +62,7 @@ fi
 
 HCLOUD_SELECTOR=(--selector='provisioner=terraform' --selector="cluster=$CLUSTER_NAME")
 HCLOUD_OUTPUT_OPTIONS=(-o noheader -o 'columns=id')
-NODEPOOLS=( $(terraform state list | grep -oP 'module.kube-hetzner.data.hcloud_servers.autoscaled_nodes\["\K([^"]+)') )
+NODEPOOLS=( $(${terraform_command} state list | grep -oP 'module.kube-hetzner.data.hcloud_servers.autoscaled_nodes\["\K([^"]+)') )
 
 VOLUMES=()
 while IFS='' read -r line; do VOLUMES+=("$line"); done < <(hcloud volume list "${HCLOUD_SELECTOR[@]}" "${HCLOUD_OUTPUT_OPTIONS[@]}")

@@ -5,10 +5,16 @@ command -v ssh >/dev/null 2>&1 || {
     echo "openssh is not installed. Install it with 'brew install openssh'."
     exit 1
 }
-command -v terraform >/dev/null 2>&1 || {
-    echo "terraform is not installed. Install it with 'brew install terraform'."
+
+if command -v tofu >/dev/null 2>&1 ; then
+    terraform_command=tofu
+elif command -v terraform >/dev/null 2>&1 ; then
+    terraform_command=terraform
+else
+    echo "terraform or tofu is not installed. Install it with 'brew install terraform' or 'brew install opentofu'."
     exit 1
-}
+fi
+
 command -v packer >/dev/null 2>&1 || {
     echo "packer is not installed. Install it with 'brew install packer'."
     exit 1
@@ -72,4 +78,4 @@ fi
 echo " "
 echo "Remember, don't skip the hcloud cli, to activate it run 'hcloud context create <project-name>'. It is ideal to quickly debug and allows targeted cleanup when needed!"
 echo " "
-echo "Before running 'terraform apply', go through the kube.tf file and fill it with your desired values."
+echo "Before running '${terraform_command} apply', go through the kube.tf file and fill it with your desired values."
