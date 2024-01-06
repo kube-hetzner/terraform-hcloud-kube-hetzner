@@ -208,7 +208,7 @@ module "kube-hetzner" {
     # See the https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples for an example use case.
     {
       name        = "egress",
-      server_type = "cpx11",
+      server_type = "cx21",
       location    = "fsn1",
       labels = [
         "node.kubernetes.io/role=egress"
@@ -610,6 +610,8 @@ module "kube-hetzner" {
   # possible values: flannel (Default), calico, and cilium
   # As for Cilium, we allow infinite configurations via helm values, please check the CNI section of the readme over at https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/#cni.
   # Also, see the cilium_values at towards the end of this file, in the advanced section.
+  # ⚠️ Depending on your setup, sometimes you need your control-planes to have more than
+  # 2GB of RAM if you are going to use Cilium, otherwise the pods will not start.
   # cni_plugin = "cilium"
 
   # You can choose the version of Cilium that you want. By default we keep the version up to date and configure Cilium with compatible settings according to the version.
