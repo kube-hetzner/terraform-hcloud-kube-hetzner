@@ -27,14 +27,14 @@ resource "local_file" "longhorn_values" {
 }
 
 resource "local_file" "traefik_values" {
-  count           = var.export_values && local.ingress_controller == "traefik" ? 1 : 0
+  count           = var.export_values && var.ingress_controller == "traefik" ? 1 : 0
   content         = local.traefik_values
   filename        = "traefik_values.yaml"
   file_permission = "600"
 }
 
 resource "local_file" "nginx_values" {
-  count           = var.export_values && local.ingress_controller == "nginx" ? 1 : 0
+  count           = var.export_values && var.ingress_controller == "nginx" ? 1 : 0
   content         = local.nginx_values
   filename        = "nginx_values.yaml"
   file_permission = "600"
