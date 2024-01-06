@@ -80,7 +80,7 @@ locals {
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
       ],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yml"],
-      lookup(local.ingress_controller_install_resources, local.ingress_controller, []),
+      lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
       var.enable_longhorn ? ["longhorn.yaml"] : [],
       var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
@@ -169,16 +169,27 @@ locals {
 
   using_klipper_lb = var.enable_klipper_metal_lb || local.is_single_node_cluster
 
-  has_external_load_balancer = local.using_klipper_lb || local.ingress_controller == "none"
+  has_external_load_balancer = local.using_klipper_lb || var.ingress_controller == "none"
   load_balancer_name         = "${var.cluster_name}-${var.ingress_controller}"
+
+  ingress_controller_service_names = {
+    "traefik" = "traefik"
+    "nginx"   = "nginx-ingress-nginx-controller"
+  }
+
+  ingress_controller_install_resources = {
+    "traefik" = ["traefik_ingress.yaml"]
+    "nginx"   = ["nginx_ingress.yaml"]
+  }
 
   default_ingress_namespace_mapping = {
     "traefik" = "traefik"
     "nginx"   = "nginx"
   }
-  ingress_target_namespace  = var.ingress_target_namespace != "" ? var.ingress_target_namespace : lookup(local.default_ingress_namespace_mapping, var.ingress_controller, "")
-  ingress_replica_count     = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
-  ingress_max_replica_count = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
+
+  ingress_controller_namespace = var.ingress_target_namespace != "" ? var.ingress_target_namespace : lookup(local.default_ingress_namespace_mapping, var.ingress_controller, "")
+  ingress_replica_count        = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+  ingress_max_replica_count    = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
 
   # disable k3s extras
   disable_extras = concat(var.enable_local_storage ? [] : ["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
@@ -360,23 +371,6 @@ locals {
   kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
-
-  ingress_controller = var.ingress_controller
-
-  ingress_controller_service_names = {
-    "traefik" = "traefik"
-    "nginx"   = "nginx-ingress-nginx-controller"
-  }
-
-  ingress_controller_namespace_names = {
-    "traefik" = "traefik"
-    "nginx"   = "nginx"
-  }
-
-  ingress_controller_install_resources = {
-    "traefik" = ["traefik_ingress.yaml"]
-    "nginx"   = ["nginx_ingress.yaml"]
-  }
 
   cilium_values = var.cilium_values != "" ? var.cilium_values : <<EOT
 # Enable Kubernetes host-scope IPAM mode (required for K3s + Hetzner CCM)
@@ -588,7 +582,7 @@ podDisruptionBudget:
 %{endif~}
 additionalArguments:
   - "--entrypoints.tcp=true"
-  - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_target_namespace}/traefik"
+  - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_controller_namespace}/traefik"
 %{for option in var.traefik_additional_options~}
   - "${option}"
 %{endfor~}

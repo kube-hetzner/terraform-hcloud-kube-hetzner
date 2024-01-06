@@ -160,7 +160,7 @@ resource "null_resource" "kustomization" {
       {
         version          = var.traefik_version
         values           = indent(4, trimspace(local.traefik_values))
-        target_namespace = local.ingress_target_namespace
+        target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/traefik_ingress.yaml"
   }
@@ -172,7 +172,7 @@ resource "null_resource" "kustomization" {
       {
         version          = var.nginx_version
         values           = indent(4, trimspace(local.nginx_values))
-        target_namespace = local.ingress_target_namespace
+        target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/nginx_ingress.yaml"
   }
@@ -323,7 +323,7 @@ resource "null_resource" "kustomization" {
       local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 360 bash <<EOF
-      until [ -n "\$(kubectl get -n ${lookup(local.ingress_controller_namespace_names, local.ingress_controller)} service/${lookup(local.ingress_controller_service_names, local.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
+      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
           sleep 2
       done
