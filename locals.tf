@@ -752,6 +752,7 @@ EOF
       class lnk_file { read create };
       class system module_request;
       class filesystem associate;
+      class bpf map_create;
     }
 
     #============= kernel_generic_helper_t ==============
@@ -803,6 +804,7 @@ EOF
     allow container_t var_log_t:dir remove_name;
     allow container_t var_log_t:file unlink;
     allow container_t proc_t:filesystem associate;
+    allow container_t self:bpf map_create;
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
