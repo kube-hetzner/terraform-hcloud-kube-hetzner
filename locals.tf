@@ -776,7 +776,8 @@ EOF
     allow container_t cert_t:lnk_file read;
     allow container_t cert_t:file { read open };
     allow container_t container_var_lib_t:file { create open read write rename lock };
-    allow container_t etc_t:dir { add_name remove_name write create setattr };
+    allow container_t etc_t:dir { add_name remove_name write create setattr watch };
+    allow container_t etc_t:file { create setattr unlink write };
     allow container_t etc_t:sock_file { create unlink };
     allow container_t usr_t:dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write };
     allow container_t usr_t:file { append create execute getattr link lock read rename setattr unlink write };
