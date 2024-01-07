@@ -156,6 +156,9 @@ locals {
     }
   ]...)
 
+  agent_nodes_indices         = { for node_name, node_details in local.agent_nodes : node_name => floor(node_details.index / 10) }
+  control_plane_nodes_indices = { for node_name, node_details in local.control_plane_nodes : node_name => floor(node_details.index / 10) }
+
   use_existing_network = length(var.existing_network_id) > 0
 
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
