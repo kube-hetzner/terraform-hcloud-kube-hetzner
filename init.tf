@@ -258,7 +258,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/rancher.yaml.tpl",
       {
-        rancher_install_channel = var.rancher_install_channel
+        rancher_install_channel = var.rancher.install_channel
         values                  = indent(4, trimspace(local.rancher_values))
     })
     destination = "/var/post_install/rancher.yaml"

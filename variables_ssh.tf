@@ -32,3 +32,10 @@ variable "ssh" {
   #! There are required options, so no default value is set
   description = "SSH config"
 }
+
+# Sensitive variables
+variable "ssh_private_key" {
+  description = "SSH private Key"
+  type        = string
+  sensitive   = true
+}

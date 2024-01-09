@@ -227,59 +227,6 @@ variable "placement_group_disable" {
   description = "Whether to disable placement groups."
 }
 
-variable "enable_rancher" {
-  type        = bool
-  default     = false
-  description = "Enable rancher."
-}
-
-variable "rancher_install_channel" {
-  type        = string
-  default     = "stable"
-  description = "The rancher installation channel."
-
-  validation {
-    condition     = contains(["stable", "latest"], var.rancher_install_channel)
-    error_message = "The allowed values for the Rancher install channel are stable or latest."
-  }
-}
-
-variable "rancher_hostname" {
-  type        = string
-  default     = ""
-  description = "The rancher hostname."
-
-  validation {
-    condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.rancher_hostname)) || var.rancher_hostname == ""
-    error_message = "It must be a valid domain name (FQDN)."
-  }
-}
-
-variable "rancher_registration_manifest_url" {
-  type        = string
-  description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)."
-  default     = ""
-  sensitive   = true
-}
-
-variable "rancher_bootstrap_password" {
-  type        = string
-  default     = ""
-  description = "Rancher bootstrap password."
-  sensitive   = true
-
-  validation {
-    condition     = (length(var.rancher_bootstrap_password) >= 48) || (length(var.rancher_bootstrap_password) == 0)
-    error_message = "The Rancher bootstrap password must be at least 48 characters long."
-  }
-}
-
-variable "rancher_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart."
-}
-
 variable "dns_servers" {
   type = list(string)
 

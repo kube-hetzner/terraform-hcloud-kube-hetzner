@@ -84,8 +84,8 @@ locals {
       lookup(local.cni_install_resources, var.cni.type, []),
       var.csi.longhorn.enabled ? ["longhorn.yaml"] : [],
       var.csi.csi_driver_smb.enabled ? ["csi-driver-smb.yaml"] : [],
-      var.cert_manager.enabled || var.enable_rancher ? ["cert_manager.yaml"] : [],
-      var.enable_rancher ? ["rancher.yaml"] : [],
+      var.cert_manager.enabled || var.rancher.enabled ? ["cert_manager.yaml"] : [],
+      var.rancher.enabled ? ["rancher.yaml"] : [],
       var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
     ),
     patches = [
@@ -599,8 +599,8 @@ autoscaling:
 %{endif~}
   EOT
 
-  rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
-hostname: "${var.rancher_hostname != "" ? var.rancher_hostname : var.load_balancer.ingress.hostname}"
+  rancher_values = var.rancher.values != "" ? var.rancher.values : <<EOT
+hostname: "${var.rancher.hostname != "" ? var.rancher.hostname : var.load_balancer.ingress.hostname}"
 replicas: ${length(local.control_plane_nodes)}
 bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
 global:
