@@ -62,7 +62,7 @@ resource "null_resource" "configure_autoscaler" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Upload the autoscaler resource defintion
@@ -96,7 +96,7 @@ data "cloudinit_config" "autoscaler_config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
-        sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        sshAuthorizedKeys = concat([var.ssh.public_key], var.ssh.additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
           token         = local.k3s_token
@@ -128,7 +128,7 @@ data "cloudinit_config" "autoscaler_legacy_config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
-        sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        sshAuthorizedKeys = concat([var.ssh.public_key], var.ssh.additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
           token         = local.k3s_token
@@ -162,7 +162,7 @@ resource "null_resource" "autoscaled_nodes_registries" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = each.value.ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   provisioner "file" {

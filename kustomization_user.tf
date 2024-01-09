@@ -10,7 +10,7 @@ resource "null_resource" "kustomization_user" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   provisioner "file" {
@@ -35,7 +35,7 @@ resource "null_resource" "kustomization_user_deploy" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Remove templates after rendering, and apply changes.

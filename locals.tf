@@ -1,11 +1,11 @@
 locals {
   # ssh_agent_identity is not set if the private key is passed directly, but if ssh agent is used, the public key tells ssh agent which private key to use.
   # For terraforms provisioner.connection.agent_identity, we need the public key as a string.
-  ssh_agent_identity = var.ssh_private_key == null ? var.ssh_public_key : null
+  ssh_agent_identity = var.ssh_private_key == null ? var.ssh.public_key : null
 
   # If passed, a key already registered within hetzner is used.
   # Otherwise, a new one will be created by the module.
-  hcloud_ssh_key_id = var.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.hcloud_ssh_key_id
+  hcloud_ssh_key_id = var.ssh.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.ssh.hcloud_ssh_key_id
 
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
@@ -214,7 +214,7 @@ locals {
         description = "Allow Incoming SSH Traffic"
         direction   = "in"
         protocol    = "tcp"
-        port        = var.ssh_port
+        port        = var.ssh.port
         source_ips  = var.firewall.ssh_source
       },
     ],
@@ -698,10 +698,10 @@ EOF
 
 # Disable ssh password authentication
 - content: |
-    Port ${var.ssh_port}
+    Port ${var.ssh.port}
     PasswordAuthentication no
     X11Forwarding no
-    MaxAuthTries ${var.ssh_max_auth_tries}
+    MaxAuthTries ${var.ssh.max_auth_tries}
     AllowTcpForwarding no
     AllowAgentForwarding no
     AuthorizedKeysFile .ssh/authorized_keys
@@ -827,9 +827,9 @@ EOT
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 
 # SELinux permission for the SSH alternative port
-%{if var.ssh_port != 22}
+%{if var.ssh.port != 22}
 # SELinux permission for the SSH alternative port.
-- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, ${var.ssh_port}]
+- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, ${var.ssh.port}]
 %{endif}
 
 # Create and apply the necessary SELinux module for kube-hetzner

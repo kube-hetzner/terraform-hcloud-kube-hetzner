@@ -1,16 +1,3 @@
-variable "hcloud_token" {
-  description = "Hetzner Cloud API Token."
-  type        = string
-  sensitive   = true
-}
-
-variable "k3s_token" {
-  description = "k3s master token (must match when restoring a cluster)."
-  type        = string
-  sensitive   = true
-  default     = null
-}
-
 variable "microos_x86_snapshot_id" {
   description = "MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
   type        = string
@@ -21,52 +8,6 @@ variable "microos_arm_snapshot_id" {
   description = "MicroOS ARM snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
   type        = string
   default     = ""
-}
-
-variable "ssh_port" {
-  description = "The main SSH port to connect to the nodes."
-  type        = number
-  default     = 22
-
-  validation {
-    condition     = var.ssh_port >= 0 && var.ssh_port <= 65535
-    error_message = "The SSH port must use a valid range from 0 to 65535."
-  }
-}
-
-variable "ssh_public_key" {
-  description = "SSH public Key."
-  type        = string
-}
-
-variable "ssh_private_key" {
-  description = "SSH private Key."
-  type        = string
-  sensitive   = true
-}
-
-variable "ssh_hcloud_key_label" {
-  description = "Additional SSH public Keys by hcloud label. e.g. role=admin"
-  type        = string
-  default     = ""
-}
-
-variable "ssh_additional_public_keys" {
-  description = "Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes."
-  type        = list(string)
-  default     = []
-}
-
-variable "hcloud_ssh_key_id" {
-  description = "If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module."
-  type        = string
-  default     = null
-}
-
-variable "ssh_max_auth_tries" {
-  description = "The maximum number of authentication attempts permitted per connection."
-  type        = number
-  default     = 2
 }
 
 variable "network_region" {
@@ -250,13 +191,6 @@ variable "hetzner_ccm_version" {
   type        = string
   default     = null
   description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud."
-}
-
-variable "etcd_s3_backup" {
-  description = "Etcd cluster state backup to S3 storage"
-  type        = map(any)
-  sensitive   = true
-  default     = {}
 }
 
 variable "allow_scheduling_on_control_plane" {

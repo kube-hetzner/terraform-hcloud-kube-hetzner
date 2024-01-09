@@ -10,11 +10,11 @@ module "control_planes" {
   name                         = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   microos_snapshot_id          = substr(each.value.server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
   base_domain                  = var.base_domain
-  ssh_keys                     = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
-  ssh_port                     = var.ssh_port
-  ssh_public_key               = var.ssh_public_key
+  ssh_keys                     = length(var.ssh.hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
+  ssh_port                     = var.ssh.port
+  ssh_public_key               = var.ssh.public_key
   ssh_private_key              = var.ssh_private_key
-  ssh_additional_public_keys   = length(var.ssh_hcloud_key_label) > 0 ? concat(var.ssh_additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh_additional_public_keys
+  ssh_additional_public_keys   = length(var.ssh.hcloud_key_label) > 0 ? concat(var.ssh.additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh.additional_public_keys
   firewall_ids                 = [hcloud_firewall.k3s.id]
   placement_group_id           = var.placement_group_disable ? null : hcloud_placement_group.control_plane[floor(index(keys(local.control_plane_nodes), each.key) / 10)].id
   location                     = each.value.location
@@ -131,7 +131,7 @@ resource "null_resource" "control_plane_config" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[each.key].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Generating k3s server config file
@@ -162,7 +162,7 @@ resource "null_resource" "control_planes" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[each.key].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Install k3s server

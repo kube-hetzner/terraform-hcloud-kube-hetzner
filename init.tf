@@ -25,7 +25,7 @@ resource "null_resource" "first_control_plane" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Generating k3s master config file
@@ -144,7 +144,7 @@ resource "null_resource" "kustomization" {
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.

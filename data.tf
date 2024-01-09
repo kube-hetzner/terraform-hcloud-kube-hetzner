@@ -36,6 +36,6 @@ data "github_release" "calico" {
 # }
 
 data "hcloud_ssh_keys" "keys_by_selector" {
-  count         = length(var.ssh_hcloud_key_label) > 0 ? 1 : 0
-  with_selector = var.ssh_hcloud_key_label
+  count         = length(var.ssh.hcloud_key_label) > 0 ? 1 : 0
+  with_selector = var.ssh.hcloud_key_label
 }
