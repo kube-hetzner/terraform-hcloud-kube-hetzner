@@ -22,7 +22,7 @@ module "agents" {
   backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.dns_servers
-  k3s_registries               = var.k3s_registries
+  k3s_registries               = var.k3s.registries
   k3s_registries_update_script = local.k3s_registries_update_script
   cloudinit_write_files_common = local.cloudinit_write_files_common
   cloudinit_runcmd_common      = local.cloudinit_runcmd_common
@@ -46,7 +46,7 @@ locals {
       node-name     = module.agents[k].name
       server        = "https://${var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token         = local.k3s_token
-      kubelet-arg   = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_agent_kubelet_args, v.kubelet_args)
+      kubelet-arg   = concat(local.kubelet_arg, v.kubelet_args)
       flannel-iface = local.flannel_iface
       node-ip       = module.agents[k].private_ipv4_address
       node-label    = v.labels

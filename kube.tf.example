@@ -274,7 +274,7 @@ module "kube-hetzner" {
 
   # Cluster Autoscaler
   # Providing at least one map for the array enables the cluster autoscaler feature, default is disabled
-  # By default we set a compatible version with the default initial_k3s_channel, to set another one,
+  # By default we set a compatible version with the default k3s.version, to set another one,
   # have a look at the tag value in https://github.com/kubernetes/autoscaler/blob/master/charts/cluster-autoscaler/values.yaml
   # ⚠️ Based on how the autoscaler works with this project, you can only choose either x86 instances or ARM server types for ALL autoscaler nodepools.
   # If you are curious, it's ok to have a multi-architecture cluster, as most underlying container images are multi-architecture too.
@@ -494,7 +494,7 @@ module "kube-hetzner" {
   # allow_scheduling_on_control_plane = true
 
   # If you want to disable the automatic upgrade of k3s, you can set below to "false".
-  # Ideally, keep it on, to always have the latest Kubernetes version, but lock the initial_k3s_channel to a kube major version,
+  # Ideally, keep it on, to always have the latest Kubernetes version, but lock the k3s.version to a kube major version,
   # of your choice, like v1.25 or v1.26. That way you get the best of both worlds without the breaking changes risk.
   # For production use, always use an HA setup with at least 3 control-plane nodes and 2 agents, and keep this on for maximum security.
 
@@ -521,7 +521,7 @@ module "kube-hetzner" {
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to latest - 0.01,
   # ⚠️ Rancher currently only supports v1.25 and earlier versions: https://github.com/rancher/rancher/issues/41113
   # The default is "v1.27".
-  # initial_k3s_channel = "stable"
+  # k3s.version = "stable"
 
   # The cluster name, by default "k3s"
   # cluster_name = ""
@@ -700,7 +700,7 @@ module "kube-hetzner" {
   # lb_hostname = "mycluster.domain.com"
 
   # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
-  # ⚠️ Rancher currently only supports Kubernetes v1.25 and earlier, you will need to set initial_k3s_channel to a supported version: https://github.com/rancher/rancher/issues/41113
+  # ⚠️ Rancher currently only supports Kubernetes v1.25 and earlier, you will need to set k3s.version to a supported version: https://github.com/rancher/rancher/issues/41113
   # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own self-signed certificates.
   # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
   # The easiest thing is to leave everything as is (using the default rancher self-signed certificate) and put Cloudflare in front of it.

@@ -386,17 +386,6 @@ variable "enable_metrics_server" {
   description = "Whether to enable or disable k3s metric server."
 }
 
-variable "initial_k3s_channel" {
-  type        = string
-  default     = "v1.28"
-  description = "Allows you to specify an initial k3s channel."
-
-  validation {
-    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26", "v1.27", "v1.28", "v1.29", "v1.30", "v1.31", "v1.32", "v1.33"], var.initial_k3s_channel)
-    error_message = "The initial k3s channel must be one of stable, latest or testing, or any of the minor kube versions like v1.26."
-  }
-}
-
 variable "extra_firewall_rules" {
   type        = list(any)
   default     = []
@@ -597,46 +586,10 @@ variable "control_planes_custom_config" {
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }
 
-variable "k3s_registries" {
-  description = "K3S registries.yml contents. It used to access private docker registries."
-  default     = " "
-  type        = string
-}
-
 variable "additional_tls_sans" {
   description = "Additional TLS SANs to allow connection to control-plane through it."
   default     = []
   type        = list(string)
-}
-
-variable "k3s_exec_server_args" {
-  type        = string
-  default     = ""
-  description = "The control plane is started with `k3s server {k3s_exec_server_args}`. Use this to add kube-apiserver-arg for example."
-}
-
-variable "k3s_exec_agent_args" {
-  type        = string
-  default     = ""
-  description = "Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example."
-}
-
-variable "k3s_global_kubelet_args" {
-  type        = list(string)
-  default     = []
-  description = "Global kubelet args for all nodes."
-}
-
-variable "k3s_control_plane_kubelet_args" {
-  type        = list(string)
-  default     = []
-  description = "Kubelet args for control plane nodes."
-}
-
-variable "k3s_agent_kubelet_args" {
-  type        = list(string)
-  default     = []
-  description = "Kubelet args for agent nodes."
 }
 
 variable "ingress_target_namespace" {

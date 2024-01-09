@@ -22,7 +22,7 @@ module "control_planes" {
   backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.dns_servers
-  k3s_registries               = var.k3s_registries
+  k3s_registries               = var.k3s.registries
   k3s_registries_update_script = local.k3s_registries_update_script
   cloudinit_write_files_common = local.cloudinit_write_files_common
   cloudinit_runcmd_common      = local.cloudinit_runcmd_common
@@ -92,7 +92,7 @@ locals {
       token                       = local.k3s_token
       disable-cloud-controller    = true
       disable                     = local.disable_extras
-      kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
+      kubelet-arg                 = concat(local.kubelet_arg, v.kubelet_args)
       kube-controller-manager-arg = local.kube_controller_manager_arg
       flannel-iface               = local.flannel_iface
       node-ip                     = module.control_planes[k].private_ipv4_address
