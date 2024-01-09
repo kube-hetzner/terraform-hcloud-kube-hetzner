@@ -1,15 +1,3 @@
-variable "microos_x86_snapshot_id" {
-  description = "MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
-  type        = string
-  default     = ""
-}
-
-variable "microos_arm_snapshot_id" {
-  description = "MicroOS ARM snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
-  type        = string
-  default     = ""
-}
-
 variable "network_region" {
   description = "Default region for network."
   type        = string
