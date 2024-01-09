@@ -457,18 +457,6 @@ variable "initial_k3s_channel" {
   }
 }
 
-variable "automatically_upgrade_k3s" {
-  type        = bool
-  default     = true
-  description = "Whether to automatically upgrade k3s based on the selected channel."
-}
-
-variable "automatically_upgrade_os" {
-  type        = bool
-  default     = true
-  description = "Whether to enable or disable automatic os updates. Defaults to true. Should be disabled for single-node clusters"
-}
-
 variable "extra_firewall_rules" {
   type        = list(any)
   default     = []
@@ -717,17 +705,6 @@ variable "rancher_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart."
-}
-
-variable "kured_version" {
-  type        = string
-  default     = null
-  description = "Version of Kured."
-}
-
-variable "kured_options" {
-  type    = map(string)
-  default = {}
 }
 
 variable "block_icmp_ping_in" {

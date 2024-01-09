@@ -35,7 +35,7 @@ module "control_planes" {
 
   labels = merge(local.labels, local.labels_control_plane_node)
 
-  automatically_upgrade_os = var.automatically_upgrade_os
+  automatically_upgrade_os = var.automatic_updates.os
 
   depends_on = [
     hcloud_network_subnet.control_plane,
