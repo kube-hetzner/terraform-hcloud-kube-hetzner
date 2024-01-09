@@ -46,9 +46,9 @@ resource "null_resource" "first_control_plane" {
           node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
           node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
           selinux                     = true
-          cluster-cidr                = var.cluster_ipv4_cidr
-          service-cidr                = var.service_ipv4_cidr
-          cluster-dns                 = var.cluster_dns_ipv4
+          cluster-cidr                = var.network.cidr_blocks.ipv4.cluster
+          service-cidr                = var.network.cidr_blocks.ipv4.service
+          cluster-dns                 = var.network.cluster_dns.ipv4
         },
         lookup(local.cni_k3s_settings, var.cni.type, {}),
         var.load_balancer.kubeapi.enabled ? {
@@ -182,7 +182,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/ccm.yaml.tpl",
       {
-        cluster_cidr_ipv4   = var.cluster_ipv4_cidr
+        cluster_cidr_ipv4   = var.network.cidr_blocks.ipv4.cluster
         default_lb_location = var.load_balancer.ingress.location
         using_klipper_lb    = local.using_klipper_lb
     })

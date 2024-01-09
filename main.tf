@@ -25,12 +25,12 @@ resource "hcloud_ssh_key" "k3s" {
 resource "hcloud_network" "k3s" {
   count    = local.use_existing_network ? 0 : 1
   name     = var.cluster_name
-  ip_range = var.network_ipv4_cidr
+  ip_range = var.network.cidr_blocks.ipv4.main
   labels   = local.labels
 }
 
 data "hcloud_network" "k3s" {
-  id = local.use_existing_network ? var.existing_network_id[0] : hcloud_network.k3s[0].id
+  id = local.use_existing_network ? var.network.existing_network_id[0] : hcloud_network.k3s[0].id
 }
 
 # We start from the end of the subnets cidr array,
@@ -39,7 +39,7 @@ resource "hcloud_network_subnet" "control_plane" {
   count        = length(var.control_plane_nodepools)
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
-  network_zone = var.network_region
+  network_zone = var.network.region
   ip_range     = local.network_ipv4_subnets[255 - count.index]
 }
 
@@ -48,7 +48,7 @@ resource "hcloud_network_subnet" "agent" {
   count        = length(var.agent_nodepools)
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
-  network_zone = var.network_region
+  network_zone = var.network.region
   ip_range     = local.network_ipv4_subnets[count.index]
 }
 

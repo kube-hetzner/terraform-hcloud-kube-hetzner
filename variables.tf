@@ -1,48 +1,3 @@
-variable "network_region" {
-  description = "Default region for network."
-  type        = string
-  default     = "eu-central"
-}
-variable "existing_network_id" {
-  # Unfortunately, we need this to be a list or null. If we only use a plain
-  # string here, and check that existing_network_id is null, terraform will
-  # complain that it cannot set `count` variables based on existing_network_id
-  # != null, because that id is an output value from
-  # hcloud_network.your_network.id, which terraform will only know after its
-  # construction.
-  description = "If you want to create the private network before calling this module, you can do so and pass its id here. NOTE: make sure to adapt network_ipv4_cidr accordingly to a range which does not collide with your other nodes."
-  type        = list(string)
-  default     = []
-  nullable    = false
-  validation {
-    condition     = length(var.existing_network_id) == 0 || (can(var.existing_network_id[0]) && length(var.existing_network_id) == 1)
-    error_message = "If you pass an existing_network_id, it must be enclosed in square brackets: [id]. This is necessary to be able to unambiguously distinguish between an empty network id (default) and a user-supplied network id."
-  }
-}
-variable "network_ipv4_cidr" {
-  description = "The main network cidr that all subnets will be created upon."
-  type        = string
-  default     = "10.0.0.0/8"
-}
-
-variable "cluster_ipv4_cidr" {
-  description = "Internal Pod CIDR, used for the controller and currently for calico/cilium."
-  type        = string
-  default     = "10.42.0.0/16"
-}
-
-variable "service_ipv4_cidr" {
-  description = "Internal Service CIDR, used for the controller and currently for calico/cilium."
-  type        = string
-  default     = "10.43.0.0/16"
-}
-
-variable "cluster_dns_ipv4" {
-  description = "Internal Service IPv4 address of core-dns."
-  type        = string
-  default     = "10.43.0.10"
-}
-
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
@@ -149,28 +104,6 @@ variable "placement_group_disable" {
   type        = bool
   default     = false
   description = "Whether to disable placement groups."
-}
-
-variable "dns_servers" {
-  type = list(string)
-
-  default = [
-    "185.12.64.1",
-    "185.12.64.2",
-    "2a01:4ff:ff00::add:1",
-  ]
-  description = "IP Addresses to use for the DNS Servers, set to an empty list to use the ones provided by Hetzner. The length is limited to 3 entries, more entries is not supported by kubernetes"
-
-  validation {
-    condition     = length(var.dns_servers) <= 3
-    error_message = "The list must have no more than 3 items."
-  }
-}
-
-variable "address_for_connectivity_test" {
-  type        = string
-  default     = "1.1.1.1"
-  description = "Before installing k3s, we actually verify that there is internet connectivity. By default we ping 1.1.1.1, but if you use a proxy, you may simply want to ping that proxy instead (assuming that the proxy has its own checks for internet connectivity)."
 }
 
 variable "additional_k3s_environment" {

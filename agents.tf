@@ -21,7 +21,7 @@ module "agents" {
   server_type                  = each.value.server_type
   backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  dns_servers                  = var.dns_servers
+  dns_servers                  = var.network.dns_servers
   k3s_registries               = var.k3s.registries
   k3s_registries_update_script = local.k3s_registries_update_script
   cloudinit_write_files_common = local.cloudinit_write_files_common

@@ -21,7 +21,7 @@ module "control_planes" {
   server_type                  = each.value.server_type
   backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  dns_servers                  = var.dns_servers
+  dns_servers                  = var.network.dns_servers
   k3s_registries               = var.k3s.registries
   k3s_registries_update_script = local.k3s_registries_update_script
   cloudinit_write_files_common = local.cloudinit_write_files_common
@@ -100,9 +100,9 @@ locals {
       node-label                  = v.labels
       node-taint                  = v.taints
       selinux                     = true
-      cluster-cidr                = var.cluster_ipv4_cidr
-      service-cidr                = var.service_ipv4_cidr
-      cluster-dns                 = var.cluster_dns_ipv4
+      cluster-cidr                = var.network.cidr_blocks.ipv4.cluster
+      service-cidr                = var.network.cidr_blocks.ipv4.service
+      cluster-dns                 = var.network.cluster_dns.ipv4
       write-kubeconfig-mode       = "0644" # needed for import into rancher
     },
     lookup(local.cni_k3s_settings, var.cni.type, {}),

@@ -15,7 +15,7 @@ locals {
   kured_version  = var.automatic_updates.kured.version != null ? var.automatic_updates.kured.version : data.github_release.kured[0].release_tag
   calico_version = length(data.github_release.calico) == 0 ? var.cni.calico.version : data.github_release.calico[0].release_tag
 
-  cilium_ipv4_native_routing_cidr = coalesce(var.cni.cilium.ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
+  cilium_ipv4_native_routing_cidr = coalesce(var.cni.cilium.ipv4_native_routing_cidr, var.network.cidr_blocks.ipv4.cluster)
 
   additional_k3s_environment = join("\n",
     [
@@ -64,7 +64,7 @@ locals {
     # User-defined commands to execute just before installing k3s.
     var.extra.exec.preinstall,
     # Wait for a successful connection to the internet.
-    ["timeout 180s /bin/sh -c 'while ! ping -c 1 ${var.address_for_connectivity_test} >/dev/null 2>&1; do echo \"Ready for k3s installation, waiting for a successful connection to the internet...\"; sleep 5; done; echo Connected'"]
+    ["timeout 180s /bin/sh -c 'while ! ping -c 1 ${var.network.internet_check_address} >/dev/null 2>&1; do echo \"Ready for k3s installation, waiting for a successful connection to the internet...\"; sleep 5; done; echo Connected'"]
   )
 
   common_post_install_k3s_commands = concat(var.extra.exec.postinstall, ["restorecon -v /usr/local/bin/k3s"])
@@ -156,11 +156,11 @@ locals {
     }
   ]...)
 
-  use_existing_network = length(var.existing_network_id) > 0
+  use_existing_network = length(var.network.existing_network_id) > 0
 
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
-  network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
+  network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network.cidr_blocks.ipv4.main, 8, index)]
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
@@ -434,7 +434,7 @@ spec:
         - name: calico-node
           env:
             - name: CALICO_IPV4POOL_CIDR
-              value: "${var.cluster_ipv4_cidr}"
+              value: "${var.network.cidr_blocks.ipv4.cluster}"
             - name: FELIX_WIREGUARDENABLED
               value: "${var.cni.encrypt_traffic}"
 
@@ -806,7 +806,7 @@ EOF
 %{endif}
 
 # Apply new DNS config
-%{if length(var.dns_servers) > 0}
+%{if length(var.network.dns_servers) > 0}
 # Set prepare for manual dns config
 - content: |
     [main]
@@ -814,7 +814,7 @@ EOF
   path: /etc/NetworkManager/conf.d/dns.conf
 
 - content: |
-    %{for server in var.dns_servers~}
+    %{for server in var.network.dns_servers~}
     nameserver ${server}
     %{endfor}
   path: /etc/resolv.conf
@@ -842,7 +842,7 @@ EOT
 # Disable rebootmgr service as we use kured instead
 - [systemctl, disable, '--now', 'rebootmgr.service']
 
-%{if length(var.dns_servers) > 0}
+%{if length(var.network.dns_servers) > 0}
 # Set the dns manually
 - [systemctl, 'reload', 'NetworkManager']
 %{endif}
