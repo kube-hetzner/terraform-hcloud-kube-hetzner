@@ -208,26 +208,26 @@ locals {
   default_agent_taints         = concat([], var.cni.type == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
   base_firewall_rules = concat(
-    var.firewall_ssh_source == null ? [] : [
+    var.firewall.ssh_source == null ? [] : [
       # Allow all traffic to the ssh port
       {
         description = "Allow Incoming SSH Traffic"
         direction   = "in"
         protocol    = "tcp"
         port        = var.ssh_port
-        source_ips  = var.firewall_ssh_source
+        source_ips  = var.firewall.ssh_source
       },
     ],
-    var.firewall_kube_api_source == null ? [] : [
+    var.firewall.kube_api_source == null ? [] : [
       {
         description = "Allow Incoming Requests to Kube API Server"
         direction   = "in"
         protocol    = "tcp"
         port        = "6443"
-        source_ips  = var.firewall_kube_api_source
+        source_ips  = var.firewall.kube_api_source
       }
     ],
-    !var.restrict_outbound_traffic ? [] : [
+    !var.firewall.restrict_outbound_traffic ? [] : [
       # Allow basic out traffic
       # ICMP to ping outside services
       {
@@ -297,7 +297,7 @@ locals {
         source_ips  = ["0.0.0.0/0", "::/0"]
       }
     ],
-    var.block_icmp_ping_in ? [] : [
+    var.firewall.block_icmp_ping_in ? [] : [
       {
         description = "Allow Incoming ICMP Ping Requests"
         direction   = "in"
@@ -313,7 +313,7 @@ locals {
   firewall_rules = { for rule in local.base_firewall_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule }
 
   # do the same for var.extra_firewall_rules
-  extra_firewall_rules = { for rule in var.extra_firewall_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule }
+  extra_firewall_rules = { for rule in var.firewall.extra_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule }
 
   # merge the two lists
   firewall_rules_merged = merge(local.firewall_rules, local.extra_firewall_rules)

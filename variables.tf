@@ -252,12 +252,6 @@ variable "hetzner_ccm_version" {
   description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud."
 }
 
-variable "restrict_outbound_traffic" {
-  type        = bool
-  default     = true
-  description = "Whether or not to restrict the outbound traffic."
-}
-
 variable "etcd_s3_backup" {
   description = "Etcd cluster state backup to S3 storage"
   type        = map(any)
@@ -275,24 +269,6 @@ variable "enable_metrics_server" {
   type        = bool
   default     = true
   description = "Whether to enable or disable k3s metric server."
-}
-
-variable "extra_firewall_rules" {
-  type        = list(any)
-  default     = []
-  description = "Additional firewall rules to apply to the cluster."
-}
-
-variable "firewall_kube_api_source" {
-  type        = list(string)
-  default     = ["0.0.0.0/0", "::/0"]
-  description = "Source networks that have Kube API access to the servers."
-}
-
-variable "firewall_ssh_source" {
-  type        = list(string)
-  default     = ["0.0.0.0/0", "::/0"]
-  description = "Source networks that have SSH access to the servers."
 }
 
 variable "use_cluster_name_in_node_name" {
@@ -380,12 +356,6 @@ variable "rancher_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart."
-}
-
-variable "block_icmp_ping_in" {
-  type        = bool
-  default     = false
-  description = "Block entering ICMP ping."
 }
 
 variable "dns_servers" {
