@@ -50,7 +50,7 @@ resource "null_resource" "first_control_plane" {
           service-cidr                = var.service_ipv4_cidr
           cluster-dns                 = var.cluster_dns_ipv4
         },
-        lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+        lookup(local.cni_k3s_settings, var.cni.type, {}),
         var.use_control_plane_lb ? {
           tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
           } : {
@@ -129,8 +129,8 @@ resource "null_resource" "kustomization" {
       coalesce(var.hetzner_ccm_version, "N/A"),
       coalesce(var.hetzner_csi_version, "N/A"),
       coalesce(var.automatic_updates.kured.version, "N/A"),
-      coalesce(var.calico_version, "N/A"),
-      coalesce(var.cilium_version, "N/A"),
+      coalesce(var.cni.calico.version, "N/A"),
+      coalesce(var.cni.cilium.version, "N/A"),
       coalesce(var.traefik_version, "N/A"),
       coalesce(var.nginx_version, "N/A"),
     ])
@@ -206,7 +206,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/cilium.yaml.tpl",
       {
         values  = indent(4, trimspace(local.cilium_values))
-        version = var.cilium_version
+        version = var.cni.cilium.version
     })
     destination = "/var/post_install/cilium.yaml"
   }

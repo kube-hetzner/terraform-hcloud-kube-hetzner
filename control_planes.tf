@@ -105,7 +105,7 @@ locals {
       cluster-dns                 = var.cluster_dns_ipv4
       write-kubeconfig-mode       = "0644" # needed for import into rancher
     },
-    lookup(local.cni_k3s_settings, var.cni_plugin, {}),
+    lookup(local.cni_k3s_settings, var.cni.type, {}),
     var.use_control_plane_lb ? {
       tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
       } : {

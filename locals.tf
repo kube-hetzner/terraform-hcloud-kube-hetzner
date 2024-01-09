@@ -13,9 +13,9 @@ locals {
   ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version  = var.automatic_updates.kured.version != null ? var.automatic_updates.kured.version : data.github_release.kured[0].release_tag
-  calico_version = length(data.github_release.calico) == 0 ? var.calico_version : data.github_release.calico[0].release_tag
+  calico_version = length(data.github_release.calico) == 0 ? var.cni.calico.version : data.github_release.calico[0].release_tag
 
-  cilium_ipv4_native_routing_cidr = coalesce(var.cilium_ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
+  cilium_ipv4_native_routing_cidr = coalesce(var.cni.cilium.ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
 
   additional_k3s_environment = join("\n",
     [
@@ -81,7 +81,7 @@ locals {
       ],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
-      lookup(local.cni_install_resources, var.cni_plugin, []),
+      lookup(local.cni_install_resources, var.cni.type, []),
       var.enable_longhorn ? ["longhorn.yaml"] : [],
       var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
       var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
@@ -205,7 +205,7 @@ locals {
 
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
-  default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
+  default_agent_taints         = concat([], var.cni.type == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
   base_firewall_rules = concat(
     var.firewall_ssh_source == null ? [] : [
@@ -349,8 +349,8 @@ locals {
 
   cni_k3s_settings = {
     "flannel" = {
-      disable-network-policy = var.disable_network_policy
-      flannel-backend        = var.enable_wireguard ? "wireguard-native" : "vxlan"
+      disable-network-policy = var.cni.disable_network_policy
+      flannel-backend        = var.cni.encrypt_traffic ? "wireguard-native" : "vxlan"
     }
     "calico" = {
       disable-network-policy = true
@@ -372,7 +372,7 @@ locals {
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
 
-  cilium_values = var.cilium_values != "" ? var.cilium_values : <<EOT
+  cilium_values = var.cni.cilium.values != "" ? var.cni.cilium.values : <<EOT
 # Enable Kubernetes host-scope IPAM mode (required for K3s + Hetzner CCM)
 ipam:
   mode: kubernetes
@@ -383,8 +383,8 @@ k8s:
 kubeProxyReplacement: true
 
 # Set Tunnel Mode or Native Routing Mode (supported by Hetzner CCM Route Controller)
-routingMode: "${var.cilium_routing_mode}"
-%{if var.cilium_routing_mode == "native"~}
+routingMode: "${var.cni.cilium.routing_mode}"
+%{if var.cni.cilium.routing_mode == "native"~}
 ipv4NativeRoutingCIDR: "${local.cilium_ipv4_native_routing_cidr}"
 %{endif~}
 
@@ -399,12 +399,12 @@ loadBalancer:
 bpf:
   # Enable eBPF-based Masquerading ("The eBPF-based implementation is the most efficient implementation")
   masquerade: true
-%{if var.enable_wireguard}
+%{if var.cni.encrypt_traffic}
 encryption:
   enabled: true
   type: wireguard
 %{endif~}
-%{if var.cilium_egress_gateway_enabled}
+%{if var.cni.cilium.egress_gateway_enabled}
 egressGateway:
   enabled: true
 %{endif~}
@@ -414,7 +414,7 @@ MTU: 1450
 
   # Not to be confused with the other helm values, this is used for the calico.yaml kustomize patch
   # It also serves as a stub for a potential future use via helm values
-  calico_values = var.calico_values != "" ? var.calico_values : <<EOT
+  calico_values = var.cni.calico.values != "" ? var.cni.calico.values : <<EOT
 kind: DaemonSet
 apiVersion: apps/v1
 metadata:
@@ -436,7 +436,7 @@ spec:
             - name: CALICO_IPV4POOL_CIDR
               value: "${var.cluster_ipv4_cidr}"
             - name: FELIX_WIREGUARDENABLED
-              value: "${var.enable_wireguard}"
+              value: "${var.cni.encrypt_traffic}"
 
   EOT
 

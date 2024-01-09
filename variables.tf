@@ -509,64 +509,6 @@ variable "placement_group_disable" {
   description = "Whether to disable placement groups."
 }
 
-variable "disable_network_policy" {
-  type        = bool
-  default     = false
-  description = "Disable k3s default network policy controller (default false, automatically true for calico and cilium)."
-}
-
-variable "cni_plugin" {
-  type        = string
-  default     = "flannel"
-  description = "CNI plugin for k3s."
-
-  validation {
-    condition     = contains(["flannel", "calico", "cilium"], var.cni_plugin)
-    error_message = "The cni_plugin must be one of \"flannel\", \"calico\", or \"cilium\"."
-  }
-}
-
-variable "cilium_egress_gateway_enabled" {
-  type        = bool
-  default     = false
-  description = "Enables egress gateway to redirect and SNAT the traffic that leaves the cluster."
-}
-
-variable "cilium_ipv4_native_routing_cidr" {
-  type        = string
-  default     = null
-  description = "Used when Cilium is configured in native routing mode. The CNI assumes that the underlying network stack will forward packets to this destination without the need to apply SNAT. Default: value of \"cluster_ipv4_cidr\""
-}
-
-variable "cilium_routing_mode" {
-  type        = string
-  default     = "tunnel"
-  description = "Set native-routing mode (\"native\") or tunneling mode (\"tunnel\")."
-
-  validation {
-    condition     = contains(["tunnel", "native"], var.cilium_routing_mode)
-    error_message = "The cilium_routing_mode must be one of \"tunnel\" or \"native\"."
-  }
-}
-
-variable "cilium_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart."
-}
-
-variable "cilium_version" {
-  type        = string
-  default     = "1.14.4"
-  description = "Version of Cilium."
-}
-
-variable "calico_values" {
-  type        = string
-  default     = ""
-  description = "Just a stub for a future helm implementation. Now it can be used to replace the calico kustomize patch of the calico manifest."
-}
-
 variable "enable_longhorn" {
   type        = bool
   default     = false
@@ -802,12 +744,6 @@ variable "export_values" {
   description = "Export for deployment used values.yaml-files as local files."
 }
 
-variable "enable_wireguard" {
-  type        = bool
-  default     = false
-  description = "Use wireguard-native as the backend for CNI."
-}
-
 variable "control_planes_custom_config" {
   type        = any
   default     = {}
@@ -824,12 +760,6 @@ variable "additional_tls_sans" {
   description = "Additional TLS SANs to allow connection to control-plane through it."
   default     = []
   type        = list(string)
-}
-
-variable "calico_version" {
-  type        = string
-  default     = null
-  description = "Version of Calico."
 }
 
 variable "k3s_exec_server_args" {
