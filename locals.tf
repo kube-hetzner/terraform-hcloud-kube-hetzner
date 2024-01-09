@@ -80,11 +80,11 @@ locals {
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
       ],
       var.csi.hetzner_csi.enabled ? ["hcloud-csi.yml"] : [],
-      lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
+      lookup(local.ingress_controller_install_resources, var.ingress.type, []),
       lookup(local.cni_install_resources, var.cni.type, []),
       var.csi.longhorn.enabled ? ["longhorn.yaml"] : [],
       var.csi.csi_driver_smb.enabled ? ["csi-driver-smb.yaml"] : [],
-      var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
+      var.cert_manager.enabled || var.enable_rancher ? ["cert_manager.yaml"] : [],
       var.enable_rancher ? ["rancher.yaml"] : [],
       var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
     ),
@@ -169,8 +169,8 @@ locals {
 
   using_klipper_lb = var.load_balancer.ingress.type == "klipper" || local.is_single_node_cluster
 
-  has_external_load_balancer = local.using_klipper_lb || var.ingress_controller == "none"
-  load_balancer_name         = "${var.cluster_name}-${var.ingress_controller}"
+  has_external_load_balancer = local.using_klipper_lb || var.ingress.type == "none"
+  load_balancer_name         = "${var.cluster_name}-${var.ingress.type}"
 
   ingress_controller_service_names = {
     "traefik" = "traefik"
@@ -187,9 +187,9 @@ locals {
     "nginx"   = "nginx"
   }
 
-  ingress_controller_namespace = var.ingress_target_namespace != "" ? var.ingress_target_namespace : lookup(local.default_ingress_namespace_mapping, var.ingress_controller, "")
-  ingress_replica_count        = (var.ingress_replica_count > 0) ? var.ingress_replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
-  ingress_max_replica_count    = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
+  ingress_controller_namespace = var.ingress.namespace != "" ? var.ingress.namespace : lookup(local.default_ingress_namespace_mapping, var.ingress.type, "")
+  ingress_replica_count        = (var.ingress.replica_count > 0) ? var.ingress.replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+  ingress_max_replica_count    = (var.ingress.max_replica_count > local.ingress_replica_count) ? var.ingress.max_replica_count : local.ingress_replica_count
 
   # disable k3s extras
   disable_extras = concat(var.csi.local_storage.enabled ? [] : ["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
@@ -455,7 +455,7 @@ persistence:
   csi_driver_smb_values = var.csi.csi_driver_smb.values != "" ? var.csi.csi_driver_smb.values : <<EOT
   EOT
 
-  nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
+  nginx_values = var.ingress.nginx.values != "" ? var.ingress.nginx.values : <<EOT
 controller:
   watchIngressWithoutClass: "true"
   kind: "Deployment"
@@ -485,9 +485,9 @@ controller:
 %{endif~}
   EOT
 
-  traefik_values = var.traefik_values != "" ? var.traefik_values : <<EOT
+  traefik_values = var.ingress.traefik.values != "" ? var.ingress.traefik.values : <<EOT
 image:
-  tag: ${var.traefik_image_tag}
+  tag: ${var.ingress.traefik.image_tag}
 deployment:
   replicas: ${local.ingress_replica_count}
 globalArguments: []
@@ -514,7 +514,7 @@ service:
 %{endif~}
 ports:
   web:
-%{if var.traefik_redirect_to_https~}
+%{if var.ingress.traefik.redirect_to_https~}
     redirectTo:
       port: websecure
       priority: 10
@@ -524,14 +524,14 @@ ports:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
-%{for ip in var.traefik_additional_trusted_ips~}
+%{for ip in var.ingress.traefik.additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
     forwardedHeaders:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
-%{for ip in var.traefik_additional_trusted_ips~}
+%{for ip in var.ingress.traefik.additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
   websecure:
@@ -539,19 +539,19 @@ ports:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
-%{for ip in var.traefik_additional_trusted_ips~}
+%{for ip in var.ingress.traefik.additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
     forwardedHeaders:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
-%{for ip in var.traefik_additional_trusted_ips~}
+%{for ip in var.ingress.traefik.additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
 %{endif~}
-%{if var.traefik_additional_ports != ""~}
-%{for option in var.traefik_additional_ports~}
+%{if var.ingress.traefik.additional_ports != ""~}
+%{for option in var.ingress.traefik.additional_ports~}
   ${option.name}:
     port: ${option.port}
     expose: true
@@ -562,31 +562,28 @@ ports:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
-%{for ip in var.traefik_additional_trusted_ips~}
+%{for ip in var.ingress.traefik.additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
     forwardedHeaders:
       trustedIPs:
         - 127.0.0.1/32
         - 10.0.0.0/8
-%{for ip in var.traefik_additional_trusted_ips~}
+%{for ip in var.ingress.traefik.additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
 %{endif~}
 %{endfor~}
 %{endif~}
-%{if var.traefik_pod_disruption_budget~}
 podDisruptionBudget:
   enabled: true
   maxUnavailable: 33%
-%{endif~}
 additionalArguments:
   - "--entrypoints.tcp=true"
   - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_controller_namespace}/traefik"
-%{for option in var.traefik_additional_options~}
+%{for option in var.ingress.traefik.additional_options~}
   - "${option}"
 %{endfor~}
-%{if var.traefik_resource_limits~}
 resources:
   requests:
     cpu: "100m"
@@ -594,8 +591,7 @@ resources:
   limits:
     cpu: "300m"
     memory: "150Mi"
-%{endif~}
-%{if var.traefik_autoscaling~}
+%{if var.ingress.replica_count < var.ingress.max_replica_count~}
 autoscaling:
   enabled: true
   minReplicas: ${local.ingress_replica_count}
@@ -613,7 +609,7 @@ global:
       enabled: false
   EOT
 
-  cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
+  cert_manager_values = var.cert_manager.values != "" ? var.cert_manager.values : <<EOT
 installCRDs: true
   EOT
 

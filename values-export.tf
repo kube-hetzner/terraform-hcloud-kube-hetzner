@@ -6,7 +6,7 @@ resource "local_file" "cilium_values" {
 }
 
 resource "local_file" "cert_manager_values" {
-  count           = var.export_values && var.enable_cert_manager ? 1 : 0
+  count           = var.export_values && var.cert_manager.enabled ? 1 : 0
   content         = local.cert_manager_values
   filename        = "cert_manager_values.yaml"
   file_permission = "600"
@@ -27,14 +27,14 @@ resource "local_file" "longhorn_values" {
 }
 
 resource "local_file" "traefik_values" {
-  count           = var.export_values && var.ingress_controller == "traefik" ? 1 : 0
+  count           = var.export_values && var.ingress.type == "traefik" ? 1 : 0
   content         = local.traefik_values
   filename        = "traefik_values.yaml"
   file_permission = "600"
 }
 
 resource "local_file" "nginx_values" {
-  count           = var.export_values && var.ingress_controller == "nginx" ? 1 : 0
+  count           = var.export_values && var.ingress.type == "nginx" ? 1 : 0
   content         = local.nginx_values
   filename        = "nginx_values.yaml"
   file_permission = "600"

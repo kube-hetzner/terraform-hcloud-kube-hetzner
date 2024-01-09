@@ -131,8 +131,8 @@ resource "null_resource" "kustomization" {
       coalesce(var.automatic_updates.kured.version, "N/A"),
       coalesce(var.cni.calico.version, "N/A"),
       coalesce(var.cni.cilium.version, "N/A"),
-      coalesce(var.traefik_version, "N/A"),
-      coalesce(var.nginx_version, "N/A"),
+      coalesce(var.ingress.traefik.helm_chart_version, "N/A"),
+      coalesce(var.ingress.nginx.helm_chart_version, "N/A"),
     ])
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
@@ -158,7 +158,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
-        version          = var.traefik_version
+        version          = var.ingress.traefik.helm_chart_version
         values           = indent(4, trimspace(local.traefik_values))
         target_namespace = local.ingress_controller_namespace
     })
@@ -170,7 +170,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
-        version          = var.nginx_version
+        version          = var.ingress.nginx.helm_chart_version
         values           = indent(4, trimspace(local.nginx_values))
         target_namespace = local.ingress_controller_namespace
     })
@@ -323,7 +323,7 @@ resource "null_resource" "kustomization" {
       local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 360 bash <<EOF
-      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.load_balancer.ingress.hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
+      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress.type)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.load_balancer.ingress.hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
           sleep 2
       done

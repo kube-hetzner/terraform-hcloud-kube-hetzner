@@ -265,115 +265,6 @@ variable "etcd_s3_backup" {
   default     = {}
 }
 
-variable "ingress_controller" {
-  type        = string
-  default     = "traefik"
-  description = "The name of the ingress controller."
-
-  validation {
-    condition     = contains(["traefik", "nginx", "none"], var.ingress_controller)
-    error_message = "Must be one of \"traefik\" or \"nginx\" or \"none\""
-  }
-}
-
-variable "ingress_replica_count" {
-  type        = number
-  default     = 0
-  description = "Number of replicas per ingress controller. 0 means autodetect based on the number of agent nodes."
-
-  validation {
-    condition     = var.ingress_replica_count >= 0
-    error_message = "Number of ingress replicas can't be below 0."
-  }
-}
-
-variable "ingress_max_replica_count" {
-  type        = number
-  default     = 10
-  description = "Number of maximum replicas per ingress controller. Used for ingress HPA. Must be higher than number of replicas."
-
-  validation {
-    condition     = var.ingress_max_replica_count >= 0
-    error_message = "Number of ingress maximum replicas can't be below 0."
-  }
-}
-
-variable "traefik_image_tag" {
-  type        = string
-  default     = ""
-  description = "Traefik image tag. Useful to use the beta version for new features. Example: v3.0.0-beta5"
-}
-
-variable "traefik_autoscaling" {
-  type        = bool
-  default     = true
-  description = "Should traefik enable Horizontal Pod Autoscaler."
-}
-
-variable "traefik_redirect_to_https" {
-  type        = bool
-  default     = true
-  description = "Should traefik redirect http traffic to https."
-}
-
-variable "traefik_pod_disruption_budget" {
-  type        = bool
-  default     = true
-  description = "Should traefik enable pod disruption budget. Default values are maxUnavailable: 33% and minAvailable: 1."
-}
-
-variable "traefik_resource_limits" {
-  type        = bool
-  default     = true
-  description = "Should traefik enable default resource requests and limits. Default values are requests: 100m & 50Mi and limits: 300m & 150Mi."
-}
-
-variable "traefik_additional_ports" {
-  type = list(object({
-    name        = string
-    port        = number
-    exposedPort = number
-  }))
-  default     = []
-  description = "Additional ports to pass to Traefik. These are the ones that go into the ports section of the Traefik helm values file."
-}
-
-variable "traefik_additional_options" {
-  type        = list(string)
-  default     = []
-  description = "Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file."
-}
-
-variable "traefik_additional_trusted_ips" {
-  type        = list(string)
-  default     = []
-  description = "Additional Trusted IPs to pass to Traefik. These are the ones that go into the trustedIPs section of the Traefik helm values file."
-}
-
-variable "traefik_version" {
-  type        = string
-  default     = ""
-  description = "Version of Traefik helm chart."
-}
-
-variable "traefik_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart."
-}
-
-variable "nginx_version" {
-  type        = string
-  default     = ""
-  description = "Version of Nginx helm chart."
-}
-
-variable "nginx_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
-}
-
 variable "allow_scheduling_on_control_plane" {
   type        = bool
   default     = false
@@ -436,18 +327,6 @@ variable "placement_group_disable" {
   type        = bool
   default     = false
   description = "Whether to disable placement groups."
-}
-
-variable "enable_cert_manager" {
-  type        = bool
-  default     = true
-  description = "Enable cert manager."
-}
-
-variable "cert_manager_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart."
 }
 
 variable "enable_rancher" {
@@ -590,10 +469,4 @@ variable "additional_tls_sans" {
   description = "Additional TLS SANs to allow connection to control-plane through it."
   default     = []
   type        = list(string)
-}
-
-variable "ingress_target_namespace" {
-  type        = string
-  default     = ""
-  description = "The namespace to deploy the ingress controller to. Defaults to ingress name."
 }
