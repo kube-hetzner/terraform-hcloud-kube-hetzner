@@ -11,7 +11,7 @@ locals {
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
 
   ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
-  csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
+  csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.csi.hetzner_csi.version : data.github_release.hetzner_csi[0].release_tag
   kured_version  = var.automatic_updates.kured.version != null ? var.automatic_updates.kured.version : data.github_release.kured[0].release_tag
   calico_version = length(data.github_release.calico) == 0 ? var.cni.calico.version : data.github_release.calico[0].release_tag
 
@@ -79,11 +79,11 @@ locals {
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
       ],
-      var.disable_hetzner_csi ? [] : ["hcloud-csi.yml"],
+      var.csi.hetzner_csi.enabled ? ["hcloud-csi.yml"] : [],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni.type, []),
-      var.enable_longhorn ? ["longhorn.yaml"] : [],
-      var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
+      var.csi.longhorn.enabled ? ["longhorn.yaml"] : [],
+      var.csi.csi_driver_smb.enabled ? ["csi-driver-smb.yaml"] : [],
       var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
       var.enable_rancher ? ["rancher.yaml"] : [],
       var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
@@ -192,7 +192,7 @@ locals {
   ingress_max_replica_count    = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
 
   # disable k3s extras
-  disable_extras = concat(var.enable_local_storage ? [] : ["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
+  disable_extras = concat(var.csi.local_storage.enabled ? [] : ["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
 
   # Determine if scheduling should be allowed on control plane nodes, which will be always true for single node clusters and clusters or if scheduling is allowed on control plane nodes
   allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
@@ -440,19 +440,19 @@ spec:
 
   EOT
 
-  longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT
+  longhorn_values = var.csi.longhorn.values != "" ? var.csi.longhorn.values : <<EOT
 defaultSettings:
 %{if length(var.autoscaler_nodepools) != 0~}
   kubernetesClusterAutoscalerEnabled: true
 %{endif~}
   defaultDataPath: /var/longhorn
 persistence:
-  defaultFsType: ${var.longhorn_fstype}
-  defaultClassReplicaCount: ${var.longhorn_replica_count}
-  %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
+  defaultFsType: ${var.csi.longhorn.fstype}
+  defaultClassReplicaCount: ${var.csi.longhorn.replica_count}
+  %{if var.csi.hetzner_csi.enabled~}defaultClass: true%{else~}defaultClass: false%{endif~}
   EOT
 
-  csi_driver_smb_values = var.csi_driver_smb_values != "" ? var.csi_driver_smb_values : <<EOT
+  csi_driver_smb_values = var.csi.csi_driver_smb.values != "" ? var.csi.csi_driver_smb.values : <<EOT
   EOT
 
   nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT

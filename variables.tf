@@ -300,12 +300,6 @@ variable "hetzner_ccm_version" {
   description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud."
 }
 
-variable "hetzner_csi_version" {
-  type        = string
-  default     = null
-  description = "Version of Container Storage Interface driver for Hetzner Cloud."
-}
-
 variable "restrict_outbound_traffic" {
   type        = bool
   default     = true
@@ -507,70 +501,6 @@ variable "placement_group_disable" {
   type        = bool
   default     = false
   description = "Whether to disable placement groups."
-}
-
-variable "enable_longhorn" {
-  type        = bool
-  default     = false
-  description = "Whether or not to enable Longhorn."
-}
-
-variable "longhorn_repository" {
-  type        = string
-  default     = "https://charts.longhorn.io"
-  description = "By default the official chart which may be incompatible with rancher is used. If you need to fully support rancher switch to https://charts.rancher.io."
-}
-
-variable "longhorn_namespace" {
-  type        = string
-  default     = "longhorn-system"
-  description = "Namespace for longhorn deployment, defaults to 'longhorn-system'"
-}
-
-variable "longhorn_fstype" {
-  type        = string
-  default     = "ext4"
-  description = "The longhorn fstype."
-
-  validation {
-    condition     = contains(["ext4", "xfs"], var.longhorn_fstype)
-    error_message = "Must be one of \"ext4\" or \"xfs\""
-  }
-}
-
-variable "longhorn_replica_count" {
-  type        = number
-  default     = 3
-  description = "Number of replicas per longhorn volume."
-
-  validation {
-    condition     = var.longhorn_replica_count > 0
-    error_message = "Number of longhorn replicas can't be below 1."
-  }
-}
-
-variable "longhorn_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to longhorn as 'valuesContent' at the HelmChart."
-}
-
-variable "disable_hetzner_csi" {
-  type        = bool
-  default     = false
-  description = "Disable hetzner csi driver."
-}
-
-variable "enable_csi_driver_smb" {
-  type        = bool
-  default     = false
-  description = "Whether or not to enable csi-driver-smb."
-}
-
-variable "csi_driver_smb_values" {
-  type        = string
-  default     = ""
-  description = "Additional helm values file to pass to csi-driver-smb as 'valuesContent' at the HelmChart."
 }
 
 variable "enable_cert_manager" {
@@ -796,10 +726,4 @@ variable "ingress_target_namespace" {
   type        = string
   default     = ""
   description = "The namespace to deploy the ingress controller to. Defaults to ingress name."
-}
-
-variable "enable_local_storage" {
-  type        = bool
-  default     = false
-  description = "Whether to enable or disable k3s local-storage."
 }

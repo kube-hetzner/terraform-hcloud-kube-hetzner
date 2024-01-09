@@ -105,7 +105,7 @@ resource "null_resource" "agents" {
 
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
-    inline = concat(var.enable_longhorn ? ["systemctl enable --now iscsid"] : [], [
+    inline = concat(var.csi.longhorn.enabled ? ["systemctl enable --now iscsid"] : [], [
       "systemctl start k3s-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
@@ -127,7 +127,7 @@ resource "null_resource" "agents" {
 }
 
 resource "hcloud_volume" "longhorn_volume" {
-  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.enable_longhorn) }
+  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.csi.longhorn.enabled) }
 
   labels = {
     provisioner = "terraform"
@@ -138,11 +138,11 @@ resource "hcloud_volume" "longhorn_volume" {
   size      = local.agent_nodes[each.key].longhorn_volume_size
   server_id = module.agents[each.key].id
   automount = true
-  format    = var.longhorn_fstype
+  format    = var.csi.longhorn.fstype
 }
 
 resource "null_resource" "configure_longhorn_volume" {
-  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.enable_longhorn) }
+  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.csi.longhorn.enabled) }
 
   triggers = {
     agent_id = module.agents[each.key].id
@@ -153,8 +153,8 @@ resource "null_resource" "configure_longhorn_volume" {
     inline = [
       "mkdir /var/longhorn >/dev/null 2>&1",
       "mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn",
-      "${var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
-      "echo '${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
+      "${var.csi.longhorn.fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
+      "echo '${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn ${var.csi.longhorn.fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
     ]
   }
 

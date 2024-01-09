@@ -6,7 +6,7 @@ data "github_release" "hetzner_ccm" {
 }
 
 data "github_release" "hetzner_csi" {
-  count       = var.hetzner_csi_version == null && !var.disable_hetzner_csi ? 1 : 0
+  count       = var.csi.hetzner_csi.version == null && var.csi.hetzner_csi.enabled ? 1 : 0
   repository  = "csi-driver"
   owner       = "hetznercloud"
   retrieve_by = "latest"

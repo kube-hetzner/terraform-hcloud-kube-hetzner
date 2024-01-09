@@ -127,7 +127,7 @@ resource "null_resource" "kustomization" {
       coalesce(var.initial_k3s_channel, "N/A"),
       coalesce(var.cluster_autoscaler_version, "N/A"),
       coalesce(var.hetzner_ccm_version, "N/A"),
-      coalesce(var.hetzner_csi_version, "N/A"),
+      coalesce(var.csi.hetzner_csi.version, "N/A"),
       coalesce(var.automatic_updates.kured.version, "N/A"),
       coalesce(var.cni.calico.version, "N/A"),
       coalesce(var.cni.cilium.version, "N/A"),
@@ -226,8 +226,8 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/longhorn.yaml.tpl",
       {
-        longhorn_namespace  = var.longhorn_namespace
-        longhorn_repository = var.longhorn_repository
+        longhorn_namespace  = var.csi.longhorn.namespace
+        longhorn_repository = var.csi.longhorn.repository
         values              = indent(4, trimspace(local.longhorn_values))
     })
     destination = "/var/post_install/longhorn.yaml"

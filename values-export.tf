@@ -13,14 +13,14 @@ resource "local_file" "cert_manager_values" {
 }
 
 resource "local_file" "csi_driver_smb_values" {
-  count           = var.export_values && var.enable_csi_driver_smb ? 1 : 0
+  count           = var.export_values && var.csi.csi_driver_smb.enabled ? 1 : 0
   content         = local.csi_driver_smb_values
   filename        = "csi_driver_smb_values.yaml"
   file_permission = "600"
 }
 
 resource "local_file" "longhorn_values" {
-  count           = var.export_values && var.enable_longhorn ? 1 : 0
+  count           = var.export_values && var.csi.longhorn.enabled ? 1 : 0
   content         = local.longhorn_values
   filename        = "longhorn_values.yaml"
   file_permission = "600"
