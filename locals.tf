@@ -62,12 +62,12 @@ locals {
       local.install_kubectl_bash_completion,
     ],
     # User-defined commands to execute just before installing k3s.
-    var.preinstall_exec,
+    var.extra.exec.preinstall,
     # Wait for a successful connection to the internet.
     ["timeout 180s /bin/sh -c 'while ! ping -c 1 ${var.address_for_connectivity_test} >/dev/null 2>&1; do echo \"Ready for k3s installation, waiting for a successful connection to the internet...\"; sleep 5; done; echo Connected'"]
   )
 
-  common_post_install_k3s_commands = concat(var.postinstall_exec, ["restorecon -v /usr/local/bin/k3s"])
+  common_post_install_k3s_commands = concat(var.extra.exec.postinstall, ["restorecon -v /usr/local/bin/k3s"])
 
   kustomization_backup_yaml = yamlencode({
     apiVersion = "kustomize.config.k8s.io/v1beta1"

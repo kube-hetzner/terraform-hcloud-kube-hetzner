@@ -255,31 +255,6 @@ variable "additional_k3s_environment" {
   description = "Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy ."
 }
 
-variable "preinstall_exec" {
-  type        = list(string)
-  default     = []
-  description = "Additional to execute before the install calls, for example fetching and installing certs."
-}
-
-variable "postinstall_exec" {
-  type        = list(string)
-  default     = []
-  description = "Additional to execute after the install calls, for example restoring a backup."
-}
-
-
-variable "extra_kustomize_deployment_commands" {
-  type        = string
-  default     = ""
-  description = "Commands to be executed after the `kubectl apply -k <dir>` step."
-}
-
-variable "extra_kustomize_parameters" {
-  type        = map(any)
-  default     = {}
-  description = "All values will be passed to the `kustomization.tmp.yml` template."
-}
-
 variable "create_kubeconfig" {
   type        = bool
   default     = true

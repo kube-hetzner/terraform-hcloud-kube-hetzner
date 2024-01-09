@@ -14,12 +14,12 @@ resource "null_resource" "kustomization_user" {
   }
 
   provisioner "file" {
-    content     = templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters)
+    content     = templatefile("extra-manifests/${each.key}", var.extra.kustomize.parameters)
     destination = replace("/var/user_kustomize/${each.key}", ".yaml.tpl", ".yaml")
   }
 
   triggers = {
-    manifest_sha1 = "${sha1(templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters))}"
+    manifest_sha1 = "${sha1(templatefile("extra-manifests/${each.key}", var.extra.kustomize.parameters))}"
   }
 
   depends_on = [
@@ -45,7 +45,7 @@ resource "null_resource" "kustomization_user_deploy" {
       "rm -f /var/user_kustomize/*.yaml.tpl",
       "echo 'Applying user kustomization...'",
       "kubectl apply -k /var/user_kustomize/ --wait=true",
-      var.extra_kustomize_deployment_commands
+      var.extra.kustomize.deployment_commands
     ])
   }
 
