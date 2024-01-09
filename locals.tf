@@ -442,7 +442,7 @@ spec:
 
   longhorn_values = var.csi.longhorn.values != "" ? var.csi.longhorn.values : <<EOT
 defaultSettings:
-%{if length(var.autoscaler_nodepools) != 0~}
+%{if length(var.autoscaler_nodes.nodepools) != 0~}
   kubernetesClusterAutoscalerEnabled: true
 %{endif~}
   defaultDataPath: /var/longhorn

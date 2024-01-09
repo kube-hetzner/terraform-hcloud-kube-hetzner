@@ -125,7 +125,7 @@ resource "null_resource" "kustomization" {
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
       coalesce(var.k3s.version, "N/A"),
-      coalesce(var.cluster_autoscaler_version, "N/A"),
+      coalesce(var.cluster_autoscaler.version, "N/A"),
       coalesce(var.hetzner_ccm_version, "N/A"),
       coalesce(var.csi.hetzner_csi.version, "N/A"),
       coalesce(var.automatic_updates.kured.version, "N/A"),
