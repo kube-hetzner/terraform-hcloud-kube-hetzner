@@ -44,25 +44,25 @@ module "control_planes" {
 }
 
 resource "hcloud_load_balancer" "control_plane" {
-  count = var.use_control_plane_lb ? 1 : 0
+  count = var.load_balancer.kubeapi.enabled ? 1 : 0
   name  = "${var.cluster_name}-control-plane"
 
-  load_balancer_type = var.control_plane_lb_type
-  location           = var.load_balancer_location
+  load_balancer_type = var.load_balancer.kubeapi.type
+  location           = var.load_balancer.kubeapi.location
   labels             = merge(local.labels, local.labels_control_plane_lb)
 }
 
 resource "hcloud_load_balancer_network" "control_plane" {
-  count = var.use_control_plane_lb ? 1 : 0
+  count = var.load_balancer.kubeapi.enabled ? 1 : 0
 
   load_balancer_id        = hcloud_load_balancer.control_plane.*.id[0]
   subnet_id               = hcloud_network_subnet.control_plane.*.id[0]
-  enable_public_interface = var.control_plane_lb_enable_public_interface
+  enable_public_interface = !var.load_balancer.kubeapi.disable_public_network
   ip                      = cidrhost(hcloud_network_subnet.control_plane.*.ip_range[0], 1)
 }
 
 resource "hcloud_load_balancer_target" "control_plane" {
-  count = var.use_control_plane_lb ? 1 : 0
+  count = var.load_balancer.kubeapi.enabled ? 1 : 0
 
   depends_on       = [hcloud_load_balancer_network.control_plane]
   type             = "label_selector"
@@ -72,7 +72,7 @@ resource "hcloud_load_balancer_target" "control_plane" {
 }
 
 resource "hcloud_load_balancer_service" "control_plane" {
-  count = var.use_control_plane_lb ? 1 : 0
+  count = var.load_balancer.kubeapi.enabled ? 1 : 0
 
   load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]
   protocol         = "tcp"
@@ -85,7 +85,7 @@ locals {
     {
       node-name = module.control_planes[k].name
       server = length(module.control_planes) == 1 ? null : "https://${
-        var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] :
+        var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] :
         module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
         module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
       module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
@@ -106,7 +106,7 @@ locals {
       write-kubeconfig-mode       = "0644" # needed for import into rancher
     },
     lookup(local.cni_k3s_settings, var.cni.type, {}),
-    var.use_control_plane_lb ? {
+    var.load_balancer.kubeapi.enabled ? {
       tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
       } : {
       tls-san = concat([

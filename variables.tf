@@ -114,54 +114,6 @@ variable "cluster_dns_ipv4" {
   default     = "10.43.0.10"
 }
 
-variable "load_balancer_location" {
-  description = "Default load balancer location."
-  type        = string
-  default     = "fsn1"
-}
-
-variable "load_balancer_type" {
-  description = "Default load balancer server type."
-  type        = string
-  default     = "lb11"
-}
-
-variable "load_balancer_disable_ipv6" {
-  description = "Disable IPv6 for the load balancer."
-  type        = bool
-  default     = false
-}
-
-variable "load_balancer_disable_public_network" {
-  description = "Disables the public network of the load balancer."
-  type        = bool
-  default     = false
-}
-
-variable "load_balancer_algorithm_type" {
-  description = "Specifies the algorithm type of the load balancer."
-  type        = string
-  default     = "round_robin"
-}
-
-variable "load_balancer_health_check_interval" {
-  description = "Specifies the interval at which a health check is performed. Minimum is 3s."
-  type        = string
-  default     = "15s"
-}
-
-variable "load_balancer_health_check_timeout" {
-  description = "Specifies the timeout of a single health check. Must not be greater than the health check interval. Minimum is 1s."
-  type        = string
-  default     = "10s"
-}
-
-variable "load_balancer_health_check_retries" {
-  description = "Specifies the number of times a health check is retried before a target is marked as unhealthy."
-  type        = number
-  default     = 3
-}
-
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
@@ -304,12 +256,6 @@ variable "restrict_outbound_traffic" {
   type        = bool
   default     = true
   description = "Whether or not to restrict the outbound traffic."
-}
-
-variable "enable_klipper_metal_lb" {
-  type        = bool
-  default     = false
-  description = "Use klipper load balancer."
 }
 
 variable "etcd_s3_backup" {
@@ -543,17 +489,6 @@ variable "rancher_hostname" {
   }
 }
 
-variable "lb_hostname" {
-  type        = string
-  default     = ""
-  description = "The Hetzner Load Balancer hostname, for either Traefik or Ingress-Nginx."
-
-  validation {
-    condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.lb_hostname)) || var.lb_hostname == ""
-    error_message = "It must be a valid domain name (FQDN)."
-  }
-}
-
 variable "rancher_registration_manifest_url" {
   type        = string
   description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)."
@@ -583,24 +518,6 @@ variable "block_icmp_ping_in" {
   type        = bool
   default     = false
   description = "Block entering ICMP ping."
-}
-
-variable "use_control_plane_lb" {
-  type        = bool
-  default     = false
-  description = "When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability."
-}
-
-variable "control_plane_lb_type" {
-  type        = string
-  default     = "lb11"
-  description = "The type of load balancer to use for the control plane load balancer. Defaults to lb11, which is the cheapest one."
-}
-
-variable "control_plane_lb_enable_public_interface" {
-  type        = bool
-  default     = true
-  description = "Enable or disable public interface for the control plane load balancer . Defaults to true."
 }
 
 variable "dns_servers" {

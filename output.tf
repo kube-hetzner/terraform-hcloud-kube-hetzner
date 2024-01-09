@@ -34,12 +34,12 @@ output "ingress_public_ipv4" {
 
 output "ingress_public_ipv6" {
   description = "The public IPv6 address of the Hetzner load balancer"
-  value       = (local.has_external_load_balancer || var.load_balancer_disable_ipv6) ? null : hcloud_load_balancer.cluster[0].ipv6
+  value       = (local.has_external_load_balancer || var.load_balancer.ingress.disable_ipv6) ? null : hcloud_load_balancer.cluster[0].ipv6
 }
 
 output "k3s_endpoint" {
   description = "A controller endpoint to register new nodes"
-  value       = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+  value       = "https://${var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
 }
 
 output "k3s_token" {

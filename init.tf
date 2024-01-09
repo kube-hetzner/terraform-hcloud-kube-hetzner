@@ -2,12 +2,12 @@ resource "hcloud_load_balancer" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
   name  = local.load_balancer_name
 
-  load_balancer_type = var.load_balancer_type
-  location           = var.load_balancer_location
+  load_balancer_type = var.load_balancer.ingress.type
+  location           = var.load_balancer.ingress.location
   labels             = local.labels
 
   algorithm {
-    type = var.load_balancer_algorithm_type
+    type = var.load_balancer.ingress.algorithm
   }
 
   lifecycle {
@@ -51,7 +51,7 @@ resource "null_resource" "first_control_plane" {
           cluster-dns                 = var.cluster_dns_ipv4
         },
         lookup(local.cni_k3s_settings, var.cni.type, {}),
-        var.use_control_plane_lb ? {
+        var.load_balancer.kubeapi.enabled ? {
           tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
           } : {
           tls-san = concat([module.control_planes[keys(module.control_planes)[0]].ipv4_address], var.additional_tls_sans)
@@ -183,7 +183,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/ccm.yaml.tpl",
       {
         cluster_cidr_ipv4   = var.cluster_ipv4_cidr
-        default_lb_location = var.load_balancer_location
+        default_lb_location = var.load_balancer.ingress.location
         using_klipper_lb    = local.using_klipper_lb
     })
     destination = "/var/post_install/ccm.yaml"
@@ -323,7 +323,7 @@ resource "null_resource" "kustomization" {
       local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 360 bash <<EOF
-      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
+      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.load_balancer.ingress.hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
           sleep 2
       done

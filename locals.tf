@@ -167,7 +167,7 @@ locals {
   agent_count            = sum([for v in var.agent_nodepools : v.count])
   is_single_node_cluster = (local.control_plane_count + local.agent_count) == 1
 
-  using_klipper_lb = var.enable_klipper_metal_lb || local.is_single_node_cluster
+  using_klipper_lb = var.load_balancer.ingress.type == "klipper" || local.is_single_node_cluster
 
   has_external_load_balancer = local.using_klipper_lb || var.ingress_controller == "none"
   load_balancer_name         = "${var.cluster_name}-${var.ingress_controller}"
@@ -470,17 +470,17 @@ controller:
       "load-balancer.hetzner.cloud/name": "${local.load_balancer_name}"
       "load-balancer.hetzner.cloud/use-private-ip": "true"
       "load-balancer.hetzner.cloud/disable-private-ingress": "true"
-      "load-balancer.hetzner.cloud/disable-public-network": "${var.load_balancer_disable_public_network}"
-      "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
-      "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
-      "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
+      "load-balancer.hetzner.cloud/disable-public-network": "${var.load_balancer.ingress.disable_public_network}"
+      "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer.ingress.disable_ipv6}"
+      "load-balancer.hetzner.cloud/location": "${var.load_balancer.ingress.location}"
+      "load-balancer.hetzner.cloud/type": "${var.load_balancer.ingress.type}"
       "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
-      "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer_algorithm_type}"
-      "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer_health_check_interval}"
-      "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer_health_check_timeout}"
-      "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer_health_check_retries}"
-%{if var.lb_hostname != ""~}
-      "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
+      "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer.ingress.algorithm}"
+      "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer.ingress.health_check_interval}"
+      "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer.ingress.health_check_timeout}"
+      "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer.ingress.health_check_retries}"
+%{if var.load_balancer.ingress.hostname != ""~}
+      "load-balancer.hetzner.cloud/hostname": "${var.load_balancer.ingress.hostname}"
 %{endif~}
 %{endif~}
   EOT
@@ -499,17 +499,17 @@ service:
     "load-balancer.hetzner.cloud/name": "${local.load_balancer_name}"
     "load-balancer.hetzner.cloud/use-private-ip": "true"
     "load-balancer.hetzner.cloud/disable-private-ingress": "true"
-    "load-balancer.hetzner.cloud/disable-public-network": "${var.load_balancer_disable_public_network}"
-    "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
-    "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
-    "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
+    "load-balancer.hetzner.cloud/disable-public-network": "${var.load_balancer.ingress.disable_public_network}"
+    "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer.ingress.disable_ipv6}"
+    "load-balancer.hetzner.cloud/location": "${var.load_balancer.ingress.location}"
+    "load-balancer.hetzner.cloud/type": "${var.load_balancer.ingress.type}"
     "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
-    "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer_algorithm_type}"
-    "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer_health_check_interval}"
-    "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer_health_check_timeout}"
-    "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer_health_check_retries}"
-%{if var.lb_hostname != ""~}
-    "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
+    "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer.ingress.algorithm}"
+    "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer.ingress.health_check_interval}"
+    "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer.ingress.health_check_timeout}"
+    "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer.ingress.health_check_retries}"
+%{if var.load_balancer.ingress.hostname != ""~}
+    "load-balancer.hetzner.cloud/hostname": "${var.load_balancer.ingress.hostname}"
 %{endif~}
 %{endif~}
 ports:
@@ -604,7 +604,7 @@ autoscaling:
   EOT
 
   rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
-hostname: "${var.rancher_hostname != "" ? var.rancher_hostname : var.lb_hostname}"
+hostname: "${var.rancher_hostname != "" ? var.rancher_hostname : var.load_balancer.ingress.hostname}"
 replicas: ${length(local.control_plane_nodes)}
 bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
 global:
