@@ -36,7 +36,7 @@ data "hcloud_network" "k3s" {
 # We start from the end of the subnets cidr array,
 # as we would have fewer control plane nodepools, than agent ones.
 resource "hcloud_network_subnet" "control_plane" {
-  count        = length(var.control_plane_nodepools)
+  count        = length(var.nodepools.control_planes)
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network.region
@@ -45,7 +45,7 @@ resource "hcloud_network_subnet" "control_plane" {
 
 # Here we start at the beginning of the subnets cidr array
 resource "hcloud_network_subnet" "agent" {
-  count        = length(var.agent_nodepools)
+  count        = length(var.nodepools.agents)
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network.region

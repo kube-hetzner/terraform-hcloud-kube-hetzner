@@ -20,7 +20,7 @@ module "agents" {
   location                     = each.value.location
   server_type                  = each.value.server_type
   backups                      = each.value.backups
-  ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
+  ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.nodepools.agents : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.network.dns_servers
   k3s_registries               = var.k3s.registries
   k3s_registries_update_script = local.k3s_registries_update_script
@@ -28,7 +28,7 @@ module "agents" {
   cloudinit_runcmd_common      = local.cloudinit_runcmd_common
   swap_size                    = each.value.swap_size
 
-  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
+  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.nodepools.agents : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
   labels = merge(local.labels, local.labels_agent_node)
 

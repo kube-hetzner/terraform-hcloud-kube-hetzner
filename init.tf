@@ -57,7 +57,7 @@ resource "null_resource" "first_control_plane" {
           tls-san = concat([module.control_planes[keys(module.control_planes)[0]].ipv4_address], var.additional_tls_sans)
         },
         local.etcd_s3_snapshots,
-        var.control_planes_custom_config
+        var.nodepools.control_planes_custom_config
       )
     )
 

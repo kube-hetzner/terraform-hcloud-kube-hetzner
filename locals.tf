@@ -119,7 +119,7 @@ locals {
   ], local.apply_k3s_selinux, local.common_post_install_k3s_commands)
 
   control_plane_nodes = merge([
-    for pool_index, nodepool_obj in var.control_plane_nodepools : {
+    for pool_index, nodepool_obj in var.nodepools.control_planes : {
       for node_index in range(nodepool_obj.count) :
       format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
         nodepool_name : nodepool_obj.name,
@@ -137,7 +137,7 @@ locals {
   ]...)
 
   agent_nodes = merge([
-    for pool_index, nodepool_obj in var.agent_nodepools : {
+    for pool_index, nodepool_obj in var.nodepools.agents : {
       for node_index in range(nodepool_obj.count) :
       format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
         nodepool_name : nodepool_obj.name,
@@ -163,8 +163,8 @@ locals {
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network.cidr_blocks.ipv4.main, 8, index)]
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
-  control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
-  agent_count            = sum([for v in var.agent_nodepools : v.count])
+  control_plane_count    = sum([for v in var.nodepools.control_planes : v.count])
+  agent_count            = sum([for v in var.nodepools.agents : v.count])
   is_single_node_cluster = (local.control_plane_count + local.agent_count) == 1
 
   using_klipper_lb = var.load_balancer.ingress.type == "klipper" || local.is_single_node_cluster
