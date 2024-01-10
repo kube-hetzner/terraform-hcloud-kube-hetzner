@@ -1,15 +1,4 @@
-variable "hetzner_ccm_version" {
-  type        = string
-  default     = null
-  description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud."
-}
-
-variable "enable_metrics_server" {
-  type        = bool
-  default     = true
-  description = "Whether to enable or disable k3s metric server."
-}
-
+# Cluster config
 variable "cluster_name" {
   type        = string
   default     = "k3s"
@@ -32,10 +21,10 @@ variable "base_domain" {
   }
 }
 
-variable "additional_k3s_environment" {
-  type        = map(any)
-  default     = {}
-  description = "Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy ."
+variable "enable_metrics_server" {
+  type        = bool
+  default     = true
+  description = "Whether to enable or disable k3s metric server."
 }
 
 variable "create_kubeconfig" {
@@ -60,4 +49,11 @@ variable "additional_tls_sans" {
   description = "Additional TLS SANs to allow connection to control-plane through it."
   default     = []
   type        = list(string)
+}
+
+# Hetzner CCM config
+variable "hetzner_ccm_version" {
+  type        = string
+  default     = null
+  description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud."
 }
