@@ -828,7 +828,7 @@ EOT
 # SELinux permission for the SSH alternative port
 %{if var.ssh.port != 22}
 # SELinux permission for the SSH alternative port.
-- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, '${var.ssh_port}']
+- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, '${var.ssh.port}']
 %{endif}
 
 # Create and apply the necessary SELinux module for kube-hetzner
