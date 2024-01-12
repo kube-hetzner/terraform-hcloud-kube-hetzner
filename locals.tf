@@ -579,7 +579,6 @@ podDisruptionBudget:
   enabled: true
   maxUnavailable: 33%
 additionalArguments:
-  - "--entrypoints.tcp=true"
   - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_controller_namespace}/traefik"
 %{for option in var.ingress.traefik.additional_options~}
   - "${option}"
@@ -829,7 +828,7 @@ EOT
 # SELinux permission for the SSH alternative port
 %{if var.ssh.port != 22}
 # SELinux permission for the SSH alternative port.
-- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, ${var.ssh.port}]
+- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, '${var.ssh_port}']
 %{endif}
 
 # Create and apply the necessary SELinux module for kube-hetzner
