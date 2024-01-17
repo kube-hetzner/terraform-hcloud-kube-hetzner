@@ -25,10 +25,11 @@ command -v hcloud >/dev/null 2>&1 || {
 }
 
 # Ask for the folder name
-read -p "Enter the name of the folder you want to create (leave empty to use the current directory instead, useful for upgrades): " folder_name
+if [ -z "${folder_name}" ] ; then
+    read -p "Enter the name of the folder you want to create (leave empty to use the current directory instead, useful for upgrades): " folder_name
 
 # Ask for the folder path only if folder_name is provided
-if [ -n "$folder_name" ]; then
+if [ -n "$folder_name" -a -z "${folder_path}" ]; then
     read -p "Enter the path to create the folder in (default: current path): " folder_path
 fi
 
@@ -57,10 +58,12 @@ else
 fi
 
 # Ask if they want to create the MicroOS snapshots
-echo " "
-echo "The snapshots are required and deployed using packer. If you need specific extra packages, you need to choose no and edit hcloud-microos-snapshots.pkr.hcl file manually. This is not needed in 99% of cases, as we already include the most common packages."
-echo " "
-read -p "Do you want to create the MicroOS snapshots (we create one for x86 and one for ARM architectures) with packer now? (yes/no): " create_snapshots
+if [ -z "${create_snapshots}" ] ; then
+    echo " "
+    echo "The snapshots are required and deployed using packer. If you need specific extra packages, you need to choose no and edit hcloud-microos-snapshots.pkr.hcl file manually. This is not needed in 99% of cases, as we already include the most common packages."
+    echo " "
+    read -p "Do you want to create the MicroOS snapshots (we create one for x86 and one for ARM architectures) with packer now? (yes/no): " create_snapshots
+fi
 
 if [[ "$create_snapshots" =~ ^([Yy]es|[Yy])$ ]]; then
     if [[ -z "$HCLOUD_TOKEN" ]]; then
