@@ -27,6 +27,7 @@ command -v hcloud >/dev/null 2>&1 || {
 # Ask for the folder name
 if [ -z "${folder_name}" ] ; then
     read -p "Enter the name of the folder you want to create (leave empty to use the current directory instead, useful for upgrades): " folder_name
+fi
 
 # Ask for the folder path only if folder_name is provided
 if [ -n "$folder_name" -a -z "${folder_path}" ]; then
