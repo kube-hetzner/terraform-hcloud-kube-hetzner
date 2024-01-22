@@ -141,7 +141,7 @@ locals {
 
   agent_nodes_from_integer_counts = merge([
     for pool_index, nodepool_obj in var.agent_nodepools : {
-      # !can(tomap(nodepool_obj.nodes)) means we select those nodepools who's size is set by an integer count.
+      # coalesce(nodepool_obj.count, 0) means we select those nodepools who's size is set by an integer count.
       for node_index in range(coalesce(nodepool_obj.count, 0)) :
       format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
         nodepool_name : nodepool_obj.name,
@@ -165,7 +165,7 @@ locals {
 
   agent_nodes_from_maps_for_counts = merge([
     for pool_index, nodepool_obj in var.agent_nodepools : {
-      # !can(tomap(nodepool_obj.count)) means we select those nodepools who's size is set by an integer count.
+      # coalesce(nodepool_obj.nodes, {}) means we select those nodepools who's size is set by an integer count.
       for node_key, node_obj in coalesce(nodepool_obj.nodes, {}) :
       format("%s-%s-%s", pool_index, node_key, nodepool_obj.name) => merge(
         {
