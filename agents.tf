@@ -105,7 +105,7 @@ resource "null_resource" "agents" {
 
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
-    inline = concat(var.enable_longhorn ? ["systemctl enable --now iscsid"] : [], [
+    inline = concat(var.enable_longhorn || var.enable_iscsid ? ["systemctl enable --now iscsid"] : [], [
       "systemctl start k3s-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
