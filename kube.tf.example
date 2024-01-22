@@ -507,13 +507,17 @@ module "kube-hetzner" {
 
   # If you need more control over kured and the reboot behaviour, you can pass additional options to kured.
   # For example limiting reboots to certain timeframes. For all options see: https://kured.dev/docs/configuration/
+  # By default, the kured lock does not expire and is only released once a node successfully reboots. You can add the option
+  # "lock-ttl" : "30m", if you have a single node which sometimes gets stuck. Note however, that in that case, kured continuous
+  # draining the next node because the lock was released. You may end up with all nodes drained and your cluster completely down.
   # The default options are: `--reboot-command=/usr/bin/systemctl reboot --pre-reboot-node-labels=kured=rebooting --post-reboot-node-labels=kured=done --period=5m`
   # Defaults can be overridden by using the same key.
   # kured_options = {
-  #   "reboot-days": "su"
-  #   "start-time": "3am"
-  #   "end-time": "8am"
-  #   "time-zone": "Local"
+  #   "reboot-days": "su",
+  #   "start-time": "3am",
+  #   "end-time": "8am",
+  #   "time-zone": "Local",
+  #   "lock-ttl" : "30m",
   # }
 
   # Allows you to specify either stable, latest, testing or supported minor versions.
