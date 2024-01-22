@@ -202,7 +202,6 @@ variable "agent_nodepools" {
     floating_ip                = optional(bool)
     labels                     = list(string)
     taints                     = list(string)
-    count                      = number
     longhorn_volume_size       = optional(number)
     swap_size                  = optional(string, "")
     zram_size                  = optional(string, "")
@@ -210,8 +209,26 @@ variable "agent_nodepools" {
     selinux                    = optional(bool, true)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
+    count                      = number
+    nodes = optional(map(object({
+      unique_index_in_node_pool  = number
+      server_type                = optional(string)
+      location                   = optional(string)
+      backups                    = optional(bool)
+      floating_ip                = optional(bool)
+      labels                     = optional(list(string))
+      taints                     = optional(list(string))
+      longhorn_volume_size       = optional(number)
+      swap_size                  = optional(string, "")
+      zram_size                  = optional(string, "")
+      kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+      selinux                    = optional(bool, true)
+      placement_group_compat_idx = optional(number, 0)
+      placement_group            = optional(string, null)
+    })))
   }))
   default = []
+
   validation {
     condition = length(
       [for agent_nodepool in var.agent_nodepools : agent_nodepool.name]
@@ -222,6 +239,32 @@ variable "agent_nodepools" {
     )
     error_message = "Names in agent_nodepools must be unique."
   }
+
+  validation {
+    condition     = alltrue([for agent_nodepool in var.agent_nodepools : (agent_nodepool.count == null) != (agent_nodepool.nodes == null)])
+    error_message = "Set either nodes or count per agent_nodepool, not both."
+  }
+
+  validation {
+    condition = alltrue([for agent_nodepool in var.agent_nodepools : length(
+      coalesce(agent_nodepool.nodes, {})
+      ) == length(
+      distinct(
+        [for agent_node in coalesce(agent_nodepool.nodes, {}) : agent_node.unique_index_in_node_pool]
+      )
+    )])
+    # 154 because the private ip is derived from unique_index_in_node_pool + 101. See private_ipv4 in agents.tf
+    error_message = "The integer value unique_index_in_node_pool must be a unique and stable number in [0, 154] for each node inside a nodepool."
+  }
+
+  validation {
+    condition = alltrue([for agent_nodepool in var.agent_nodepools :
+      alltrue([for agent_node in coalesce(agent_nodepool.nodes, {}) : 0 <= agent_node.unique_index_in_node_pool && agent_node.unique_index_in_node_pool < 154])
+    ])
+    # 154 because the private ip is derived from unique_index_in_node_pool + 101. See private_ipv4 in agents.tf
+    error_message = "The integer value unique_index_in_node_pool must be a unique and stable number in [0, 154] for each node inside a nodepool."
+  }
+
 }
 
 variable "cluster_autoscaler_image" {

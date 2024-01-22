@@ -182,6 +182,8 @@ _Once the cluster is up; you can change any nodepool count and even set it to 0 
 
 _However, you can freely add other nodepools at the end of each list. And for each nodepools, you can freely increase or decrease the node count (if you want to decrease a nodepool node count make sure you drain the nodes in question before, you can use `terraform show` to identify the node names at the end of the nodepool list, otherwise, if you do not drain the nodes before removing them, it could leave your cluster in a bad state). The only nodepool that needs to have always at least a count of 1 is the first control-plane nodepool._
 
+_An advances usecase is to replace the count of a nodepool by a map with each key representing a single node. In this case, you can add and remove individual nodes from a pool by adding and removing their entries in this map. See kube.tf.example for an example._
+
 ## Autoscaling Node Pools
 
 We support autoscaling node pools powered by the Kubernetes [Cluster Autoscaler](https://github.com/kubernetes/autoscaler).

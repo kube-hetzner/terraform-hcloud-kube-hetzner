@@ -242,7 +242,33 @@ module "kube-hetzner" {
       labels      = [],
       taints      = [],
       count       = 1
-    }
+    },
+    # For fine-grained control over the nodes in a node pool, replace the count variable with a nodes map.
+    # In this case, the node-pool variables are defaults which can be overridden on a per-node basis.
+    # Each key in the nodes map refers to a single node. Each node must have a unique integer
+    # unique_index_in_node_pool.
+    {
+      name        = "agent-arm-small",
+      server_type = "cax11",
+      location    = "fsn1",
+      labels      = [],
+      taints      = [],
+      nodes = {
+        "a1" : {
+          unique_index_in_node_pool = 0
+          location                  = "nbg1"
+          labels = [
+            "testing-labels=a1",
+          ]
+        },
+        "b1" : {
+          unique_index_in_node_pool = 1
+          labels = [
+            "testing-labels=b1",
+          ]
+        }
+      }
+    },
   ]
   # Add custom control plane configuration options here.
   # E.g to enable monitoring for etcd, proxy etc:
