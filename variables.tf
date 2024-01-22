@@ -580,8 +580,8 @@ variable "calico_values" {
 }
 
 variable "enable_iscsid" {
-  type    = bool
-  default = false
+  type        = bool
+  default     = false
   description = "This is always true when enable_longhorn=true, however, you may also want this enabled if you perform your own installation of longhorn after this module runs."
 }
 
