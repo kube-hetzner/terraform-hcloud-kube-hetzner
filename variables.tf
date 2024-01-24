@@ -162,6 +162,12 @@ variable "load_balancer_health_check_retries" {
   default     = 3
 }
 
+variable "load_balancer_label_selector" {
+  description = "Custom load balancer label_selector"
+  type        = string
+  default     = ""
+}
+
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
@@ -901,10 +907,4 @@ variable "enable_local_storage" {
   type        = bool
   default     = false
   description = "Whether to enable or disable k3s local-storage."
-}
-
-variable "load_balancer_label_selector" {
-  description = "Custom load balancer label_selector"
-  type        = string
-  default     = ""
 }
