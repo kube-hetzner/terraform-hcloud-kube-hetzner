@@ -73,7 +73,8 @@ First and foremost, you need to have a Hetzner Cloud account. You can sign up fo
 Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) or [tofu](https://opentofu.org/docs/intro/install/), [packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli#installing-packer) (for the initial snapshot creation only, no longer needed once that's done), [kubectl](https://kubernetes.io/docs/tasks/tools/) cli and [hcloud](https://github.com/hetznercloud/cli) the Hetzner cli for convenience. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem).
 
 ```sh
-brew install terraform # or brew install opentofu
+brew tap hashicorp/tap
+brew install hashicorp/tap/terraform
 brew install packer
 brew install kubectl
 brew install hcloud
