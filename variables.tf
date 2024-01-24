@@ -902,3 +902,9 @@ variable "enable_local_storage" {
   default     = false
   description = "Whether to enable or disable k3s local-storage."
 }
+
+variable "load_balancer_label_selector" {
+  description = "Custom load balancer label_selector"
+  type        = string
+  default     = ""
+}
