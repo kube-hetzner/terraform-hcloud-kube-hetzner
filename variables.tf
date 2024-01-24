@@ -162,8 +162,8 @@ variable "load_balancer_health_check_retries" {
   default     = 3
 }
 
-variable "load_balancer_label_selector" {
-  description = "Custom load balancer label_selector"
+variable "load_balancer_node_selector" {
+  description = "Specifies the label selector for the load balancer."
   type        = string
   default     = ""
 }

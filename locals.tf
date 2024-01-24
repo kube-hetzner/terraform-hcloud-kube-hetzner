@@ -482,8 +482,8 @@ controller:
 %{if var.lb_hostname != ""~}
       "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
-%{if var.load_balancer_label_selector != ""~}
-    "load-balancer.hetzner.cloud/node-selector": "${var.load_balancer_label_selector}"
+%{if var.load_balancer_node_selector != ""~}
+    "load-balancer.hetzner.cloud/node-selector": "${var.load_balancer_node_selector}"
 %{endif~}
 %{endif~}
   EOT
@@ -514,8 +514,8 @@ service:
 %{if var.lb_hostname != ""~}
     "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
-%{if var.load_balancer_label_selector != ""~}
-    "load-balancer.hetzner.cloud/node-selector": "${var.load_balancer_label_selector}"
+%{if var.load_balancer_node_selector != ""~}
+    "load-balancer.hetzner.cloud/node-selector": "${var.load_balancer_node_selector}"
 %{endif~}
 %{endif~}
 ports:
