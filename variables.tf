@@ -57,3 +57,10 @@ variable "hetzner_ccm_version" {
   default     = null
   description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud."
 }
+
+# TODO: move this to appropriate location
+variable "enable_iscsid" {
+  type    = bool
+  default = false
+  description = "This is always true when enable_longhorn=true, however, you may also want this enabled if you perform your own installation of longhorn after this module runs."
+}
