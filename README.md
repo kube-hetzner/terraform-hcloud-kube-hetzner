@@ -250,7 +250,7 @@ kubectl delete plan k3s-server -n system-upgrade
 Also, note that after turning off node upgrades, you will need to manually upgrade the nodes when needed. You can do so by SSH'ing into each node and running the following commands (and don't forget to drain the node before with `kubectl drain <node-name>`):
 
 ```sh
-transactional-update
+systemctl start transactional-update.service
 reboot
 ```
 
