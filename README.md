@@ -222,21 +222,25 @@ _If you wish to turn off automatic MicroOS upgrades (Important if you are not la
 automatically_upgrade_os = false
 ```
 
-_Alternatively ssh into each node and issue the following command:_
+Alternatively ssh into each node and issue the following command:
 
 ```sh
 systemctl --now disable transactional-update.timer
 ```
 
-_If you wish to turn off automatic k3s upgrades, you need to set:_
+If you wish to turn off automatic k3s upgrades, you need to set:
 
 ```terraform
 automatically_upgrade_k3s = false
 ```
 
-_Alternatively, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove the node label completely, apply `-` at the end of the label:
+_Once disabled this way you selectively can enable the upgrade by setting the node label `k3s_update=true` and later disable it by removing the label or set it to `false` again._
 
 ```sh
+# Enable upgrade for a node (use --all for all nodes)
+kubectl label --overwrite node <node-name> k3s_upgrade=true
+
+# Later disable upgrade by removing the label (use --all for all nodes)
 kubectl label node <node-name> k3s_upgrade-
 ```
 
