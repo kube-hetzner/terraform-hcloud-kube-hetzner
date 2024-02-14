@@ -245,7 +245,7 @@ module "kube-hetzner" {
     },
     # For fine-grained control over the nodes in a node pool, replace the count variable with a nodes map.
     # In this case, the node-pool variables are defaults which can be overridden on a per-node basis.
-    # Each key in the nodes map refers to a single node and must be an integer string ("1", "123", ...). 
+    # Each key in the nodes map refers to a single node and must be an integer string ("1", "123", ...).
     {
       name        = "agent-arm-small",
       server_type = "cax11",

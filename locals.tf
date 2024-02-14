@@ -170,7 +170,6 @@ locals {
       format("%s-%s-%s", pool_index, node_key, nodepool_obj.name) => merge(
         {
           nodepool_name : nodepool_obj.name,
-          node_name_override : "-${nodepool_obj.name}-${node_key}",
           server_type : nodepool_obj.server_type,
           longhorn_volume_size : coalesce(nodepool_obj.longhorn_volume_size, 0),
           floating_ip : lookup(nodepool_obj, "floating_ip", false),
@@ -187,7 +186,10 @@ locals {
         {
           labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels, coalesce(node_obj.labels, [])),
           taints : concat(local.default_agent_taints, nodepool_obj.taints, coalesce(node_obj.taints, [])),
-        }
+        },
+        (
+          node_obj.append_index_to_node_name ? { node_name_override : "-${floor(tonumber(node_key))}" } : {}
+        )
       )
     }
   ]...)

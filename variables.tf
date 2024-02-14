@@ -224,6 +224,7 @@ variable "agent_nodepools" {
       selinux                    = optional(bool, true)
       placement_group_compat_idx = optional(number, 0)
       placement_group            = optional(string, null)
+      append_index_to_node_name  = optional(bool, true)
     })))
   }))
   default = []

@@ -893,6 +893,36 @@ You can also continue using the previous code-base like this:
   ]
 ```
 </details>
+<details>
+<summary>Migratings from count-based nodepools to map-based</summary>
+
+Migrating from `count` to map-based `nodes` is easy, but it is crucial
+that you set append_index_to_node_name to false, otherwise the nodes get
+replaced. The default for newly added nodes is true, so you can 
+easily map between your nodes and your kube.tf file.
+```
+  agent_nodepools = [
+    {
+      name        = "agent-large",
+      server_type = "cpx21",
+      location    = "nbg1",
+      labels      = [],
+      taints      = [],
+      # count       = 2
+      nodes = {
+        "0" : {
+          append_index_to_node_name = false
+        },
+        "1" : {
+          append_index_to_node_name = false
+        },
+      }
+    },
+  ]
+```
+
+
+</details>
 
 ## Debugging
 
