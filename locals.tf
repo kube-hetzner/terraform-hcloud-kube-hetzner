@@ -181,7 +181,7 @@ locals {
           backups : lookup(nodepool_obj, "backups", false),
           swap_size : nodepool_obj.swap_size,
           zram_size : nodepool_obj.zram_size,
-          index : node_obj.unique_index_in_node_pool,
+          index : floor(tonumber(node_key)),
         },
         { for key, value in node_obj : key => value if value != null },
         {

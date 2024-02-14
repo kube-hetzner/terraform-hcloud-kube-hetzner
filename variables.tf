@@ -211,7 +211,6 @@ variable "agent_nodepools" {
     placement_group            = optional(string, null)
     count                      = number
     nodes = optional(map(object({
-      unique_index_in_node_pool  = number
       server_type                = optional(string)
       location                   = optional(string)
       backups                    = optional(bool)
@@ -245,24 +244,19 @@ variable "agent_nodepools" {
     error_message = "Set either nodes or count per agent_nodepool, not both."
   }
 
-  validation {
-    condition = alltrue([for agent_nodepool in var.agent_nodepools : length(
-      coalesce(agent_nodepool.nodes, {})
-      ) == length(
-      distinct(
-        [for agent_node in coalesce(agent_nodepool.nodes, {}) : agent_node.unique_index_in_node_pool]
-      )
-    )])
-    # 154 because the private ip is derived from unique_index_in_node_pool + 101. See private_ipv4 in agents.tf
-    error_message = "The integer value unique_index_in_node_pool must be a unique and stable number in [0, 154] for each node inside a nodepool."
-  }
 
   validation {
     condition = alltrue([for agent_nodepool in var.agent_nodepools :
-      alltrue([for agent_node in coalesce(agent_nodepool.nodes, {}) : 0 <= agent_node.unique_index_in_node_pool && agent_node.unique_index_in_node_pool < 154])
+      alltrue([for agent_key, agent_node in coalesce(agent_nodepool.nodes, {}) : can(tonumber(agent_key)) && tonumber(agent_key) == floor(tonumber(agent_key)) && 0 <= tonumber(agent_key) && tonumber(agent_key) < 154])
     ])
-    # 154 because the private ip is derived from unique_index_in_node_pool + 101. See private_ipv4 in agents.tf
-    error_message = "The integer value unique_index_in_node_pool must be a unique and stable number in [0, 154] for each node inside a nodepool."
+    # 154 because the private ip is derived from tonumber(key) + 101. See private_ipv4 in agents.tf
+    error_message = "The key for each individual node in a nodepool must be a stable integer in the range [0, 153] cast as a string."
+  }
+
+  validation {
+    condition = alltrue([for agent_nodepool in var.agent_nodepools : length(agent_nodepool) <= 100])
+    # 154 because the private ip is derived from tonumber(key) + 101. See private_ipv4 in agents.tf
+    error_message = "Hetzner does not support nodepools with more than 100 nodes."
   }
 
 }
