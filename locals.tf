@@ -556,7 +556,7 @@ ports:
     port: ${option.port}
     expose: true
     exposedPort: ${option.exposedPort}
-    protocol: TCP
+    protocol: ${option.protocol}
 %{if !local.using_klipper_lb~}
     proxyProtocol:
       trustedIPs:
