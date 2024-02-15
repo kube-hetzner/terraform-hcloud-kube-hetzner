@@ -843,6 +843,12 @@ variable "control_planes_custom_config" {
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }
 
+variable "agent_nodes_custom_config" {
+  type        = any
+  default     = {}
+  description = "Custom agent nodes configuration."
+}
+
 variable "k3s_registries" {
   description = "K3S registries.yml contents. It used to access private docker registries."
   default     = " "
