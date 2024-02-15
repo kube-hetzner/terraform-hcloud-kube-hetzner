@@ -854,6 +854,37 @@ module "kube-hetzner" {
 NOTE: square brackets in existing_network_id! This must be a list of length 1.
 
 </details>
+<details>
+<summary>Placement groups</summary>
+Up until release v2.11.8, there was an implementation error in the placement group logic. 
+
+If you have fewer than 10 agents and 10 control-plane nodes, you can continue using the code as is.
+
+If you have a single pool with a count >= 10, you could only work with global setting in kube.tf:
+```
+placement_group_disable = true
+```
+
+Now you can assign each nodepool to its own placement group, preferrably using named groups:
+```
+  agent_nodepools = [
+    {
+      ...
+      placement_group = "special"
+    },
+  ]
+```
+
+You can also continue using the previous code-base like this:
+```
+  agent_nodepools = [
+    {
+      ...
+      placement_group_compat_idx = 1
+    },
+  ]
+```
+</details>
 
 ## Debugging
 

@@ -69,16 +69,3 @@ resource "hcloud_firewall" "k3s" {
   }
 }
 
-resource "hcloud_placement_group" "control_plane" {
-  count  = ceil(local.control_plane_count / 10)
-  name   = "${var.cluster_name}-control-plane-${count.index + 1}"
-  labels = local.labels
-  type   = "spread"
-}
-
-resource "hcloud_placement_group" "agent" {
-  count  = ceil(local.agent_count / 10)
-  name   = "${var.cluster_name}-agent-${count.index + 1}"
-  labels = local.labels
-  type   = "spread"
-}
