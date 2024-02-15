@@ -132,6 +132,7 @@ locals {
         swap_size : nodepool_obj.swap_size,
         zram_size : nodepool_obj.zram_size,
         index : node_index
+        selinux: nodepool_obj.selinux
       }
     }
   ]...)
@@ -152,6 +153,7 @@ locals {
         swap_size : nodepool_obj.swap_size,
         zram_size : nodepool_obj.zram_size,
         index : node_index
+        selinux: nodepool_obj.selinux
       }
     }
   ]...)
