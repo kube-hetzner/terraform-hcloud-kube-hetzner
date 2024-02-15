@@ -910,3 +910,9 @@ variable "enable_local_storage" {
   default     = false
   description = "Whether to enable or disable k3s local-storage."
 }
+
+variable "disable_selinux" {
+  type        = bool
+  default     = false
+  description = "Disable SELinux on all nodes."
+}
