@@ -51,9 +51,9 @@ locals {
       node-ip       = module.agents[k].private_ipv4_address
       node-label    = v.labels
       node-taint    = v.taints
-      selinux       = true
     },
-    var.agent_nodes_custom_config
+    var.agent_nodes_custom_config,
+    (v.selinux == true ? { selinux = true } : {})
   ) }
 }
 
