@@ -175,6 +175,7 @@ variable "control_plane_nodepools" {
     swap_size    = optional(string, "")
     zram_size    = optional(string, "")
     kubelet_args = optional(list(string), ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    selinux      = optional(bool, true)
   }))
   default = []
   validation {
@@ -204,6 +205,7 @@ variable "agent_nodepools" {
     swap_size            = optional(string, "")
     zram_size            = optional(string, "")
     kubelet_args         = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    selinux              = optional(bool, true)
   }))
   default = []
   validation {
