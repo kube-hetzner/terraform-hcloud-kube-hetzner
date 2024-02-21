@@ -8,18 +8,18 @@ resource "null_resource" "kustomization_user" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   provisioner "file" {
-    content     = templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters)
+    content     = templatefile("extra-manifests/${each.key}", var.extra.kustomize.parameters)
     destination = replace("/var/user_kustomize/${each.key}", ".yaml.tpl", ".yaml")
   }
 
   triggers = {
-    manifest_sha1 = "${sha1(templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters))}"
+    manifest_sha1 = "${sha1(templatefile("extra-manifests/${each.key}", var.extra.kustomize.parameters))}"
   }
 
   depends_on = [
@@ -33,9 +33,9 @@ resource "null_resource" "kustomization_user_deploy" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Remove templates after rendering, and apply changes.
@@ -45,7 +45,7 @@ resource "null_resource" "kustomization_user_deploy" {
       "rm -f /var/user_kustomize/*.yaml.tpl",
       "echo 'Applying user kustomization...'",
       "kubectl apply -k /var/user_kustomize/ --wait=true",
-      var.extra_kustomize_deployment_commands
+      var.extra.kustomize.deployment_commands
     ])
   }
 

@@ -10,29 +10,29 @@ module "agents" {
   name                         = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   microos_snapshot_id          = substr(each.value.server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
   base_domain                  = var.base_domain
-  ssh_keys                     = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
-  ssh_port                     = var.ssh_port
-  ssh_public_key               = var.ssh_public_key
+  ssh_keys                     = length(var.ssh.hcloud_key_label) > 0 ? concat([local.ssh.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.ssh.hcloud_ssh_key_id]
+  ssh_port                     = var.ssh.port
+  ssh_public_key               = var.ssh.public_key
   ssh_private_key              = var.ssh_private_key
-  ssh_additional_public_keys   = length(var.ssh_hcloud_key_label) > 0 ? concat(var.ssh_additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh_additional_public_keys
+  ssh_additional_public_keys   = length(var.ssh.hcloud_key_label) > 0 ? concat(var.ssh.additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh.additional_public_keys
   firewall_ids                 = [hcloud_firewall.k3s.id]
   placement_group_id           = var.placement_group_disable ? null : hcloud_placement_group.agent[floor(index(keys(local.agent_nodes), each.key) / 10)].id
   location                     = each.value.location
   server_type                  = each.value.server_type
   backups                      = each.value.backups
-  ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  dns_servers                  = var.dns_servers
-  k3s_registries               = var.k3s_registries
-  k3s_registries_update_script = local.k3s_registries_update_script
-  cloudinit_write_files_common = local.cloudinit_write_files_common
-  cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+  ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.nodepools.agents : i if v.name == each.value.nodepool_name][0]].id
+  dns_servers                  = var.network.dns_servers
+  k3s_registries               = var.k3s.registries
+  k3s_registries_update_script = local.k3s.registries_update_script
+  cloudinit_write_files_common = local.cloudinit.write_files_common
+  cloudinit_runcmd_common      = local.cloudinit.runcmd_common
   swap_size                    = each.value.swap_size
 
-  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
+  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.nodepools.agents : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
-  labels = merge(local.labels, local.labels_agent_node)
+  labels = merge(local.labels.general, local.labels.agent_node)
 
-  automatically_upgrade_os = var.automatically_upgrade_os
+  automatically_upgrade_os = var.automatic_updates.os
 
   depends_on = [
     hcloud_network_subnet.agent,
@@ -44,10 +44,10 @@ locals {
   k3s-agent-config = { for k, v in local.agent_nodes : k => merge(
     {
       node-name     = module.agents[k].name
-      server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-      token         = local.k3s_token
-      kubelet-arg   = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_agent_kubelet_args, v.kubelet_args)
-      flannel-iface = local.flannel_iface
+      server        = "https://${var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+      token         = local.k3s.token
+      kubelet-arg   = concat(local.kubelet_arg, v.kubelet_args)
+      flannel-iface = local.cni.flannel.iface
       node-ip       = module.agents[k].private_ipv4_address
       node-label    = v.labels
       node-taint    = v.taints
@@ -67,9 +67,9 @@ resource "null_resource" "agent_config" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.agents[each.key].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Generating k3s agent config file
@@ -79,7 +79,7 @@ resource "null_resource" "agent_config" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_config_update_script]
+    inline = [local.k3s.config_update_script]
   }
 }
 
@@ -93,19 +93,20 @@ resource "null_resource" "agents" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.agents[each.key].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   # Install k3s agent
   provisioner "remote-exec" {
-    inline = local.install_k3s_agent
+    inline = local.k3s.install.agent
   }
 
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
-    inline = concat(var.enable_longhorn || var.enable_iscsid ? ["systemctl enable --now iscsid"] : [], [
+    inline = [
+      "systemctl enable --now iscsid",
       "systemctl start k3s-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
@@ -116,7 +117,7 @@ resource "null_resource" "agents" {
         done
       EOF
       EOT
-    ])
+    ]
   }
 
   depends_on = [
@@ -127,7 +128,7 @@ resource "null_resource" "agents" {
 }
 
 resource "hcloud_volume" "longhorn_volume" {
-  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.enable_longhorn) }
+  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.csi.longhorn.enabled) }
 
   labels = {
     provisioner = "terraform"
@@ -138,11 +139,11 @@ resource "hcloud_volume" "longhorn_volume" {
   size      = local.agent_nodes[each.key].longhorn_volume_size
   server_id = module.agents[each.key].id
   automount = true
-  format    = var.longhorn_fstype
+  format    = var.csi.longhorn.fstype
 }
 
 resource "null_resource" "configure_longhorn_volume" {
-  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.enable_longhorn) }
+  for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10000) && var.csi.longhorn.enabled) }
 
   triggers = {
     agent_id = module.agents[each.key].id
@@ -153,17 +154,17 @@ resource "null_resource" "configure_longhorn_volume" {
     inline = [
       "mkdir /var/longhorn >/dev/null 2>&1",
       "mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn",
-      "${var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
-      "echo '${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
+      "${var.csi.longhorn.fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
+      "echo '${hcloud_volume.longhorn_volume[each.key].linux_device} /var/longhorn ${var.csi.longhorn.fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
     ]
   }
 
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.agents[each.key].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   depends_on = [
@@ -175,7 +176,7 @@ resource "hcloud_floating_ip" "agents" {
   for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
   type          = "ipv4"
-  labels        = local.labels
+  labels        = local.labels.general
   home_location = each.value.location
 }
 
@@ -220,9 +221,9 @@ resource "null_resource" "configure_floating_ip" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.agents[each.key].ipv4_address
-    port           = var.ssh_port
+    port           = var.ssh.port
   }
 
   depends_on = [
