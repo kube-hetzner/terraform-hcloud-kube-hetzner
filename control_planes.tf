@@ -10,7 +10,7 @@ module "control_planes" {
   name                         = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   microos_snapshot_id          = substr(each.value.server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
   base_domain                  = var.base_domain
-  ssh_keys                     = length(var.ssh.hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
+  ssh_keys                     = length(var.ssh.hcloud_key_label) > 0 ? concat([local.ssh.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.ssh.hcloud_ssh_key_id]
   ssh_port                     = var.ssh.port
   ssh_public_key               = var.ssh.public_key
   ssh_private_key              = var.ssh_private_key
@@ -23,9 +23,9 @@ module "control_planes" {
   ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.nodepools.control_planes : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.network.dns_servers
   k3s_registries               = var.k3s.registries
-  k3s_registries_update_script = local.k3s_registries_update_script
-  cloudinit_write_files_common = local.cloudinit_write_files_common
-  cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+  k3s_registries_update_script = local.k3s.registries_update_script
+  cloudinit_write_files_common = local.cloudinit.write_files_common
+  cloudinit_runcmd_common      = local.cloudinit.runcmd_common
   swap_size                    = each.value.swap_size
   zram_size                    = each.value.zram_size
 
@@ -33,7 +33,7 @@ module "control_planes" {
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
   private_ipv4 = cidrhost(hcloud_network_subnet.control_plane[[for i, v in var.nodepools.control_planes : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
-  labels = merge(local.labels, local.labels_control_plane_node)
+  labels = merge(local.labels.general, local.labels.control_plane_node)
 
   automatically_upgrade_os = var.automatic_updates.os
 
@@ -49,7 +49,7 @@ resource "hcloud_load_balancer" "control_plane" {
 
   load_balancer_type = var.load_balancer.kubeapi.type
   location           = var.load_balancer.kubeapi.location
-  labels             = merge(local.labels, local.labels_control_plane_lb)
+  labels             = merge(local.labels.general, local.labels.control_plane_lb)
 }
 
 resource "hcloud_load_balancer_network" "control_plane" {
@@ -67,7 +67,7 @@ resource "hcloud_load_balancer_target" "control_plane" {
   depends_on       = [hcloud_load_balancer_network.control_plane]
   type             = "label_selector"
   load_balancer_id = hcloud_load_balancer.control_plane.*.id[0]
-  label_selector   = join(",", [for k, v in merge(local.labels, local.labels_control_plane_node) : "${k}=${v}"])
+  label_selector   = join(",", [for k, v in merge(local.labels.general, local.labels.control_plane_node) : "${k}=${v}"])
   use_private_ip   = true
 }
 
@@ -89,12 +89,12 @@ locals {
         module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
         module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
       module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-      token                       = local.k3s_token
+      token                       = local.k3s.token
       disable-cloud-controller    = true
-      disable                     = local.disable_extras
+      disable                     = local.k3s.disable_extras
       kubelet-arg                 = concat(local.kubelet_arg, v.kubelet_args)
       kube-controller-manager-arg = local.kube_controller_manager_arg
-      flannel-iface               = local.flannel_iface
+      flannel-iface               = local.cni.flannel.iface
       node-ip                     = module.control_planes[k].private_ipv4_address
       advertise-address           = module.control_planes[k].private_ipv4_address
       node-label                  = v.labels
@@ -105,7 +105,7 @@ locals {
       cluster-dns                 = var.network.cluster_dns.ipv4
       write-kubeconfig-mode       = "0644" # needed for import into rancher
     },
-    lookup(local.cni_k3s_settings, var.cni.type, {}),
+    lookup(local.cni.k3s_settings, var.cni.type, {}),
     var.load_balancer.kubeapi.enabled ? {
       tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
       } : {
@@ -129,7 +129,7 @@ resource "null_resource" "control_plane_config" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[each.key].ipv4_address
     port           = var.ssh.port
   }
@@ -141,7 +141,7 @@ resource "null_resource" "control_plane_config" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_config_update_script]
+    inline = [local.k3s.config_update_script]
   }
 
   depends_on = [
@@ -160,14 +160,14 @@ resource "null_resource" "control_planes" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[each.key].ipv4_address
     port           = var.ssh.port
   }
 
   # Install k3s server
   provisioner "remote-exec" {
-    inline = local.install_k3s_server
+    inline = local.k3s.install.server
   }
 
   # Start the k3s server and wait for it to have started correctly

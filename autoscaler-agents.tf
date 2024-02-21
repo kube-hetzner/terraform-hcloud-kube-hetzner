@@ -34,7 +34,7 @@ locals {
       cluster_autoscaler_log_level        = var.cluster_autoscaler.log_level
       cluster_autoscaler_log_to_stderr    = var.cluster_autoscaler.log_to_stderr
       cluster_autoscaler_stderr_threshold = var.cluster_autoscaler.stderr_threshold
-      ssh_key                             = local.hcloud_ssh_key_id
+      ssh_key                             = local.ssh.hcloud_ssh_key_id
       ipv4_subnet_id                      = data.hcloud_network.k3s.id
       snapshot_id                         = local.first_nodepool_snapshot_id
       cluster_config                      = base64encode(jsonencode(local.cluster_config))
@@ -60,7 +60,7 @@ resource "null_resource" "configure_autoscaler" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh.port
   }
@@ -99,16 +99,16 @@ data "cloudinit_config" "autoscaler_config" {
         sshAuthorizedKeys = concat([var.ssh.public_key], var.ssh.additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-          token         = local.k3s_token
+          token         = local.k3s.token
           kubelet-arg   = local.kubelet_arg
-          flannel-iface = local.flannel_iface
+          flannel-iface = local.cni.flannel.iface
           node-label    = concat(local.default_agent_labels, [for k, v in var.autoscaler_nodes.nodepools[count.index].labels : "${k}=${v}"])
           node-taint    = concat(local.default_agent_taints, [for taint in var.autoscaler_nodes.nodepools[count.index].taints : "${taint.key}=${taint.value}:${taint.effect}"])
           selinux       = true
         })
-        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
-        cloudinit_write_files_common = local.cloudinit_write_files_common
-        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+        install_k3s_agent_script     = join("\n", concat(local.k3s.install.agent, ["systemctl start k3s-agent"]))
+        cloudinit_write_files_common = local.cloudinit.write_files_common
+        cloudinit_runcmd_common      = local.cloudinit.runcmd_common
       }
     )
   }
@@ -131,16 +131,16 @@ data "cloudinit_config" "autoscaler_legacy_config" {
         sshAuthorizedKeys = concat([var.ssh.public_key], var.ssh.additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-          token         = local.k3s_token
+          token         = local.k3s.token
           kubelet-arg   = local.kubelet_arg
-          flannel-iface = local.flannel_iface
+          flannel-iface = local.cni.flannel.iface
           node-label    = concat(local.default_agent_labels, var.autoscaler_nodes.labels)
           node-taint    = concat(local.default_agent_taints, var.autoscaler_nodes.taints)
           selinux       = true
         })
-        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
-        cloudinit_write_files_common = local.cloudinit_write_files_common
-        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+        install_k3s_agent_script     = join("\n", concat(local.k3s.install.agent, ["systemctl start k3s-agent"]))
+        cloudinit_write_files_common = local.cloudinit.write_files_common
+        cloudinit_runcmd_common      = local.cloudinit.runcmd_common
       }
     )
   }
@@ -160,7 +160,7 @@ resource "null_resource" "autoscaled_nodes_registries" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = each.value.ipv4_address
     port           = var.ssh.port
   }
@@ -171,6 +171,6 @@ resource "null_resource" "autoscaled_nodes_registries" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_registries_update_script]
+    inline = [local.k3s.registries_update_script]
   }
 }

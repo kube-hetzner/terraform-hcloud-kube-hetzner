@@ -19,18 +19,18 @@ resource "hcloud_ssh_key" "k3s" {
   count      = var.ssh.hcloud_ssh_key_id == null ? 1 : 0
   name       = var.cluster_name
   public_key = var.ssh.public_key
-  labels     = local.labels
+  labels     = local.labels.general
 }
 
 resource "hcloud_network" "k3s" {
-  count    = local.use_existing_network ? 0 : 1
+  count    = local.network.use_existing ? 0 : 1
   name     = var.cluster_name
   ip_range = var.network.cidr_blocks.ipv4.main
-  labels   = local.labels
+  labels   = local.labels.general
 }
 
 data "hcloud_network" "k3s" {
-  id = local.use_existing_network ? var.network.existing_network_id[0] : hcloud_network.k3s[0].id
+  id = local.network.use_existing ? var.network.existing_network_id[0] : hcloud_network.k3s[0].id
 }
 
 # We start from the end of the subnets cidr array,
@@ -40,7 +40,7 @@ resource "hcloud_network_subnet" "control_plane" {
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network.region
-  ip_range     = local.network_ipv4_subnets[255 - count.index]
+  ip_range     = local.network.ipv4_subnets[255 - count.index]
 }
 
 # Here we start at the beginning of the subnets cidr array
@@ -49,15 +49,15 @@ resource "hcloud_network_subnet" "agent" {
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network.region
-  ip_range     = local.network_ipv4_subnets[count.index]
+  ip_range     = local.network.ipv4_subnets[count.index]
 }
 
 resource "hcloud_firewall" "k3s" {
   name   = var.cluster_name
-  labels = local.labels
+  labels = local.labels.general
 
   dynamic "rule" {
-    for_each = local.firewall_rules_list
+    for_each = local.firewall_rules
     content {
       description     = rule.value.description
       direction       = rule.value.direction
@@ -72,13 +72,13 @@ resource "hcloud_firewall" "k3s" {
 resource "hcloud_placement_group" "control_plane" {
   count  = ceil(local.control_plane_count / 10)
   name   = "${var.cluster_name}-control-plane-${count.index + 1}"
-  labels = local.labels
+  labels = local.labels.general
   type   = "spread"
 }
 
 resource "hcloud_placement_group" "agent" {
   count  = ceil(local.agent_count / 10)
   name   = "${var.cluster_name}-agent-${count.index + 1}"
-  labels = local.labels
+  labels = local.labels.general
   type   = "spread"
 }

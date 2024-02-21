@@ -9,7 +9,7 @@ output "network_id" {
 }
 
 output "ssh_key_id" {
-  value       = local.hcloud_ssh_key_id
+  value       = local.ssh.hcloud_ssh_key_id
   description = "The ID of the HCloud SSH key."
 }
 
@@ -44,7 +44,7 @@ output "k3s_endpoint" {
 
 output "k3s_token" {
   description = "The k3s token to register new nodes"
-  value       = local.k3s_token
+  value       = local.k3s.token
   sensitive   = true
 }
 

@@ -1,9 +1,10 @@
 locals {
-  cert_manager_values = var.cert_manager.values != "" ? var.cert_manager.values : <<EOT
-installCRDs: true
-  EOT
-
-  nginx_values = var.ingress.nginx.values != "" ? var.ingress.nginx.values : <<EOT
+  ingress = {
+    nginx = {
+      service_name      = "nginx-ingress-nginx-controller"
+      install_resources = "nginx_ingress.yaml"
+      namespace         = "nginx"
+      values            = var.ingress.nginx.values != "" ? var.ingress.nginx.values : <<EOT
 controller:
   watchIngressWithoutClass: "true"
   kind: "Deployment"
@@ -32,8 +33,13 @@ controller:
 %{endif~}
 %{endif~}
   EOT
+    }
 
-  traefik_values = var.ingress.traefik.values != "" ? var.ingress.traefik.values : <<EOT
+    traefik = {
+      service_name      = "traefik"
+      install_resources = "traefik_ingress.yaml"
+      namespace         = "traefik"
+      values            = var.ingress.traefik.values != "" ? var.ingress.traefik.values : <<EOT
 image:
   tag: ${var.ingress.traefik.image_tag}
 deployment:
@@ -145,4 +151,24 @@ autoscaling:
   maxReplicas: ${local.ingress_max_replica_count}
 %{endif~}
   EOT
+    }
+  }
+
+  # used by lookup(field, ingress_type, "") in locals_kustomize.tf
+  ingress_mapping = {
+    "nginx"   = local.ingress.nginx
+    "traefik" = local.ingress.traefik
+  }
+
+  # used for deployment of any ingress controller type
+  ingress_controller_namespace = var.ingress.namespace != "" ? var.ingress.namespace : lookup(local.ingress_mapping, var.ingress.type, "").namespace
+  ingress_replica_count        = (var.ingress.replica_count > 0) ? var.ingress.replica_count : (local.agent_count > 2) ? 3 : (local.agent_count == 2) ? 2 : 1
+  ingress_max_replica_count    = (var.ingress.max_replica_count > local.ingress_replica_count) ? var.ingress.max_replica_count : local.ingress_replica_count
+
+  # cert-manager config
+  cert_manager = {
+    values = var.cert_manager.values != "" ? var.cert_manager.values : <<EOT
+installCRDs: true
+  EOT
+  }
 }

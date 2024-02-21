@@ -4,7 +4,7 @@ resource "hcloud_load_balancer" "cluster" {
 
   load_balancer_type = var.load_balancer.ingress.type
   location           = var.load_balancer.ingress.location
-  labels             = local.labels
+  labels             = local.labels.general
 
   algorithm {
     type = var.load_balancer.ingress.algorithm
@@ -23,7 +23,7 @@ resource "null_resource" "first_control_plane" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh.port
   }
@@ -34,13 +34,13 @@ resource "null_resource" "first_control_plane" {
       merge(
         {
           node-name                   = module.control_planes[keys(module.control_planes)[0]].name
-          token                       = local.k3s_token
+          token                       = local.k3s.token
           cluster-init                = true
           disable-cloud-controller    = true
-          disable                     = local.disable_extras
+          disable                     = local.k3s.disable_extras
           kubelet-arg                 = local.kubelet_arg
           kube-controller-manager-arg = local.kube_controller_manager_arg
-          flannel-iface               = local.flannel_iface
+          flannel-iface               = local.cni.flannel.iface
           node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
@@ -50,7 +50,7 @@ resource "null_resource" "first_control_plane" {
           service-cidr                = var.network.cidr_blocks.ipv4.service
           cluster-dns                 = var.network.cluster_dns.ipv4
         },
-        lookup(local.cni_k3s_settings, var.cni.type, {}),
+        lookup(local.cni.k3s_settings, var.cni.type, {}),
         var.load_balancer.kubeapi.enabled ? {
           tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
           } : {
@@ -66,7 +66,7 @@ resource "null_resource" "first_control_plane" {
 
   # Install k3s server
   provisioner "remote-exec" {
-    inline = local.install_k3s_server
+    inline = local.k3s.install.server
   }
 
   # Upon reboot start k3s and wait for it to be ready to receive commands
@@ -113,14 +113,14 @@ resource "null_resource" "kustomization" {
   triggers = {
     # Redeploy helm charts when the underlying values change
     helm_values_yaml = join("---\n", [
-      local.traefik_values,
-      local.nginx_values,
-      local.calico_values,
-      local.cilium_values,
-      local.longhorn_values,
-      local.csi_driver_smb_values,
-      local.cert_manager_values,
-      local.rancher_values
+      local.ingress.traefik.values,
+      local.ingress.nginx.values,
+      local.cni.calico.values,
+      local.cni.cilium.values,
+      local.csi.longhorn.values,
+      local.csi.csi_driver_smb.values,
+      local.cert_manager.values,
+      local.rancher.values
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
@@ -135,14 +135,14 @@ resource "null_resource" "kustomization" {
       coalesce(var.ingress.nginx.helm_chart_version, "N/A"),
     ])
     options = join("\n", [
-      for option, value in local.kured_options : "${option}=${value}"
+      for option, value in local.automatic_updates.kured.options : "${option}=${value}"
     ])
   }
 
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh.port
   }
@@ -159,7 +159,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
         version          = var.ingress.traefik.helm_chart_version
-        values           = indent(4, trimspace(local.traefik_values))
+        values           = indent(4, trimspace(local.ingress.traefik.values))
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/traefik_ingress.yaml"
@@ -171,7 +171,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
         version          = var.ingress.nginx.helm_chart_version
-        values           = indent(4, trimspace(local.nginx_values))
+        values           = indent(4, trimspace(local.ingress.nginx.values))
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/nginx_ingress.yaml"
@@ -195,7 +195,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/calico.yaml.tpl",
       {
-        values = trimspace(local.calico_values)
+        values = trimspace(local.cni.calico.values)
     })
     destination = "/var/post_install/calico.yaml"
   }
@@ -205,7 +205,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        values  = indent(4, trimspace(local.cilium_values))
+        values  = indent(4, trimspace(local.cni.cilium.values))
         version = var.cni.cilium.version
     })
     destination = "/var/post_install/cilium.yaml"
@@ -228,7 +228,7 @@ resource "null_resource" "kustomization" {
       {
         longhorn_namespace  = var.csi.longhorn.namespace
         longhorn_repository = var.csi.longhorn.repository
-        values              = indent(4, trimspace(local.longhorn_values))
+        values              = indent(4, trimspace(local.csi.longhorn.values))
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -238,7 +238,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/csi-driver-smb.yaml.tpl",
       {
-        values = indent(4, trimspace(local.csi_driver_smb_values))
+        values = indent(4, trimspace(local.csi.csi_driver_smb.values))
     })
     destination = "/var/post_install/csi-driver-smb.yaml"
   }
@@ -248,7 +248,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cert_manager.yaml.tpl",
       {
-        values = indent(4, trimspace(local.cert_manager_values))
+        values = indent(4, trimspace(local.cert_manager.values))
     })
     destination = "/var/post_install/cert_manager.yaml"
   }
@@ -259,7 +259,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/rancher.yaml.tpl",
       {
         rancher_install_channel = var.rancher.install_channel
-        values                  = indent(4, trimspace(local.rancher_values))
+        values                  = indent(4, trimspace(local.rancher.values))
     })
     destination = "/var/post_install/rancher.yaml"
   }
@@ -268,7 +268,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/kured.yaml.tpl",
       {
-        options = local.kured_options
+        options = local.automatic_updates.kured.options
       }
     )
     destination = "/var/post_install/kured.yaml"
@@ -280,7 +280,7 @@ resource "null_resource" "kustomization" {
       "set -ex",
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
-      local.csi_version != null ? "curl https://raw.githubusercontent.com/hetznercloud/csi-driver/${coalesce(local.csi_version, "v2.4.0")}/deploy/kubernetes/hcloud-csi.yml -o /var/post_install/hcloud-csi.yml" : "echo 'Skipping hetzner csi.'"
+      local.versions.hetzner.csi != null ? "curl https://raw.githubusercontent.com/hetznercloud/csi-driver/${coalesce(local.versions.hetzner.csi, "v2.4.0")}/deploy/kubernetes/hcloud-csi.yml -o /var/post_install/hcloud-csi.yml" : "echo 'Skipping hetzner csi.'"
     ]
   }
 

@@ -1,5 +1,12 @@
 locals {
-  longhorn_values = var.csi.longhorn.values != "" ? var.csi.longhorn.values : <<EOT
+  csi = {
+    csi_driver_smb = {
+      values = var.csi.csi_driver_smb.values != "" ? var.csi.csi_driver_smb.values : <<EOT
+  EOT
+    }
+
+    longhorn = {
+      values = var.csi.longhorn.values != "" ? var.csi.longhorn.values : <<EOT
 defaultSettings:
 %{if length(var.autoscaler_nodes.nodepools) != 0~}
   kubernetesClusterAutoscalerEnabled: true
@@ -10,7 +17,6 @@ persistence:
   defaultClassReplicaCount: ${var.csi.longhorn.replica_count}
   %{if var.csi.hetzner_csi.enabled~}defaultClass: true%{else~}defaultClass: false%{endif~}
   EOT
-
-  csi_driver_smb_values = var.csi.csi_driver_smb.values != "" ? var.csi.csi_driver_smb.values : <<EOT
-  EOT
+    }
+  }
 }

@@ -10,7 +10,7 @@ module "agents" {
   name                         = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
   microos_snapshot_id          = substr(each.value.server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
   base_domain                  = var.base_domain
-  ssh_keys                     = length(var.ssh.hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
+  ssh_keys                     = length(var.ssh.hcloud_key_label) > 0 ? concat([local.ssh.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.ssh.hcloud_ssh_key_id]
   ssh_port                     = var.ssh.port
   ssh_public_key               = var.ssh.public_key
   ssh_private_key              = var.ssh_private_key
@@ -23,14 +23,14 @@ module "agents" {
   ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.nodepools.agents : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.network.dns_servers
   k3s_registries               = var.k3s.registries
-  k3s_registries_update_script = local.k3s_registries_update_script
-  cloudinit_write_files_common = local.cloudinit_write_files_common
-  cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+  k3s_registries_update_script = local.k3s.registries_update_script
+  cloudinit_write_files_common = local.cloudinit.write_files_common
+  cloudinit_runcmd_common      = local.cloudinit.runcmd_common
   swap_size                    = each.value.swap_size
 
   private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.nodepools.agents : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
-  labels = merge(local.labels, local.labels_agent_node)
+  labels = merge(local.labels.general, local.labels.agent_node)
 
   automatically_upgrade_os = var.automatic_updates.os
 
@@ -45,9 +45,9 @@ locals {
     {
       node-name     = module.agents[k].name
       server        = "https://${var.load_balancer.kubeapi.enabled ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-      token         = local.k3s_token
+      token         = local.k3s.token
       kubelet-arg   = concat(local.kubelet_arg, v.kubelet_args)
-      flannel-iface = local.flannel_iface
+      flannel-iface = local.cni.flannel.iface
       node-ip       = module.agents[k].private_ipv4_address
       node-label    = v.labels
       node-taint    = v.taints
@@ -67,7 +67,7 @@ resource "null_resource" "agent_config" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.agents[each.key].ipv4_address
     port           = var.ssh.port
   }
@@ -79,7 +79,7 @@ resource "null_resource" "agent_config" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_config_update_script]
+    inline = [local.k3s.config_update_script]
   }
 }
 
@@ -93,14 +93,14 @@ resource "null_resource" "agents" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.agents[each.key].ipv4_address
     port           = var.ssh.port
   }
 
   # Install k3s agent
   provisioner "remote-exec" {
-    inline = local.install_k3s_agent
+    inline = local.k3s.install.agent
   }
 
   # Start the k3s agent and wait for it to have started
@@ -162,7 +162,7 @@ resource "null_resource" "configure_longhorn_volume" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.agents[each.key].ipv4_address
     port           = var.ssh.port
   }
@@ -176,7 +176,7 @@ resource "hcloud_floating_ip" "agents" {
   for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
   type          = "ipv4"
-  labels        = local.labels
+  labels        = local.labels.general
   home_location = each.value.location
 }
 
@@ -221,7 +221,7 @@ resource "null_resource" "configure_floating_ip" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.agents[each.key].ipv4_address
     port           = var.ssh.port
   }

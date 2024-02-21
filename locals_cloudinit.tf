@@ -1,5 +1,6 @@
 locals {
-  cloudinit_write_files_common = <<EOT
+  cloudinit = {
+    write_files_common = <<EOT
 # Script to rename the private interface to eth1 and unify NetworkManager connection naming
 - path: /etc/cloud/rename_interface.sh
   content: |
@@ -158,7 +159,7 @@ locals {
 %{endif}
 EOT
 
-  cloudinit_runcmd_common = <<EOT
+    runcmd_common = <<EOT
 # ensure that /var uses full available disk size, thanks to btrfs this is easy
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 
@@ -205,4 +206,5 @@ EOT
 # Cleanup some logs
 - [truncate, '-s', '0', '/var/log/audit/audit.log']
 EOT
+  }
 }

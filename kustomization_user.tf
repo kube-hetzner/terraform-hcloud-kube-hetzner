@@ -8,7 +8,7 @@ resource "null_resource" "kustomization_user" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh.port
   }
@@ -33,7 +33,7 @@ resource "null_resource" "kustomization_user_deploy" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
+    agent_identity = local.ssh.agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh.port
   }

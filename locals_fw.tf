@@ -21,7 +21,7 @@ locals {
     ],
     !var.firewall.restrict_outbound_traffic ? [] : [
       # Allow basic out traffic
-      # ICMP to ping outside services
+      ## ICMP to ping outside services
       {
         description     = "Allow Outbound ICMP Ping Requests"
         direction       = "out"
@@ -29,8 +29,7 @@ locals {
         port            = ""
         destination_ips = ["0.0.0.0/0", "::/0"]
       },
-
-      # DNS
+      ## DNS
       {
         description     = "Allow Outbound TCP DNS Requests"
         direction       = "out"
@@ -46,7 +45,7 @@ locals {
         destination_ips = ["0.0.0.0/0", "::/0"]
       },
 
-      # HTTP(s)
+      ## HTTP(s)
       {
         description     = "Allow Outbound HTTP Requests"
         direction       = "out"
@@ -61,8 +60,7 @@ locals {
         port            = "443"
         destination_ips = ["0.0.0.0/0", "::/0"]
       },
-
-      #NTP
+      ## NTP
       {
         description     = "Allow Outbound UDP NTP Requests"
         direction       = "out"
@@ -72,8 +70,8 @@ locals {
       }
     ],
     !local.using_klipper_lb ? [] : [
-      # Allow incoming web traffic for single node clusters, because we are using k3s servicelb there,
-      # not an external load-balancer.
+      # Allow incoming web traffic for single node clusters
+      # Because k3s servicelb is used, not an external load-balancer
       {
         description = "Allow Incoming HTTP Connections"
         direction   = "in"
@@ -100,16 +98,15 @@ locals {
     ]
   )
 
-  # create a new firewall list based on base_firewall_rules but with direction-protocol-port as key
+  # 1) create a new firewall list based on base_firewall_rules but with direction-protocol-port as key
   # this is needed to avoid duplicate rules
-  firewall_rules = { for rule in local.base_firewall_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule }
-
-  # do the same for var.extra_firewall_rules
-  extra_firewall_rules = { for rule in var.firewall.extra_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule }
-
-  # merge the two lists
-  firewall_rules_merged = merge(local.firewall_rules, local.extra_firewall_rules)
-
-  # convert the merged list back to a list
-  firewall_rules_list = values(local.firewall_rules_merged)
+  # 2) do the same for var.extra_firewall_rules
+  # 3) merge the two lists
+  # 4) convert the merged list back to a list
+  firewall_rules = values(merge({
+    for rule in local.base_firewall_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule
+    }, {
+    for rule in var.firewall.extra_rules : format("%s-%s-%s", lookup(rule, "direction", "null"), lookup(rule, "protocol", "null"), lookup(rule, "port", "null")) => rule
+    }
+  ))
 }

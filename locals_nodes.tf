@@ -57,4 +57,10 @@ locals {
   default_agent_taints         = concat([], var.cni.type == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
   swap_node_label = ["node.kubernetes.io/server-swap=enabled"]
+
+  # base kubelet args
+  kubelet_arg = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+
+  # base kube controller manager args
+  kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
 }
