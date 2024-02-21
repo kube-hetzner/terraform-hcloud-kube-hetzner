@@ -133,7 +133,7 @@ locals {
         zram_size : nodepool_obj.zram_size,
         index : node_index,
         use_placement_group : nodepool_obj.use_placement_group,
-        placement_group_name : nodepool_obj.placement_group_name == null ? format("%s-%s", var.cluster_name, nodepool_obj.name) : nodepool_obj.placement_group_name
+        placement_group_name : !nodepool_obj.use_placement_group ? null : nodepool_obj.placement_group_name == null ? nodepool_obj.name : nodepool_obj.placement_group_name
       }
     }
   ]...)
@@ -155,7 +155,7 @@ locals {
         zram_size : nodepool_obj.zram_size,
         index : node_index,
         use_placement_group : nodepool_obj.use_placement_group,
-        placement_group_name : nodepool_obj.placement_group_name == null ? format("%s-%s", var.cluster_name, nodepool_obj.name) : nodepool_obj.placement_group_name
+        placement_group_name : !nodepool_obj.use_placement_group ? null : nodepool_obj.placement_group_name == null ? nodepool_obj.name : nodepool_obj.placement_group_name
       }
     }
   ]...)
