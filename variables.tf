@@ -165,18 +165,18 @@ variable "load_balancer_health_check_retries" {
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
-    name                       = string
-    server_type                = string
-    location                   = string
-    backups                    = optional(bool)
-    labels                     = list(string)
-    taints                     = list(string)
-    count                      = number
-    swap_size                  = optional(string, "")
-    zram_size                  = optional(string, "")
-    kubelet_args               = optional(list(string), ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-    placement_group_compat_idx = optional(number, 0)
-    placement_group            = optional(string, null)
+    name                 = string
+    server_type          = string
+    location             = string
+    backups              = optional(bool)
+    labels               = list(string)
+    taints               = list(string)
+    count                = number
+    swap_size            = optional(string, "")
+    zram_size            = optional(string, "")
+    kubelet_args         = optional(list(string), ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    use_placement_group  = optional(bool, true)
+    placement_group_name = optional(string)
   }))
   default = []
   validation {
@@ -189,25 +189,37 @@ variable "control_plane_nodepools" {
     )
     error_message = "Names in control_plane_nodepools must be unique."
   }
+  validation {
+    condition = alltrue(
+      [for control_plane_nodepool in var.control_plane_nodepools : control_plane_nodepool.count >= 0]
+    )
+    error_message = "Count in control_plane_nodepools must be greater than 0."
+  }
+  validation {
+    condition = alltrue(
+      [for control_plane_nodepool in var.control_plane_nodepools : !control_plane_nodepool.use_placement_group || control_plane_nodepool.count <= 10]
+    )
+    error_message = "Count in control_plane_nodepools must be 10 or less when \"use_placement_group\" is true (limitation by Hetzner)."
+  }
 }
 
 variable "agent_nodepools" {
   description = "Number of agent nodes."
   type = list(object({
-    name                       = string
-    server_type                = string
-    location                   = string
-    backups                    = optional(bool)
-    floating_ip                = optional(bool)
-    labels                     = list(string)
-    taints                     = list(string)
-    count                      = number
-    longhorn_volume_size       = optional(number)
-    swap_size                  = optional(string, "")
-    zram_size                  = optional(string, "")
-    kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-    placement_group_compat_idx = optional(number, 0)
-    placement_group            = optional(string, null)
+    name                 = string
+    server_type          = string
+    location             = string
+    backups              = optional(bool)
+    floating_ip          = optional(bool)
+    labels               = list(string)
+    taints               = list(string)
+    count                = number
+    longhorn_volume_size = optional(number)
+    swap_size            = optional(string, "")
+    zram_size            = optional(string, "")
+    kubelet_args         = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    use_placement_group  = optional(bool, true)
+    placement_group_name = optional(string)
   }))
   default = []
   validation {
@@ -219,6 +231,18 @@ variable "agent_nodepools" {
       )
     )
     error_message = "Names in agent_nodepools must be unique."
+  }
+  validation {
+    condition = alltrue(
+      [for agent_nodepool in var.agent_nodepools : agent_nodepool.count >= 0]
+    )
+    error_message = "Count in agent_nodepools must be greater than 0."
+  }
+  validation {
+    condition = alltrue(
+      [for agent_nodepool in var.agent_nodepools : !agent_nodepool.use_placement_group || agent_nodepool.count <= 10]
+    )
+    error_message = "Count in agent_nodepools must be 10 or less when \"use_placement_group\" is true (limitation by Hetzner)."
   }
 }
 

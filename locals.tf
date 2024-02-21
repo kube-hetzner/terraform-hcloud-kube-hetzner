@@ -132,8 +132,8 @@ locals {
         swap_size : nodepool_obj.swap_size,
         zram_size : nodepool_obj.zram_size,
         index : node_index,
-        placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
-        placement_group : nodepool_obj.placement_group
+        use_placement_group : nodepool_obj.use_placement_group,
+        placement_group_name : nodepool_obj.placement_group_name == null ? format("%s-%s", var.cluster_name, nodepool_obj.name) : nodepool_obj.placement_group_name
       }
     }
   ]...)
@@ -154,8 +154,8 @@ locals {
         swap_size : nodepool_obj.swap_size,
         zram_size : nodepool_obj.zram_size,
         index : node_index,
-        placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
-        placement_group : nodepool_obj.placement_group
+        use_placement_group : nodepool_obj.use_placement_group,
+        placement_group_name : nodepool_obj.placement_group_name == null ? format("%s-%s", var.cluster_name, nodepool_obj.name) : nodepool_obj.placement_group_name
       }
     }
   ]...)
