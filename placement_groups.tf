@@ -2,13 +2,13 @@ locals {
   control_plane_groups = toset(
     [
       for cp_pool in var.control_plane_nodepools :
-      cp_pool.placement_group if cp_pool.placement_group != null
+      cp_pool.placement_group_name if cp_pool.placement_group_name != null
     ]
   )
   agent_placement_groups = toset(
     [
       for ag_pool in var.agent_nodepools :
-      ag_pool.placement_group if ag_pool.placement_group != null
+      ag_pool.placement_group_name if ag_pool.placement_group_name != null
     ]
   )
 }
