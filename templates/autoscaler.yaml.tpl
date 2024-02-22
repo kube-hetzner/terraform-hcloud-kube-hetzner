@@ -164,6 +164,8 @@ spec:
             requests:
               cpu: 100m
               memory: 300Mi
+          ports:
+            - containerPort: 8085
           command:
             - ./cluster-autoscaler
             - --v=${cluster_autoscaler_log_level}
