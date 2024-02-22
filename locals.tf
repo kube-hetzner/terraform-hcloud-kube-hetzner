@@ -131,7 +131,9 @@ locals {
         backups : nodepool_obj.backups,
         swap_size : nodepool_obj.swap_size,
         zram_size : nodepool_obj.zram_size,
-        index : node_index
+        index : node_index,
+        placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
+        placement_group : nodepool_obj.placement_group
       }
     }
   ]...)
@@ -151,7 +153,9 @@ locals {
         backups : lookup(nodepool_obj, "backups", false),
         swap_size : nodepool_obj.swap_size,
         zram_size : nodepool_obj.zram_size,
-        index : node_index
+        index : node_index,
+        placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
+        placement_group : nodepool_obj.placement_group
       }
     }
   ]...)
