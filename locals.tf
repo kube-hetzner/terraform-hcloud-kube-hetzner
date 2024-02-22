@@ -387,11 +387,23 @@ k8s:
 
 # Replace kube-proxy with Cilium
 kubeProxyReplacement: true
+%{if var.disable_kube_proxy}
+# Enable health check server (healthz) for the kube-proxy replacement
+kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
+%{endif~}
+
+# Access to Kube API Server (mandatory if kube-proxy is disabled)
+k8sServiceHost: "127.0.0.1"
+k8sServicePort: "6444"
 
 # Set Tunnel Mode or Native Routing Mode (supported by Hetzner CCM Route Controller)
 routingMode: "${var.cilium_routing_mode}"
 %{if var.cilium_routing_mode == "native"~}
+# Set the native routable CIDR
 ipv4NativeRoutingCIDR: "${local.cilium_ipv4_native_routing_cidr}"
+
+# Bypass iptables Connection Tracking for Pod traffic (only works in Native Routing Mode)
+installNoConntrackIptablesRules: true
 %{endif~}
 
 endpointRoutes:

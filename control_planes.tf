@@ -91,6 +91,7 @@ locals {
       module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token                       = local.k3s_token
       disable-cloud-controller    = true
+      disable-kube-proxy          = var.disable_kube_proxy
       disable                     = local.disable_extras
       kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
       kube-controller-manager-arg = local.kube_controller_manager_arg
