@@ -175,6 +175,7 @@ variable "control_plane_nodepools" {
     swap_size                  = optional(string, "")
     zram_size                  = optional(string, "")
     kubelet_args               = optional(list(string), ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    selinux      = optional(bool, true)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
   }))
@@ -206,6 +207,7 @@ variable "agent_nodepools" {
     swap_size                  = optional(string, "")
     zram_size                  = optional(string, "")
     kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    selinux              = optional(bool, true)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
   }))
@@ -847,6 +849,12 @@ variable "control_planes_custom_config" {
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }
 
+variable "agent_nodes_custom_config" {
+  type        = any
+  default     = {}
+  description = "Custom agent nodes configuration."
+}
+
 variable "k3s_registries" {
   description = "K3S registries.yml contents. It used to access private docker registries."
   default     = " "
@@ -905,4 +913,10 @@ variable "enable_local_storage" {
   type        = bool
   default     = false
   description = "Whether to enable or disable k3s local-storage."
+}
+
+variable "disable_selinux" {
+  type        = bool
+  default     = false
+  description = "Disable SELinux on all nodes."
 }
