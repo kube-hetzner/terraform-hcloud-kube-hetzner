@@ -45,7 +45,6 @@ resource "null_resource" "first_control_plane" {
           advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
           node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
-          selinux                     = true
           cluster-cidr                = var.cluster_ipv4_cidr
           service-cidr                = var.service_ipv4_cidr
           cluster-dns                 = var.cluster_dns_ipv4
@@ -57,7 +56,8 @@ resource "null_resource" "first_control_plane" {
           tls-san = concat([module.control_planes[keys(module.control_planes)[0]].ipv4_address], var.additional_tls_sans)
         },
         local.etcd_s3_snapshots,
-        var.control_planes_custom_config
+        var.control_planes_custom_config,
+        (local.control_plane_nodes[keys(module.control_planes)[0]].selinux == true ? { selinux = true } : {})
       )
     )
 

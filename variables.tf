@@ -165,16 +165,19 @@ variable "load_balancer_health_check_retries" {
 variable "control_plane_nodepools" {
   description = "Number of control plane nodes."
   type = list(object({
-    name         = string
-    server_type  = string
-    location     = string
-    backups      = optional(bool)
-    labels       = list(string)
-    taints       = list(string)
-    count        = number
-    swap_size    = optional(string, "")
-    zram_size    = optional(string, "")
-    kubelet_args = optional(list(string), ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    name                       = string
+    server_type                = string
+    location                   = string
+    backups                    = optional(bool)
+    labels                     = list(string)
+    taints                     = list(string)
+    count                      = number
+    swap_size                  = optional(string, "")
+    zram_size                  = optional(string, "")
+    kubelet_args               = optional(list(string), ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    selinux      = optional(bool, true)
+    placement_group_compat_idx = optional(number, 0)
+    placement_group            = optional(string, null)
   }))
   default = []
   validation {
@@ -192,18 +195,21 @@ variable "control_plane_nodepools" {
 variable "agent_nodepools" {
   description = "Number of agent nodes."
   type = list(object({
-    name                 = string
-    server_type          = string
-    location             = string
-    backups              = optional(bool)
-    floating_ip          = optional(bool)
-    labels               = list(string)
-    taints               = list(string)
-    count                = number
-    longhorn_volume_size = optional(number)
-    swap_size            = optional(string, "")
-    zram_size            = optional(string, "")
-    kubelet_args         = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    name                       = string
+    server_type                = string
+    location                   = string
+    backups                    = optional(bool)
+    floating_ip                = optional(bool)
+    labels                     = list(string)
+    taints                     = list(string)
+    count                      = number
+    longhorn_volume_size       = optional(number)
+    swap_size                  = optional(string, "")
+    zram_size                  = optional(string, "")
+    kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
+    selinux              = optional(bool, true)
+    placement_group_compat_idx = optional(number, 0)
+    placement_group            = optional(string, null)
   }))
   default = []
   validation {
@@ -843,6 +849,12 @@ variable "control_planes_custom_config" {
   description = "Custom control plane configuration e.g to allow etcd monitoring."
 }
 
+variable "agent_nodes_custom_config" {
+  type        = any
+  default     = {}
+  description = "Custom agent nodes configuration."
+}
+
 variable "k3s_registries" {
   description = "K3S registries.yml contents. It used to access private docker registries."
   default     = " "
@@ -901,4 +913,10 @@ variable "enable_local_storage" {
   type        = bool
   default     = false
   description = "Whether to enable or disable k3s local-storage."
+}
+
+variable "disable_selinux" {
+  type        = bool
+  default     = false
+  description = "Disable SELinux on all nodes."
 }
