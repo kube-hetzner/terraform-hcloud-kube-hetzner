@@ -133,6 +133,8 @@ locals {
         zram_size : nodepool_obj.zram_size,
         index : node_index
         selinux: nodepool_obj.selinux
+        placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
+        placement_group : nodepool_obj.placement_group
       }
     }
   ]...)
@@ -154,6 +156,8 @@ locals {
         zram_size : nodepool_obj.zram_size,
         index : node_index
         selinux: nodepool_obj.selinux
+        placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
+        placement_group : nodepool_obj.placement_group
       }
     }
   ]...)
@@ -623,6 +627,7 @@ installCRDs: true
     "pre-reboot-node-labels" : "kured=rebooting",
     "post-reboot-node-labels" : "kured=done",
     "period" : "5m",
+    "reboot-sentinel" : "/sentinel/reboot-required"
   }, var.kured_options)
 
   k3s_registries_update_script = <<EOF

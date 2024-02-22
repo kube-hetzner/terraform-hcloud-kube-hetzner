@@ -222,21 +222,25 @@ _If you wish to turn off automatic MicroOS upgrades (Important if you are not la
 automatically_upgrade_os = false
 ```
 
-_Alternatively ssh into each node and issue the following command:_
+Alternatively ssh into each node and issue the following command:
 
 ```sh
 systemctl --now disable transactional-update.timer
 ```
 
-_If you wish to turn off automatic k3s upgrades, you need to set:_
+If you wish to turn off automatic k3s upgrades, you need to set:
 
 ```terraform
 automatically_upgrade_k3s = false
 ```
 
-_Alternatively, you can either remove the `k3s_upgrade=true` label or set it to `false`. This needs to happen for all the nodes too! To remove the node label completely, apply `-` at the end of the label:
+_Once disabled this way you selectively can enable the upgrade by setting the node label `k3s_update=true` and later disable it by removing the label or set it to `false` again._
 
 ```sh
+# Enable upgrade for a node (use --all for all nodes)
+kubectl label --overwrite node <node-name> k3s_upgrade=true
+
+# Later disable upgrade by removing the label (use --all for all nodes)
 kubectl label node <node-name> k3s_upgrade-
 ```
 
@@ -250,7 +254,7 @@ kubectl delete plan k3s-server -n system-upgrade
 Also, note that after turning off node upgrades, you will need to manually upgrade the nodes when needed. You can do so by SSH'ing into each node and running the following commands (and don't forget to drain the node before with `kubectl drain <node-name>`):
 
 ```sh
-transactional-update
+systemctl start transactional-update.service
 reboot
 ```
 
@@ -853,6 +857,37 @@ module "kube-hetzner" {
 
 NOTE: square brackets in existing_network_id! This must be a list of length 1.
 
+</details>
+<details>
+<summary>Placement groups</summary>
+Up until release v2.11.8, there was an implementation error in the placement group logic. 
+
+If you have fewer than 10 agents and 10 control-plane nodes, you can continue using the code as is.
+
+If you have a single pool with a count >= 10, you could only work with global setting in kube.tf:
+```
+placement_group_disable = true
+```
+
+Now you can assign each nodepool to its own placement group, preferrably using named groups:
+```
+  agent_nodepools = [
+    {
+      ...
+      placement_group = "special"
+    },
+  ]
+```
+
+You can also continue using the previous code-base like this:
+```
+  agent_nodepools = [
+    {
+      ...
+      placement_group_compat_idx = 1
+    },
+  ]
+```
 </details>
 
 ## Debugging
