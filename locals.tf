@@ -188,7 +188,7 @@ locals {
           taints : concat(local.default_agent_taints, nodepool_obj.taints, coalesce(node_obj.taints, [])),
         },
         (
-          node_obj.append_index_to_node_name ? { node_name_override : "-${floor(tonumber(node_key))}" } : {}
+          node_obj.append_index_to_node_name ? { node_name_suffix : "-${floor(tonumber(node_key))}" } : {}
         )
       )
     }
