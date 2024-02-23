@@ -656,6 +656,10 @@ module "kube-hetzner" {
   # Please note that if you are getting 403s from Github, it's also useful to set the version manually. However there is rarely a need for that!
   # calico_version = "v3.25.0"
 
+  # If you want to disable the k3s kube-proxy, use this flag. The default is "false".
+  # Ensure that your CNI is capable of handling all the functionalities typically covered by kube-proxy.
+  # disable_kube_proxy = true
+
   # If you want to disable the k3s default network policy controller, use this flag!
   # Both Calico and Ciliun cni_plugin values override this value to true automatically, the default is "false".
   # disable_network_policy = true

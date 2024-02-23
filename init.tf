@@ -37,6 +37,7 @@ resource "null_resource" "first_control_plane" {
           token                       = local.k3s_token
           cluster-init                = true
           disable-cloud-controller    = true
+          disable-kube-proxy          = var.disable_kube_proxy
           disable                     = local.disable_extras
           kubelet-arg                 = local.kubelet_arg
           kube-controller-manager-arg = local.kube_controller_manager_arg

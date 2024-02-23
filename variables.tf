@@ -527,6 +527,12 @@ variable "placement_group_disable" {
   description = "Whether to disable placement groups."
 }
 
+variable "disable_kube_proxy" {
+  type        = bool
+  default     = false
+  description = "Disable kube-proxy in K3s (default false)."
+}
+
 variable "disable_network_policy" {
   type        = bool
   default     = false
@@ -575,7 +581,7 @@ variable "cilium_values" {
 
 variable "cilium_version" {
   type        = string
-  default     = "1.14.4"
+  default     = "1.15.1"
   description = "Version of Cilium."
 }
 

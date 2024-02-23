@@ -170,6 +170,8 @@ The default is Flannel, but you can also choose Calico or Cilium, by setting the
 
 As Cilium has a lot of interesting and powerful config possibilities, we give you the ability to configure Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml)) before you deploy your cluster.
 
+Cilium supports full kube-proxy replacement. Cilium runs by default in hybrid kube-proxy replacement mode. To achieve a completely kube-proxy-free cluster, set `disable_kube_proxy = true`.
+
 ## Scaling Nodes
 
 Two things can be scaled: the number of nodepools or the number of nodes in these nodepools.
