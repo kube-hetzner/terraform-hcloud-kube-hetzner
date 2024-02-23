@@ -20,10 +20,21 @@ locals {
     ]...
   )
   agent_placement_groups = toset(
-    [
-      for ag_pool in var.agent_nodepools :
-      ag_pool.placement_group if ag_pool.placement_group != null
-    ]
+    concat(
+      [
+        for ag_pool in var.agent_nodepools :
+        ag_pool.placement_group if ag_pool.placement_group != null
+      ],
+      concat(
+        [
+          for ag_pool in var.agent_nodepools :
+          [
+            for node, node_config in coalesce(ag_pool.nodes, {}) :
+            node_config.placement_group if node_config.placement_group != null
+          ]
+        ]
+      )...
+    )
   )
 }
 

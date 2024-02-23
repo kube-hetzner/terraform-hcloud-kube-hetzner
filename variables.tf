@@ -209,7 +209,7 @@ variable "agent_nodepools" {
     selinux                    = optional(bool, true)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
-    count                      = number
+    count                      = optional(number, null)
     nodes = optional(map(object({
       server_type                = optional(string)
       location                   = optional(string)

@@ -892,6 +892,26 @@ You can also continue using the previous code-base like this:
     },
   ]
 ```
+
+Finally, if you want to have a node-pool with more than 10 nodes, you have to use the map-based
+node definition and assign individual nodes to groups:
+```
+  agent_nodepools = [
+    {
+      ...
+      nodes = {
+        "0" : {
+          placement_group = "pg-1",
+        },
+        ...
+        "30" : {
+          placement_group = "pg-2",
+        },
+      }
+    },
+  ]
+```
+
 </details>
 <details>
 <summary>Migratings from count-based nodepools to map-based</summary>
@@ -912,12 +932,14 @@ easily map between your nodes and your kube.tf file.
       nodes = {
         "0" : {
           append_index_to_node_name = false,
-          labels = ["my.extra.label=special"]
+          labels = ["my.extra.label=special"],
+          placement_group = "agent-large-pg-1",
         },
         "1" : {
           append_index_to_node_name = false,
           server_type = "cpx31",
           labels = ["my.extra.label=slightlybiggernode"]
+          placement_group = "agent-large-pg-2",
         },
       }
     },
