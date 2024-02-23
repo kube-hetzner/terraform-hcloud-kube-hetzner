@@ -911,10 +911,13 @@ easily map between your nodes and your kube.tf file.
       # count       = 2
       nodes = {
         "0" : {
-          append_index_to_node_name = false
+          append_index_to_node_name = false,
+          labels = ["my.extra.label=special"]
         },
         "1" : {
-          append_index_to_node_name = false
+          append_index_to_node_name = false,
+          server_type = "cpx31",
+          labels = ["my.extra.label=slightlybiggernode"]
         },
       }
     },
