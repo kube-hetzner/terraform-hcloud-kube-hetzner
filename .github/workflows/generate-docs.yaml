@@ -2,6 +2,7 @@ name: Generate terraform docs
 on:
   push:
     branches:
+      - master
       - staging
 
 jobs:
@@ -11,12 +12,23 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.event.pull_request.head.ref }}
+        fetch-depth: 0 # Necessary to fetch all history for create-pull-request to work correctly
 
     - name: Render terraform docs and push changes back to PR
       uses: terraform-docs/gh-actions@main
       with:
         working-dir: .
-        git-push: "true"
         output-file: docs/terraform.md
         output-method: inject
         config-file: ".terraform-docs.yml"
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: Update Terraform documentation
+        title: "[AUTO] Update Terraform Documentation"
+        body: "Automated changes by GitHub Actions"
+        branch: "docs/update-${{ github.head_ref }}"
+        labels: documentation
+        team_reviewers: Core # Specify the team Core for review

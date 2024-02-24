@@ -794,7 +794,7 @@ EOF
       type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t,
       init_t, unlabeled_t, systemd_logind_t, systemd_hostnamed_t, container_t,
       cert_t, container_var_lib_t, etc_t, usr_t, container_file_t, container_log_t,
-      container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t;
+      container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t, io_uring_t;
       class key { read view };
       class file { open read execute execute_no_trans create link lock rename write append setattr unlink getattr watch };
       class sock_file { watch write create unlink };
@@ -805,6 +805,8 @@ EOF
       class system module_request;
       class filesystem associate;
       class bpf map_create;
+      class io_uring sqpoll;
+      class anon_inode create;
     }
 
     #============= kernel_generic_helper_t ==============
@@ -858,6 +860,8 @@ EOF
     allow container_t var_log_t:file unlink;
     allow container_t proc_t:filesystem associate;
     allow container_t self:bpf map_create;
+    allow container_t io_uring_t:anon_inode create;
+    allow container_t self:io_uring sqpoll;
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
