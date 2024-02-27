@@ -141,18 +141,16 @@ spec:
       tolerations:
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
-        - effect: NoSchedule
-          key: node-role.kubernetes.io/master
 
       # Node affinity is used to force cluster-autoscaler to stick
-      # to the master node. This allows the cluster to reliably downscale
+      # to the control-plane node. This allows the cluster to reliably downscale
       # to zero worker nodes when needed.
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
               - matchExpressions:
-                  - key: node-role.kubernetes.io/master
+                  - key: node-role.kubernetes.io/control-plane
                     operator: Exists
       containers:
         - image: ${ca_image}:${ca_version}
