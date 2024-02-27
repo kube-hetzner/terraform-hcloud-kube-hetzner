@@ -654,7 +654,7 @@ module "kube-hetzner" {
   # You can choose the version of Calico that you want. By default, the latest is used.
   # More info on available versions can be found at https://github.com/projectcalico/calico/releases
   # Please note that if you are getting 403s from Github, it's also useful to set the version manually. However there is rarely a need for that!
-  # calico_version = "v3.25.0"
+  # calico_version = "v3.27.2"
 
   # If you want to disable the k3s kube-proxy, use this flag. The default is "false".
   # Ensure that your CNI is capable of handling all the functionalities typically covered by kube-proxy.
