@@ -182,6 +182,8 @@ _Once the cluster is up; you can change any nodepool count and even set it to 0 
 
 _However, you can freely add other nodepools at the end of each list. And for each nodepools, you can freely increase or decrease the node count (if you want to decrease a nodepool node count make sure you drain the nodes in question before, you can use `terraform show` to identify the node names at the end of the nodepool list, otherwise, if you do not drain the nodes before removing them, it could leave your cluster in a bad state). The only nodepool that needs to have always at least a count of 1 is the first control-plane nodepool._
 
+_An advanced usecase is to replace the count of a nodepool by a map with each key representing a single node. In this case, you can add and remove individual nodes from a pool by adding and removing their entries in this map, and it allows you to set individual labels and other parameters on each node in the pool. See kube.tf.example for an example._
+
 ## Autoscaling Node Pools
 
 We support autoscaling node pools powered by the Kubernetes [Cluster Autoscaler](https://github.com/kubernetes/autoscaler).
@@ -890,6 +892,61 @@ You can also continue using the previous code-base like this:
     },
   ]
 ```
+
+Finally, if you want to have a node-pool with more than 10 nodes, you have to use the map-based
+node definition and assign individual nodes to groups:
+```
+  agent_nodepools = [
+    {
+      ...
+      nodes = {
+        "0" : {
+          placement_group = "pg-1",
+        },
+        ...
+        "30" : {
+          placement_group = "pg-2",
+        },
+      }
+    },
+  ]
+```
+
+</details>
+<details>
+<summary>Migratings from count-based nodepools to map-based</summary>
+
+Migrating from `count` to map-based `nodes` is easy, but it is crucial
+that you set append_index_to_node_name to false, otherwise the nodes get
+replaced. The default for newly added nodes is true, so you can 
+easily map between your nodes and your kube.tf file.
+```
+  agent_nodepools = [
+    {
+      name        = "agent-large",
+      server_type = "cpx21",
+      location    = "nbg1",
+      labels      = [],
+      taints      = [],
+      # count       = 2
+      nodes = {
+        "0" : {
+          append_index_to_node_name = false,
+          labels = ["my.extra.label=special"],
+          placement_group = "agent-large-pg-1",
+        },
+        "1" : {
+          append_index_to_node_name = false,
+          server_type = "cpx31",
+          labels = ["my.extra.label=slightlybiggernode"]
+          placement_group = "agent-large-pg-2",
+        },
+      }
+    },
+  ]
+```
+
+
 </details>
 
 ## Debugging

@@ -139,9 +139,10 @@ locals {
     }
   ]...)
 
-  agent_nodes = merge([
+  agent_nodes_from_integer_counts = merge([
     for pool_index, nodepool_obj in var.agent_nodepools : {
-      for node_index in range(nodepool_obj.count) :
+      # coalesce(nodepool_obj.count, 0) means we select those nodepools who's size is set by an integer count.
+      for node_index in range(coalesce(nodepool_obj.count, 0)) :
       format("%s-%s-%s", pool_index, node_index, nodepool_obj.name) => {
         nodepool_name : nodepool_obj.name,
         server_type : nodepool_obj.server_type,
@@ -162,6 +163,46 @@ locals {
     }
   ]...)
 
+  agent_nodes_from_maps_for_counts = merge([
+    for pool_index, nodepool_obj in var.agent_nodepools : {
+      # coalesce(nodepool_obj.nodes, {}) means we select those nodepools who's size is set by an integer count.
+      for node_key, node_obj in coalesce(nodepool_obj.nodes, {}) :
+      format("%s-%s-%s", pool_index, node_key, nodepool_obj.name) => merge(
+        {
+          nodepool_name : nodepool_obj.name,
+          server_type : nodepool_obj.server_type,
+          longhorn_volume_size : coalesce(nodepool_obj.longhorn_volume_size, 0),
+          floating_ip : lookup(nodepool_obj, "floating_ip", false),
+          location : nodepool_obj.location,
+          labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
+          taints : concat(local.default_agent_taints, nodepool_obj.taints),
+          kubelet_args : nodepool_obj.kubelet_args,
+          backups : lookup(nodepool_obj, "backups", false),
+          swap_size : nodepool_obj.swap_size,
+          zram_size : nodepool_obj.zram_size,
+          selinux : nodepool_obj.selinux,
+          placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
+          placement_group : nodepool_obj.placement_group,
+          index : floor(tonumber(node_key)),
+        },
+        { for key, value in node_obj : key => value if value != null },
+        {
+          labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels, coalesce(node_obj.labels, [])),
+          taints : concat(local.default_agent_taints, nodepool_obj.taints, coalesce(node_obj.taints, [])),
+        },
+        (
+          node_obj.append_index_to_node_name ? { node_name_suffix : "-${floor(tonumber(node_key))}" } : {}
+        )
+      )
+    }
+  ]...)
+
+
+  agent_nodes = merge(
+    local.agent_nodes_from_integer_counts,
+    local.agent_nodes_from_maps_for_counts,
+  )
+
   use_existing_network = length(var.existing_network_id) > 0
 
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
@@ -170,7 +211,7 @@ locals {
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
-  agent_count            = sum([for v in var.agent_nodepools : v.count])
+  agent_count            = sum([for v in var.agent_nodepools : length(coalesce(v.nodes, {})) + coalesce(v.count, 0)])
   is_single_node_cluster = (local.control_plane_count + local.agent_count) == 1
 
   using_klipper_lb = var.enable_klipper_metal_lb || local.is_single_node_cluster
