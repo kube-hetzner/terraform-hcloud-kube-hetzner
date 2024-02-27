@@ -108,7 +108,7 @@ module "kube-hetzner" {
   # Also, before decreasing the count of any nodepools to 0, it's essential to drain and cordon the nodes in question. Otherwise, it will leave your cluster in a bad state.
 
   # Before initializing the cluster, you can change all parameters and add or remove any nodepools. You need at least one nodepool of each kind, control plane, and agent.
-  # The nodepool names are entirely arbitrary, you can choose whatever you want, but no special characters or underscore, and they must be unique; only alphanumeric characters and dashes are allowed.
+  # ⚠️ The nodepool names are entirely arbitrary, but all lowercase, no special characters or underscore (dashes are allowed), and they must be unique.
 
   # If you want to have a single node cluster, have one control plane nodepools with a count of 1, and one agent nodepool with a count of 0.
 
@@ -342,7 +342,7 @@ module "kube-hetzner" {
   #   - cluster_autoscaler_log_to_stderr: Determines whether to log to stderr (--logtostderr).
   #   - cluster_autoscaler_stderr_threshold: Sets the threshold for logs that go to stderr (--stderrthreshold).
   #
-  # Example (using the default values):
+  # Example:
   #
   # cluster_autoscaler_image = "registry.k8s.io/autoscaling/cluster-autoscaler"
   # cluster_autoscaler_version = "v1.27.3"
@@ -544,7 +544,7 @@ module "kube-hetzner" {
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to latest - 0.01,
   # ⚠️ Rancher currently only supports v1.25 and earlier versions: https://github.com/rancher/rancher/issues/41113
-  # The default is "v1.28".
+  # The default is "v1.29".
   # initial_k3s_channel = "stable"
 
   # The cluster name, by default "k3s"
