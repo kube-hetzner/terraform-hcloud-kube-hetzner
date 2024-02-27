@@ -420,6 +420,7 @@ bpf:
 %{if var.enable_wireguard}
 encryption:
   enabled: true
+  nodeEncryption: true
   type: wireguard
 %{endif~}
 %{if var.cilium_egress_gateway_enabled}
