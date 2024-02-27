@@ -31,4 +31,3 @@ jobs:
         body: "Automated changes by GitHub Actions"
         branch: "docs/update-${{ github.head_ref }}"
         labels: documentation
-        team_reviewers: Core # Specify the team Core for review
