@@ -232,7 +232,7 @@ variable "cluster_autoscaler_image" {
 
 variable "cluster_autoscaler_version" {
   type        = string
-  default     = "20231027"
+  default     = "20240226"
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
 
@@ -454,7 +454,7 @@ variable "enable_metrics_server" {
 
 variable "initial_k3s_channel" {
   type        = string
-  default     = "v1.28" # Please update kube.tf.example too when changing this variable
+  default     = "v1.29" # Please update kube.tf.example too when changing this variable
   description = "Allows you to specify an initial k3s channel."
 
   validation {
