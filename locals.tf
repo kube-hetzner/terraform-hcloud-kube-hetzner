@@ -535,7 +535,6 @@ ports:
 %{if var.traefik_redirect_to_https~}
     redirectTo:
       port: websecure
-      priority: 10
 %{endif~}
 %{if !local.using_klipper_lb~}
     proxyProtocol:
