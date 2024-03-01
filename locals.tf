@@ -793,7 +793,7 @@ EOF
       type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t,
       init_t, unlabeled_t, systemd_logind_t, systemd_hostnamed_t, container_t,
       cert_t, container_var_lib_t, etc_t, usr_t, container_file_t, container_log_t,
-      container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t, io_uring_t;
+      container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t, io_uring_t, fuse_device_t, http_port_t;
       class key { read view };
       class file { open read execute execute_no_trans create link lock rename write append setattr unlink getattr watch };
       class sock_file { watch write create unlink };
@@ -806,6 +806,8 @@ EOF
       class bpf map_create;
       class io_uring sqpoll;
       class anon_inode create;
+      class tcp_socket name_connect;
+      class chr_file { open read write };
     }
 
     #============= kernel_generic_helper_t ==============
@@ -822,6 +824,9 @@ EOF
     allow init_t unlabeled_t:dir { add_name remove_name rmdir };
     allow init_t unlabeled_t:lnk_file create;
     allow init_t container_t:file { open read };
+    allow init_t container_file_t:file { execute execute_no_trans };
+    allow init_t fuse_device_t:chr_file { open read write };
+    allow init_t http_port_t:tcp_socket name_connect;
 
     #============= systemd_logind_t ==============
     allow systemd_logind_t unlabeled_t:dir search;
@@ -861,6 +866,7 @@ EOF
     allow container_t self:bpf map_create;
     allow container_t io_uring_t:anon_inode create;
     allow container_t self:io_uring sqpoll;
+    allow container_t io_uring_t:anon_inode { create map read write };
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
