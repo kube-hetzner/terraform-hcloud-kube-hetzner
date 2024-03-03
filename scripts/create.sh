@@ -11,7 +11,7 @@ if command -v tofu >/dev/null 2>&1 ; then
 elif command -v terraform >/dev/null 2>&1 ; then
     terraform_command=terraform
 else
-    echo "terraform or tofu is not installed. Install it with 'brew install terraform' or 'brew install opentofu'."
+    echo "terraform or tofu is not installed. Install it with 'brew tap hashicorp/tap && brew install hashicorp/tap/terraform' or 'brew install opentofu'."
     exit 1
 fi
 
