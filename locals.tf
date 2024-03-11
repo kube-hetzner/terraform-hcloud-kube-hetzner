@@ -790,7 +790,7 @@ EOF
     module kube_hetzner_selinux 1.0;
 
     require {
-      type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t,
+      type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t, var_lib_t,
       init_t, unlabeled_t, systemd_logind_t, systemd_hostnamed_t, container_t,
       cert_t, container_var_lib_t, etc_t, usr_t, container_file_t, container_log_t,
       container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t, io_uring_t, fuse_device_t, http_port_t,
@@ -840,7 +840,7 @@ EOF
     allow container_t cert_t:dir read;
     allow container_t cert_t:lnk_file read;
     allow container_t cert_t:file { read open };
-    allow container_t container_var_lib_t:file { create open read write rename lock };
+    allow container_t container_var_lib_t:file { create open read write rename lock setattr getattr unlink };
     allow container_t etc_t:dir { add_name remove_name write create setattr watch };
     allow container_t etc_t:file { create setattr unlink write };
     allow container_t etc_t:sock_file { create unlink };
@@ -850,7 +850,7 @@ EOF
     # Additional rules for container_t
     allow container_t container_file_t:file { open read write append getattr setattr };
     allow container_t container_file_t:sock_file watch;
-    allow container_t container_log_t:file { open read write append getattr setattr };
+    allow container_t container_log_t:file { open read write append getattr setattr watch };
     allow container_t container_log_t:dir read;
     allow container_t container_share_t:dir { read write add_name remove_name };
     allow container_t container_share_t:file { read write create unlink };
@@ -860,10 +860,10 @@ EOF
     allow container_t container_log_t:dir { read watch };
     allow container_t container_log_t:file { open read watch };
     allow container_t container_log_t:lnk_file read;
-    allow container_t var_log_t:dir { add_name write };
-    allow container_t var_log_t:file { create lock open read setattr write };
-    allow container_t var_log_t:dir remove_name;
-    allow container_t var_log_t:file unlink;
+    allow container_t var_log_t:dir { add_name write watch read remove_name };
+    allow container_t var_log_t:file { create lock open read setattr write getattr unlink };
+    allow container_t var_lib_t:dir { add_name write read remove_name };
+    allow container_t var_lib_t:file { create lock open read setattr write getattr unlink };
     allow container_t proc_t:filesystem associate;
     allow container_t self:bpf map_create;
     allow container_t self:io_uring sqpoll;
