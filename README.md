@@ -525,9 +525,16 @@ When doing so, `automatically_upgrade_os` should be set to `false`, especially w
 
 <summary>Use in Terraform cloud</summary>
 
-To use Kube-Hetzner on Terraform cloud, use as a Terraform module as mentioned above, but also change the execution mode from `remote` to `local`.
+You can use Kube-Hetzner on Terraform cloud just as you would from a local deployment:
 
-Also make sure you have the OS snapshot already created in your project, for that, follow the installation script.
+1. Make sure you have the OS snapshot already created in your project (follow the installation script to achieve this).
+2. Use the content of your public and private key to configure `ssh_public_key` and `ssh_private_key`. Make sure the private key is *not* password protected. Since your private key is sensitive, it is recommended to add them as variables (make sure to mark the private key as a sensitive variable in Terraform Cloud!) and assign it in your `kube.tf`:
+   ```
+   ssh_public_key = var.ssh_public_key
+   ssh_private_key = var.ssh_private_key
+   ```
+
+   _Note_: If you want to use a password protected private key, you will have to point `ssh_private_key` to a file containing this key. You must host this file in an environment that you control and a `ssh-agent` to decipher it for you. Hence, on Terraform Cloud, change the `execution mode` to `local` and run your own Terraform agent in this environment.
 
 </details>
 
