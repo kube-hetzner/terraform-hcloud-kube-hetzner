@@ -55,7 +55,7 @@ resource "hcloud_server" "server" {
   provisioner "local-exec" {
     command = <<-EOT
       install -b -m 600 /dev/null /tmp/${random_string.identity_file.id}
-      echo "${local.ssh_client_identity}" > /tmp/${random_string.identity_file.id}
+      echo "${local.ssh_client_identity}" | sed 's/\r$//' > /tmp/${random_string.identity_file.id}
     EOT
   }
 
