@@ -866,7 +866,7 @@ EOF
     allow container_t self:bpf map_create;
     allow container_t io_uring_t:anon_inode create;
     allow container_t self:io_uring sqpoll;
-    allow container_t io_uring_t:anon_inode { create map read write };
+    allow container_t io_uring_t:anon_inode { create };
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
