@@ -308,6 +308,11 @@ variable "cluster_autoscaler_extra_args" {
   description = "Extra arguments for the Cluster Autoscaler deployment."
 }
 
+variable "cluster_autoscaler_server_creation_timeout" {
+  type        = string
+  description = "Timeout (in minutes) until which a newly created server/node has to come available before giving up and destroying it (defaults to 5min)"
+}
+
 variable "autoscaler_nodepools" {
   description = "Cluster autoscaler nodepools."
   type = list(object({

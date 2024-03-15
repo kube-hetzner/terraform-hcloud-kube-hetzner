@@ -365,6 +365,9 @@ module "kube-hetzner" {
   #   - cluster_autoscaler_log_to_stderr: Determines whether to log to stderr (--logtostderr).
   #   - cluster_autoscaler_stderr_threshold: Sets the threshold for logs that go to stderr (--stderrthreshold).
   #
+  # Server/node creation timeout variable:
+  #   - cluster_autoscaler_server_creation_timeout: Sets the timeout (in minutes) until which a newly created server/node has to come available before giving up and destroying it (defaults to 5min)
+  #
   # Example:
   #
   # cluster_autoscaler_image = "registry.k8s.io/autoscaling/cluster-autoscaler"
@@ -372,6 +375,7 @@ module "kube-hetzner" {
   # cluster_autoscaler_log_level = 4
   # cluster_autoscaler_log_to_stderr = true
   # cluster_autoscaler_stderr_threshold = "INFO"
+  # cluster_autoscaler_server_creation_timeout = "5"
 
   # Additional Cluster Autoscaler binary configuration
   #
