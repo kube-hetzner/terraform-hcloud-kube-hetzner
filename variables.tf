@@ -309,8 +309,9 @@ variable "cluster_autoscaler_extra_args" {
 }
 
 variable "cluster_autoscaler_server_creation_timeout" {
-  type        = string
-  description = "Timeout (in minutes) until which a newly created server/node has to come available before giving up and destroying it (defaults to 5min)"
+  type        = number
+  default     = 15
+  description = "Timeout (in minutes) until which a newly created server/node has to become available before giving up and destroying it."
 }
 
 variable "autoscaler_nodepools" {
@@ -323,7 +324,7 @@ variable "autoscaler_nodepools" {
     max_nodes    = number
     labels       = optional(map(string), {})
     kubelet_args = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-    taints       = optional(list(object({
+    taints = optional(list(object({
       key    = string
       value  = string
       effect = string
