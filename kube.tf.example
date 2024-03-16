@@ -336,6 +336,7 @@ module "kube-hetzner" {
   #        value: "peak-workloads"
   #        effect: "NoExecute"
   #     }]
+  #     # kubelet_args = ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"]
   #   }
   # ]
 
@@ -620,6 +621,7 @@ module "kube-hetzner" {
   # k3s_global_kubelet_args = ["kube-reserved=cpu=100m,ephemeral-storage=1Gi", "system-reserved=cpu=memory=200Mi", "image-gc-high-threshold=50", "image-gc-low-threshold=40"]
   # k3s_control_plane_kubelet_args = []
   # k3s_agent_kubelet_args = []
+  # k3s_autoscaler_kubelet_args = []
 
   # If you want to allow all outbound traffic you can set this to "false". Default is "true".
   # restrict_outbound_traffic = false
