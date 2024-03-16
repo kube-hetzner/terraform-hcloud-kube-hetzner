@@ -34,6 +34,7 @@ locals {
       cluster_autoscaler_log_level        = var.cluster_autoscaler_log_level
       cluster_autoscaler_log_to_stderr    = var.cluster_autoscaler_log_to_stderr
       cluster_autoscaler_stderr_threshold = var.cluster_autoscaler_stderr_threshold
+      cluster_autoscaler_server_creation_timeout = var.cluster_autoscaler_server_creation_timeout
       ssh_key                             = local.hcloud_ssh_key_id
       ipv4_subnet_id                      = data.hcloud_network.k3s.id
       snapshot_id                         = local.first_nodepool_snapshot_id

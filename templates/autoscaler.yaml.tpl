@@ -194,6 +194,10 @@ spec:
             value: '${ipv4_subnet_id}'
           - name: HCLOUD_FIREWALL
             value: '${firewall_id}'
+          %{~ if cluster_autoscaler_server_creation_timeout != "" ~}
+          - name: HCLOUD_SERVER_CREATION_TIMEOUT
+            value: '${cluster_autoscaler_server_creation_timeout}'
+          %{~ endif ~}
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs

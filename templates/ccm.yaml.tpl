@@ -27,3 +27,6 @@ spec:
               value: "true"
             - name: "HCLOUD_LOAD_BALANCERS_ENABLED"
               value: "${!using_klipper_lb}"
+            - name: "HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS"
+              value: "true"
+
