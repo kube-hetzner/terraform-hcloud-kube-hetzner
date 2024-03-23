@@ -860,10 +860,14 @@ EOF
     allow container_t container_log_t:dir { read watch };
     allow container_t container_log_t:file { open read watch };
     allow container_t container_log_t:lnk_file read;
-    allow container_t var_log_t:dir { add_name write watch read remove_name };
-    allow container_t var_log_t:file { create lock open read setattr write getattr unlink };
-    allow container_t var_lib_t:dir { add_name write read remove_name };
-    allow container_t var_lib_t:file { create lock open read setattr write getattr unlink };
+    allow container_t var_log_t:dir { add_name write };
+    allow container_t var_log_t:file { create lock open read setattr write };
+    allow container_t var_log_t:dir remove_name;
+    allow container_t var_log_t:file unlink;
+    allow container_t var_log_t:dir { watch read remove_name };
+    allow container_t var_log_t:file getattr;
+    allow container_t var_lib_t:dir { add_name write read };
+    allow container_t var_lib_t:file { create lock open read setattr write getattr };
     allow container_t proc_t:filesystem associate;
     allow container_t self:bpf map_create;
     allow container_t self:io_uring sqpoll;
