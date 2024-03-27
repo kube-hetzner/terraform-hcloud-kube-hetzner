@@ -407,6 +407,8 @@ Deploy the K8S cluster infrastructure.
 
 See the Cilium documentation for further steps (policy writing and testing): [Writing egress gateway policies](https://docs.cilium.io/en/stable/network/egress-gateway/)
 
+There are 3 different ways to define egress policies related to the gateway node. You can specify the interface, the egress IP (Floating IP) or nothing, which pics the first IPv4 address of the the interface of the default route.
+
 CiliumEgressGatewayPolicy example:
 
 ```yaml
