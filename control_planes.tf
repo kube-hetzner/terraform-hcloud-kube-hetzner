@@ -50,6 +50,7 @@ resource "hcloud_load_balancer" "control_plane" {
   load_balancer_type = var.control_plane_lb_type
   location           = var.load_balancer_location
   labels             = merge(local.labels, local.labels_control_plane_lb)
+  delete_protection  = var.enable_delete_protection.load_balancer
 }
 
 resource "hcloud_load_balancer_network" "control_plane" {

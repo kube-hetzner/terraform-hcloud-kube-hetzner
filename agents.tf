@@ -135,11 +135,12 @@ resource "hcloud_volume" "longhorn_volume" {
     cluster     = var.cluster_name
     scope       = "longhorn"
   }
-  name      = "${var.cluster_name}-longhorn-${module.agents[each.key].name}"
-  size      = local.agent_nodes[each.key].longhorn_volume_size
-  server_id = module.agents[each.key].id
-  automount = true
-  format    = var.longhorn_fstype
+  name              = "${var.cluster_name}-longhorn-${module.agents[each.key].name}"
+  size              = local.agent_nodes[each.key].longhorn_volume_size
+  server_id         = module.agents[each.key].id
+  automount         = true
+  format            = var.longhorn_fstype
+  delete_protection = var.enable_delete_protection.volume
 }
 
 resource "null_resource" "configure_longhorn_volume" {
@@ -175,9 +176,10 @@ resource "null_resource" "configure_longhorn_volume" {
 resource "hcloud_floating_ip" "agents" {
   for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
-  type          = "ipv4"
-  labels        = local.labels
-  home_location = each.value.location
+  type              = "ipv4"
+  labels            = local.labels
+  home_location     = each.value.location
+  delete_protection = var.enable_delete_protection.floating_ip
 }
 
 resource "hcloud_floating_ip_assignment" "agents" {

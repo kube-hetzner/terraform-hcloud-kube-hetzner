@@ -959,6 +959,29 @@ easily map between your nodes and your kube.tf file.
 
 
 </details>
+<details>
+<summary>Use of delete protection</summary>
+
+Use of delete protection feature in Hetzner Cloud on resources can be used to protect resources from deletion by putting a "lock" on them.
+
+Please note, that this does not protect deletion from Terraform itself, as the Provider will lift the lock in that case. The resources will only be protected from deletion via the Hetzner Cloud Console or API.
+
+There are following resources that support delete protection, which is set to `false` by default:
+
+- Floating IPs
+- Load Balancers
+- Volumes (used by Longhorn)
+
+Example scenario where you want to ensure you keep a floating IP that is whitelisted in some firewall so you don't lose access to certain resources or have to wait for the new IP being whitelisted.
+This is how you can enable delete protection for floating IPs with _terraform.tfvars_:
+
+```tf
+enable_delete_protection = {
+  floating_ip = true
+}
+```
+
+</details>
 
 ## Debugging
 

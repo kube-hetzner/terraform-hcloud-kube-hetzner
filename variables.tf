@@ -977,3 +977,17 @@ variable "disable_selinux" {
   default     = false
   description = "Disable SELinux on all nodes."
 }
+
+variable "enable_delete_protection" {
+  type = object({
+    floating_ip   = optional(bool, false)
+    load_balancer = optional(bool, false)
+    volume        = optional(bool, false)
+  })
+  default = {
+    floating_ip   = false
+    load_balancer = false
+    volume        = false
+  }
+  description = "Enable or disable delete protection for resources in Hetzner Cloud."
+}

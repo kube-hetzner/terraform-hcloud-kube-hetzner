@@ -5,6 +5,7 @@ resource "hcloud_load_balancer" "cluster" {
   load_balancer_type = var.load_balancer_type
   location           = var.load_balancer_location
   labels             = local.labels
+  delete_protection  = var.enable_delete_protection.load_balancer
 
   algorithm {
     type = var.load_balancer_algorithm_type
