@@ -226,7 +226,7 @@ All options from the [docs](https://kured.dev/docs/configuration/) are available
 
 _If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup that requires at least 3 control-plane nodes), you need to set:_
 
-```terraform
+```tf
 automatically_upgrade_os = false
 ```
 
@@ -238,7 +238,7 @@ systemctl --now disable transactional-update.timer
 
 If you wish to turn off automatic k3s upgrades, you need to set:
 
-```terraform
+```tf
 automatically_upgrade_k3s = false
 ```
 
@@ -306,7 +306,7 @@ After the initial bootstrapping of your Kubernetes cluster, you might want to de
 
 However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://argoproj.github.io/cd/)) need a different deployment strategy: one has to deploy CRDs first, then wait for the deployment, before being able to install the actual application. In the ArgoCD case, not waiting for the CRD setup to finish will cause failures. Therefore, an additional mechanism is available to support these kind of deployments. Specify `extra_kustomize_deployment_commands` in your `kube.tf` file containing a series of commands to be executed, after the `Kustomization` step finished:
 
-```
+```tf
   extra_kustomize_deployment_commands = <<-EOT
     kubectl -n argocd wait --for condition=established --timeout=120s crd/appprojects.argoproj.io
     kubectl -n argocd wait --for condition=established --timeout=120s crd/applications.argoproj.io
@@ -406,6 +406,8 @@ EOT
 Deploy the K8S cluster infrastructure.
 
 See the Cilium documentation for further steps (policy writing and testing): [Writing egress gateway policies](https://docs.cilium.io/en/stable/network/egress-gateway/)
+
+There are 3 different ways to define egress policies related to the gateway node. You can specify the interface, the egress IP (Floating IP) or nothing, which pics the first IPv4 address of the the interface of the default route.
 
 CiliumEgressGatewayPolicy example:
 
@@ -528,8 +530,9 @@ When doing so, `automatically_upgrade_os` should be set to `false`, especially w
 You can use Kube-Hetzner on Terraform cloud just as you would from a local deployment:
 
 1. Make sure you have the OS snapshot already created in your project (follow the installation script to achieve this).
-2. Use the content of your public and private key to configure `ssh_public_key` and `ssh_private_key`. Make sure the private key is *not* password protected. Since your private key is sensitive, it is recommended to add them as variables (make sure to mark the private key as a sensitive variable in Terraform Cloud!) and assign it in your `kube.tf`:
-   ```
+2. Use the content of your public and private key to configure `ssh_public_key` and `ssh_private_key`. Make sure the private key is _not_ password protected. Since your private key is sensitive, it is recommended to add them as variables (make sure to mark the private key as a sensitive variable in Terraform Cloud!) and assign it in your `kube.tf`:
+
+   ```tf
    ssh_public_key = var.ssh_public_key
    ssh_private_key = var.ssh_private_key
    ```
@@ -651,7 +654,7 @@ For more details, see [Longhorn's documentation](https://longhorn.io/docs/1.4.0/
 
 To enable the [PodNodeSelector and optionally the PodTolerationRestriction](https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#podnodeselector) api modules, set the following value:
 
-```terraform
+```tf
 k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
 ```
 
@@ -832,7 +835,7 @@ and you use subnet 10.128.0.0/9 for your non-k3s business, then adapting
 
 For example
 
-```
+```tf
 resource "hcloud_network" "k3s_proxied" {
   name     = "k3s-proxied"
   ip_range = "10.0.0.0/8"
@@ -880,12 +883,14 @@ Up until release v2.11.8, there was an implementation error in the placement gro
 If you have fewer than 10 agents and 10 control-plane nodes, you can continue using the code as is.
 
 If you have a single pool with a count >= 10, you could only work with global setting in kube.tf:
-```
+
+```tf
 placement_group_disable = true
 ```
 
 Now you can assign each nodepool to its own placement group, preferrably using named groups:
-```
+
+```tf
   agent_nodepools = [
     {
       ...
@@ -895,7 +900,8 @@ Now you can assign each nodepool to its own placement group, preferrably using n
 ```
 
 You can also continue using the previous code-base like this:
-```
+
+```tf
   agent_nodepools = [
     {
       ...
@@ -904,9 +910,9 @@ You can also continue using the previous code-base like this:
   ]
 ```
 
-Finally, if you want to have a node-pool with more than 10 nodes, you have to use the map-based
-node definition and assign individual nodes to groups:
-```
+Finally, if you want to have a node-pool with more than 10 nodes, you have to use the map-based node definition and assign individual nodes to groups:
+
+```tf
   agent_nodepools = [
     {
       ...
@@ -929,9 +935,10 @@ node definition and assign individual nodes to groups:
 
 Migrating from `count` to map-based `nodes` is easy, but it is crucial
 that you set append_index_to_node_name to false, otherwise the nodes get
-replaced. The default for newly added nodes is true, so you can 
+replaced. The default for newly added nodes is true, so you can
 easily map between your nodes and your kube.tf file.
-```
+
+```tf
   agent_nodepools = [
     {
       name        = "agent-large",
@@ -956,7 +963,6 @@ easily map between your nodes and your kube.tf file.
     },
   ]
 ```
-
 
 </details>
 <details>
