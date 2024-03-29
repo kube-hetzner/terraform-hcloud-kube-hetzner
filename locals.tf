@@ -72,12 +72,11 @@ locals {
   kustomization_backup_yaml = yamlencode({
     apiVersion = "kustomize.config.k8s.io/v1beta1"
     kind       = "Kustomization"
-
     resources = concat(
       [
         "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
-        "https://raw.githubusercontent.com/rancher/system-upgrade-controller/9e7e45c1bdd528093da36be1f1f32472469005e6/manifests/system-upgrade-controller.yaml",
+        "https://raw.githubusercontent.com/rancher/system-upgrade-controller/master/manifests/system-upgrade-controller.yaml",
       ],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
@@ -98,6 +97,20 @@ locals {
           namespace = "system-upgrade"
         }
         patch = file("${path.module}/kustomize/system-upgrade-controller.yaml")
+      },
+      {
+        target = {
+          group     = "apps"
+          version   = "v1"
+          kind      = "Deployment"
+          name      = "system-upgrade-controller"
+          namespace = "system-upgrade"
+        }
+        patch = <<-EOF
+          - op: replace
+            path: /spec/template/spec/containers/0/image
+            value: rancher/system-upgrade-controller:v0.13.4
+        EOF
       },
       {
         path = "kured.yaml"
@@ -787,82 +800,82 @@ EOF
 # Create the kube_hetzner_selinux.te file, that allows in SELinux to not interfere with various needed services
 - path: /root/kube_hetzner_selinux.te
   content: |
-module kube_hetzner_selinux 1.0;
+    module kube_hetzner_selinux 1.0;
 
-require {
-    type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t, var_lib_t,
-         init_t, unlabeled_t, systemd_logind_t, systemd_hostnamed_t, container_t,
-         cert_t, container_var_lib_t, etc_t, usr_t, container_file_t, container_log_t,
-         container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t, io_uring_t, fuse_device_t, http_port_t,
-         container_var_run_t;
-    class key { read view };
-    class file { open read execute execute_no_trans create link lock rename write append setattr unlink getattr watch };
-    class sock_file { watch write create unlink };
-    class unix_dgram_socket create;
-    class unix_stream_socket { connectto read write };
-    class dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write watch };
-    class lnk_file { read create };
-    class system module_request;
-    class filesystem associate;
-    class bpf map_create;
-    class io_uring sqpoll;
-    class anon_inode { create map read write };
-    class tcp_socket name_connect;
-    class chr_file { open read write };
-}
+    require {
+        type kernel_t, bin_t, kernel_generic_helper_t, iscsid_t, iscsid_exec_t, var_run_t, var_lib_t,
+            init_t, unlabeled_t, systemd_logind_t, systemd_hostnamed_t, container_t,
+            cert_t, container_var_lib_t, etc_t, usr_t, container_file_t, container_log_t,
+            container_share_t, container_runtime_exec_t, container_runtime_t, var_log_t, proc_t, io_uring_t, fuse_device_t, http_port_t,
+            container_var_run_t;
+        class key { read view };
+        class file { open read execute execute_no_trans create link lock rename write append setattr unlink getattr watch };
+        class sock_file { watch write create unlink };
+        class unix_dgram_socket create;
+        class unix_stream_socket { connectto read write };
+        class dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write watch };
+        class lnk_file { read create };
+        class system module_request;
+        class filesystem associate;
+        class bpf map_create;
+        class io_uring sqpoll;
+        class anon_inode { create map read write };
+        class tcp_socket name_connect;
+        class chr_file { open read write };
+    }
 
-#============= kernel_generic_helper_t ==============
-allow kernel_generic_helper_t bin_t:file execute_no_trans;
-allow kernel_generic_helper_t kernel_t:key { read view };
-allow kernel_generic_helper_t self:unix_dgram_socket create;
+    #============= kernel_generic_helper_t ==============
+    allow kernel_generic_helper_t bin_t:file execute_no_trans;
+    allow kernel_generic_helper_t kernel_t:key { read view };
+    allow kernel_generic_helper_t self:unix_dgram_socket create;
 
-#============= iscsid_t ==============
-allow iscsid_t iscsid_exec_t:file execute;
-allow iscsid_t var_run_t:sock_file write;
-allow iscsid_t var_run_t:unix_stream_socket connectto;
+    #============= iscsid_t ==============
+    allow iscsid_t iscsid_exec_t:file execute;
+    allow iscsid_t var_run_t:sock_file write;
+    allow iscsid_t var_run_t:unix_stream_socket connectto;
 
-#============= init_t ==============
-allow init_t unlabeled_t:dir { add_name remove_name rmdir search };
-allow init_t unlabeled_t:lnk_file create;
-allow init_t container_t:file { open read };
-allow init_t container_file_t:file { execute execute_no_trans };
-allow init_t fuse_device_t:chr_file { open read write };
-allow init_t http_port_t:tcp_socket name_connect;
+    #============= init_t ==============
+    allow init_t unlabeled_t:dir { add_name remove_name rmdir search };
+    allow init_t unlabeled_t:lnk_file create;
+    allow init_t container_t:file { open read };
+    allow init_t container_file_t:file { execute execute_no_trans };
+    allow init_t fuse_device_t:chr_file { open read write };
+    allow init_t http_port_t:tcp_socket name_connect;
 
-#============= systemd_logind_t ==============
-allow systemd_logind_t unlabeled_t:dir search;
+    #============= systemd_logind_t ==============
+    allow systemd_logind_t unlabeled_t:dir search;
 
-#============= systemd_hostnamed_t ==============
-allow systemd_hostnamed_t unlabeled_t:dir search;
+    #============= systemd_hostnamed_t ==============
+    allow systemd_hostnamed_t unlabeled_t:dir search;
 
-#============= container_t ==============
-allow container_t { cert_t container_log_t }:dir read;
-allow container_t { cert_t container_log_t }:lnk_file read;
-allow container_t cert_t:file { read open };
-allow container_t container_var_lib_t:file { create open read write rename lock setattr getattr unlink };
-allow container_t etc_t:dir { add_name remove_name write create setattr watch };
-allow container_t etc_t:file { create setattr unlink write };
-allow container_t etc_t:sock_file { create unlink };
-allow container_t usr_t:dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write };
-allow container_t usr_t:file { append create execute getattr link lock read rename setattr unlink write };
-allow container_t container_file_t:file { open read write append getattr setattr };
-allow container_t container_file_t:sock_file watch;
-allow container_t container_log_t:file { open read write append getattr setattr watch };
-allow container_t container_share_t:dir { read write add_name remove_name };
-allow container_t container_share_t:file { read write create unlink };
-allow container_t container_runtime_exec_t:file { read execute execute_no_trans open };
-allow container_t container_runtime_t:unix_stream_socket { connectto read write };
-allow container_t kernel_t:system module_request;
-allow container_t var_log_t:dir { add_name write remove_name watch read };
-allow container_t var_log_t:file { create lock open read setattr write unlink getattr };
-allow container_t var_lib_t:dir { add_name write read };
-allow container_t var_lib_t:file { create lock open read setattr write getattr };
-allow container_t proc_t:filesystem associate;
-allow container_t self:bpf map_create;
-allow container_t self:io_uring sqpoll;
-allow container_t io_uring_t:anon_inode { create map read write };
-allow container_t container_var_run_t:dir { add_name remove_name write };
-allow container_t container_var_run_t:file { create open read rename unlink write };
+    #============= container_t ==============
+    allow container_t { cert_t container_log_t }:dir read;
+    allow container_t { cert_t container_log_t }:lnk_file read;
+    allow container_t cert_t:file { read open };
+    allow container_t container_var_lib_t:file { create open read write rename lock setattr getattr unlink };
+    allow container_t etc_t:dir { add_name remove_name write create setattr watch };
+    allow container_t etc_t:file { create setattr unlink write };
+    allow container_t etc_t:sock_file { create unlink };
+    allow container_t usr_t:dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write };
+    allow container_t usr_t:file { append create execute getattr link lock read rename setattr unlink write };
+    allow container_t container_file_t:file { open read write append getattr setattr };
+    allow container_t container_file_t:sock_file watch;
+    allow container_t container_log_t:file { open read write append getattr setattr watch };
+    allow container_t container_share_t:dir { read write add_name remove_name };
+    allow container_t container_share_t:file { read write create unlink };
+    allow container_t container_runtime_exec_t:file { read execute execute_no_trans open };
+    allow container_t container_runtime_t:unix_stream_socket { connectto read write };
+    allow container_t kernel_t:system module_request;
+    allow container_t var_log_t:dir { add_name write remove_name watch read };
+    allow container_t var_log_t:file { create lock open read setattr write unlink getattr };
+    allow container_t var_lib_t:dir { add_name write read };
+    allow container_t var_lib_t:file { create lock open read setattr write getattr };
+    allow container_t proc_t:filesystem associate;
+    allow container_t self:bpf map_create;
+    allow container_t self:io_uring sqpoll;
+    allow container_t io_uring_t:anon_inode { create map read write };
+    allow container_t container_var_run_t:dir { add_name remove_name write };
+    allow container_t container_var_run_t:file { create open read rename unlink write };
 
 # Create the k3s registries file if needed
 %{if var.k3s_registries != ""}
