@@ -631,7 +631,7 @@ module "kube-hetzner" {
   # For maximum security, it's best to disable it completely by setting it to null. However, in that case, to get access to the kube api,
   # you would have to connect to any control plane node via SSH, as you can run kubectl from within these.
   # Please be advised that this setting has no effect on the load balancer when the use_control_plane_lb variable is set to true. This is
-  # because firewall rules cannot be applied to load balancers yet. 
+  # because firewall rules cannot be applied to load balancers yet.
   # firewall_kube_api_source = null
 
   # Allow SSH access from the specified networks. Default: ["0.0.0.0/0", "::/0"]
@@ -680,6 +680,9 @@ module "kube-hetzner" {
   # Enables egress gateway to redirect and SNAT the traffic that leaves the cluster. Default: false
   # cilium_egress_gateway_enabled = true
 
+  # Enables Hubble Observability to collect and visualize network traffic. Default: false
+  # cilium_hubble_enabled = true
+
   # You can choose the version of Calico that you want. By default, the latest is used.
   # More info on available versions can be found at https://github.com/projectcalico/calico/releases
   # Please note that if you are getting 403s from Github, it's also useful to set the version manually. However there is rarely a need for that!
@@ -690,7 +693,7 @@ module "kube-hetzner" {
   # disable_kube_proxy = true
 
   # If you want to disable the k3s default network policy controller, use this flag!
-  # Both Calico and Ciliun cni_plugin values override this value to true automatically, the default is "false".
+  # Both Calico and Cilium cni_plugin values override this value to true automatically, the default is "false".
   # disable_network_policy = true
 
   # If you want to disable the automatic use of placement group "spread". See https://docs.hetzner.com/cloud/placement-groups/overview/
