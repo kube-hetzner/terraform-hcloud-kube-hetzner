@@ -481,6 +481,14 @@ egressGateway:
   enabled: true
 %{endif~}
 
+%{if var.cilium_hubble_enabled}
+hubble:
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+%{endif~}
+
 MTU: 1450
   EOT
 

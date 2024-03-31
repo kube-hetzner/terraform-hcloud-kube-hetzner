@@ -601,6 +601,12 @@ variable "cilium_egress_gateway_enabled" {
   description = "Enables egress gateway to redirect and SNAT the traffic that leaves the cluster."
 }
 
+variable "cilium_hubble_enabled" {
+  type        = bool
+  default     = false
+  description = "Enables Hubble Observability to collect and visualize network traffic."
+}
+
 variable "cilium_ipv4_native_routing_cidr" {
   type        = string
   default     = null

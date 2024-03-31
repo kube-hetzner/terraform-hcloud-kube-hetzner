@@ -172,9 +172,14 @@ _You can also use it in an automated flow, in which case `create_kubeconfig` sho
 
 The default is Flannel, but you can also choose Calico or Cilium, by setting the `cni_plugin` variable in `kube.tf` to "calico" or "cilium".
 
+### Cilium
+
 As Cilium has a lot of interesting and powerful config possibilities, we give you the ability to configure Cilium with the helm `cilium_values` variable (see the cilium specific [helm values](https://github.com/cilium/cilium/blob/master/install/kubernetes/cilium/values.yaml)) before you deploy your cluster.
 
 Cilium supports full kube-proxy replacement. Cilium runs by default in hybrid kube-proxy replacement mode. To achieve a completely kube-proxy-free cluster, set `disable_kube_proxy = true`.
+
+It is also possible to enable Hubble using `cilium_hubble_enabled = true`. In order to access the Hubble UI, you need to port-forward the Hubble UI service to your local machine. By default, you can do this by running `kubectl port-forward -n kube-system service/hubble-ui 12000:80` and then opening `http://localhost:12000` in your browser. 
+However, it is recommended to use the [Cilium CLI](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli) and [Hubble Client](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli) and running the `cilium hubble ui` command.
 
 ## Scaling Nodes
 
