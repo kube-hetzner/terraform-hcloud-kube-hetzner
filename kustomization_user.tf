@@ -13,6 +13,12 @@ resource "null_resource" "kustomization_user" {
     port           = var.ssh_port
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir -p $(dirname /var/user_kustomize/${each.key})"
+    ]
+  }
+
   provisioner "file" {
     content     = templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters)
     destination = replace("/var/user_kustomize/${each.key}", ".yaml.tpl", ".yaml")
@@ -42,7 +48,7 @@ resource "null_resource" "kustomization_user_deploy" {
   provisioner "remote-exec" {
     # Debugging: "sh -c 'for file in $(find /var/user_kustomize -type f -name \"*.yaml\" | sort -n); do echo \"\n### Template $${file}.tpl after rendering:\" && cat $${file}; done'",
     inline = compact([
-      "rm -f /var/user_kustomize/*.yaml.tpl",
+      "rm -f /var/user_kustomize/**/*.yaml.tpl",
       "echo 'Applying user kustomization...'",
       "kubectl apply -k /var/user_kustomize/ --wait=true",
       var.extra_kustomize_deployment_commands
