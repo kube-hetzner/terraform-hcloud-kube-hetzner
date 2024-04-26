@@ -12,6 +12,11 @@ module "kube-hetzner" {
     hcloud = hcloud
   }
   hcloud_token = var.hcloud_token != "" ? var.hcloud_token : local.hcloud_token
+  # This is only for Hetzner delegated DNS Zones and it is a requirement for those who want to obtain a LetsEncrypt TLS wildcard certificate 
+  # using the Hetzner webhook to solve a DNS Challenge. See through https://docs.hetzner.com/dns-console/dns for more info on how to delegate 
+  # your DNS Zone and check templates/cluster_issuers.yaml.tpl for webhook installation. Once you've delegated your DNS Zone, go to your Hetzner 
+  # Control Panel, select DNS, go to API Tokens on the User Menu and create a token to use here.
+  # hetzner_dns_api_key = var.hetzner_dns_api_key != "" ? var.hetzner_dns_api_key : local.hetzner_dns_api_key
 
   # Then fill or edit the below values. Only the first values starting with a * are obligatory; the rest can remain with their default values, or you
   # could adapt them to your needs.
@@ -713,6 +718,14 @@ module "kube-hetzner" {
 
   # You can enable cert-manager (installed by Helm behind the scenes) with the following flag, the default is "true".
   # enable_cert_manager = false
+
+  # You can enable LetsEncrypt ClusterIssuers (installed by Helm behind the scenes) to obtain FQDN domains or wildcard domains (requires Hetzner DNS API Token for wildcards read carefully above) with the following flag, the default is "false".
+  # enable_cluster_issuers = true
+  # LetsEncrypt email for cert-manager certs renewal updates
+  # cert_manager_email = "mail@example.com"
+  # Reflector copies Secrets or ConfigMaps so they are available for all Namespaces. Default is "false".
+  # enable_reflector = true
+  # reflector_values = ""
 
   # IP Addresses to use for the DNS Servers, the defaults are the ones provided by Hetzner https://docs.hetzner.com/dns-console/dns/general/recursive-name-servers/.
   # The number of different DNS servers is limited to 3 by Kubernetes itself.

@@ -89,7 +89,8 @@ locals {
       var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
       var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
       var.enable_rancher ? ["rancher.yaml"] : [],
-      var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
+      var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : [],
+      var.enable_reflector ? ["reflector.yaml"] : [],
     ),
     patches = [
       {

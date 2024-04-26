@@ -19,7 +19,6 @@ resource "hcloud_load_balancer" "cluster" {
   }
 }
 
-
 resource "null_resource" "first_control_plane" {
   connection {
     user           = "root"
@@ -255,6 +254,43 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/cert_manager.yaml"
   }
 
+  # Upload the ClusterIssuers config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/cluster_issuers.yaml.tpl",
+      {
+        cluster_name        = var.cluster_name
+        common_name         = regex("[^.]+\\.[^.]+$", var.base_domain)
+        cert_manager_email  = var.cert_manager_email
+        ingress_controller  = var.ingress_controller
+        hetzner_dns_api_key = base64encode(var.hetzner_dns_api_key)
+        target_namespace    = local.ingress_controller_namespace
+    })
+    destination = "/var/post_install/cluster_issuers.yaml"
+  }
+
+  # Upload the Reflector config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/reflector.yaml.tpl",
+      {
+        values = indent(4, trimspace(var.reflector_values))
+    })
+    destination = "/var/post_install/reflector.yaml"
+  }
+
+  # Upload the wildcard cert secret
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/wildcard_cert.yaml.tpl",
+      {
+        common_name         = regex("[^.]+\\.[^.]+$", var.base_domain)
+        reflector_enabled   = var.enable_reflector
+        hetzner_dns_api_key = var.hetzner_dns_api_key
+    })
+    destination = "/var/post_install/wildcard_cert.yaml"
+  }
+
   # Upload the Rancher config
   provisioner "file" {
     content = templatefile(
@@ -311,9 +347,7 @@ resource "null_resource" "kustomization" {
         done
       EOF
       EOT
-      ]
-      ,
-
+      ],
       [
         # Ready, set, go for the kustomization
         "kubectl apply -k /var/post_install",
@@ -322,6 +356,15 @@ resource "null_resource" "kustomization" {
         "sleep 7", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
         "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
+      var.enable_cluster_issuers && var.enable_cert_manager ? [
+        "echo 'Waiting for the cert-manager to become available...'",
+        "curl -fsSL -o cmctl.tar.gz https://github.com/cert-manager/cert-manager/releases/download/v1.9.2/cmctl-linux-arm.tar.gz && tar xzf cmctl.tar.gz && mv cmctl /usr/local/bin", # install cmctl util to check for cert-manager api readiness
+        "cmctl check api --wait=2m --kubeconfig /etc/rancher/k3s/k3s.yaml 2> /dev/null",
+        "kubectl -n cert-manager apply -f /var/post_install/cluster_issuers.yaml",
+        "echo 'Waiting for the cert-manager webhooks to become available...'",
+        "cmctl check api --wait=2m --kubeconfig /etc/rancher/k3s/k3s.yaml 2> /dev/null",
+        "kubectl -n cert-manager apply -f /var/post_install/wildcard_cert.yaml",
+      ] : [],
       local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 360 bash <<EOF

@@ -3,6 +3,12 @@ variable "hcloud_token" {
   type        = string
   sensitive   = true
 }
+variable "hetzner_dns_api_key" {
+  description = "Hetzner DNS Zone API Key."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
 
 variable "k3s_token" {
   description = "k3s master token (must match when restoring a cluster)."
@@ -720,10 +726,34 @@ variable "enable_cert_manager" {
   description = "Enable cert manager."
 }
 
+variable "cert_manager_email" {
+  type        = string
+  default     = "mail@example.com"
+  description = "Cert Manager Letsencrypt email"
+}
+
 variable "cert_manager_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart."
+}
+
+variable "enable_cluster_issuers" {
+  type        = bool
+  default     = false
+  description = "Enable LetsEncrypt ClusterIssuers."
+}
+
+variable "enable_reflector" {
+  type        = bool
+  default     = false
+  description = "Enable Reflector."
+}
+
+variable "reflector_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to Reflector as 'valuesContent' at the HelmChart."
 }
 
 variable "enable_rancher" {
