@@ -60,7 +60,7 @@ resource "null_resource" "configure_autoscaler" {
   }
   connection {
     user           = "root"
-    private_key    = var.ssh_private_key
+    private_key    = var.ssh_private_key != null ? var.ssh_private_key : local.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh_port
@@ -97,7 +97,7 @@ data "cloudinit_config" "autoscaler_config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
-        sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        sshAuthorizedKeys = concat([var.ssh_public_key != null ? var.ssh_public_key : local.ssh_public_key], var.ssh_additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
           token         = local.k3s_token
@@ -129,7 +129,7 @@ data "cloudinit_config" "autoscaler_legacy_config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
-        sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        sshAuthorizedKeys = concat([var.ssh_public_key != null ? var.ssh_public_key : local.ssh_public_key], var.ssh_additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
           token         = local.k3s_token
@@ -160,7 +160,7 @@ resource "null_resource" "autoscaled_nodes_registries" {
 
   connection {
     user           = "root"
-    private_key    = var.ssh_private_key
+    private_key    = var.ssh_private_key != null ? var.ssh_private_key : local.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = each.value.ipv4_address
     port           = var.ssh_port

@@ -7,6 +7,10 @@ locals {
   # Otherwise, a new one will be created by the module.
   hcloud_ssh_key_id = var.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.hcloud_ssh_key_id
 
+  # Grab local ssh keys if no key is passed (ssh-keygen -t id_ed25519 to generate one if there are still no keys in ~/.ssh)
+  ssh_public_key  = file("~/.ssh/id_ed25519.pub")
+  ssh_private_key = file("~/.ssh/id_ed25519")
+
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
 

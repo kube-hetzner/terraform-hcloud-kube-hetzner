@@ -32,7 +32,14 @@ variable "opensuse_microos_arm_mirror_link" {
 # When looking for packages, you need to search for OpenSUSE Tumbleweed packages, as MicroOS is based on Tumbleweed.
 variable "packages_to_install" {
   type    = list(string)
-  default = []
+  default = [
+    "zsh",
+    "htop",
+    "ranger",
+    "bat",
+    "neofetch",
+    "figlet"
+  ]
 }
 
 locals {
@@ -85,7 +92,7 @@ source "hcloud" "microos-x86-snapshot" {
     microos-snapshot = "yes"
     creator          = "kube-hetzner"
   }
-  snapshot_name = "OpenSUSE MicroOS x86 by Kube-Hetzner"
+  snapshot_name = "OpenSUSE MicroOS x86"
   ssh_username  = "root"
   token         = var.hcloud_token
 }
@@ -100,7 +107,7 @@ source "hcloud" "microos-arm-snapshot" {
     microos-snapshot = "yes"
     creator          = "kube-hetzner"
   }
-  snapshot_name = "OpenSUSE MicroOS ARM by Kube-Hetzner"
+  snapshot_name = "OpenSUSE MicroOS ARM"
   ssh_username  = "root"
   token         = var.hcloud_token
 }
