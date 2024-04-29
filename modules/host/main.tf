@@ -45,7 +45,7 @@ resource "hcloud_server" "server" {
 
   connection {
     user           = "root"
-    private_key    = var.ssh_private_key
+    private_key    = var.ssh_private_key != null ? var.ssh_private_key : local.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = self.ipv4_address
     port           = var.ssh_port
@@ -100,7 +100,7 @@ resource "null_resource" "registries" {
 
   connection {
     user           = "root"
-    private_key    = var.ssh_private_key
+    private_key    = var.ssh_private_key != null ? var.ssh_private_key : local.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = hcloud_server.server.ipv4_address
     port           = var.ssh_port
@@ -144,7 +144,7 @@ data "cloudinit_config" "config" {
       "${path.module}/templates/cloudinit.yaml.tpl",
       {
         hostname                     = local.name
-        sshAuthorizedKeys            = concat([var.ssh_public_key], var.ssh_additional_public_keys)
+        sshAuthorizedKeys            = concat([var.ssh_public_key != null ? var.ssh_public_key : local.ssh_public_key], var.ssh_additional_public_keys)
         cloudinit_write_files_common = var.cloudinit_write_files_common
         cloudinit_runcmd_common      = var.cloudinit_runcmd_common
         swap_size                    = var.swap_size
@@ -160,7 +160,7 @@ resource "null_resource" "zram" {
 
   connection {
     user           = "root"
-    private_key    = var.ssh_private_key
+    private_key    = var.ssh_private_key != null ? var.ssh_private_key : local.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = hcloud_server.server.ipv4_address
     port           = var.ssh_port

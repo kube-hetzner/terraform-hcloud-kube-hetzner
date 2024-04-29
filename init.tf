@@ -23,7 +23,7 @@ resource "hcloud_load_balancer" "cluster" {
 resource "null_resource" "first_control_plane" {
   connection {
     user           = "root"
-    private_key    = var.ssh_private_key
+    private_key    = var.ssh_private_key != null ? var.ssh_private_key : local.ssh_private_key
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh_port

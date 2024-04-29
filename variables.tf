@@ -37,12 +37,14 @@ variable "ssh_port" {
 variable "ssh_public_key" {
   description = "SSH public Key."
   type        = string
+  default = null
 }
 
 variable "ssh_private_key" {
   description = "SSH private Key."
   type        = string
   sensitive   = true
+  default = null
 }
 
 variable "ssh_hcloud_key_label" {
