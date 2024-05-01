@@ -398,6 +398,14 @@ module "kube-hetzner" {
   #   "--enforce-node-group-min-size=true",
   # ]
 
+  # Enable delete protection on compatible resources to prevent accidental deletion from the Hetzner Cloud Console.
+  # This does not protect deletion from Terraform itself. 
+  # enable_delete_protection = {
+  #   floating_ip   = true
+  #   load_balancer = true
+  #   volume        = true
+  # }
+
   # Enable etcd snapshot backups to S3 storage.
   # Just provide a map with the needed settings (according to your S3 storage provider) and backups to S3 will
   # be enabled (with the default settings for etcd snapshots).
@@ -502,7 +510,6 @@ module "kube-hetzner" {
   # If you want to configure additional ports for traefik, enter them here as a list of objects with name, port, and exposedPort properties.
   # Example:
   # traefik_additional_ports = [{name = "example", port = 1234, exposedPort = 1234}]
-
 
   # If you want to configure additional trusted IPs for traefik, enter them here as a list of IPs (strings).
   # Example for Cloudflare:
