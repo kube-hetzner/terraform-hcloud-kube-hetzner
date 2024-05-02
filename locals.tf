@@ -633,7 +633,8 @@ ports:
 %{for option in var.traefik_additional_ports~}
   ${option.name}:
     port: ${option.port}
-    expose: true
+    expose:
+      default: true
     exposedPort: ${option.exposedPort}
     protocol: TCP
 %{if !local.using_klipper_lb~}
