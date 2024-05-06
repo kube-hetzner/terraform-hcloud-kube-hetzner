@@ -556,6 +556,12 @@ module "kube-hetzner" {
   # The default is "true" (in HA setup i.e. at least 3 control plane nodes & 2 agents, just keep it enabled since it works flawlessly).
   # automatically_upgrade_k3s = false
 
+  # During k3s via system-upgrade-manager pods are evicted by default.
+  # On small clusters this can lead to hanging upgrades and indefinitely unschedulable nodes,
+  # in that case, set this to false to immediately delete pods before upgrading.
+  # NOTE: Turning this flag off might lead to downtimes of services (which may be acceptable for your use case)
+  # system_upgrade_enable_eviction = false
+
   # The default is "true" (in HA setup it works wonderfully well, with automatic roll-back to the previous snapshot in case of an issue).
   # IMPORTANT! For non-HA clusters i.e. when the number of control-plane nodes is < 3, you have to turn it off.
   # automatically_upgrade_os = false
