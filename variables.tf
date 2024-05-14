@@ -997,3 +997,15 @@ variable "enable_delete_protection" {
   }
   description = "Enable or disable delete protection for resources in Hetzner Cloud."
 }
+
+variable "keep_disk_agents" {
+  type        = bool
+  default     = false
+  description = "Whether to keep OS disks of nodes the same size when upgrading an agent node"
+}
+
+variable "keep_disk_cp" {
+  type        = bool
+  default     = false
+  description = "Whether to keep OS disks of nodes the same size when upgrading a control-plane node"
+}

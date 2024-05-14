@@ -13,13 +13,13 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
-| <a name="provider_github"></a> [github](#provider\_github) | >= 5.44.0 |
-| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.43.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | >= 2.4.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | n/a |
-| <a name="provider_random"></a> [random](#provider\_random) | n/a |
-| <a name="provider_remote"></a> [remote](#provider\_remote) | >= 0.1.2 |
+| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | 2.3.4 |
+| <a name="provider_github"></a> [github](#provider\_github) | 6.2.1 |
+| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | 1.47.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.5.1 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.2 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.6.1 |
+| <a name="provider_remote"></a> [remote](#provider\_remote) | 0.1.3 |
 
 ### Modules
 
@@ -168,6 +168,8 @@
 | <a name="input_k3s_global_kubelet_args"></a> [k3s\_global\_kubelet\_args](#input\_k3s\_global\_kubelet\_args) | Global kubelet args for all nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_registries"></a> [k3s\_registries](#input\_k3s\_registries) | K3S registries.yml contents. It used to access private docker registries. | `string` | `" "` | no |
 | <a name="input_k3s_token"></a> [k3s\_token](#input\_k3s\_token) | k3s master token (must match when restoring a cluster). | `string` | `null` | no |
+| <a name="input_keep_disk_agents"></a> [keep\_disk\_agents](#input\_keep\_disk\_agents) | Whether to keep OS disks of nodes the same size when upgrading an agent node | `bool` | `false` | no |
+| <a name="input_keep_disk_cp"></a> [keep\_disk\_cp](#input\_keep\_disk\_cp) | Whether to keep OS disks of nodes the same size when upgrading a control-plane node | `bool` | `false` | no |
 | <a name="input_kured_options"></a> [kured\_options](#input\_kured\_options) | n/a | `map(string)` | `{}` | no |
 | <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured. | `string` | `null` | no |
 | <a name="input_lb_hostname"></a> [lb\_hostname](#input\_lb\_hostname) | The Hetzner Load Balancer hostname, for either Traefik or Ingress-Nginx. | `string` | `""` | no |
