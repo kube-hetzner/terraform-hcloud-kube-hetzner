@@ -13,13 +13,13 @@
 
 | Name | Version |
 |------|---------|
-| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
-| <a name="provider_github"></a> [github](#provider\_github) | >= 5.44.0 |
-| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.43.0 |
-| <a name="provider_local"></a> [local](#provider\_local) | >= 2.4.0 |
-| <a name="provider_null"></a> [null](#provider\_null) | n/a |
-| <a name="provider_random"></a> [random](#provider\_random) | n/a |
-| <a name="provider_remote"></a> [remote](#provider\_remote) | >= 0.1.2 |
+| <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | 2.3.4 |
+| <a name="provider_github"></a> [github](#provider\_github) | 6.2.1 |
+| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | 1.47.0 |
+| <a name="provider_local"></a> [local](#provider\_local) | 2.5.1 |
+| <a name="provider_null"></a> [null](#provider\_null) | 3.2.2 |
+| <a name="provider_random"></a> [random](#provider\_random) | 3.6.1 |
+| <a name="provider_remote"></a> [remote](#provider\_remote) | 0.1.3 |
 
 ### Modules
 
