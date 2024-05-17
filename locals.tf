@@ -235,16 +235,19 @@ locals {
   ingress_controller_service_names = {
     "traefik" = "traefik"
     "nginx"   = "nginx-ingress-nginx-controller"
+    "haproxy" = "haproxy-kubernetes-ingress"
   }
 
   ingress_controller_install_resources = {
     "traefik" = ["traefik_ingress.yaml"]
     "nginx"   = ["nginx_ingress.yaml"]
+    "haproxy"   = ["haproxy_ingress.yaml"]
   }
 
   default_ingress_namespace_mapping = {
     "traefik" = "traefik"
     "nginx"   = "nginx"
+    "haproxy" = "haproxy"
   }
 
   ingress_controller_namespace = var.ingress_target_namespace != "" ? var.ingress_target_namespace : lookup(local.default_ingress_namespace_mapping, var.ingress_controller, "")
@@ -546,6 +549,53 @@ controller:
     "use-proxy-protocol": "${!local.using_klipper_lb}"
 %{if !local.using_klipper_lb~}
   service:
+    annotations:
+      "load-balancer.hetzner.cloud/name": "${local.load_balancer_name}"
+      "load-balancer.hetzner.cloud/use-private-ip": "true"
+      "load-balancer.hetzner.cloud/disable-private-ingress": "true"
+      "load-balancer.hetzner.cloud/disable-public-network": "${var.load_balancer_disable_public_network}"
+      "load-balancer.hetzner.cloud/ipv6-disabled": "${var.load_balancer_disable_ipv6}"
+      "load-balancer.hetzner.cloud/location": "${var.load_balancer_location}"
+      "load-balancer.hetzner.cloud/type": "${var.load_balancer_type}"
+      "load-balancer.hetzner.cloud/uses-proxyprotocol": "${!local.using_klipper_lb}"
+      "load-balancer.hetzner.cloud/algorithm-type": "${var.load_balancer_algorithm_type}"
+      "load-balancer.hetzner.cloud/health-check-interval": "${var.load_balancer_health_check_interval}"
+      "load-balancer.hetzner.cloud/health-check-timeout": "${var.load_balancer_health_check_timeout}"
+      "load-balancer.hetzner.cloud/health-check-retries": "${var.load_balancer_health_check_retries}"
+%{if var.lb_hostname != ""~}
+      "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
+%{endif~}
+%{endif~}
+  EOT
+
+  haproxy_values = var.haproxy_values != "" ? var.haproxy_values : <<EOT
+controller:
+  kind: "Deployment"
+  replicaCount: ${local.ingress_replica_count}
+  ingressClass: null
+  resources:
+    requests:
+      cpu: "${var.haproxy_requests_cpu}"
+      memory: "${var.haproxy_requests_memory}"
+  config:
+    ssl-redirect: "false"
+    forwarded-for: "true"
+%{if !local.using_klipper_lb~}
+    proxy-protocol: "${join(
+      ", ",
+      concat(
+        ["127.0.0.1/32", "10.0.0.0/8"],
+        var.haproxy_additional_proxy_protocol_ips
+      )
+    )}"
+%{endif~}
+  service:
+    type: LoadBalancer
+    enablePorts:
+      quic: false
+      stat: false
+      prometheus: false
+%{if !local.using_klipper_lb~}
     annotations:
       "load-balancer.hetzner.cloud/name": "${local.load_balancer_name}"
       "load-balancer.hetzner.cloud/use-private-ip": "true"
@@ -959,4 +1009,3 @@ EOT
 - [truncate, '-s', '0', '/var/log/audit/audit.log']
 EOT
 }
-

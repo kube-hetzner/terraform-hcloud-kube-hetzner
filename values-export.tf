@@ -39,3 +39,10 @@ resource "local_file" "nginx_values" {
   filename        = "nginx_values.yaml"
   file_permission = "600"
 }
+
+resource "local_file" "haproxy_values" {
+  count           = var.export_values && var.ingress_controller == "haproxy" ? 1 : 0
+  content         = local.haproxy_values
+  filename        = "haproxy_values.yaml"
+  file_permission = "600"
+}

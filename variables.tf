@@ -382,8 +382,8 @@ variable "ingress_controller" {
   description = "The name of the ingress controller."
 
   validation {
-    condition     = contains(["traefik", "nginx", "none"], var.ingress_controller)
-    error_message = "Must be one of \"traefik\" or \"nginx\" or \"none\""
+    condition     = contains(["traefik", "nginx", "haproxy", "none"], var.ingress_controller)
+    error_message = "Must be one of \"traefik\" or \"nginx\" or \"haproxy\" or \"none\""
   }
 }
 
@@ -483,6 +483,36 @@ variable "nginx_values" {
   type        = string
   default     = ""
   description = "Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart."
+}
+
+variable "haproxy_requests_cpu" {
+  type = string
+  default = "250m"
+  description = "Setting for HAProxy controller.resources.requests.cpu"
+}
+
+variable "haproxy_requests_memory" {
+  type = string
+  default = "400Mi"
+  description = "Setting for HAProxy controller.resources.requests.memory"
+}
+
+variable "haproxy_additional_proxy_protocol_ips" {
+  type        = list(string)
+  default     = []
+  description = "Additional trusted proxy protocol IPs to pass to haproxy."
+}
+
+variable "haproxy_version" {
+  type        = string
+  default     = ""
+  description = "Version of HAProxy helm chart."
+}
+
+variable "haproxy_values" {
+  type        = string
+  default     = ""
+  description = "Helm values file to pass to haproxy as 'valuesContent' at the HelmChart, overriding the default."
 }
 
 variable "allow_scheduling_on_control_plane" {
@@ -755,7 +785,7 @@ variable "rancher_hostname" {
 variable "lb_hostname" {
   type        = string
   default     = ""
-  description = "The Hetzner Load Balancer hostname, for either Traefik or Ingress-Nginx."
+  description = "The Hetzner Load Balancer hostname, for either Traefik, HAProxy or Ingress-Nginx."
 
   validation {
     condition     = can(regex("^(?:(?:(?:[A-Za-z0-9])|(?:[A-Za-z0-9](?:[A-Za-z0-9\\-]+)?[A-Za-z0-9]))+(\\.))+([A-Za-z]{2,})([\\/?])?([\\/?][A-Za-z0-9\\-%._~:\\/?#\\[\\]@!\\$&\\'\\(\\)\\*\\+,;=]+)?$", var.lb_hostname)) || var.lb_hostname == ""

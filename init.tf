@@ -117,6 +117,7 @@ resource "null_resource" "kustomization" {
     helm_values_yaml = join("---\n", [
       local.traefik_values,
       local.nginx_values,
+      local.haproxy_values,
       local.calico_values,
       local.cilium_values,
       local.longhorn_values,
@@ -135,6 +136,7 @@ resource "null_resource" "kustomization" {
       coalesce(var.cilium_version, "N/A"),
       coalesce(var.traefik_version, "N/A"),
       coalesce(var.nginx_version, "N/A"),
+      coalesce(var.haproxy_version, "N/A"),
     ])
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
@@ -177,6 +179,18 @@ resource "null_resource" "kustomization" {
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/nginx_ingress.yaml"
+  }
+
+  # Upload haproxy ingress controller config
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/haproxy_ingress.yaml.tpl",
+      {
+        version          = var.haproxy_version
+        values           = indent(4, trimspace(local.haproxy_values))
+        target_namespace = local.ingress_controller_namespace
+    })
+    destination = "/var/post_install/haproxy_ingress.yaml"
   }
 
   # Upload the CCM patch config
