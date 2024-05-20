@@ -607,6 +607,12 @@ variable "cilium_hubble_enabled" {
   description = "Enables Hubble Observability to collect and visualize network traffic."
 }
 
+variable "cilium_hubble_metrics_enabled" {
+  type        = list(string)
+  default     = []
+  description = "Configures the list of Hubble metrics to collect"
+}
+
 variable "cilium_ipv4_native_routing_cidr" {
   type        = string
   default     = null
