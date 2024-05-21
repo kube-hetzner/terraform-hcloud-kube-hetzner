@@ -690,6 +690,11 @@ module "kube-hetzner" {
   # Enables Hubble Observability to collect and visualize network traffic. Default: false
   # cilium_hubble_enabled = true
 
+  # Configures the list of Hubble metrics to collect.
+  # cilium_hubble_metrics_enabled = [
+  #   "policy:sourceContext=app|workload-name|pod|reserved-identity;destinationContext=app|workload-name|pod|dns|reserved-identity;labelsContext=source_namespace,destination_namespace"
+  # ]
+
   # You can choose the version of Calico that you want. By default, the latest is used.
   # More info on available versions can be found at https://github.com/projectcalico/calico/releases
   # Please note that if you are getting 403s from Github, it's also useful to set the version manually. However there is rarely a need for that!
