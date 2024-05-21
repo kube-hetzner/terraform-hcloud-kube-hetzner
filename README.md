@@ -178,7 +178,7 @@ As Cilium has a lot of interesting and powerful config possibilities, we give yo
 
 Cilium supports full kube-proxy replacement. Cilium runs by default in hybrid kube-proxy replacement mode. To achieve a completely kube-proxy-free cluster, set `disable_kube_proxy = true`.
 
-It is also possible to enable Hubble using `cilium_hubble_enabled = true`. In order to access the Hubble UI, you need to port-forward the Hubble UI service to your local machine. By default, you can do this by running `kubectl port-forward -n kube-system service/hubble-ui 12000:80` and then opening `http://localhost:12000` in your browser. 
+It is also possible to enable Hubble using `cilium_hubble_enabled = true`. In order to access the Hubble UI, you need to port-forward the Hubble UI service to your local machine. By default, you can do this by running `kubectl port-forward -n kube-system service/hubble-ui 12000:80` and then opening `http://localhost:12000` in your browser.
 However, it is recommended to use the [Cilium CLI](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli) and [Hubble Client](https://docs.cilium.io/en/stable/gettingstarted/k8s-install-default/#install-the-cilium-cli) and running the `cilium hubble ui` command.
 
 ## Scaling Nodes
@@ -293,7 +293,7 @@ If you need to install additional Helm charts or Kubernetes manifests that are n
 
 These files need to be valid `Kustomization` manifests, additionally supporting terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable (via a map) to the module).
 
-All files in the `extra-manifests` directory including the rendered versions of the `*.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
+All files in the `extra-manifests` directory and its subdirectories including the rendered versions of the `*.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
 See a working example in [examples/kustomization_user_deploy](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/tree/master/examples/kustomization_user_deploy).
 
