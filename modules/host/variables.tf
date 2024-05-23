@@ -138,3 +138,9 @@ variable "zram_size" {
     error_message = "Invalid zram size. Examples: 512M, 1G"
   }
 }
+
+variable "keep_disk_size" {
+  type        = bool
+  default     = false
+  description = "Whether to keep OS disks of nodes the same size when upgrading a node"
+}
