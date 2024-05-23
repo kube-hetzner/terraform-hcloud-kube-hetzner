@@ -487,6 +487,11 @@ hubble:
     enabled: true
   ui:
     enabled: true
+  metrics:
+    enabled:
+%{for metric in var.cilium_hubble_metrics_enabled~}
+      - "${metric}"
+%{endfor~}
 %{endif~}
 
 MTU: 1450
