@@ -29,6 +29,7 @@ resource "hcloud_server" "server" {
   placement_group_id = var.placement_group_id
   backups            = var.backups
   user_data          = data.cloudinit_config.config.rendered
+  keep_disk          = var.keep_disk_size
 
   labels = var.labels
 

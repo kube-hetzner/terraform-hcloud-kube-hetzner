@@ -556,6 +556,12 @@ module "kube-hetzner" {
   # The default is "true" (in HA setup i.e. at least 3 control plane nodes & 2 agents, just keep it enabled since it works flawlessly).
   # automatically_upgrade_k3s = false
 
+  # During k3s via system-upgrade-manager pods are evicted by default.
+  # On small clusters this can lead to hanging upgrades and indefinitely unschedulable nodes,
+  # in that case, set this to false to immediately delete pods before upgrading.
+  # NOTE: Turning this flag off might lead to downtimes of services (which may be acceptable for your use case)
+  # system_upgrade_enable_eviction = false
+
   # The default is "true" (in HA setup it works wonderfully well, with automatic roll-back to the previous snapshot in case of an issue).
   # IMPORTANT! For non-HA clusters i.e. when the number of control-plane nodes is < 3, you have to turn it off.
   # automatically_upgrade_os = false
@@ -690,6 +696,11 @@ module "kube-hetzner" {
   # Enables Hubble Observability to collect and visualize network traffic. Default: false
   # cilium_hubble_enabled = true
 
+  # Configures the list of Hubble metrics to collect.
+  # cilium_hubble_metrics_enabled = [
+  #   "policy:sourceContext=app|workload-name|pod|reserved-identity;destinationContext=app|workload-name|pod|dns|reserved-identity;labelsContext=source_namespace,destination_namespace"
+  # ]
+
   # You can choose the version of Calico that you want. By default, the latest is used.
   # More info on available versions can be found at https://github.com/projectcalico/calico/releases
   # Please note that if you are getting 403s from Github, it's also useful to set the version manually. However there is rarely a need for that!
@@ -806,7 +817,7 @@ module "kube-hetzner" {
   # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
   # extra_kustomize_parameters={}
 
-  # See an working example for just a manifest.yaml, a HelmChart and a HelmChartConfig examples/kustomization_user_deploy/README.md
+  # See working examples for extra manifests or a HelmChart in examples/kustomization_user_deploy/README.md
 
   # It is best practice to turn this off, but for backwards compatibility it is set to "true" by default.
   # See https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/349

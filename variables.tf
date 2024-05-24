@@ -538,6 +538,12 @@ variable "initial_k3s_channel" {
   }
 }
 
+variable "system_upgrade_enable_eviction" {
+  type        = bool
+  default     = true
+  description = "Whether to directly delete pods during system upgrade (k3s) or evict them. Defaults to true. Disable this on small clusters to avoid system upgrades hanging since pods resisting eviction keep node unschedulable forever. NOTE: turning this off, introduces potential downtime of services of the upgraded nodes."
+}
+
 variable "automatically_upgrade_k3s" {
   type        = bool
   default     = true
@@ -635,6 +641,12 @@ variable "cilium_hubble_enabled" {
   type        = bool
   default     = false
   description = "Enables Hubble Observability to collect and visualize network traffic."
+}
+
+variable "cilium_hubble_metrics_enabled" {
+  type        = list(string)
+  default     = []
+  description = "Configures the list of Hubble metrics to collect"
 }
 
 variable "cilium_ipv4_native_routing_cidr" {
@@ -1026,4 +1038,16 @@ variable "enable_delete_protection" {
     volume        = false
   }
   description = "Enable or disable delete protection for resources in Hetzner Cloud."
+}
+
+variable "keep_disk_agents" {
+  type        = bool
+  default     = false
+  description = "Whether to keep OS disks of nodes the same size when upgrading an agent node"
+}
+
+variable "keep_disk_cp" {
+  type        = bool
+  default     = false
+  description = "Whether to keep OS disks of nodes the same size when upgrading a control-plane node"
 }

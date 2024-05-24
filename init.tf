@@ -232,7 +232,8 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/plans.yaml.tpl",
       {
-        channel = var.initial_k3s_channel
+        channel          = var.initial_k3s_channel
+        disable_eviction = !var.system_upgrade_enable_eviction
     })
     destination = "/var/post_install/plans.yaml"
   }
