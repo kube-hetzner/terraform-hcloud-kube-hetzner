@@ -1,5 +1,5 @@
 locals {
-  user_kustomization_templates = try(fileset("extra-manifests", "*.yaml.tpl"), toset([]))
+  user_kustomization_templates = try(fileset("extra-manifests", "**/*.yaml.tpl"), toset([]))
 }
 
 resource "null_resource" "kustomization_user" {
@@ -11,6 +11,12 @@ resource "null_resource" "kustomization_user" {
     agent_identity = local.ssh_agent_identity
     host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
     port           = var.ssh_port
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir -p $(dirname /var/user_kustomize/${each.key})"
+    ]
   }
 
   provisioner "file" {
@@ -42,7 +48,7 @@ resource "null_resource" "kustomization_user_deploy" {
   provisioner "remote-exec" {
     # Debugging: "sh -c 'for file in $(find /var/user_kustomize -type f -name \"*.yaml\" | sort -n); do echo \"\n### Template $${file}.tpl after rendering:\" && cat $${file}; done'",
     inline = compact([
-      "rm -f /var/user_kustomize/*.yaml.tpl",
+      "rm -f /var/user_kustomize/**/*.yaml.tpl",
       "echo 'Applying user kustomization...'",
       "kubectl apply -k /var/user_kustomize/ --wait=true",
       var.extra_kustomize_deployment_commands

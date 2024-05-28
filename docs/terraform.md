@@ -106,6 +106,7 @@
 | <a name="input_cert_manager_values"></a> [cert\_manager\_values](#input\_cert\_manager\_values) | Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_cilium_egress_gateway_enabled"></a> [cilium\_egress\_gateway\_enabled](#input\_cilium\_egress\_gateway\_enabled) | Enables egress gateway to redirect and SNAT the traffic that leaves the cluster. | `bool` | `false` | no |
 | <a name="input_cilium_hubble_enabled"></a> [cilium\_hubble\_enabled](#input\_cilium\_hubble\_enabled) | Enables Hubble Observability to collect and visualize network traffic. | `bool` | `false` | no |
+| <a name="input_cilium_hubble_metrics_enabled"></a> [cilium\_hubble\_metrics\_enabled](#input\_cilium\_hubble\_metrics\_enabled) | Configures the list of Hubble metrics to collect | `list(string)` | `[]` | no |
 | <a name="input_cilium_ipv4_native_routing_cidr"></a> [cilium\_ipv4\_native\_routing\_cidr](#input\_cilium\_ipv4\_native\_routing\_cidr) | Used when Cilium is configured in native routing mode. The CNI assumes that the underlying network stack will forward packets to this destination without the need to apply SNAT. Default: value of "cluster\_ipv4\_cidr" | `string` | `null` | no |
 | <a name="input_cilium_routing_mode"></a> [cilium\_routing\_mode](#input\_cilium\_routing\_mode) | Set native-routing mode ("native") or tunneling mode ("tunnel"). | `string` | `"tunnel"` | no |
 | <a name="input_cilium_values"></a> [cilium\_values](#input\_cilium\_values) | Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart. | `string` | `""` | no |
@@ -168,6 +169,8 @@
 | <a name="input_k3s_global_kubelet_args"></a> [k3s\_global\_kubelet\_args](#input\_k3s\_global\_kubelet\_args) | Global kubelet args for all nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_registries"></a> [k3s\_registries](#input\_k3s\_registries) | K3S registries.yml contents. It used to access private docker registries. | `string` | `" "` | no |
 | <a name="input_k3s_token"></a> [k3s\_token](#input\_k3s\_token) | k3s master token (must match when restoring a cluster). | `string` | `null` | no |
+| <a name="input_keep_disk_agents"></a> [keep\_disk\_agents](#input\_keep\_disk\_agents) | Whether to keep OS disks of nodes the same size when upgrading an agent node | `bool` | `false` | no |
+| <a name="input_keep_disk_cp"></a> [keep\_disk\_cp](#input\_keep\_disk\_cp) | Whether to keep OS disks of nodes the same size when upgrading a control-plane node | `bool` | `false` | no |
 | <a name="input_kured_options"></a> [kured\_options](#input\_kured\_options) | n/a | `map(string)` | `{}` | no |
 | <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured. | `string` | `null` | no |
 | <a name="input_lb_hostname"></a> [lb\_hostname](#input\_lb\_hostname) | The Hetzner Load Balancer hostname, for either Traefik or Ingress-Nginx. | `string` | `""` | no |
@@ -206,6 +209,7 @@
 | <a name="input_ssh_port"></a> [ssh\_port](#input\_ssh\_port) | The main SSH port to connect to the nodes. | `number` | `22` | no |
 | <a name="input_ssh_private_key"></a> [ssh\_private\_key](#input\_ssh\_private\_key) | SSH private Key. | `string` | n/a | yes |
 | <a name="input_ssh_public_key"></a> [ssh\_public\_key](#input\_ssh\_public\_key) | SSH public Key. | `string` | n/a | yes |
+| <a name="input_system_upgrade_enable_eviction"></a> [system\_upgrade\_enable\_eviction](#input\_system\_upgrade\_enable\_eviction) | Whether to directly delete pods during system upgrade (k3s) or evict them. Defaults to true. Disable this on small clusters to avoid system upgrades hanging since pods resisting eviction keep node unschedulable forever. NOTE: turning this off, introduces potential downtime of services of the upgraded nodes. | `bool` | `true` | no |
 | <a name="input_traefik_additional_options"></a> [traefik\_additional\_options](#input\_traefik\_additional\_options) | Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file. | `list(string)` | `[]` | no |
 | <a name="input_traefik_additional_ports"></a> [traefik\_additional\_ports](#input\_traefik\_additional\_ports) | Additional ports to pass to Traefik. These are the ones that go into the ports section of the Traefik helm values file. | <pre>list(object({<br>    name        = string<br>    port        = number<br>    exposedPort = number<br>  }))</pre> | `[]` | no |
 | <a name="input_traefik_additional_trusted_ips"></a> [traefik\_additional\_trusted\_ips](#input\_traefik\_additional\_trusted\_ips) | Additional Trusted IPs to pass to Traefik. These are the ones that go into the trustedIPs section of the Traefik helm values file. | `list(string)` | `[]` | no |
