@@ -241,7 +241,7 @@ locals {
   ingress_controller_install_resources = {
     "traefik" = ["traefik_ingress.yaml"]
     "nginx"   = ["nginx_ingress.yaml"]
-    "haproxy"   = ["haproxy_ingress.yaml"]
+    "haproxy" = ["haproxy_ingress.yaml"]
   }
 
   default_ingress_namespace_mapping = {
@@ -587,12 +587,12 @@ controller:
     forwarded-for: "true"
 %{if !local.using_klipper_lb~}
     proxy-protocol: "${join(
-      ", ",
-      concat(
-        ["127.0.0.1/32", "10.0.0.0/8"],
-        var.haproxy_additional_proxy_protocol_ips
-      )
-    )}"
+  ", ",
+  concat(
+    ["127.0.0.1/32", "10.0.0.0/8"],
+    var.haproxy_additional_proxy_protocol_ips
+  )
+)}"
 %{endif~}
   service:
     type: LoadBalancer
@@ -620,7 +620,7 @@ controller:
 %{endif~}
   EOT
 
-  traefik_values = var.traefik_values != "" ? var.traefik_values : <<EOT
+traefik_values = var.traefik_values != "" ? var.traefik_values : <<EOT
 image:
   tag: ${var.traefik_image_tag}
 deployment:
@@ -737,7 +737,7 @@ autoscaling:
 %{endif~}
   EOT
 
-  rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
+rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
 hostname: "${var.rancher_hostname != "" ? var.rancher_hostname : var.lb_hostname}"
 replicas: ${length(local.control_plane_nodes)}
 bootstrapPassword: "${length(var.rancher_bootstrap_password) == 0 ? resource.random_password.rancher_bootstrap[0].result : var.rancher_bootstrap_password}"
@@ -747,19 +747,19 @@ global:
       enabled: false
   EOT
 
-  cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
+cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
 installCRDs: true
   EOT
 
-  kured_options = merge({
-    "reboot-command" : "/usr/bin/systemctl reboot",
-    "pre-reboot-node-labels" : "kured=rebooting",
-    "post-reboot-node-labels" : "kured=done",
-    "period" : "5m",
-    "reboot-sentinel" : "/sentinel/reboot-required"
-  }, var.kured_options)
+kured_options = merge({
+  "reboot-command" : "/usr/bin/systemctl reboot",
+  "pre-reboot-node-labels" : "kured=rebooting",
+  "post-reboot-node-labels" : "kured=done",
+  "period" : "5m",
+  "reboot-sentinel" : "/sentinel/reboot-required"
+}, var.kured_options)
 
-  k3s_registries_update_script = <<EOF
+k3s_registries_update_script = <<EOF
 DATE=`date +%Y-%m-%d_%H-%M-%S`
 if cmp -s /tmp/registries.yaml /etc/rancher/k3s/registries.yaml; then
   echo "No update required to the registries.yaml file"
@@ -779,7 +779,7 @@ else
 fi
 EOF
 
-  k3s_config_update_script = <<EOF
+k3s_config_update_script = <<EOF
 DATE=`date +%Y-%m-%d_%H-%M-%S`
 if cmp -s /tmp/config.yaml /etc/rancher/k3s/config.yaml; then
   echo "No update required to the config.yaml file"
@@ -801,7 +801,7 @@ else
 fi
 EOF
 
-  cloudinit_write_files_common = <<EOT
+cloudinit_write_files_common = <<EOT
 # Script to rename the private interface to eth1 and unify NetworkManager connection naming
 - path: /etc/cloud/rename_interface.sh
   content: |
@@ -966,7 +966,7 @@ EOF
 %{endif}
 EOT
 
-  cloudinit_runcmd_common = <<EOT
+cloudinit_runcmd_common = <<EOT
 # ensure that /var uses full available disk size, thanks to btrfs this is easy
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 

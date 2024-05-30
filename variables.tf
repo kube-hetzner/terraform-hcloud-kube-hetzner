@@ -486,14 +486,14 @@ variable "nginx_values" {
 }
 
 variable "haproxy_requests_cpu" {
-  type = string
-  default = "250m"
+  type        = string
+  default     = "250m"
   description = "Setting for HAProxy controller.resources.requests.cpu"
 }
 
 variable "haproxy_requests_memory" {
-  type = string
-  default = "400Mi"
+  type        = string
+  default     = "400Mi"
   description = "Setting for HAProxy controller.resources.requests.memory"
 }
 
