@@ -399,7 +399,7 @@ module "kube-hetzner" {
   # ]
 
   # Enable delete protection on compatible resources to prevent accidental deletion from the Hetzner Cloud Console.
-  # This does not protect deletion from Terraform itself. 
+  # This does not protect deletion from Terraform itself.
   # enable_delete_protection = {
   #   floating_ip   = true
   #   load_balancer = true
@@ -463,13 +463,14 @@ module "kube-hetzner" {
   # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available.
   # kured_version = ""
 
-  # If you want to enable the Nginx ingress controller (https://kubernetes.github.io/ingress-nginx/) instead of Traefik, you can set this to "nginx". Default is "traefik".
-  # By the default we load optimal Traefik and Nginx ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
-  # we allow you to add a traefik_values and nginx_values, see towards the end of this file in the advanced section.
+  # Default is "traefik".
+  # If you want to enable the Nginx (https://kubernetes.github.io/ingress-nginx/) or HAProxy ingress controller instead of Traefik, you can set this to "nginx" or "haproxy".
+  # By the default we load optimal Traefik, Nginx or HAProxy ingress controller config for Hetzner, however you may need to tweak it to your needs, so to do,
+  # we allow you to add a traefik_values, nginx_values or haproxy_values, see towards the end of this file in the advanced section.
   # After the cluster is deployed, you can always use HelmChartConfig definition to tweak the configuration.
   # If you want to disable both controllers set this to "none"
   # ingress_controller = "nginx"
-  # Namespace in which to deploy the ingress controllers. Defaults to the ingress_controller variable, eg (nginx, traefik)
+  # Namespace in which to deploy the ingress controllers. Defaults to the ingress_controller variable, eg (haproxy, nginx, traefik)
   # ingress_target_namespace = ""
 
   # You can change the number of replicas for selected ingress controller here. The default 0 means autoselecting based on number of agent nodes (1 node = 1 replica, 2 nodes = 2 replicas, 3+ nodes = 3 replicas)
@@ -768,7 +769,7 @@ module "kube-hetzner" {
   #
   # Technical Note:
   # This setting sets the `load-balancer.hetzner.cloud/hostname` in the Hetzner LB definition, suitable for
-  # both Nginx and Traefik ingress controllers.
+  # HAProxy, Nginx and Traefik ingress controllers.
   #
   # Recommendation:
   # This setting is optional. If services communicate using direct service names, you can leave this unset.
@@ -984,6 +985,46 @@ controller:
       "load-balancer.hetzner.cloud/location": "nbg1"
       "load-balancer.hetzner.cloud/type": "lb11"
       "load-balancer.hetzner.cloud/uses-proxyprotocol": "true"
+  EOT */
+
+  # If you want to use a specific HAProxy helm chart version, set it below; otherwise, leave them as-is for the latest versions.
+  # haproxy_version = ""
+
+  # If you want to configure additional proxy protocol trusted IPs for haproxy, enter them here as a list of IPs (strings).
+  # Example for Cloudflare:
+  # haproxy_additional_proxy_protocol_ips = [
+  #   "173.245.48.0/20",
+  #   "103.21.244.0/22",
+  #   "103.22.200.0/22",
+  #   "103.31.4.0/22",
+  #   "141.101.64.0/18",
+  #   "108.162.192.0/18",
+  #   "190.93.240.0/20",
+  #   "188.114.96.0/20",
+  #   "197.234.240.0/22",
+  #   "198.41.128.0/17",
+  #   "162.158.0.0/15",
+  #   "104.16.0.0/13",
+  #   "104.24.0.0/14",
+  #   "172.64.0.0/13",
+  #   "131.0.72.0/22",
+  #   "2400:cb00::/32",
+  #   "2606:4700::/32",
+  #   "2803:f800::/32",
+  #   "2405:b500::/32",
+  #   "2405:8100::/32",
+  #   "2a06:98c0::/29",
+  #   "2c0f:f248::/32"
+  # ]
+
+  # Configure CPU and memory requests for each HAProxy pod
+  # haproxy_requests_cpu = "250m"
+  # haproxy_requests_memory = "400Mi"
+
+  # Override values given to the HAProxy helm chart.
+  # All HAProxy helm values can be found at https://github.com/haproxytech/helm-charts/blob/main/kubernetes-ingress/values.yaml
+  # Default values can be found at https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/locals.tf
+  /*   haproxy_values = <<EOT
   EOT */
 
   # Rancher, all Rancher helm values can be found at https://rancher.com/docs/rancher/v2.5/en/installation/install-rancher-on-k8s/chart-options/
