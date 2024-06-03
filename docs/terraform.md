@@ -52,6 +52,7 @@
 | [local_file.cert_manager_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.cilium_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.csi_driver_smb_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.haproxy_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.kustomization_backup](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.longhorn_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.nginx_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
@@ -152,6 +153,11 @@
 | <a name="input_extra_kustomize_parameters"></a> [extra\_kustomize\_parameters](#input\_extra\_kustomize\_parameters) | All values will be passed to the `kustomization.tmp.yml` template. | `map(any)` | `{}` | no |
 | <a name="input_firewall_kube_api_source"></a> [firewall\_kube\_api\_source](#input\_firewall\_kube\_api\_source) | Source networks that have Kube API access to the servers. | `list(string)` | <pre>[<br>  "0.0.0.0/0",<br>  "::/0"<br>]</pre> | no |
 | <a name="input_firewall_ssh_source"></a> [firewall\_ssh\_source](#input\_firewall\_ssh\_source) | Source networks that have SSH access to the servers. | `list(string)` | <pre>[<br>  "0.0.0.0/0",<br>  "::/0"<br>]</pre> | no |
+| <a name="input_haproxy_additional_proxy_protocol_ips"></a> [haproxy\_additional\_proxy\_protocol\_ips](#input\_haproxy\_additional\_proxy\_protocol\_ips) | Additional trusted proxy protocol IPs to pass to haproxy. | `list(string)` | `[]` | no |
+| <a name="input_haproxy_requests_cpu"></a> [haproxy\_requests\_cpu](#input\_haproxy\_requests\_cpu) | Setting for HAProxy controller.resources.requests.cpu | `string` | `"250m"` | no |
+| <a name="input_haproxy_requests_memory"></a> [haproxy\_requests\_memory](#input\_haproxy\_requests\_memory) | Setting for HAProxy controller.resources.requests.memory | `string` | `"400Mi"` | no |
+| <a name="input_haproxy_values"></a> [haproxy\_values](#input\_haproxy\_values) | Helm values file to pass to haproxy as 'valuesContent' at the HelmChart, overriding the default. | `string` | `""` | no |
+| <a name="input_haproxy_version"></a> [haproxy\_version](#input\_haproxy\_version) | Version of HAProxy helm chart. | `string` | `""` | no |
 | <a name="input_hcloud_ssh_key_id"></a> [hcloud\_ssh\_key\_id](#input\_hcloud\_ssh\_key\_id) | If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module. | `string` | `null` | no |
 | <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token. | `string` | n/a | yes |
 | <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. | `string` | `null` | no |
@@ -173,7 +179,7 @@
 | <a name="input_keep_disk_cp"></a> [keep\_disk\_cp](#input\_keep\_disk\_cp) | Whether to keep OS disks of nodes the same size when upgrading a control-plane node | `bool` | `false` | no |
 | <a name="input_kured_options"></a> [kured\_options](#input\_kured\_options) | n/a | `map(string)` | `{}` | no |
 | <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured. | `string` | `null` | no |
-| <a name="input_lb_hostname"></a> [lb\_hostname](#input\_lb\_hostname) | The Hetzner Load Balancer hostname, for either Traefik or Ingress-Nginx. | `string` | `""` | no |
+| <a name="input_lb_hostname"></a> [lb\_hostname](#input\_lb\_hostname) | The Hetzner Load Balancer hostname, for either Traefik, HAProxy or Ingress-Nginx. | `string` | `""` | no |
 | <a name="input_load_balancer_algorithm_type"></a> [load\_balancer\_algorithm\_type](#input\_load\_balancer\_algorithm\_type) | Specifies the algorithm type of the load balancer. | `string` | `"round_robin"` | no |
 | <a name="input_load_balancer_disable_ipv6"></a> [load\_balancer\_disable\_ipv6](#input\_load\_balancer\_disable\_ipv6) | Disable IPv6 for the load balancer. | `bool` | `false` | no |
 | <a name="input_load_balancer_disable_public_network"></a> [load\_balancer\_disable\_public\_network](#input\_load\_balancer\_disable\_public\_network) | Disables the public network of the load balancer. | `bool` | `false` | no |
