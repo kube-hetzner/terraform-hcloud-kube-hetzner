@@ -922,7 +922,7 @@ cloudinit_write_files_common = <<EOT
     allow container_t etc_t:sock_file { create unlink };
     allow container_t usr_t:dir { add_name create getattr link lock read rename remove_name reparent rmdir setattr unlink search write };
     allow container_t usr_t:file { append create execute getattr link lock read rename setattr unlink write };
-    allow container_t container_file_t:file { open read write append getattr setattr };
+    allow container_t container_file_t:file { open read write append getattr setattr lock };
     allow container_t container_file_t:sock_file watch;
     allow container_t container_log_t:file { open read write append getattr setattr watch };
     allow container_t container_share_t:dir { read write add_name remove_name };
