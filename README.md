@@ -366,7 +366,7 @@ Example nodepool configuration:
 ```tf
 {
   name        = "egress",
-  server_type = "cpx11",
+  server_type = "cx22",
   location    = "fsn1",
   labels = [
     "node.kubernetes.io/role=egress"
@@ -947,7 +947,7 @@ easily map between your nodes and your kube.tf file.
   agent_nodepools = [
     {
       name        = "agent-large",
-      server_type = "cpx21",
+      server_type = "cx32",
       location    = "nbg1",
       labels      = [],
       taints      = [],
@@ -960,7 +960,7 @@ easily map between your nodes and your kube.tf file.
         },
         "1" : {
           append_index_to_node_name = false,
-          server_type = "cpx31",
+          server_type = "cx42",
           labels = ["my.extra.label=slightlybiggernode"]
           placement_group = "agent-large-pg-2",
         },
