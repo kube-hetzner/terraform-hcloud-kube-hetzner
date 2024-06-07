@@ -366,7 +366,7 @@ Example nodepool configuration:
 ```tf
 {
   name        = "egress",
-  server_type = "cpx11",
+  server_type = "cx22",
   location    = "fsn1",
   labels = [
     "node.kubernetes.io/role=egress"
