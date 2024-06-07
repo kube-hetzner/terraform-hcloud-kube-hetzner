@@ -186,7 +186,7 @@ module "kube-hetzner" {
     },
     {
       name        = "agent-large",
-      server_type = "cpx21",
+      server_type = "cx32",
       location    = "nbg1",
       labels      = [],
       taints      = [],
@@ -200,7 +200,7 @@ module "kube-hetzner" {
     },
     {
       name        = "storage",
-      server_type = "cpx21",
+      server_type = "cx32",
       location    = "fsn1",
       # Fully optional, just a demo.
       labels      = [
@@ -223,7 +223,7 @@ module "kube-hetzner" {
     # See the https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#examples for an example use case.
     {
       name        = "egress",
-      server_type = "cx21",
+      server_type = "cx22",
       location    = "fsn1",
       labels = [
         "node.kubernetes.io/role=egress"
@@ -323,7 +323,7 @@ module "kube-hetzner" {
   # autoscaler_nodepools = [
   #   {
   #     name        = "autoscaled-small"
-  #     server_type = "cpx21"
+  #     server_type = "cx32"
   #     location    = "fsn1"
   #     min_nodes   = 0
   #     max_nodes   = 5
