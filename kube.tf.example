@@ -750,6 +750,11 @@ module "kube-hetzner" {
   # In which case, you need to define that hostname in the k3s TLS-SANs config to allow connection through it. It can be hostnames or IP addresses.
   # additional_tls_sans = ["cp.cluster.my.org"]
 
+  # If you create a hostname with multiple A records pointing to all of your
+  # control-plane nodes ips, you may want to use that hostname in the generated
+  # kubeconfig.
+  # kubeconfig_server_address = "cp.cluster.my.org"
+
   # lb_hostname Configuration:
   #
   # Purpose:
