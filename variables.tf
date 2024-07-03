@@ -805,6 +805,12 @@ variable "lb_hostname" {
   }
 }
 
+variable "kubeconfig_server_address" {
+  type        = string
+  default     = ""
+  description = "The hostname used for kubeconfig."
+}
+
 variable "rancher_registration_manifest_url" {
   type        = string
   description = "The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/)."
