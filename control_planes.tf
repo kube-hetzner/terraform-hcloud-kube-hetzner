@@ -102,7 +102,7 @@ locals {
       advertise-address           = module.control_planes[k].private_ipv4_address
       node-label                  = v.labels
       node-taint                  = v.taints
-      selinux                     = true
+      selinux                     = v.disable_selinux == true ? {} : { selinux = true }
       cluster-cidr                = var.cluster_ipv4_cidr
       service-cidr                = var.service_ipv4_cidr
       cluster-dns                 = var.cluster_dns_ipv4
@@ -178,7 +178,7 @@ resource "null_resource" "control_planes" {
     inline = [
       "systemctl start k3s 2> /dev/null",
       # prepare the needed directories
-      "mkdir -p /var/post_install /var/user_kustomize",
+      "mkdir -p /var/post_install /var.user_kustomize",
       # wait for the server to be ready
       <<-EOT
       timeout 360 bash <<EOF
