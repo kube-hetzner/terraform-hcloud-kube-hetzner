@@ -24,13 +24,34 @@ runcmd:
 
 ${cloudinit_runcmd_common}
 
+# See https://en.opensuse.org/SDB:Partitioning#Creating_a_btrfs_swapfile
+# And https://en.opensuse.org/openSUSE:Snapper_Tutorial#Swapfile
+# according to https://btrfs.readthedocs.io/en/latest/Swapfile.html we need to somehow run swapon -a after reboot
+# Due to some `swapon: /var/lib/swap/swapfile: swapon failed: Read-only file system`
+# I use separate systemd script
 %{if swap_size != ""~}
 - |
-  transactional-update --continue shell <<- EOF
-    fallocate -l ${swap_size} /var/swapfile
-    chmod 600 /var/swapfile
-    mkswap /var/swapfile
-    swapon /var/swapfile
-    echo '/var/swapfile swap swap defaults 0 0' >> /etc/fstab
+  btrfs subvolume create /var/lib/swap
+  chmod 700 /var/lib/swap
+  truncate -s 0 /var/lib/swap/swapfile
+  chattr +C /var/lib/swap/swapfile
+  fallocate -l 4G /var/lib/swap/swapfile
+  chmod 600 /var/lib/swap/swapfile
+  mkswap /var/lib/swap/swapfile
+  swapon /var/lib/swap/swapfile
+  echo "/var/lib/swap/swapfile none swap defaults 0 0" | sudo tee -a /etc/fstab
+  cat << EOF >> /etc/systemd/system/swapon-late.service
+  [Unit]
+  Description=Activate all swap devices later
+  After=default.target
+
+  [Service]
+  Type=oneshot
+  ExecStart=/sbin/swapon -a
+
+  [Install]
+  WantedBy=default.target
   EOF
+  systemctl daemon-reload
+  systemctl enable swapon-late.service
 %{endif~}
