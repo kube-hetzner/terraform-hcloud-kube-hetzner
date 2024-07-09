@@ -25,9 +25,12 @@ runcmd:
 ${cloudinit_runcmd_common}
 
 %{if swap_size != ""~}
-- [fallocate, '-l', '${swap_size}', '/var/swapfile']
-- [chmod, '600', '/var/swapfile']
-- [mkswap, '/var/swapfile']
-- [swapon, '/var/swapfile']
-- ["sh", "-c", "echo '/var/swapfile swap swap defaults 0 0' >> /etc/fstab"]
+- |
+  transactional-update --continue shell <<- EOF
+    fallocate -l ${swap_size} /var/swapfile
+    chmod 600 /var/swapfile
+    mkswap /var/swapfile
+    swapon /var/swapfile
+    echo '/var/swapfile swap swap defaults 0 0' >> /etc/fstab
+  EOF
 %{endif~}
