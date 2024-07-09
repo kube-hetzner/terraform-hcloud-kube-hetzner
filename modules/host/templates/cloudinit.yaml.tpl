@@ -35,7 +35,7 @@ ${cloudinit_runcmd_common}
   chmod 700 /var/lib/swap
   truncate -s 0 /var/lib/swap/swapfile
   chattr +C /var/lib/swap/swapfile
-  fallocate -l 4G /var/lib/swap/swapfile
+  fallocate -l ${swap_size} /var/lib/swap/swapfile
   chmod 600 /var/lib/swap/swapfile
   mkswap /var/lib/swap/swapfile
   swapon /var/lib/swap/swapfile
