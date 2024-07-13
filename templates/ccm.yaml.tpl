@@ -29,4 +29,11 @@ spec:
               value: "${!using_klipper_lb}"
             - name: "HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS"
               value: "true"
+%{if using_hcloud_robot~}
+            - name: ROBOT_ENABLED
+              value: "true"
+# see https://github.com/hetznercloud/hcloud-cloud-controller-manager/issues/630#issuecomment-2039136344
+            - name: HCLOUD_NETWORK_ROUTES_ENABLED
+              value: "false"
+%{endif~}
 

@@ -6,6 +6,7 @@ locals {
   # If passed, a key already registered within hetzner is used.
   # Otherwise, a new one will be created by the module.
   hcloud_ssh_key_id = var.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.hcloud_ssh_key_id
+  using_hcloud_robot = var.hcloud_robot_user != null && var.hcloud_robot_password != null
 
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
@@ -469,7 +470,10 @@ endpointRoutes:
 
 loadBalancer:
   # Enable LoadBalancer & NodePort XDP Acceleration (direct routing (routingMode=native) is recommended to achieve optimal performance)
-  acceleration: native
+  # vSwitch used to connect bare metal host does not support XDP, so we use
+  # best-effort to make cilium to run accross vSwitch
+  # https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration
+  acceleration: best-effort
 
 bpf:
   # Enable eBPF-based Masquerading ("The eBPF-based implementation is the most efficient implementation")

@@ -137,6 +137,8 @@ resource "null_resource" "kustomization" {
       coalesce(var.traefik_version, "N/A"),
       coalesce(var.nginx_version, "N/A"),
       coalesce(var.haproxy_version, "N/A"),
+      coalesce(var.hcloud_robot_user, "N/A"),
+      coalesce(var.hcloud_robot_password, "N/A"),
     ])
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
@@ -201,6 +203,7 @@ resource "null_resource" "kustomization" {
         cluster_cidr_ipv4   = var.cluster_ipv4_cidr
         default_lb_location = var.load_balancer_location
         using_klipper_lb    = local.using_klipper_lb
+        using_hcloud_robot  = local.using_hcloud_robot
     })
     destination = "/var/post_install/ccm.yaml"
   }
@@ -295,7 +298,10 @@ resource "null_resource" "kustomization" {
   provisioner "remote-exec" {
     inline = [
       "set -ex",
-      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
+        local.using_hcloud_robot ?
+        "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --from-literal=robot-user=${var.hcloud_robot_user} --from-literal=robot-password=${var.hcloud_robot_password} --dry-run=client -o yaml | kubectl apply -f -"
+        :
+        "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
       local.csi_version != null ? "curl https://raw.githubusercontent.com/hetznercloud/csi-driver/${coalesce(local.csi_version, "v2.4.0")}/deploy/kubernetes/hcloud-csi.yml -o /var/post_install/hcloud-csi.yml" : "echo 'Skipping hetzner csi.'"
     ]

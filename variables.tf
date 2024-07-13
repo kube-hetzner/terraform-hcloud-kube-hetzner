@@ -4,6 +4,20 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "hcloud_robot_user" {
+  description = "Hetzner Robot User."
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
+variable "hcloud_robot_password" {
+  description = "Hetzner Robot Password."
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
 variable "k3s_token" {
   description = "k3s master token (must match when restoring a cluster)."
   type        = string
@@ -674,7 +688,7 @@ variable "cilium_values" {
 
 variable "cilium_version" {
   type        = string
-  default     = "1.15.1"
+  default     = "1.15.7"
   description = "Version of Cilium."
 }
 
