@@ -119,6 +119,7 @@ resource "null_resource" "kustomization" {
       local.nginx_values,
       local.haproxy_values,
       local.calico_values,
+      local.ccm_values,
       local.cilium_values,
       local.longhorn_values,
       local.csi_driver_smb_values,
@@ -200,10 +201,8 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/ccm.yaml.tpl",
       {
-        cluster_cidr_ipv4   = var.cluster_ipv4_cidr
-        default_lb_location = var.load_balancer_location
-        using_klipper_lb    = local.using_klipper_lb
-        using_hcloud_robot  = local.using_hcloud_robot
+        version = var.hetzner_ccm_version
+        values  = indent(4, trimspace(local.ccm_values))
     })
     destination = "/var/post_install/ccm.yaml"
   }

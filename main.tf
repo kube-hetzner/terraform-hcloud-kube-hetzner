@@ -1,3 +1,8 @@
+provider "hetzner-robot" {
+  username = var.hcloud_robot_user
+  password = var.hcloud_robot_password
+}
+
 resource "random_password" "k3s_token" {
   length  = 48
   special = false
@@ -27,10 +32,25 @@ resource "hcloud_network" "k3s" {
   name     = var.cluster_name
   ip_range = var.network_ipv4_cidr
   labels   = local.labels
+  expose_routes_to_vswitch = local.using_hcloud_robot
 }
+
+# resource "hetzner-robot_vswitch" "k3s" {
+#   count = local.using_hcloud_robot && var.vswitch_id == null ? 1 : 0
+#   vlan = var.vlan_id
+# }
 
 data "hcloud_network" "k3s" {
   id = local.use_existing_network ? var.existing_network_id[0] : hcloud_network.k3s[0].id
+}
+
+resource "hcloud_network_subnet" "vswitch" {
+  count        = local.using_hcloud_robot ? 1 : 0
+  network_id   = data.hcloud_network.k3s.id
+  type         = "vswitch"
+  network_zone = var.network_region
+  ip_range     = local.network_ipv4_subnets[100]
+  vswitch_id   = var.vswitch_id
 }
 
 # We start from the end of the subnets cidr array,

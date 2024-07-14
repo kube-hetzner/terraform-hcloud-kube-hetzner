@@ -17,5 +17,9 @@ terraform {
       source  = "tenstad/remote"
       version = ">= 0.1.2"
     }
+    hetzner-robot = {
+      source  = "strng-solutions/hetzner-robot"
+      version = "3.4.0"
+    }
   }
 }

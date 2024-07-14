@@ -6,12 +6,11 @@ locals {
   # If passed, a key already registered within hetzner is used.
   # Otherwise, a new one will be created by the module.
   hcloud_ssh_key_id = var.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.hcloud_ssh_key_id
-  using_hcloud_robot = var.hcloud_robot_user != "" && var.hcloud_robot_password != ""
+  using_hcloud_robot = var.hcloud_robot_user != "" && var.hcloud_robot_password != "" && var.vswitch_id != ""
 
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
 
-  ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
   calico_version = length(data.github_release.calico) == 0 ? var.calico_version : data.github_release.calico[0].release_tag
@@ -75,7 +74,7 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
+        "ccm.yaml",
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/9e7e45c1bdd528093da36be1f1f32472469005e6/manifests/system-upgrade-controller.yaml",
       ],
@@ -435,6 +434,38 @@ locals {
   kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
+
+  # Not to be confused with the other helm values, this is used for the calico.yaml kustomize patch
+  # It also serves as a stub for a potential future use via helm values
+  ccm_values = var.ccm_values != "" ? var.ccm_values : <<EOT
+args:
+  leader-elect: "false"
+  allocate-node-cidrs: "true"
+%{if local.using_klipper_lb~}
+  secure-port: 10288
+%{endif~}
+networking:
+  enabled: true
+  clusterCIDR: ${var.cluster_ipv4_cidr}
+env:
+  HCLOUD_LOAD_BALANCERS_LOCATION:
+    value: "${var.load_balancer_location}"
+  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_ENABLED:
+    value: "${!local.using_klipper_lb}"
+  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
+    value: "true"
+%{if local.using_hcloud_robot~}
+  # see https://github.com/hetznercloud/hcloud-cloud-controller-manager/issues/630#issuecomment-2039136344
+  HCLOUD_NETWORK_ROUTES_ENABLED:
+    value: "false"
+  HCLOUD_DEBUG:
+    value: "1"
+%{endif~}
+robot:
+  enabled: ${local.using_hcloud_robot}
+  EOT
 
   cilium_values = var.cilium_values != "" ? var.cilium_values : <<EOT
 # Enable Kubernetes host-scope IPAM mode (required for K3s + Hetzner CCM)

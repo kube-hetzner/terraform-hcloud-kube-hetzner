@@ -1,3 +1,10 @@
+resource "local_file" "ccm_values" {
+  count           = var.export_values ? 1 : 0
+  content         = local.ccm_values
+  filename        = "ccm_values.yaml"
+  file_permission = "600"
+}
+
 resource "local_file" "cilium_values" {
   count           = var.export_values && var.cni_plugin == "cilium" ? 1 : 0
   content         = local.cilium_values
