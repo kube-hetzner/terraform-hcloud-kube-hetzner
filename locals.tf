@@ -6,7 +6,7 @@ locals {
   # If passed, a key already registered within hetzner is used.
   # Otherwise, a new one will be created by the module.
   hcloud_ssh_key_id = var.hcloud_ssh_key_id == null ? hcloud_ssh_key.k3s[0].id : var.hcloud_ssh_key_id
-  using_hcloud_robot = var.hcloud_robot_user != null && var.hcloud_robot_password != null
+  using_hcloud_robot = var.hcloud_robot_user != "" && var.hcloud_robot_password != ""
 
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token

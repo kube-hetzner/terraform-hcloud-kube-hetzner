@@ -8,14 +8,14 @@ variable "hcloud_robot_user" {
   description = "Hetzner Robot User."
   type        = string
   sensitive   = true
-  default     = null
+  default     = ""
 }
 
 variable "hcloud_robot_password" {
   description = "Hetzner Robot Password."
   type        = string
   sensitive   = true
-  default     = null
+  default     = ""
 }
 
 variable "k3s_token" {
