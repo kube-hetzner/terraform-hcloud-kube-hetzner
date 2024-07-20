@@ -697,14 +697,14 @@ variable "enable_longhorn" {
 }
 
 variable "longhorn_version" {
-  type = string
-  default = "*"
+  type        = string
+  default     = "*"
   description = "Version of longhorn."
 }
 
 variable "longhorn_helmchart_bootstrap" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Whether the HelmChart longhorn shall be run on control-plane nodes."
 }
 
@@ -761,14 +761,14 @@ variable "enable_csi_driver_smb" {
 }
 
 variable "csi_driver_smb_version" {
-  type = string
-  default = "*"
+  type        = string
+  default     = "*"
   description = "Version of csi_driver_smb."
 }
 
 variable "csi_driver_smb_helmchart_bootstrap" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Whether the HelmChart csi_driver_smb shall be run on control-plane nodes."
 }
 
@@ -785,14 +785,14 @@ variable "enable_cert_manager" {
 }
 
 variable "cert_manager_version" {
-  type = string
-  default = "*"
+  type        = string
+  default     = "*"
   description = "Version of cert_manager."
 }
 
 variable "cert_manager_helmchart_bootstrap" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Whether the HelmChart cert_manager shall be run on control-plane nodes."
 }
 
@@ -809,14 +809,14 @@ variable "enable_rancher" {
 }
 
 variable "rancher_version" {
-  type = string
-  default = "*"
+  type        = string
+  default     = "*"
   description = "Version of rancher."
 }
 
 variable "rancher_helmchart_bootstrap" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Whether the HelmChart rancher shall be run on control-plane nodes."
 }
 
