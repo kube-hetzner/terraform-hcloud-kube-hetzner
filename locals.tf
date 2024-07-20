@@ -529,6 +529,8 @@ spec:
 
   EOT
 
+  longhorn_version = "*"
+  longhorn_bootstrap = false
   longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT
 defaultSettings:
 %{if length(var.autoscaler_nodepools) != 0~}
@@ -541,6 +543,8 @@ persistence:
   %{if var.disable_hetzner_csi~}defaultClass: true%{else~}defaultClass: false%{endif~}
   EOT
 
+  csi_driver_smb_version = "*"
+  csi_driver_smb_bootstrap = false
   csi_driver_smb_values = var.csi_driver_smb_values != "" ? var.csi_driver_smb_values : <<EOT
   EOT
 
@@ -738,6 +742,8 @@ autoscaling:
 %{endif~}
   EOT
 
+rancher_version = "*"
+rancher_bootstrap = false
 rancher_values = var.rancher_values != "" ? var.rancher_values : <<EOT
 hostname: "${var.rancher_hostname != "" ? var.rancher_hostname : var.lb_hostname}"
 replicas: ${length(local.control_plane_nodes)}
@@ -748,6 +754,8 @@ global:
       enabled: false
   EOT
 
+cert_manager_version = "*"
+cert_manager_bootstrap = false
 cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
 installCRDs: true
   EOT

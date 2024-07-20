@@ -245,6 +245,8 @@ resource "null_resource" "kustomization" {
       {
         longhorn_namespace  = var.longhorn_namespace
         longhorn_repository = var.longhorn_repository
+        version             = local.longhorn_version
+        bootstrap           = local.longhorn_bootstrap
         values              = indent(4, trimspace(local.longhorn_values))
     })
     destination = "/var/post_install/longhorn.yaml"
@@ -255,7 +257,9 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/csi-driver-smb.yaml.tpl",
       {
-        values = indent(4, trimspace(local.csi_driver_smb_values))
+        version   = local.csi_driver_smb_version
+        bootstrap = local.csi_driver_smb_bootstrap
+        values    = indent(4, trimspace(local.csi_driver_smb_values))
     })
     destination = "/var/post_install/csi-driver-smb.yaml"
   }
@@ -265,7 +269,9 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cert_manager.yaml.tpl",
       {
-        values = indent(4, trimspace(local.cert_manager_values))
+        version   = local.cert_manager_version
+        bootstrap = local.cert_manager_bootstrap
+        values    = indent(4, trimspace(local.cert_manager_values))
     })
     destination = "/var/post_install/cert_manager.yaml"
   }
@@ -276,6 +282,8 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/rancher.yaml.tpl",
       {
         rancher_install_channel = var.rancher_install_channel
+        version                 = local.rancher_version
+        bootstrap               = local.rancher_bootstrap
         values                  = indent(4, trimspace(local.rancher_values))
     })
     destination = "/var/post_install/rancher.yaml"

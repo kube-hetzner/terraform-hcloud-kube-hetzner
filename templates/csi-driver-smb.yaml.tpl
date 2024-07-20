@@ -7,6 +7,8 @@ metadata:
 spec:
   chart: csi-driver-smb
   repo: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts
+  version: "${version}"
   targetNamespace: kube-system
+  bootstrap: ${bootstrap}
   valuesContent: |-
     ${values}
