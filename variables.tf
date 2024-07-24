@@ -357,6 +357,13 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud."
 }
 
+variable "hetzner_csi_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to hetzner csi as 'valuesContent' at the HelmChart."
+}
+
+
 variable "restrict_outbound_traffic" {
   type        = bool
   default     = true
