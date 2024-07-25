@@ -6,6 +6,16 @@ write_files:
 
 ${cloudinit_write_files_common}
 
+# Apply DNS config
+%{ if has_dns_servers ~}
+manage_resolv_conf: true
+resolv_conf:
+  nameservers:
+%{ for dns_server in dns_servers ~}
+    - ${dns_server}
+%{ endfor ~}
+%{ endif ~}
+
 # Add ssh authorized keys
 ssh_authorized_keys:
 %{ for key in sshAuthorizedKeys ~}
