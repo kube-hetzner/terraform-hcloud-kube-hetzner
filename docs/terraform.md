@@ -104,7 +104,9 @@
 | <a name="input_block_icmp_ping_in"></a> [block\_icmp\_ping\_in](#input\_block\_icmp\_ping\_in) | Block entering ICMP ping. | `bool` | `false` | no |
 | <a name="input_calico_values"></a> [calico\_values](#input\_calico\_values) | Just a stub for a future helm implementation. Now it can be used to replace the calico kustomize patch of the calico manifest. | `string` | `""` | no |
 | <a name="input_calico_version"></a> [calico\_version](#input\_calico\_version) | Version of Calico. | `string` | `null` | no |
+| <a name="input_cert_manager_helmchart_bootstrap"></a> [cert\_manager\_helmchart\_bootstrap](#input\_cert\_manager\_helmchart\_bootstrap) | Whether the HelmChart cert\_manager shall be run on control-plane nodes. | `bool` | `false` | no |
 | <a name="input_cert_manager_values"></a> [cert\_manager\_values](#input\_cert\_manager\_values) | Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. | `string` | `""` | no |
+| <a name="input_cert_manager_version"></a> [cert\_manager\_version](#input\_cert\_manager\_version) | Version of cert\_manager. | `string` | `"*"` | no |
 | <a name="input_cilium_egress_gateway_enabled"></a> [cilium\_egress\_gateway\_enabled](#input\_cilium\_egress\_gateway\_enabled) | Enables egress gateway to redirect and SNAT the traffic that leaves the cluster. | `bool` | `false` | no |
 | <a name="input_cilium_hubble_enabled"></a> [cilium\_hubble\_enabled](#input\_cilium\_hubble\_enabled) | Enables Hubble Observability to collect and visualize network traffic. | `bool` | `false` | no |
 | <a name="input_cilium_hubble_metrics_enabled"></a> [cilium\_hubble\_metrics\_enabled](#input\_cilium\_hubble\_metrics\_enabled) | Configures the list of Hubble metrics to collect | `list(string)` | `[]` | no |
@@ -129,7 +131,9 @@
 | <a name="input_control_planes_custom_config"></a> [control\_planes\_custom\_config](#input\_control\_planes\_custom\_config) | Custom control plane configuration e.g to allow etcd monitoring. | `any` | `{}` | no |
 | <a name="input_create_kubeconfig"></a> [create\_kubeconfig](#input\_create\_kubeconfig) | Create the kubeconfig as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |
 | <a name="input_create_kustomization"></a> [create\_kustomization](#input\_create\_kustomization) | Create the kustomization backup as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |
+| <a name="input_csi_driver_smb_helmchart_bootstrap"></a> [csi\_driver\_smb\_helmchart\_bootstrap](#input\_csi\_driver\_smb\_helmchart\_bootstrap) | Whether the HelmChart csi\_driver\_smb shall be run on control-plane nodes. | `bool` | `false` | no |
 | <a name="input_csi_driver_smb_values"></a> [csi\_driver\_smb\_values](#input\_csi\_driver\_smb\_values) | Additional helm values file to pass to csi-driver-smb as 'valuesContent' at the HelmChart. | `string` | `""` | no |
+| <a name="input_csi_driver_smb_version"></a> [csi\_driver\_smb\_version](#input\_csi\_driver\_smb\_version) | Version of csi\_driver\_smb. | `string` | `"*"` | no |
 | <a name="input_disable_hetzner_csi"></a> [disable\_hetzner\_csi](#input\_disable\_hetzner\_csi) | Disable hetzner csi driver. | `bool` | `false` | no |
 | <a name="input_disable_kube_proxy"></a> [disable\_kube\_proxy](#input\_disable\_kube\_proxy) | Disable kube-proxy in K3s (default false). | `bool` | `false` | no |
 | <a name="input_disable_network_policy"></a> [disable\_network\_policy](#input\_disable\_network\_policy) | Disable k3s default network policy controller (default false, automatically true for calico and cilium). | `bool` | `false` | no |
@@ -161,6 +165,7 @@
 | <a name="input_hcloud_ssh_key_id"></a> [hcloud\_ssh\_key\_id](#input\_hcloud\_ssh\_key\_id) | If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module. | `string` | `null` | no |
 | <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token. | `string` | n/a | yes |
 | <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. | `string` | `null` | no |
+| <a name="input_hetzner_csi_values"></a> [hetzner\_csi\_values](#input\_hetzner\_csi\_values) | Additional helm values file to pass to hetzner csi as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_hetzner_csi_version"></a> [hetzner\_csi\_version](#input\_hetzner\_csi\_version) | Version of Container Storage Interface driver for Hetzner Cloud. | `string` | `null` | no |
 | <a name="input_ingress_controller"></a> [ingress\_controller](#input\_ingress\_controller) | The name of the ingress controller. | `string` | `"traefik"` | no |
 | <a name="input_ingress_max_replica_count"></a> [ingress\_max\_replica\_count](#input\_ingress\_max\_replica\_count) | Number of maximum replicas per ingress controller. Used for ingress HPA. Must be higher than number of replicas. | `number` | `10` | no |
@@ -177,6 +182,7 @@
 | <a name="input_k3s_token"></a> [k3s\_token](#input\_k3s\_token) | k3s master token (must match when restoring a cluster). | `string` | `null` | no |
 | <a name="input_keep_disk_agents"></a> [keep\_disk\_agents](#input\_keep\_disk\_agents) | Whether to keep OS disks of nodes the same size when upgrading an agent node | `bool` | `false` | no |
 | <a name="input_keep_disk_cp"></a> [keep\_disk\_cp](#input\_keep\_disk\_cp) | Whether to keep OS disks of nodes the same size when upgrading a control-plane node | `bool` | `false` | no |
+| <a name="input_kubeconfig_server_address"></a> [kubeconfig\_server\_address](#input\_kubeconfig\_server\_address) | The hostname used for kubeconfig. | `string` | `""` | no |
 | <a name="input_kured_options"></a> [kured\_options](#input\_kured\_options) | n/a | `map(string)` | `{}` | no |
 | <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured. | `string` | `null` | no |
 | <a name="input_lb_hostname"></a> [lb\_hostname](#input\_lb\_hostname) | The Hetzner Load Balancer hostname, for either Traefik, HAProxy or Ingress-Nginx. | `string` | `""` | no |
@@ -189,10 +195,12 @@
 | <a name="input_load_balancer_location"></a> [load\_balancer\_location](#input\_load\_balancer\_location) | Default load balancer location. | `string` | `"fsn1"` | no |
 | <a name="input_load_balancer_type"></a> [load\_balancer\_type](#input\_load\_balancer\_type) | Default load balancer server type. | `string` | `"lb11"` | no |
 | <a name="input_longhorn_fstype"></a> [longhorn\_fstype](#input\_longhorn\_fstype) | The longhorn fstype. | `string` | `"ext4"` | no |
+| <a name="input_longhorn_helmchart_bootstrap"></a> [longhorn\_helmchart\_bootstrap](#input\_longhorn\_helmchart\_bootstrap) | Whether the HelmChart longhorn shall be run on control-plane nodes. | `bool` | `false` | no |
 | <a name="input_longhorn_namespace"></a> [longhorn\_namespace](#input\_longhorn\_namespace) | Namespace for longhorn deployment, defaults to 'longhorn-system' | `string` | `"longhorn-system"` | no |
 | <a name="input_longhorn_replica_count"></a> [longhorn\_replica\_count](#input\_longhorn\_replica\_count) | Number of replicas per longhorn volume. | `number` | `3` | no |
 | <a name="input_longhorn_repository"></a> [longhorn\_repository](#input\_longhorn\_repository) | By default the official chart which may be incompatible with rancher is used. If you need to fully support rancher switch to https://charts.rancher.io. | `string` | `"https://charts.longhorn.io"` | no |
 | <a name="input_longhorn_values"></a> [longhorn\_values](#input\_longhorn\_values) | Additional helm values file to pass to longhorn as 'valuesContent' at the HelmChart. | `string` | `""` | no |
+| <a name="input_longhorn_version"></a> [longhorn\_version](#input\_longhorn\_version) | Version of longhorn. | `string` | `"*"` | no |
 | <a name="input_microos_arm_snapshot_id"></a> [microos\_arm\_snapshot\_id](#input\_microos\_arm\_snapshot\_id) | MicroOS ARM snapshot ID to be used. Per default empty, the most recent image created using createkh will be used | `string` | `""` | no |
 | <a name="input_microos_x86_snapshot_id"></a> [microos\_x86\_snapshot\_id](#input\_microos\_x86\_snapshot\_id) | MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used | `string` | `""` | no |
 | <a name="input_network_ipv4_cidr"></a> [network\_ipv4\_cidr](#input\_network\_ipv4\_cidr) | The main network cidr that all subnets will be created upon. | `string` | `"10.0.0.0/8"` | no |
@@ -203,10 +211,12 @@
 | <a name="input_postinstall_exec"></a> [postinstall\_exec](#input\_postinstall\_exec) | Additional to execute after the install calls, for example restoring a backup. | `list(string)` | `[]` | no |
 | <a name="input_preinstall_exec"></a> [preinstall\_exec](#input\_preinstall\_exec) | Additional to execute before the install calls, for example fetching and installing certs. | `list(string)` | `[]` | no |
 | <a name="input_rancher_bootstrap_password"></a> [rancher\_bootstrap\_password](#input\_rancher\_bootstrap\_password) | Rancher bootstrap password. | `string` | `""` | no |
+| <a name="input_rancher_helmchart_bootstrap"></a> [rancher\_helmchart\_bootstrap](#input\_rancher\_helmchart\_bootstrap) | Whether the HelmChart rancher shall be run on control-plane nodes. | `bool` | `false` | no |
 | <a name="input_rancher_hostname"></a> [rancher\_hostname](#input\_rancher\_hostname) | The rancher hostname. | `string` | `""` | no |
 | <a name="input_rancher_install_channel"></a> [rancher\_install\_channel](#input\_rancher\_install\_channel) | The rancher installation channel. | `string` | `"stable"` | no |
 | <a name="input_rancher_registration_manifest_url"></a> [rancher\_registration\_manifest\_url](#input\_rancher\_registration\_manifest\_url) | The url of a rancher registration manifest to apply. (see https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/). | `string` | `""` | no |
 | <a name="input_rancher_values"></a> [rancher\_values](#input\_rancher\_values) | Additional helm values file to pass to Rancher as 'valuesContent' at the HelmChart. | `string` | `""` | no |
+| <a name="input_rancher_version"></a> [rancher\_version](#input\_rancher\_version) | Version of rancher. | `string` | `"*"` | no |
 | <a name="input_restrict_outbound_traffic"></a> [restrict\_outbound\_traffic](#input\_restrict\_outbound\_traffic) | Whether or not to restrict the outbound traffic. | `bool` | `true` | no |
 | <a name="input_service_ipv4_cidr"></a> [service\_ipv4\_cidr](#input\_service\_ipv4\_cidr) | Internal Service CIDR, used for the controller and currently for calico/cilium. | `string` | `"10.43.0.0/16"` | no |
 | <a name="input_ssh_additional_public_keys"></a> [ssh\_additional\_public\_keys](#input\_ssh\_additional\_public\_keys) | Additional SSH public Keys. Use them to grant other team members root access to your cluster nodes. | `list(string)` | `[]` | no |

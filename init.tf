@@ -245,6 +245,8 @@ resource "null_resource" "kustomization" {
       {
         longhorn_namespace  = var.longhorn_namespace
         longhorn_repository = var.longhorn_repository
+        version             = var.longhorn_version
+        bootstrap           = var.longhorn_helmchart_bootstrap
         values              = indent(4, trimspace(local.longhorn_values))
     })
     destination = "/var/post_install/longhorn.yaml"
@@ -253,9 +255,22 @@ resource "null_resource" "kustomization" {
   # Upload the csi-driver-smb config
   provisioner "file" {
     content = templatefile(
+      "${path.module}/templates/hcloud-csi.yaml.tpl",
+      {
+        version = local.csi_version
+        values  = indent(4, trimspace(var.hetzner_csi_values))
+    })
+    destination = "/var/post_install/hcloud-csi.yaml"
+  }
+
+  # Upload the csi-driver-smb config
+  provisioner "file" {
+    content = templatefile(
       "${path.module}/templates/csi-driver-smb.yaml.tpl",
       {
-        values = indent(4, trimspace(local.csi_driver_smb_values))
+        version   = var.csi_driver_smb_version
+        bootstrap = var.csi_driver_smb_helmchart_bootstrap
+        values    = indent(4, trimspace(local.csi_driver_smb_values))
     })
     destination = "/var/post_install/csi-driver-smb.yaml"
   }
@@ -265,7 +280,9 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cert_manager.yaml.tpl",
       {
-        values = indent(4, trimspace(local.cert_manager_values))
+        version   = var.cert_manager_version
+        bootstrap = var.cert_manager_helmchart_bootstrap
+        values    = indent(4, trimspace(local.cert_manager_values))
     })
     destination = "/var/post_install/cert_manager.yaml"
   }
@@ -276,6 +293,8 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/rancher.yaml.tpl",
       {
         rancher_install_channel = var.rancher_install_channel
+        version                 = var.rancher_version
+        bootstrap               = var.rancher_helmchart_bootstrap
         values                  = indent(4, trimspace(local.rancher_values))
     })
     destination = "/var/post_install/rancher.yaml"
@@ -297,7 +316,6 @@ resource "null_resource" "kustomization" {
       "set -ex",
       "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
       "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
-      local.csi_version != null ? "curl https://raw.githubusercontent.com/hetznercloud/csi-driver/${coalesce(local.csi_version, "v2.4.0")}/deploy/kubernetes/hcloud-csi.yml -o /var/post_install/hcloud-csi.yml" : "echo 'Skipping hetzner csi.'"
     ]
   }
 

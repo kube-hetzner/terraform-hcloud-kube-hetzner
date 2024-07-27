@@ -12,6 +12,8 @@ metadata:
 spec:
   chart: cert-manager
   repo: https://charts.jetstack.io
+  version: "${version}"
   targetNamespace: cert-manager
+  bootstrap: ${bootstrap}
   valuesContent: |-
     ${values}

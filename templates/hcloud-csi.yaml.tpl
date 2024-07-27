@@ -2,13 +2,13 @@
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
 metadata:
-  name: csi-driver-smb
+  name: hcloud-csi
   namespace: kube-system
 spec:
-  chart: csi-driver-smb
-  repo: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/charts
+  chart: hcloud-csi
+  repo: https://charts.hetzner.cloud
   version: "${version}"
   targetNamespace: kube-system
-  bootstrap: ${bootstrap}
+  bootstrap: true
   valuesContent: |-
     ${values}
