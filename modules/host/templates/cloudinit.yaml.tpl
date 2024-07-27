@@ -24,11 +24,6 @@ runcmd:
 
 ${cloudinit_runcmd_common}
 
-# See https://en.opensuse.org/SDB:Partitioning#Creating_a_btrfs_swapfile
-# And https://en.opensuse.org/openSUSE:Snapper_Tutorial#Swapfile
-# according to https://btrfs.readthedocs.io/en/latest/Swapfile.html we need to somehow run swapon -a after reboot
-# Due to some `swapon: /var/lib/swap/swapfile: swapon failed: Read-only file system`
-# I use separate systemd script
 %{if swap_size != ""~}
 - |
   btrfs subvolume create /var/lib/swap
