@@ -546,8 +546,8 @@ variable "initial_k3s_channel" {
 }
 
 variable "install_k3s_version" {
-  type = string
-  default = ""
+  type        = string
+  default     = ""
   description = "Allows you to specify the k3s version (Example: v1.29.6+k3s2). Supersedes initial_k3s_channel."
 }
 
