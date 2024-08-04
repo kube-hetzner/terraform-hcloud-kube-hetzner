@@ -24,11 +24,10 @@ spec:
   prepare:
     image: rancher/k3s-upgrade
     args: ["prepare", "k3s-server"]
-  %{ if drain }drain:
+  drain:
     force: true
     disableEviction: ${disable_eviction}
-    skipWaitForDeleteTimeout: 60%{ endif }
-  %{ if !drain }cordon: true%{ endif }
+    skipWaitForDeleteTimeout: 60
   upgrade:
     image: rancher/k3s-upgrade
 ---
