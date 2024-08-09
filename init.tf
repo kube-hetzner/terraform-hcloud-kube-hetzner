@@ -236,6 +236,7 @@ resource "null_resource" "kustomization" {
         channel          = var.initial_k3s_channel
         version          = var.install_k3s_version
         disable_eviction = !var.system_upgrade_enable_eviction
+        drain            = var.system_upgrade_use_drain
     })
     destination = "/var/post_install/plans.yaml"
   }

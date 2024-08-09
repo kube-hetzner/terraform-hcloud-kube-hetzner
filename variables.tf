@@ -557,6 +557,12 @@ variable "system_upgrade_enable_eviction" {
   description = "Whether to directly delete pods during system upgrade (k3s) or evict them. Defaults to true. Disable this on small clusters to avoid system upgrades hanging since pods resisting eviction keep node unschedulable forever. NOTE: turning this off, introduces potential downtime of services of the upgraded nodes."
 }
 
+variable "system_upgrade_use_drain" {
+  type        = bool
+  default     = true
+  description = "Wether using drain (true, the default), which will deletes and transfers all pods to other nodes before a node is being upgraded, or cordon (false), which just prevents schedulung new pods on the node during upgrade and keeps all pods running"
+}
+
 variable "automatically_upgrade_k3s" {
   type        = bool
   default     = true

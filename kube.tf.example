@@ -558,10 +558,17 @@ module "kube-hetzner" {
   # The default is "true" (in HA setup i.e. at least 3 control plane nodes & 2 agents, just keep it enabled since it works flawlessly).
   # automatically_upgrade_k3s = false
 
+  # By default nodes are drained before k3s upgrade, which will delete and transfer all pods to other nodes.
+  # Set this to false to cordon nodes instead, which just prevents scheduling new pods on the node during upgrade
+  # and keeps all pods running. This may be useful if you have pods which are known to be slow to start e.g.
+  # because they have to mount volumes with many files which require to get the right security context applied.
+  system_upgrade_use_drain = true
+
   # During k3s via system-upgrade-manager pods are evicted by default.
   # On small clusters this can lead to hanging upgrades and indefinitely unschedulable nodes,
   # in that case, set this to false to immediately delete pods before upgrading.
   # NOTE: Turning this flag off might lead to downtimes of services (which may be acceptable for your use case)
+  # NOTE: This flag takes effect only when system_upgrade_use_drain is set to true.
   # system_upgrade_enable_eviction = false
 
   # The default is "true" (in HA setup it works wonderfully well, with automatic roll-back to the previous snapshot in case of an issue).
