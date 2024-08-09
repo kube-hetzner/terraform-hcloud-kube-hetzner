@@ -597,10 +597,6 @@ module "kube-hetzner" {
   # The default is "v1.29".
   # initial_k3s_channel = "stable"
 
-  # Allows you to specify the k3s version. If defined, supersedes initial_k3s_channel.
-  # See https://github.com/k3s-io/k3s/releases
-  # install_k3s_version = "v1.30.2+k3s2"
-
   # The cluster name, by default "k3s"
   # cluster_name = ""
 
