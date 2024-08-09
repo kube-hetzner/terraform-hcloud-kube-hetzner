@@ -12,6 +12,8 @@ metadata:
 spec:
   chart: longhorn
   repo: ${longhorn_repository}
+  version: "${version}"
   targetNamespace: ${longhorn_namespace}
+  bootstrap: ${bootstrap}
   valuesContent: |-
     ${values}

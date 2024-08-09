@@ -12,6 +12,8 @@ metadata:
 spec:
   chart: rancher
   repo: https://releases.rancher.com/server-charts/${rancher_install_channel}
+  version: "${version}"
   targetNamespace: cattle-system
+  bootstrap: ${bootstrap}
   valuesContent: |-
     ${values}

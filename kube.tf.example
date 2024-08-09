@@ -28,7 +28,7 @@ module "kube-hetzner" {
 
   # * For local dev, path to the git repo
   # source = "../../kube-hetzner/"
-  # If you want to use the latest master branch
+  # If you want to use the latest master branch, see https://developer.hashicorp.com/terraform/language/modules/sources#github
   # source = "github.com/kube-hetzner/terraform-hcloud-kube-hetzner"
   # For normal use, this is the path to the terraform registry
   source = "kube-hetzner/kube-hetzner/hcloud"
@@ -421,6 +421,7 @@ module "kube-hetzner" {
   # be enabled (with the default settings for etcd snapshots).
   # Cloudflare's R2 offers 10GB, 10 million reads and 1 million writes per month for free.
   # For proper context, have a look at https://docs.k3s.io/datastore/backup-restore.
+  # You also can use additional parameters from https://docs.k3s.io/cli/etcd-snapshot, such as `etc-s3-folder`
   # etcd_s3_backup = {
   #   etcd-s3-endpoint        = "xxxx.r2.cloudflarestorage.com"
   #   etcd-s3-access-key      = "<access-key>"
@@ -567,10 +568,17 @@ module "kube-hetzner" {
   # The default is "true" (in HA setup i.e. at least 3 control plane nodes & 2 agents, just keep it enabled since it works flawlessly).
   # automatically_upgrade_k3s = false
 
+  # By default nodes are drained before k3s upgrade, which will delete and transfer all pods to other nodes.
+  # Set this to false to cordon nodes instead, which just prevents scheduling new pods on the node during upgrade
+  # and keeps all pods running. This may be useful if you have pods which are known to be slow to start e.g.
+  # because they have to mount volumes with many files which require to get the right security context applied.
+  system_upgrade_use_drain = true
+
   # During k3s via system-upgrade-manager pods are evicted by default.
   # On small clusters this can lead to hanging upgrades and indefinitely unschedulable nodes,
   # in that case, set this to false to immediately delete pods before upgrading.
   # NOTE: Turning this flag off might lead to downtimes of services (which may be acceptable for your use case)
+  # NOTE: This flag takes effect only when system_upgrade_use_drain is set to true.
   # system_upgrade_enable_eviction = false
 
   # The default is "true" (in HA setup it works wonderfully well, with automatic roll-back to the previous snapshot in case of an issue).
@@ -642,6 +650,8 @@ module "kube-hetzner" {
   # k3s_exec_agent_args = "--kubelet-arg kube-reserved=cpu=100m,memory=200Mi,ephemeral-storage=1Gi"
 
   # The vars below here passes it to the k3s config.yaml. This way it persist across reboots
+  # Make sure you set "feature-gates=NodeSwap=true,CloudDualStackNodeIPs=true" if want to use swap_size
+  # see https://github.com/k3s-io/k3s/issues/8811#issuecomment-1856974516
   # k3s_global_kubelet_args = ["kube-reserved=cpu=100m,ephemeral-storage=1Gi", "system-reserved=cpu=memory=200Mi", "image-gc-high-threshold=50", "image-gc-low-threshold=40"]
   # k3s_control_plane_kubelet_args = []
   # k3s_agent_kubelet_args = []
@@ -794,9 +804,9 @@ module "kube-hetzner" {
   # lb_hostname = "mycluster.domain.com"
 
   # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
-  # ⚠️ Rancher currently only supports Kubernetes v1.25 and earlier, you will need to set initial_k3s_channel to a supported version: https://github.com/rancher/rancher/issues/41113
+  # ⚠️ Rancher currently only supports Kubernetes v1.28 and earlier, you will need to set initial_k3s_channel to a supported version: https://github.com/rancher/rancher/issues/43110
   # When Rancher is enabled, it automatically installs cert-manager too, and it uses rancher's own self-signed certificates.
-  # See for options https://rancher.com/docs/rancher/v2.0-v2.4/en/installation/resources/advanced/helm2/helm-rancher/#choose-your-ssl-configuration
+  # See for options https://ranchermanager.docs.rancher.com/getting-started/installation-and-upgrade/install-upgrade-on-a-kubernetes-cluster#3-choose-your-ssl-configuration
   # The easiest thing is to leave everything as is (using the default rancher self-signed certificate) and put Cloudflare in front of it.
   # As for the number of replicas, by default it is set to the number of control plane nodes.
   # You can customized all of the above by adding a rancher_values variable see at the end of this file in the advanced section.

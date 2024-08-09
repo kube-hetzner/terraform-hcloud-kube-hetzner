@@ -384,6 +384,13 @@ variable "hetzner_csi_version" {
   description = "Version of Container Storage Interface driver for Hetzner Cloud."
 }
 
+variable "hetzner_csi_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to hetzner csi as 'valuesContent' at the HelmChart."
+}
+
+
 variable "restrict_outbound_traffic" {
   type        = bool
   default     = true
@@ -571,6 +578,12 @@ variable "system_upgrade_enable_eviction" {
   description = "Whether to directly delete pods during system upgrade (k3s) or evict them. Defaults to true. Disable this on small clusters to avoid system upgrades hanging since pods resisting eviction keep node unschedulable forever. NOTE: turning this off, introduces potential downtime of services of the upgraded nodes."
 }
 
+variable "system_upgrade_use_drain" {
+  type        = bool
+  default     = true
+  description = "Wether using drain (true, the default), which will deletes and transfers all pods to other nodes before a node is being upgraded, or cordon (false), which just prevents schedulung new pods on the node during upgrade and keeps all pods running"
+}
+
 variable "automatically_upgrade_k3s" {
   type        = bool
   default     = true
@@ -729,6 +742,18 @@ variable "enable_longhorn" {
   description = "Whether or not to enable Longhorn."
 }
 
+variable "longhorn_version" {
+  type        = string
+  default     = "*"
+  description = "Version of longhorn."
+}
+
+variable "longhorn_helmchart_bootstrap" {
+  type        = bool
+  default     = false
+  description = "Whether the HelmChart longhorn shall be run on control-plane nodes."
+}
+
 variable "longhorn_repository" {
   type        = string
   default     = "https://charts.longhorn.io"
@@ -781,6 +806,18 @@ variable "enable_csi_driver_smb" {
   description = "Whether or not to enable csi-driver-smb."
 }
 
+variable "csi_driver_smb_version" {
+  type        = string
+  default     = "*"
+  description = "Version of csi_driver_smb."
+}
+
+variable "csi_driver_smb_helmchart_bootstrap" {
+  type        = bool
+  default     = false
+  description = "Whether the HelmChart csi_driver_smb shall be run on control-plane nodes."
+}
+
 variable "csi_driver_smb_values" {
   type        = string
   default     = ""
@@ -793,6 +830,18 @@ variable "enable_cert_manager" {
   description = "Enable cert manager."
 }
 
+variable "cert_manager_version" {
+  type        = string
+  default     = "*"
+  description = "Version of cert_manager."
+}
+
+variable "cert_manager_helmchart_bootstrap" {
+  type        = bool
+  default     = false
+  description = "Whether the HelmChart cert_manager shall be run on control-plane nodes."
+}
+
 variable "cert_manager_values" {
   type        = string
   default     = ""
@@ -803,6 +852,18 @@ variable "enable_rancher" {
   type        = bool
   default     = false
   description = "Enable rancher."
+}
+
+variable "rancher_version" {
+  type        = string
+  default     = "*"
+  description = "Version of rancher."
+}
+
+variable "rancher_helmchart_bootstrap" {
+  type        = bool
+  default     = false
+  description = "Whether the HelmChart rancher shall be run on control-plane nodes."
 }
 
 variable "rancher_install_channel" {

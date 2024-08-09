@@ -78,7 +78,7 @@ locals {
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://raw.githubusercontent.com/rancher/system-upgrade-controller/9e7e45c1bdd528093da36be1f1f32472469005e6/manifests/system-upgrade-controller.yaml",
       ],
-      var.disable_hetzner_csi ? [] : ["hcloud-csi.yml"],
+      var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
       var.enable_longhorn ? ["longhorn.yaml"] : [],
@@ -225,7 +225,8 @@ locals {
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
   agent_count            = sum([for v in var.agent_nodepools : length(coalesce(v.nodes, {})) + coalesce(v.count, 0)])
-  is_single_node_cluster = (local.control_plane_count + local.agent_count) == 1
+  autoscaler_max_count   = length(var.autoscaler_nodepools) > 0 ? sum([for v in var.autoscaler_nodepools : v.max_nodes]) : 0
+  is_single_node_cluster = (local.control_plane_count + local.agent_count + local.autoscaler_max_count) == 1
 
   using_klipper_lb = var.enable_klipper_metal_lb || local.is_single_node_cluster
 
