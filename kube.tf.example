@@ -634,6 +634,49 @@ module "kube-hetzner" {
   #   "trust anchor --store /root/ca.crt",
   # ]
 
+  # Structured authentication configuration. Multiple authentication providers support requires v1.30+ of 
+  # kubernetes.  
+  # https://kubernetes.io/docs/reference/access-authn-authz/authentication/#using-authentication-configuration
+  #
+  # authentication_config = <<-EOT
+  #   apiVersion: apiserver.config.k8s.io/v1beta1
+  #   kind: AuthenticationConfiguration
+  #   jwt:
+  #   - issuer:
+  #       url: "https://token.actions.githubusercontent.com"
+  #       audiences:
+  #       - "https://github.com/octo-org"
+  #     claimMappings:
+  #       username:
+  #         claim: sub
+  #         prefix: "gh:"
+  #       groups:
+  #         claim: repository_owner
+  #         prefix: "gh:"
+  #     claimValidationRules:
+  #     - claim: repository
+  #       requiredValue: "octo-org/octo-repo"
+  #     - claim: "repository_visibility"
+  #       requiredValue: "public"
+  #     - claim: "ref"
+  #       requiredValue: "refs/heads/main"
+  #     - claim: "ref_type"
+  #       requiredValue: "branch"
+  #   - issuer:
+  #       url: "https://your.oidc.issuer"
+  #       audiences:
+  #       - "oidc_client_id"
+  #     claimMappings:
+  #       username:
+  #         claim: oidc_username_claim
+  #         prefix: "oidc:"
+  #       groups:
+  #         claim: oidc_groups_claim
+  #         prefix: "oidc:"
+  #   EOT
+
+
+
   # Additional flags to pass to the k3s server command (the control plane).
   # k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
 
