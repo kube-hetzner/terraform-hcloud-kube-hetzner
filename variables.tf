@@ -59,8 +59,8 @@ variable "ssh_additional_public_keys" {
 
 variable "authentication_config" {
   description = "Strucutred authentication configuration. This can be used to define external authentication providers."
-  type    = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "hcloud_ssh_key_id" {
