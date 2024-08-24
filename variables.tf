@@ -57,6 +57,12 @@ variable "ssh_additional_public_keys" {
   default     = []
 }
 
+variable "authentication_config" {
+  description = "Strucutred authentication configuration. This can be used to define external authentication providers."
+  type    = string
+  default = ""
+}
+
 variable "hcloud_ssh_key_id" {
   description = "If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module."
   type        = string
