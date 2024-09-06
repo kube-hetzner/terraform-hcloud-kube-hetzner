@@ -253,12 +253,12 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/longhorn.yaml"
   }
 
-  # Upload the csi-driver-smb config
+  # Upload the csi-driver config (ignored if csi is disabled)
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/hcloud-csi.yaml.tpl",
       {
-        version = local.csi_version
+        version = coalesce(local.csi_version, "N/A")
         values  = indent(4, trimspace(var.hetzner_csi_values))
     })
     destination = "/var/post_install/hcloud-csi.yaml"
