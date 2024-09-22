@@ -544,6 +544,9 @@ persistence:
   csi_driver_smb_values = var.csi_driver_smb_values != "" ? var.csi_driver_smb_values : <<EOT
   EOT
 
+  hetzner_csi_values = var.hetzner_csi_values != "" ? var.hetzner_csi_values : <<EOT
+  EOT
+
   nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
 controller:
   watchIngressWithoutClass: "true"
