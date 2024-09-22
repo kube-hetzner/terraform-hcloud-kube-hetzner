@@ -9,11 +9,11 @@ spec:
     spec:
       containers:
         - name: hcloud-cloud-controller-manager
-          command:
-            - "/bin/hcloud-cloud-controller-manager"
+          args:
             - "--cloud-provider=hcloud"
             - "--leader-elect=false"
             - "--allow-untagged-cloud"
+            - "--route-reconciliation-period=30s"
             - "--allocate-node-cidrs=true"
             - "--cluster-cidr=${cluster_cidr_ipv4}"
             - "--webhook-secure-port=0"
