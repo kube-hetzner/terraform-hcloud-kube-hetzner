@@ -321,23 +321,24 @@ module "kube-hetzner" {
   #
   # * Example below:
   # autoscaler_nodepools = [
-  #   {
-  #     name        = "autoscaled-small"
-  #     server_type = "cx32"
-  #     location    = "fsn1"
-  #     min_nodes   = 0
-  #     max_nodes   = 5
-  #     labels      = {
-  #       "node.kubernetes.io/role": "peak-workloads"
-  #     }
-  #     taints      =
-  #     [{
-  #        key: "node.kubernetes.io/role"
-  #        value: "peak-workloads"
-  #        effect: "NoExecute"
-  #     }]
-  #     # kubelet_args = ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"]
-  #   }
+  #  {
+  #    name        = "autoscaled-small"
+  #    server_type = "cx32"
+  #    location    = "fsn1"
+  #    min_nodes   = 0
+  #    max_nodes   = 5
+  #    labels      = {
+  #      "node.kubernetes.io/role": "peak-workloads"
+  #    }
+  #    taints      = [
+  #      {
+  #       key= "node.kubernetes.io/role"
+  #       value= "peak-workloads"
+  #       effect= "NoExecute"
+  #      }
+  #    ]
+  #    # kubelet_args = ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"]
+  #  }
   # ]
 
   # ⚠️ Deprecated, will be removed after a new Cluster Autoscaler version has been released which support the new way of setting labels and taints. See above.

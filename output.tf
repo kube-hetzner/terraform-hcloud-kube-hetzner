@@ -48,6 +48,16 @@ output "k3s_token" {
   sensitive   = true
 }
 
+output "control_plane_nodes" {
+  description = "The control plane nodes"
+  value       = [for node in module.control_planes : node]
+}
+
+output "agent_nodes" {
+  description = "The agent nodes"
+  value       = [for node in module.agents : node]
+}
+
 # Keeping for backward compatibility
 output "kubeconfig_file" {
   value       = local.kubeconfig_external
