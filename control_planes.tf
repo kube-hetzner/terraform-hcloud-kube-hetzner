@@ -96,6 +96,7 @@ locals {
       disable-kube-proxy          = var.disable_kube_proxy
       disable                     = local.disable_extras
       kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
+      kube-apiserver-arg          = local.kube_apiserver_arg
       kube-controller-manager-arg = local.kube_controller_manager_arg
       flannel-iface               = local.flannel_iface
       node-ip                     = module.control_planes[k].private_ipv4_address
@@ -153,6 +154,38 @@ resource "null_resource" "control_plane_config" {
   ]
 }
 
+
+resource "null_resource" "authentication_config" {
+  for_each = local.control_plane_nodes
+
+  triggers = {
+    control_plane_id      = module.control_planes[each.key].id
+    authentication_config = sha1(var.authentication_config)
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = module.control_planes[each.key].ipv4_address
+    port           = var.ssh_port
+  }
+
+  provisioner "file" {
+    content     = var.authentication_config
+    destination = "/tmp/authentication_config.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [local.k3s_authentication_config_update_script]
+  }
+
+  depends_on = [
+    null_resource.first_control_plane,
+    hcloud_network_subnet.control_plane
+  ]
+}
+
 resource "null_resource" "control_planes" {
   for_each = local.control_plane_nodes
 
@@ -195,6 +228,7 @@ resource "null_resource" "control_planes" {
   depends_on = [
     null_resource.first_control_plane,
     null_resource.control_plane_config,
+    null_resource.authentication_config,
     hcloud_network_subnet.control_plane
   ]
 }
