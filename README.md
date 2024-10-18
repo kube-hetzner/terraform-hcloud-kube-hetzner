@@ -79,7 +79,7 @@ Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terra
 ```sh
 brew tap hashicorp/tap
 brew install hashicorp/tap/terraform # OR brew install opentofu
-brew install packer
+brew install hashicorp/tap/packer
 brew install kubectl
 brew install hcloud
 ```
