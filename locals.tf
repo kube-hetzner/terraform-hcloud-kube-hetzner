@@ -109,7 +109,7 @@ locals {
         patch = <<-EOF
           - op: replace
             path: /spec/template/spec/containers/0/image
-            value: rancher/system-upgrade-controller:v0.13.4
+            value: rancher/system-upgrade-controller:${var.sys_upgrade_controller_version}
         EOF
       },
       {
