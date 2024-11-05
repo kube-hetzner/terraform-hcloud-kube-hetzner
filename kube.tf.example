@@ -418,6 +418,7 @@ module "kube-hetzner" {
   #   etcd-s3-access-key      = "<access-key>"
   #   etcd-s3-secret-key      = "<secret-key>"
   #   etcd-s3-bucket          = "k3s-etcd-snapshots"
+  #   etcd-s3-region          = "<your-s3-bucket-region|usually required for aws>"
   # }
 
   # To enable Hetzner Storage Box support, you can enable csi-driver-smb, default is "false".
