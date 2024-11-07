@@ -123,7 +123,8 @@ resource "null_resource" "kustomization" {
       local.longhorn_values,
       local.csi_driver_smb_values,
       local.cert_manager_values,
-      local.rancher_values
+      local.rancher_values,
+      local.hetzner_csi_values
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
@@ -255,13 +256,13 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/longhorn.yaml"
   }
 
-  # Upload the csi-driver-smb config
+  # Upload the csi-driver config (ignored if csi is disabled)
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/hcloud-csi.yaml.tpl",
       {
         version = local.csi_version
-        values  = indent(4, trimspace(var.hetzner_csi_values))
+        values  = indent(4, trimspace(local.hetzner_csi_values))
     })
     destination = "/var/post_install/hcloud-csi.yaml"
   }

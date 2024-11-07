@@ -321,23 +321,24 @@ module "kube-hetzner" {
   #
   # * Example below:
   # autoscaler_nodepools = [
-  #   {
-  #     name        = "autoscaled-small"
-  #     server_type = "cx32"
-  #     location    = "fsn1"
-  #     min_nodes   = 0
-  #     max_nodes   = 5
-  #     labels      = {
-  #       "node.kubernetes.io/role": "peak-workloads"
-  #     }
-  #     taints      =
-  #     [{
-  #        key: "node.kubernetes.io/role"
-  #        value: "peak-workloads"
-  #        effect: "NoExecute"
-  #     }]
-  #     # kubelet_args = ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"]
-  #   }
+  #  {
+  #    name        = "autoscaled-small"
+  #    server_type = "cx32"
+  #    location    = "fsn1"
+  #    min_nodes   = 0
+  #    max_nodes   = 5
+  #    labels      = {
+  #      "node.kubernetes.io/role": "peak-workloads"
+  #    }
+  #    taints      = [
+  #      {
+  #       key= "node.kubernetes.io/role"
+  #       value= "peak-workloads"
+  #       effect= "NoExecute"
+  #      }
+  #    ]
+  #    # kubelet_args = ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"]
+  #  }
   # ]
 
   # ⚠️ Deprecated, will be removed after a new Cluster Autoscaler version has been released which support the new way of setting labels and taints. See above.
@@ -598,7 +599,7 @@ module "kube-hetzner" {
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to latest - 0.01,
   # ⚠️ Rancher currently only supports v1.25 and earlier versions: https://github.com/rancher/rancher/issues/41113
-  # The default is "v1.29".
+  # The default is "stable".
   # initial_k3s_channel = "stable"
 
   # The cluster name, by default "k3s"
@@ -636,6 +637,49 @@ module "kube-hetzner" {
   #   "curl https://somewhere.over.the.rainbow/ca.crt > /root/ca.crt",
   #   "trust anchor --store /root/ca.crt",
   # ]
+
+  # Structured authentication configuration. Multiple authentication providers support requires v1.30+ of 
+  # kubernetes.  
+  # https://kubernetes.io/docs/reference/access-authn-authz/authentication/#using-authentication-configuration
+  #
+  # authentication_config = <<-EOT
+  #   apiVersion: apiserver.config.k8s.io/v1beta1
+  #   kind: AuthenticationConfiguration
+  #   jwt:
+  #   - issuer:
+  #       url: "https://token.actions.githubusercontent.com"
+  #       audiences:
+  #       - "https://github.com/octo-org"
+  #     claimMappings:
+  #       username:
+  #         claim: sub
+  #         prefix: "gh:"
+  #       groups:
+  #         claim: repository_owner
+  #         prefix: "gh:"
+  #     claimValidationRules:
+  #     - claim: repository
+  #       requiredValue: "octo-org/octo-repo"
+  #     - claim: "repository_visibility"
+  #       requiredValue: "public"
+  #     - claim: "ref"
+  #       requiredValue: "refs/heads/main"
+  #     - claim: "ref_type"
+  #       requiredValue: "branch"
+  #   - issuer:
+  #       url: "https://your.oidc.issuer"
+  #       audiences:
+  #       - "oidc_client_id"
+  #     claimMappings:
+  #       username:
+  #         claim: oidc_username_claim
+  #         prefix: "oidc:"
+  #       groups:
+  #         claim: oidc_groups_claim
+  #         prefix: "oidc:"
+  #   EOT
+
+
 
   # Additional flags to pass to the k3s server command (the control plane).
   # k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
