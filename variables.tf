@@ -542,7 +542,7 @@ variable "enable_metrics_server" {
 
 variable "initial_k3s_channel" {
   type        = string
-  default     = "stable" # Please update kube.tf.example too when changing this variable
+  default     = "v1.30" # Please update kube.tf.example too when changing this variable
   description = "Allows you to specify an initial k3s channel."
 
   validation {
