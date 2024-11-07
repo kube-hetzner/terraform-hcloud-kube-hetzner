@@ -171,7 +171,7 @@
 | <a name="input_ingress_max_replica_count"></a> [ingress\_max\_replica\_count](#input\_ingress\_max\_replica\_count) | Number of maximum replicas per ingress controller. Used for ingress HPA. Must be higher than number of replicas. | `number` | `10` | no |
 | <a name="input_ingress_replica_count"></a> [ingress\_replica\_count](#input\_ingress\_replica\_count) | Number of replicas per ingress controller. 0 means autodetect based on the number of agent nodes. | `number` | `0` | no |
 | <a name="input_ingress_target_namespace"></a> [ingress\_target\_namespace](#input\_ingress\_target\_namespace) | The namespace to deploy the ingress controller to. Defaults to ingress name. | `string` | `""` | no |
-| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.29"` | no |
+| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"stable"` | no |
 | <a name="input_k3s_agent_kubelet_args"></a> [k3s\_agent\_kubelet\_args](#input\_k3s\_agent\_kubelet\_args) | Kubelet args for agent nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_autoscaler_kubelet_args"></a> [k3s\_autoscaler\_kubelet\_args](#input\_k3s\_autoscaler\_kubelet\_args) | Kubelet args for autoscaler nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_control_plane_kubelet_args"></a> [k3s\_control\_plane\_kubelet\_args](#input\_k3s\_control\_plane\_kubelet\_args) | Kubelet args for control plane nodes. | `list(string)` | `[]` | no |
