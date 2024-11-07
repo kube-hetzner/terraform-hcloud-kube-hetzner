@@ -373,7 +373,7 @@ module "kube-hetzner" {
   # Example:
   #
   # cluster_autoscaler_image = "registry.k8s.io/autoscaling/cluster-autoscaler"
-  # cluster_autoscaler_version = "v1.30.1"
+  # cluster_autoscaler_version = "v1.30.3"
   # cluster_autoscaler_log_level = 4
   # cluster_autoscaler_log_to_stderr = true
   # cluster_autoscaler_stderr_threshold = "INFO"
@@ -423,6 +423,8 @@ module "kube-hetzner" {
 
   # To enable Hetzner Storage Box support, you can enable csi-driver-smb, default is "false".
   # enable_csi_driver_smb = true
+  # If you want to specify the version for csi-driver-smb, set it below - otherwise it'll use the latest version available.
+  # csi_driver_smb_version = "v1.16.0"
 
   # To enable iscid without setting enable_longhorn = true, set enable_iscsid = true. You will need this if
   # you install your own version of longhorn outside of this module.
@@ -602,6 +604,9 @@ module "kube-hetzner" {
   # ⚠️ Rancher currently only supports v1.25 and earlier versions: https://github.com/rancher/rancher/issues/41113
   # The default is "stable".
   # initial_k3s_channel = "stable"
+
+  # Allows to specify the version of the System Upgrade Controller for automated upgrades of k3s
+  # sys_upgrade_controller_version = "v0.14.2"
 
   # The cluster name, by default "k3s"
   # cluster_name = ""
