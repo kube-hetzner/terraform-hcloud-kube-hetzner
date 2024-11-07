@@ -270,13 +270,13 @@ variable "agent_nodepools" {
 
 variable "cluster_autoscaler_image" {
   type        = string
-  default     = "docker.io/hetznercloud/cluster-autoscaler"
+  default     = "registry.k8s.io/autoscaling/cluster-autoscaler"
   description = "Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used."
 }
 
 variable "cluster_autoscaler_version" {
   type        = string
-  default     = "v1.31.0-hcloud1"
+  default     = "v1.31.1"
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version"
 }
 
@@ -542,7 +542,7 @@ variable "enable_metrics_server" {
 
 variable "initial_k3s_channel" {
   type        = string
-  default     = "v1.29" # Please update kube.tf.example too when changing this variable
+  default     = "stable" # Please update kube.tf.example too when changing this variable
   description = "Allows you to specify an initial k3s channel."
 
   validation {
