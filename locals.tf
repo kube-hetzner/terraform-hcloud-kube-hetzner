@@ -124,12 +124,21 @@ locals {
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
   swap_node_label   = ["node.kubernetes.io/server-swap=enabled"]
 
-  install_k3s_server = concat(local.common_pre_install_k3s_commands, [
-    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC='server ${var.k3s_exec_server_args}' sh -"
-  ], (var.disable_selinux ? [] : local.apply_k3s_selinux), local.common_post_install_k3s_commands)
-  install_k3s_agent = concat(local.common_pre_install_k3s_commands, [
-    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC='agent ${var.k3s_exec_agent_args}' sh -"
-  ], (var.disable_selinux ? [] : local.apply_k3s_selinux), local.common_post_install_k3s_commands)
+  k3s_install_command = "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true %{if var.install_k3s_version == ""}INSTALL_K3S_CHANNEL=${var.initial_k3s_channel}%{else}INSTALL_K3S_VERSION=${var.install_k3s_version}%{endif} INSTALL_K3S_EXEC='%s' sh -"
+
+  install_k3s_server = concat(
+    local.common_pre_install_k3s_commands,
+    [format(local.k3s_install_command, "server ${var.k3s_exec_server_args}")],
+    var.disable_selinux ? [] : local.apply_k3s_selinux,
+    local.common_post_install_k3s_commands
+  )
+
+  install_k3s_agent = concat(
+    local.common_pre_install_k3s_commands,
+    [format(local.k3s_install_command, "agent ${var.k3s_exec_agent_args}")],
+    var.disable_selinux ? [] : local.apply_k3s_selinux,
+    local.common_post_install_k3s_commands
+  )
 
   control_plane_nodes = merge([
     for pool_index, nodepool_obj in var.control_plane_nodepools : {
