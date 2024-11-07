@@ -603,6 +603,9 @@ module "kube-hetzner" {
   # The default is "stable".
   # initial_k3s_channel = "stable"
 
+  # Allows to specify the version of the System Upgrade Controller for automated upgrades of k3s
+  # sys_upgrade_controller_version = "v0.14.2"
+
   # The cluster name, by default "k3s"
   # cluster_name = ""
 
