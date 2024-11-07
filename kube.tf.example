@@ -592,6 +592,10 @@ module "kube-hetzner" {
   #   "lock-ttl" : "30m",
   # }
 
+  # Allows you to specify the k3s version. If defined, supersedes initial_k3s_channel.
+  # See https://github.com/k3s-io/k3s/releases
+  # install_k3s_version = "v1.30.2+k3s2"
+  
   # Allows you to specify either stable, latest, testing or supported minor versions.
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to latest - 0.01,

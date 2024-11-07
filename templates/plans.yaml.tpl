@@ -10,7 +10,11 @@ metadata:
     k3s_upgrade: agent
 spec:
   concurrency: 1
+  %{~ if version == "" ~}
   channel: https://update.k3s.io/v1-release/channels/${channel}
+  %{~ else ~}
+  version: ${version}
+  %{~ endif ~}
   serviceAccountName: system-upgrade
   nodeSelector:
     matchExpressions:
@@ -42,7 +46,11 @@ metadata:
     k3s_upgrade: server
 spec:
   concurrency: 1
+  %{~ if version == "" ~}
   channel: https://update.k3s.io/v1-release/channels/${channel}
+  %{~ else ~}
+  version: ${version}
+  %{~ endif ~}
   serviceAccountName: system-upgrade
   nodeSelector:
     matchExpressions:
