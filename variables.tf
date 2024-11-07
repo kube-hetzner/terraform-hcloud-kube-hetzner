@@ -1134,6 +1134,6 @@ variable "keep_disk_cp" {
 
 variable "sys_upgrade_controller_version" {
   type        = string
-  default     = "v0.13.4"
+  default     = "v0.14.2"
   description = "Whether to keep OS disks of nodes the same size when upgrading a control-plane node"
 }
