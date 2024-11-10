@@ -100,20 +100,6 @@ locals {
         patch = file("${path.module}/kustomize/system-upgrade-controller.yaml")
       },
       {
-        target = {
-          group     = "apps"
-          version   = "v1"
-          kind      = "Deployment"
-          name      = "system-upgrade-controller"
-          namespace = "system-upgrade"
-        }
-        patch = <<-EOF
-          - op: replace
-            path: /spec/template/spec/containers/0/image
-            value: rancher/system-upgrade-controller:${var.sys_upgrade_controller_version}
-        EOF
-      },
-      {
         path = "kured.yaml"
       },
       {
