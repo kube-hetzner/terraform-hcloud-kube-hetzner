@@ -425,6 +425,7 @@ module "kube-hetzner" {
   # To enable Hetzner Storage Box support, you can enable csi-driver-smb, default is "false".
   # enable_csi_driver_smb = true
   # If you want to specify the version for csi-driver-smb, set it below - otherwise it'll use the latest version available.
+  # See https://github.com/kubernetes-csi/csi-driver-smb/releases for the available versions.
   # csi_driver_smb_version = "v1.16.0"
 
   # To enable iscid without setting enable_longhorn = true, set enable_iscsid = true. You will need this if
@@ -463,10 +464,13 @@ module "kube-hetzner" {
   # disable_hetzner_csi = true
 
   # If you want to use a specific Hetzner CCM and CSI version, set them below; otherwise, leave them as-is for the latest versions.
+  # See https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases for the available versions.
   # hetzner_ccm_version = ""
+  # See https://github.com/hetznercloud/csi-driver/releases for the available versions.
   # hetzner_csi_version = ""
 
   # If you want to specify the Kured version, set it below - otherwise it'll use the latest version available.
+  # See https://github.com/kubereboot/kured/releases for the available versions.
   # kured_version = ""
 
   # Default is "traefik".
@@ -1034,6 +1038,7 @@ ports:
   EOT */
 
   # If you want to use a specific Nginx helm chart version, set it below; otherwise, leave them as-is for the latest versions.
+  # See https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table for the available versions.
   # nginx_version = ""
 
   # Nginx, all Nginx helm values can be found at https://github.com/kubernetes/ingress-nginx/blob/main/charts/ingress-nginx/values.yaml
