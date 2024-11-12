@@ -56,7 +56,7 @@ locals {
     transactional-update --continue shell <<- EOF
     setenforce 0
     rpm --import https://rpm.rancher.io/public.key
-    zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.4.stable.1/k3s-selinux-1.4-1.sle.noarch.rpm
+    zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.stable.1/k3s-selinux-1.6-1.sle.noarch.rpm
     zypper addlock k3s-selinux
     restorecon -Rv /etc/selinux/targeted/policy
     restorecon -Rv /var/lib
@@ -77,7 +77,7 @@ locals {
 
 # Source for the MicroOS x86 snapshot
 source "hcloud" "microos-x86-snapshot" {
-  image       = "ubuntu-22.04"
+  image       = "ubuntu-24.04"
   rescue      = "linux64"
   location    = "fsn1"
   server_type = "cx22" # disk size of >= 40GiB is needed to install the MicroOS image
@@ -92,7 +92,7 @@ source "hcloud" "microos-x86-snapshot" {
 
 # Source for the MicroOS ARM snapshot
 source "hcloud" "microos-arm-snapshot" {
-  image       = "ubuntu-22.04"
+  image       = "ubuntu-24.04"
   rescue      = "linux64"
   location    = "fsn1"
   server_type = "cax11" # disk size of >= 40GiB is needed to install the MicroOS image
