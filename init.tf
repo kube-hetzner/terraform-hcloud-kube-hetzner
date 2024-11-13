@@ -20,7 +20,7 @@ resource "hcloud_load_balancer" "cluster" {
 }
 
 
-resource "null_resource" "first_control_plane" {
+resource "terraform_data" "first_control_plane" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
@@ -111,8 +111,8 @@ resource "random_password" "rancher_bootstrap" {
 }
 
 # This is where all the setup of Kubernetes components happen
-resource "null_resource" "kustomization" {
-  triggers = {
+resource "terraform_data" "kustomization" {
+  triggers_replace = {
     # Redeploy helm charts when the underlying values change
     helm_values_yaml = join("---\n", [
       local.traefik_values,
@@ -373,7 +373,7 @@ resource "null_resource" "kustomization" {
 
   depends_on = [
     hcloud_load_balancer.cluster,
-    null_resource.control_planes,
+    terraform_data.control_planes,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume
   ]

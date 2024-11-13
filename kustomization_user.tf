@@ -2,7 +2,7 @@ locals {
   user_kustomization_templates = try(fileset("extra-manifests", "**/*.yaml.tpl"), toset([]))
 }
 
-resource "null_resource" "kustomization_user" {
+resource "terraform_data" "kustomization_user" {
   for_each = local.user_kustomization_templates
 
   connection {
@@ -24,16 +24,16 @@ resource "null_resource" "kustomization_user" {
     destination = replace("/var/user_kustomize/${each.key}", ".yaml.tpl", ".yaml")
   }
 
-  triggers = {
+  triggers_replace = {
     manifest_sha1 = "${sha1(templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters))}"
   }
 
   depends_on = [
-    null_resource.kustomization
+    terraform_data.kustomization
   ]
 }
 
-resource "null_resource" "kustomization_user_deploy" {
+resource "terraform_data" "kustomization_user_deploy" {
   count = length(local.user_kustomization_templates) > 0 ? 1 : 0
 
   connection {
@@ -57,11 +57,11 @@ resource "null_resource" "kustomization_user_deploy" {
 
   lifecycle {
     replace_triggered_by = [
-      null_resource.kustomization_user
+      terraform_data.kustomization_user
     ]
   }
 
   depends_on = [
-    null_resource.kustomization_user
+    terraform_data.kustomization_user
   ]
 }

@@ -52,10 +52,10 @@ locals {
   }
 }
 
-resource "null_resource" "configure_autoscaler" {
+resource "terraform_data" "configure_autoscaler" {
   count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
 
-  triggers = {
+  triggers_replace = {
     template = local.autoscaler_yaml
   }
   connection {
@@ -79,7 +79,7 @@ resource "null_resource" "configure_autoscaler" {
 
   depends_on = [
     hcloud_load_balancer.cluster,
-    null_resource.control_planes,
+    terraform_data.control_planes,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume,
     data.hcloud_image.microos_x86_snapshot
@@ -155,9 +155,9 @@ data "hcloud_servers" "autoscaled_nodes" {
   with_selector = "hcloud/node-group=${local.cluster_prefix}${each.value}"
 }
 
-resource "null_resource" "autoscaled_nodes_registries" {
+resource "terraform_data" "autoscaled_nodes_registries" {
   for_each = local.autoscaled_nodes
-  triggers = {
+  triggers_replace = {
     registries = var.k3s_registries
   }
 

@@ -32,7 +32,7 @@ data "github_release" "calico" {
 #   count = local.has_external_load_balancer ? 0 : 1
 #   name  = var.cluster_name
 
-#   depends_on = [null_resource.kustomization]
+#   depends_on = [terraform_data.kustomization]
 # }
 
 data "hcloud_ssh_keys" "keys_by_selector" {
