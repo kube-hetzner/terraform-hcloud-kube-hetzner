@@ -37,13 +37,13 @@ output "ingress_public_ipv6" {
   value       = local.has_external_load_balancer ? module.control_planes[keys(module.control_planes)[0]].ipv6_address : (var.load_balancer_disable_ipv6 ? null : hcloud_load_balancer.cluster[0].ipv6)
 }
 
-output "lb_controle_plane_ipv4" {
-  description = "The public IPv4 address of the Hetzner controle plane load balancer"
+output "lb_control_plane_ipv4" {
+  description = "The public IPv4 address of the Hetzner control plane load balancer"
   value       = var.use_control_plane_lb ? hcloud_load_balancer.control_plane[0].ipv4 : null
 }
 
-output "lb_controle_plane_ipv6" {
-  description = "The public IPv6 address of the Hetzner controle plane load balancer"
+output "lb_control_plane_ipv6" {
+  description = "The public IPv6 address of the Hetzner control plane load balancer"
   value       = var.use_control_plane_lb ? hcloud_load_balancer.control_plane[0].ipv6 : null
 }
 
