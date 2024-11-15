@@ -52,6 +52,10 @@ locals {
   }
 }
 
+moved {
+  from = null_resource.configure_autoscaler
+  to   = terraform_data.configure_autoscaler
+}
 resource "terraform_data" "configure_autoscaler" {
   count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
 
@@ -155,6 +159,10 @@ data "hcloud_servers" "autoscaled_nodes" {
   with_selector = "hcloud/node-group=${local.cluster_prefix}${each.value}"
 }
 
+moved {
+  from = null_resource.autoscaled_nodes_registries
+  to   = terraform_data.autoscaled_nodes_registries
+}
 resource "terraform_data" "autoscaled_nodes_registries" {
   for_each = local.autoscaled_nodes
   triggers_replace = {

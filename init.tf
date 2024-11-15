@@ -20,6 +20,10 @@ resource "hcloud_load_balancer" "cluster" {
 }
 
 
+moved {
+  from = null_resource.first_control_plane
+  to   = terraform_data.first_control_plane
+}
 resource "terraform_data" "first_control_plane" {
   connection {
     user           = "root"
@@ -111,6 +115,10 @@ resource "random_password" "rancher_bootstrap" {
 }
 
 # This is where all the setup of Kubernetes components happen
+moved {
+  from = null_resource.kustomization
+  to   = terraform_data.kustomization
+}
 resource "terraform_data" "kustomization" {
   triggers_replace = {
     # Redeploy helm charts when the underlying values change
