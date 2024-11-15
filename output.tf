@@ -24,7 +24,7 @@ output "control_planes_public_ipv6" {
   value = [
     for obj in module.control_planes : obj.ipv6_address
   ]
-  description = "The public IPv4 addresses of the controlplane servers."
+  description = "The public IPv6 addresses of the controlplane servers."
 }
 
 output "agents_public_ipv4" {
@@ -38,7 +38,7 @@ output "agents_public_ipv6" {
   value = [
     for obj in module.agents : obj.ipv6_address
   ]
-  description = "The public IPv4 addresses of the agent servers."
+  description = "The public IPv6 addresses of the agent servers."
 }
 
 output "ingress_public_ipv4" {
