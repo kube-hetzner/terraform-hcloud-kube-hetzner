@@ -312,9 +312,7 @@ module "kube-hetzner" {
   # base_domain = "mycluster.example.com"
 
   # Cluster Autoscaler
-  # Providing at least one map for the array enables the cluster autoscaler feature, default is disabled
-  # By default we set a compatible version with the default initial_k3s_channel, to set another one,
-  # have a look at the tag value in https://github.com/kubernetes/autoscaler/blob/master/charts/cluster-autoscaler/values.yaml
+  # Providing at least one map for the array enables the cluster autoscaler feature, default is disabled.
   # ⚠️ Based on how the autoscaler works with this project, you can only choose either x86 instances or ARM server types for ALL autoscaler nodepools.
   # If you are curious, it's ok to have a multi-architecture cluster, as most underlying container images are multi-architecture too.
   #
@@ -361,7 +359,9 @@ module "kube-hetzner" {
   #
   # Image and version of Kubernetes Cluster Autoscaler for Hetzner Cloud:
   #   - cluster_autoscaler_image: Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used.
+  #       The default is the official image from the Kubernetes project: registry.k8s.io/autoscaling/cluster-autoscaler
   #   - cluster_autoscaler_version: Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version.
+  #       Available versions for the official image can be found at https://explore.ggcr.dev/?repo=registry.k8s.io%2Fautoscaling%2Fcluster-autoscaler
   #
   # Logging related arguments are managed using separate variables:
   #   - cluster_autoscaler_log_level: Controls the verbosity of logs (--v), the value is from 0 to 5, default is 4, for max debug info set it to 5.
