@@ -2,10 +2,6 @@ locals {
   user_kustomization_templates = try(fileset("extra-manifests", "**/*.yaml.tpl"), toset([]))
 }
 
-moved {
-  from = null_resource.kustomization_user
-  to   = terraform_data.kustomization_user
-}
 resource "terraform_data" "kustomization_user" {
   for_each = local.user_kustomization_templates
 
@@ -36,11 +32,11 @@ resource "terraform_data" "kustomization_user" {
     terraform_data.kustomization
   ]
 }
-
 moved {
-  from = null_resource.kustomization_user_deploy
-  to   = terraform_data.kustomization_user_deploy
+  from = null_resource.kustomization_user
+  to   = terraform_data.kustomization_user
 }
+
 resource "terraform_data" "kustomization_user_deploy" {
   count = length(local.user_kustomization_templates) > 0 ? 1 : 0
 
@@ -72,4 +68,8 @@ resource "terraform_data" "kustomization_user_deploy" {
   depends_on = [
     terraform_data.kustomization_user
   ]
+}
+moved {
+  from = null_resource.kustomization_user_deploy
+  to   = terraform_data.kustomization_user_deploy
 }

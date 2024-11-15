@@ -94,10 +94,6 @@ resource "hcloud_server" "server" {
 
 }
 
-moved {
-  from = null_resource.registries
-  to   = terraform_data.registries
-}
 resource "terraform_data" "registries" {
   triggers_replace = {
     registries = var.k3s_registries
@@ -121,6 +117,10 @@ resource "terraform_data" "registries" {
   }
 
   depends_on = [hcloud_server.server]
+}
+moved {
+  from = null_resource.registries
+  to   = terraform_data.registries
 }
 
 resource "hcloud_rdns" "server" {
@@ -158,10 +158,6 @@ data "cloudinit_config" "config" {
   }
 }
 
-moved {
-  from = null_resource.zram
-  to   = terraform_data.zram
-}
 resource "terraform_data" "zram" {
   triggers_replace = {
     zram_size = var.zram_size
@@ -239,4 +235,8 @@ WantedBy=multi-user.target
   }
 
   depends_on = [hcloud_server.server]
+}
+moved {
+  from = null_resource.zram
+  to   = terraform_data.zram
 }

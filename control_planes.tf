@@ -122,10 +122,6 @@ locals {
   ) }
 }
 
-moved {
-  from = null_resource.control_plane_config
-  to   = terraform_data.control_plane_config
-}
 resource "terraform_data" "control_plane_config" {
   for_each = local.control_plane_nodes
 
@@ -157,12 +153,12 @@ resource "terraform_data" "control_plane_config" {
     hcloud_network_subnet.control_plane
   ]
 }
-
-
 moved {
-  from = null_resource.authentication_config
-  to   = terraform_data.authentication_config
+  from = null_resource.control_plane_config
+  to   = terraform_data.control_plane_config
 }
+
+
 resource "terraform_data" "authentication_config" {
   for_each = local.control_plane_nodes
 
@@ -193,11 +189,11 @@ resource "terraform_data" "authentication_config" {
     hcloud_network_subnet.control_plane
   ]
 }
-
 moved {
-  from = null_resource.control_planes
-  to   = terraform_data.control_planes
+  from = null_resource.authentication_config
+  to   = terraform_data.authentication_config
 }
+
 resource "terraform_data" "control_planes" {
   for_each = local.control_plane_nodes
 
@@ -243,4 +239,8 @@ resource "terraform_data" "control_planes" {
     terraform_data.authentication_config,
     hcloud_network_subnet.control_plane
   ]
+}
+moved {
+  from = null_resource.control_planes
+  to   = terraform_data.control_planes
 }

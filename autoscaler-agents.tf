@@ -52,10 +52,6 @@ locals {
   }
 }
 
-moved {
-  from = null_resource.configure_autoscaler
-  to   = terraform_data.configure_autoscaler
-}
 resource "terraform_data" "configure_autoscaler" {
   count = length(var.autoscaler_nodepools) > 0 ? 1 : 0
 
@@ -88,6 +84,10 @@ resource "terraform_data" "configure_autoscaler" {
     hcloud_volume.longhorn_volume,
     data.hcloud_image.microos_x86_snapshot
   ]
+}
+moved {
+  from = null_resource.configure_autoscaler
+  to   = terraform_data.configure_autoscaler
 }
 
 data "cloudinit_config" "autoscaler_config" {
@@ -159,10 +159,6 @@ data "hcloud_servers" "autoscaled_nodes" {
   with_selector = "hcloud/node-group=${local.cluster_prefix}${each.value}"
 }
 
-moved {
-  from = null_resource.autoscaled_nodes_registries
-  to   = terraform_data.autoscaled_nodes_registries
-}
 resource "terraform_data" "autoscaled_nodes_registries" {
   for_each = local.autoscaled_nodes
   triggers_replace = {
@@ -185,4 +181,8 @@ resource "terraform_data" "autoscaled_nodes_registries" {
   provisioner "remote-exec" {
     inline = [local.k3s_registries_update_script]
   }
+}
+moved {
+  from = null_resource.autoscaled_nodes_registries
+  to   = terraform_data.autoscaled_nodes_registries
 }

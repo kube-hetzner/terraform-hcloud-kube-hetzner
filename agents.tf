@@ -59,10 +59,6 @@ locals {
   ) }
 }
 
-moved {
-  from = null_resource.agent_config
-  to   = terraform_data.agent_config
-}
 resource "terraform_data" "agent_config" {
   for_each = local.agent_nodes
 
@@ -89,11 +85,11 @@ resource "terraform_data" "agent_config" {
     inline = [local.k3s_config_update_script]
   }
 }
-
 moved {
-  from = null_resource.agents
-  to   = terraform_data.agents
+  from = null_resource.agent_config
+  to   = terraform_data.agent_config
 }
+
 resource "terraform_data" "agents" {
   for_each = local.agent_nodes
 
@@ -136,6 +132,10 @@ resource "terraform_data" "agents" {
     hcloud_network_subnet.agent
   ]
 }
+moved {
+  from = null_resource.agents
+  to   = terraform_data.agents
+}
 
 resource "hcloud_volume" "longhorn_volume" {
   for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10240) && var.enable_longhorn) }
@@ -153,10 +153,6 @@ resource "hcloud_volume" "longhorn_volume" {
   delete_protection = var.enable_delete_protection.volume
 }
 
-moved {
-  from = null_resource.configure_longhorn_volume
-  to   = terraform_data.configure_longhorn_volume
-}
 resource "terraform_data" "configure_longhorn_volume" {
   for_each = { for k, v in local.agent_nodes : k => v if((v.longhorn_volume_size >= 10) && (v.longhorn_volume_size <= 10240) && var.enable_longhorn) }
 
@@ -186,6 +182,10 @@ resource "terraform_data" "configure_longhorn_volume" {
     hcloud_volume.longhorn_volume
   ]
 }
+moved {
+  from = null_resource.configure_longhorn_volume
+  to   = terraform_data.configure_longhorn_volume
+}
 
 resource "hcloud_floating_ip" "agents" {
   for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
@@ -207,10 +207,6 @@ resource "hcloud_floating_ip_assignment" "agents" {
   ]
 }
 
-moved {
-  from = null_resource.configure_floating_ip
-  to   = terraform_data.configure_floating_ip
-}
 resource "terraform_data" "configure_floating_ip" {
   for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
@@ -249,4 +245,8 @@ resource "terraform_data" "configure_floating_ip" {
   depends_on = [
     hcloud_floating_ip_assignment.agents
   ]
+}
+moved {
+  from = null_resource.configure_floating_ip
+  to   = terraform_data.configure_floating_ip
 }
