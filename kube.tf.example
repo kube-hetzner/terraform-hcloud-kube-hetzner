@@ -940,7 +940,9 @@ MTU: 1450
   # Cert manager, all cert-manager helm values can be found at https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
   # The following is an example, please note that the current indentation inside the EOT is important.
   /*   cert_manager_values = <<EOT
-installCRDs: true
+crds:
+  enabled: true
+  keep: true
 replicaCount: 3
 webhook:
   replicaCount: 3
