@@ -852,14 +852,12 @@ cloudinit_write_files_common = <<EOT
             if [[ "$SECONDS" > "$END_SECONDS" ]]; then
                 exit 1
             fi
-            # run command
-            $@
-            # check return code 
-            if [[ "$?" != "0" ]]; then
+            # run command and check return code 
+            if $@ ; then
+                break
+            else
                 >&2 echo "got failure exit code, repeating"
                 sleep 0.5
-            else
-                break
             fi
         done
     }
