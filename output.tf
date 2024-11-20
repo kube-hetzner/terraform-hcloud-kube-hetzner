@@ -90,3 +90,45 @@ output "kubeconfig_data" {
   value       = local.kubeconfig_data
   sensitive   = true
 }
+
+output "cilium_values" {
+  description = "Helm values.yaml used for Cilium"
+  value       = local.cilium_values
+  sensitive   = true
+}
+
+output "cert_manager_values" {
+  description = "Helm values.yaml used for cert-manager"
+  value       = local.cert_manager_values
+  sensitive   = true
+}
+
+output "csi_driver_smb_values" {
+  description = "Helm values.yaml used for SMB CSI driver"
+  value       = local.csi_driver_smb_values
+  sensitive   = true
+}
+
+output "longhorn_values" {
+  description = "Helm values.yaml used for Longhorn"
+  value       = local.longhorn_values
+  sensitive   = true
+}
+
+output "traefik_values" {
+  description = "Helm values.yaml used for Traefik"
+  value       = local.traefik_values
+  sensitive   = true
+}
+
+output "nginx_values" {
+  description = "Helm values.yaml used for nginx-ingress"
+  value       = local.nginx_values
+  sensitive   = true
+}
+
+output "haproxy_values" {
+  description = "Helm values.yaml used for HAProxy"
+  value       = local.haproxy_values
+  sensitive   = true
+}
