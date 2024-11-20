@@ -105,9 +105,9 @@
 | <a name="input_base_domain"></a> [base\_domain](#input\_base\_domain) | Base domain of the cluster, used for reserve dns. | `string` | `""` | no |
 | <a name="input_block_icmp_ping_in"></a> [block\_icmp\_ping\_in](#input\_block\_icmp\_ping\_in) | Block entering ICMP ping. | `bool` | `false` | no |
 | <a name="input_calico_values"></a> [calico\_values](#input\_calico\_values) | Just a stub for a future helm implementation. Now it can be used to replace the calico kustomize patch of the calico manifest. | `string` | `""` | no |
-| <a name="input_calico_version"></a> [calico\_version](#input\_calico\_version) | Version of Calico. | `string` | `null` | no |
+| <a name="input_calico_version"></a> [calico\_version](#input\_calico\_version) | Version of Calico. See https://github.com/projectcalico/calico/releases for the available versions. | `string` | `null` | no |
 | <a name="input_cert_manager_helmchart_bootstrap"></a> [cert\_manager\_helmchart\_bootstrap](#input\_cert\_manager\_helmchart\_bootstrap) | Whether the HelmChart cert\_manager shall be run on control-plane nodes. | `bool` | `false` | no |
-| <a name="input_cert_manager_values"></a> [cert\_manager\_values](#input\_cert\_manager\_values) | Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. | `string` | `""` | no |
+| <a name="input_cert_manager_values"></a> [cert\_manager\_values](#input\_cert\_manager\_values) | Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. Warning, the default value is only valid from cert-manager v1.15.0 onwards. For older versions, you need to set 'installCRDs: true'. | `string` | `"crds:\n  enabled: true\n  keep: true\n"` | no |
 | <a name="input_cert_manager_version"></a> [cert\_manager\_version](#input\_cert\_manager\_version) | Version of cert\_manager. | `string` | `"*"` | no |
 | <a name="input_cilium_egress_gateway_enabled"></a> [cilium\_egress\_gateway\_enabled](#input\_cilium\_egress\_gateway\_enabled) | Enables egress gateway to redirect and SNAT the traffic that leaves the cluster. | `bool` | `false` | no |
 | <a name="input_cilium_hubble_enabled"></a> [cilium\_hubble\_enabled](#input\_cilium\_hubble\_enabled) | Enables Hubble Observability to collect and visualize network traffic. | `bool` | `false` | no |
@@ -115,14 +115,14 @@
 | <a name="input_cilium_ipv4_native_routing_cidr"></a> [cilium\_ipv4\_native\_routing\_cidr](#input\_cilium\_ipv4\_native\_routing\_cidr) | Used when Cilium is configured in native routing mode. The CNI assumes that the underlying network stack will forward packets to this destination without the need to apply SNAT. Default: value of "cluster\_ipv4\_cidr" | `string` | `null` | no |
 | <a name="input_cilium_routing_mode"></a> [cilium\_routing\_mode](#input\_cilium\_routing\_mode) | Set native-routing mode ("native") or tunneling mode ("tunnel"). | `string` | `"tunnel"` | no |
 | <a name="input_cilium_values"></a> [cilium\_values](#input\_cilium\_values) | Additional helm values file to pass to Cilium as 'valuesContent' at the HelmChart. | `string` | `""` | no |
-| <a name="input_cilium_version"></a> [cilium\_version](#input\_cilium\_version) | Version of Cilium. | `string` | `"1.15.1"` | no |
+| <a name="input_cilium_version"></a> [cilium\_version](#input\_cilium\_version) | Version of Cilium. See https://github.com/cilium/cilium/releases for the available versions. | `string` | `"1.15.1"` | no |
 | <a name="input_cluster_autoscaler_extra_args"></a> [cluster\_autoscaler\_extra\_args](#input\_cluster\_autoscaler\_extra\_args) | Extra arguments for the Cluster Autoscaler deployment. | `list(string)` | `[]` | no |
 | <a name="input_cluster_autoscaler_image"></a> [cluster\_autoscaler\_image](#input\_cluster\_autoscaler\_image) | Image of Kubernetes Cluster Autoscaler for Hetzner Cloud to be used. | `string` | `"registry.k8s.io/autoscaling/cluster-autoscaler"` | no |
 | <a name="input_cluster_autoscaler_log_level"></a> [cluster\_autoscaler\_log\_level](#input\_cluster\_autoscaler\_log\_level) | Verbosity level of the logs for cluster-autoscaler | `number` | `4` | no |
 | <a name="input_cluster_autoscaler_log_to_stderr"></a> [cluster\_autoscaler\_log\_to\_stderr](#input\_cluster\_autoscaler\_log\_to\_stderr) | Determines whether to log to stderr or not | `bool` | `true` | no |
 | <a name="input_cluster_autoscaler_server_creation_timeout"></a> [cluster\_autoscaler\_server\_creation\_timeout](#input\_cluster\_autoscaler\_server\_creation\_timeout) | Timeout (in minutes) until which a newly created server/node has to become available before giving up and destroying it. | `number` | `15` | no |
 | <a name="input_cluster_autoscaler_stderr_threshold"></a> [cluster\_autoscaler\_stderr\_threshold](#input\_cluster\_autoscaler\_stderr\_threshold) | Severity level above which logs are sent to stderr instead of stdout | `string` | `"INFO"` | no |
-| <a name="input_cluster_autoscaler_version"></a> [cluster\_autoscaler\_version](#input\_cluster\_autoscaler\_version) | Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version | `string` | `"v1.30.3"` | no |
+| <a name="input_cluster_autoscaler_version"></a> [cluster\_autoscaler\_version](#input\_cluster\_autoscaler\_version) | Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version. Available versions for the official image can be found at https://explore.ggcr.dev/?repo=registry.k8s.io%2Fautoscaling%2Fcluster-autoscaler. | `string` | `"v1.30.3"` | no |
 | <a name="input_cluster_dns_ipv4"></a> [cluster\_dns\_ipv4](#input\_cluster\_dns\_ipv4) | Internal Service IPv4 address of core-dns. | `string` | `"10.43.0.10"` | no |
 | <a name="input_cluster_ipv4_cidr"></a> [cluster\_ipv4\_cidr](#input\_cluster\_ipv4\_cidr) | Internal Pod CIDR, used for the controller and currently for calico/cilium. | `string` | `"10.42.0.0/16"` | no |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Name of the cluster. | `string` | `"k3s"` | no |
@@ -135,7 +135,7 @@
 | <a name="input_create_kustomization"></a> [create\_kustomization](#input\_create\_kustomization) | Create the kustomization backup as a local file resource. Should be disabled for automatic runs. | `bool` | `true` | no |
 | <a name="input_csi_driver_smb_helmchart_bootstrap"></a> [csi\_driver\_smb\_helmchart\_bootstrap](#input\_csi\_driver\_smb\_helmchart\_bootstrap) | Whether the HelmChart csi\_driver\_smb shall be run on control-plane nodes. | `bool` | `false` | no |
 | <a name="input_csi_driver_smb_values"></a> [csi\_driver\_smb\_values](#input\_csi\_driver\_smb\_values) | Additional helm values file to pass to csi-driver-smb as 'valuesContent' at the HelmChart. | `string` | `""` | no |
-| <a name="input_csi_driver_smb_version"></a> [csi\_driver\_smb\_version](#input\_csi\_driver\_smb\_version) | Version of csi\_driver\_smb. | `string` | `"*"` | no |
+| <a name="input_csi_driver_smb_version"></a> [csi\_driver\_smb\_version](#input\_csi\_driver\_smb\_version) | Version of csi\_driver\_smb. See https://github.com/kubernetes-csi/csi-driver-smb/releases for the available versions. | `string` | `"*"` | no |
 | <a name="input_disable_hetzner_csi"></a> [disable\_hetzner\_csi](#input\_disable\_hetzner\_csi) | Disable hetzner csi driver. | `bool` | `false` | no |
 | <a name="input_disable_kube_proxy"></a> [disable\_kube\_proxy](#input\_disable\_kube\_proxy) | Disable kube-proxy in K3s (default false). | `bool` | `false` | no |
 | <a name="input_disable_network_policy"></a> [disable\_network\_policy](#input\_disable\_network\_policy) | Disable k3s default network policy controller (default false, automatically true for calico and cilium). | `bool` | `false` | no |
@@ -166,15 +166,15 @@
 | <a name="input_haproxy_version"></a> [haproxy\_version](#input\_haproxy\_version) | Version of HAProxy helm chart. | `string` | `""` | no |
 | <a name="input_hcloud_ssh_key_id"></a> [hcloud\_ssh\_key\_id](#input\_hcloud\_ssh\_key\_id) | If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module. | `string` | `null` | no |
 | <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token. | `string` | n/a | yes |
-| <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. | `string` | `null` | no |
+| <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. See https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases for the available versions. | `string` | `null` | no |
 | <a name="input_hetzner_csi_values"></a> [hetzner\_csi\_values](#input\_hetzner\_csi\_values) | Additional helm values file to pass to hetzner csi as 'valuesContent' at the HelmChart. | `string` | `""` | no |
-| <a name="input_hetzner_csi_version"></a> [hetzner\_csi\_version](#input\_hetzner\_csi\_version) | Version of Container Storage Interface driver for Hetzner Cloud. | `string` | `null` | no |
+| <a name="input_hetzner_csi_version"></a> [hetzner\_csi\_version](#input\_hetzner\_csi\_version) | Version of Container Storage Interface driver for Hetzner Cloud. See https://github.com/hetznercloud/csi-driver/releases for the available versions. | `string` | `null` | no |
 | <a name="input_ingress_controller"></a> [ingress\_controller](#input\_ingress\_controller) | The name of the ingress controller. | `string` | `"traefik"` | no |
 | <a name="input_ingress_max_replica_count"></a> [ingress\_max\_replica\_count](#input\_ingress\_max\_replica\_count) | Number of maximum replicas per ingress controller. Used for ingress HPA. Must be higher than number of replicas. | `number` | `10` | no |
 | <a name="input_ingress_replica_count"></a> [ingress\_replica\_count](#input\_ingress\_replica\_count) | Number of replicas per ingress controller. 0 means autodetect based on the number of agent nodes. | `number` | `0` | no |
 | <a name="input_ingress_target_namespace"></a> [ingress\_target\_namespace](#input\_ingress\_target\_namespace) | The namespace to deploy the ingress controller to. Defaults to ingress name. | `string` | `""` | no |
-| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. | `string` | `"v1.30"` | no |
-| <a name="input_install_k3s_version"></a> [install\_k3s\_version](#input\_install\_k3s\_version) | Allows you to specify the k3s version (Example: v1.29.6+k3s2). Supersedes initial\_k3s\_channel. | `string` | `""` | no |
+| <a name="input_initial_k3s_channel"></a> [initial\_k3s\_channel](#input\_initial\_k3s\_channel) | Allows you to specify an initial k3s channel. See https://update.k3s.io/v1-release/channels for available channels. | `string` | `"v1.30"` | no |
+| <a name="input_install_k3s_version"></a> [install\_k3s\_version](#input\_install\_k3s\_version) | Allows you to specify the k3s version (Example: v1.29.6+k3s2). Supersedes initial\_k3s\_channel. See https://github.com/k3s-io/k3s/releases for available versions. | `string` | `""` | no |
 | <a name="input_k3s_agent_kubelet_args"></a> [k3s\_agent\_kubelet\_args](#input\_k3s\_agent\_kubelet\_args) | Kubelet args for agent nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_autoscaler_kubelet_args"></a> [k3s\_autoscaler\_kubelet\_args](#input\_k3s\_autoscaler\_kubelet\_args) | Kubelet args for autoscaler nodes. | `list(string)` | `[]` | no |
 | <a name="input_k3s_control_plane_kubelet_args"></a> [k3s\_control\_plane\_kubelet\_args](#input\_k3s\_control\_plane\_kubelet\_args) | Kubelet args for control plane nodes. | `list(string)` | `[]` | no |
@@ -187,7 +187,7 @@
 | <a name="input_keep_disk_cp"></a> [keep\_disk\_cp](#input\_keep\_disk\_cp) | Whether to keep OS disks of nodes the same size when upgrading a control-plane node | `bool` | `false` | no |
 | <a name="input_kubeconfig_server_address"></a> [kubeconfig\_server\_address](#input\_kubeconfig\_server\_address) | The hostname used for kubeconfig. | `string` | `""` | no |
 | <a name="input_kured_options"></a> [kured\_options](#input\_kured\_options) | n/a | `map(string)` | `{}` | no |
-| <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured. | `string` | `null` | no |
+| <a name="input_kured_version"></a> [kured\_version](#input\_kured\_version) | Version of Kured. See https://github.com/kubereboot/kured/releases for the available versions. | `string` | `null` | no |
 | <a name="input_lb_hostname"></a> [lb\_hostname](#input\_lb\_hostname) | The Hetzner Load Balancer hostname, for either Traefik, HAProxy or Ingress-Nginx. | `string` | `""` | no |
 | <a name="input_load_balancer_algorithm_type"></a> [load\_balancer\_algorithm\_type](#input\_load\_balancer\_algorithm\_type) | Specifies the algorithm type of the load balancer. | `string` | `"round_robin"` | no |
 | <a name="input_load_balancer_disable_ipv6"></a> [load\_balancer\_disable\_ipv6](#input\_load\_balancer\_disable\_ipv6) | Disable IPv6 for the load balancer. | `bool` | `false` | no |
@@ -209,7 +209,7 @@
 | <a name="input_network_ipv4_cidr"></a> [network\_ipv4\_cidr](#input\_network\_ipv4\_cidr) | The main network cidr that all subnets will be created upon. | `string` | `"10.0.0.0/8"` | no |
 | <a name="input_network_region"></a> [network\_region](#input\_network\_region) | Default region for network. | `string` | `"eu-central"` | no |
 | <a name="input_nginx_values"></a> [nginx\_values](#input\_nginx\_values) | Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart. | `string` | `""` | no |
-| <a name="input_nginx_version"></a> [nginx\_version](#input\_nginx\_version) | Version of Nginx helm chart. | `string` | `""` | no |
+| <a name="input_nginx_version"></a> [nginx\_version](#input\_nginx\_version) | Version of Nginx helm chart. See https://github.com/kubernetes/ingress-nginx?tab=readme-ov-file#supported-versions-table for the available versions. | `string` | `""` | no |
 | <a name="input_placement_group_disable"></a> [placement\_group\_disable](#input\_placement\_group\_disable) | Whether to disable placement groups. | `bool` | `false` | no |
 | <a name="input_postinstall_exec"></a> [postinstall\_exec](#input\_postinstall\_exec) | Additional to execute after the install calls, for example restoring a backup. | `list(string)` | `[]` | no |
 | <a name="input_preinstall_exec"></a> [preinstall\_exec](#input\_preinstall\_exec) | Additional to execute before the install calls, for example fetching and installing certs. | `list(string)` | `[]` | no |
@@ -228,7 +228,7 @@
 | <a name="input_ssh_port"></a> [ssh\_port](#input\_ssh\_port) | The main SSH port to connect to the nodes. | `number` | `22` | no |
 | <a name="input_ssh_private_key"></a> [ssh\_private\_key](#input\_ssh\_private\_key) | SSH private Key. | `string` | n/a | yes |
 | <a name="input_ssh_public_key"></a> [ssh\_public\_key](#input\_ssh\_public\_key) | SSH public Key. | `string` | n/a | yes |
-| <a name="input_sys_upgrade_controller_version"></a> [sys\_upgrade\_controller\_version](#input\_sys\_upgrade\_controller\_version) | Version of the System Upgrade Controller for automated upgrades of k3s | `string` | `"v0.14.2"` | no |
+| <a name="input_sys_upgrade_controller_version"></a> [sys\_upgrade\_controller\_version](#input\_sys\_upgrade\_controller\_version) | Version of the System Upgrade Controller for automated upgrades of k3s. See https://github.com/rancher/system-upgrade-controller/releases for the available versions. | `string` | `"v0.14.2"` | no |
 | <a name="input_system_upgrade_enable_eviction"></a> [system\_upgrade\_enable\_eviction](#input\_system\_upgrade\_enable\_eviction) | Whether to directly delete pods during system upgrade (k3s) or evict them. Defaults to true. Disable this on small clusters to avoid system upgrades hanging since pods resisting eviction keep node unschedulable forever. NOTE: turning this off, introduces potential downtime of services of the upgraded nodes. | `bool` | `true` | no |
 | <a name="input_system_upgrade_use_drain"></a> [system\_upgrade\_use\_drain](#input\_system\_upgrade\_use\_drain) | Wether using drain (true, the default), which will deletes and transfers all pods to other nodes before a node is being upgraded, or cordon (false), which just prevents schedulung new pods on the node during upgrade and keeps all pods running | `bool` | `true` | no |
 | <a name="input_traefik_additional_options"></a> [traefik\_additional\_options](#input\_traefik\_additional\_options) | Additional options to pass to Traefik as a list of strings. These are the ones that go into the additionalArguments section of the Traefik helm values file. | `list(string)` | `[]` | no |
@@ -240,7 +240,7 @@
 | <a name="input_traefik_redirect_to_https"></a> [traefik\_redirect\_to\_https](#input\_traefik\_redirect\_to\_https) | Should traefik redirect http traffic to https. | `bool` | `true` | no |
 | <a name="input_traefik_resource_limits"></a> [traefik\_resource\_limits](#input\_traefik\_resource\_limits) | Should traefik enable default resource requests and limits. Default values are requests: 100m & 50Mi and limits: 300m & 150Mi. | `bool` | `true` | no |
 | <a name="input_traefik_values"></a> [traefik\_values](#input\_traefik\_values) | Additional helm values file to pass to Traefik as 'valuesContent' at the HelmChart. | `string` | `""` | no |
-| <a name="input_traefik_version"></a> [traefik\_version](#input\_traefik\_version) | Version of Traefik helm chart. | `string` | `""` | no |
+| <a name="input_traefik_version"></a> [traefik\_version](#input\_traefik\_version) | Version of Traefik helm chart. See https://github.com/traefik/traefik-helm-chart/releases for the available versions. | `string` | `""` | no |
 | <a name="input_use_cluster_name_in_node_name"></a> [use\_cluster\_name\_in\_node\_name](#input\_use\_cluster\_name\_in\_node\_name) | Whether to use the cluster name in the node name. | `bool` | `true` | no |
 | <a name="input_use_control_plane_lb"></a> [use\_control\_plane\_lb](#input\_use\_control\_plane\_lb) | When this is enabled, rather than the first node, all external traffic will be routed via a control-plane loadbalancer, allowing for high availability. | `bool` | `false` | no |
 
@@ -250,9 +250,15 @@
 |------|-------------|
 | <a name="output_agent_nodes"></a> [agent\_nodes](#output\_agent\_nodes) | The agent nodes |
 | <a name="output_agents_public_ipv4"></a> [agents\_public\_ipv4](#output\_agents\_public\_ipv4) | The public IPv4 addresses of the agent servers. |
+| <a name="output_agents_public_ipv6"></a> [agents\_public\_ipv6](#output\_agents\_public\_ipv6) | The public IPv6 addresses of the agent servers. |
+| <a name="output_cert_manager_values"></a> [cert\_manager\_values](#output\_cert\_manager\_values) | Helm values.yaml used for cert-manager |
+| <a name="output_cilium_values"></a> [cilium\_values](#output\_cilium\_values) | Helm values.yaml used for Cilium |
 | <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Shared suffix for all resources belonging to this cluster. |
 | <a name="output_control_plane_nodes"></a> [control\_plane\_nodes](#output\_control\_plane\_nodes) | The control plane nodes |
 | <a name="output_control_planes_public_ipv4"></a> [control\_planes\_public\_ipv4](#output\_control\_planes\_public\_ipv4) | The public IPv4 addresses of the controlplane servers. |
+| <a name="output_control_planes_public_ipv6"></a> [control\_planes\_public\_ipv6](#output\_control\_planes\_public\_ipv6) | The public IPv6 addresses of the controlplane servers. |
+| <a name="output_csi_driver_smb_values"></a> [csi\_driver\_smb\_values](#output\_csi\_driver\_smb\_values) | Helm values.yaml used for SMB CSI driver |
+| <a name="output_haproxy_values"></a> [haproxy\_values](#output\_haproxy\_values) | Helm values.yaml used for HAProxy |
 | <a name="output_ingress_public_ipv4"></a> [ingress\_public\_ipv4](#output\_ingress\_public\_ipv4) | The public IPv4 address of the Hetzner load balancer (with fallback to first control plane node) |
 | <a name="output_ingress_public_ipv6"></a> [ingress\_public\_ipv6](#output\_ingress\_public\_ipv6) | The public IPv6 address of the Hetzner load balancer (with fallback to first control plane node) |
 | <a name="output_k3s_endpoint"></a> [k3s\_endpoint](#output\_k3s\_endpoint) | A controller endpoint to register new nodes |
@@ -260,6 +266,9 @@
 | <a name="output_kubeconfig"></a> [kubeconfig](#output\_kubeconfig) | Kubeconfig file content with external IP address |
 | <a name="output_kubeconfig_data"></a> [kubeconfig\_data](#output\_kubeconfig\_data) | Structured kubeconfig data to supply to other providers |
 | <a name="output_kubeconfig_file"></a> [kubeconfig\_file](#output\_kubeconfig\_file) | Kubeconfig file content with external IP address |
+| <a name="output_longhorn_values"></a> [longhorn\_values](#output\_longhorn\_values) | Helm values.yaml used for Longhorn |
 | <a name="output_network_id"></a> [network\_id](#output\_network\_id) | The ID of the HCloud network. |
+| <a name="output_nginx_values"></a> [nginx\_values](#output\_nginx\_values) | Helm values.yaml used for nginx-ingress |
 | <a name="output_ssh_key_id"></a> [ssh\_key\_id](#output\_ssh\_key\_id) | The ID of the HCloud SSH key. |
+| <a name="output_traefik_values"></a> [traefik\_values](#output\_traefik\_values) | Helm values.yaml used for Traefik |
 <!-- END_TF_DOCS -->
