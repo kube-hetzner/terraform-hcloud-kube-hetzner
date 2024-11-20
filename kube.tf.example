@@ -307,7 +307,7 @@ module "kube-hetzner" {
 
   ### The following values are entirely optional (and can be removed from this if unused)
 
-  # You can refine a base domain name to be use in this form of nodename.base_domain for setting the reserve dns inside Hetzner
+  # You can refine a base domain name to be use in this form of nodename.base_domain for setting the reverse dns inside Hetzner
   # base_domain = "mycluster.example.com"
 
   # Cluster Autoscaler
