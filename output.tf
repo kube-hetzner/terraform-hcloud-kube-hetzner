@@ -86,13 +86,13 @@ output "agent_nodes" {
 # Keeping for backward compatibility
 output "kubeconfig_file" {
   value       = local.kubeconfig_external
-  description = "Kubeconfig file content with external IP address"
+  description = "Kubeconfig file content with external IP address, or internal IP address if only private ips are available"
   sensitive   = true
 }
 
 output "kubeconfig" {
   value       = local.kubeconfig_external
-  description = "Kubeconfig file content with external IP address"
+  description = "Kubeconfig file content with external IP address, or internal IP address if only private ips are available"
   sensitive   = true
 }
 
