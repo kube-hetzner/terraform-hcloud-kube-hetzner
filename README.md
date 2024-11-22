@@ -994,6 +994,30 @@ enable_delete_protection = {
 ```
 
 </details>
+<details>
+
+<summary>Use only private ips in your cluster</summary>
+
+To use only private ips on your cluster, you need in your project:
+1. A network already configured.
+2. A machine with a public IP, with nat configured (see [Hetzner guide](https://community.hetzner.com/tutorials/how-to-set-up-nat-for-cloud-networks)).
+3. Access to your network (you can use wireguard, see [Hetnzer guide](https://docs.hetzner.com/cloud/apps/list/wireguard/)).
+4. A route in your network, destination: `0.0.0.0/0` through the private ip of your machine with NAT.
+5. Make sure the connexion to your vpn is established before launching terraform.
+
+Recommended values:
+- Network range: `10.0.0.0/8`
+- Subnet for your wireguard and NAT machine: `10.128.0.0/16`
+
+If you follow this values, in your kube.tf, please set:
+- `existing_network_id = [YOURID]` (with the brackets)
+- `network_ipv4_cidr = "10.0.0.0/9"`
+- Add `disable_ipv4 = true` and  `disable_ipv6 = true` in all machines in all nodepools (control planes + agents).
+
+This setup is compatible with a loadbalancer for your control planes, however you should consider to set
+`control_plane_lb_enable_public_interface = false` to keep ip private.
+</details>
+
 
 <details>
 

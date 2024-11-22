@@ -19,13 +19,37 @@ resource "hcloud_load_balancer" "cluster" {
   }
 }
 
+resource "hcloud_load_balancer_network" "cluster" {
+  count = local.has_external_load_balancer ? 0 : 1
+
+  load_balancer_id        = hcloud_load_balancer.cluster.*.id[0]
+  subnet_id               = hcloud_network_subnet.agent.*.id[0]
+}
+
+resource "hcloud_load_balancer_target" "cluster" {
+  count = local.has_external_load_balancer ? 0 : 1
+
+  depends_on       = [hcloud_load_balancer_network.cluster]
+  type             = "label_selector"
+  load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
+  label_selector   = join(",", [for k, v in merge(local.labels, local.labels_control_plane_node, local.labels_agent_node) : "${k}=${v}"])
+  use_private_ip   = true
+}
+
+locals {
+  first_control_plane_ip =  coalesce(
+    module.control_planes[keys(module.control_planes)[0]].ipv4_address,
+    module.control_planes[keys(module.control_planes)[0]].ipv6_address,
+    module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+  )
+}
 
 resource "null_resource" "first_control_plane" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    host           = local.first_control_plane_ip
     port           = var.ssh_port
   }
 
@@ -55,7 +79,7 @@ resource "null_resource" "first_control_plane" {
         var.use_control_plane_lb ? {
           tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
           } : {
-          tls-san = concat([module.control_planes[keys(module.control_planes)[0]].ipv4_address], var.additional_tls_sans)
+          tls-san = concat([local.first_control_plane_ip], var.additional_tls_sans)
         },
         local.etcd_s3_snapshots,
         var.control_planes_custom_config,
@@ -149,7 +173,7 @@ resource "null_resource" "kustomization" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    host           = local.first_control_plane_ip
     port           = var.ssh_port
   }
 

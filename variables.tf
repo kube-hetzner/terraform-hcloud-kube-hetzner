@@ -184,6 +184,9 @@ variable "control_plane_nodepools" {
     selinux                    = optional(bool, true)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
+    disable_ipv4               = optional(bool, false)
+    disable_ipv6               = optional(bool, false)
+    network_id                 = optional(number, 0)
   }))
   default = []
   validation {
@@ -217,6 +220,9 @@ variable "agent_nodepools" {
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
     count                      = optional(number, null)
+    disable_ipv4               = optional(bool, false)
+    disable_ipv6               = optional(bool, false)
+    network_id                 = optional(number, 0)
     nodes = optional(map(object({
       server_type                = optional(string)
       location                   = optional(string)

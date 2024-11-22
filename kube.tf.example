@@ -136,6 +136,10 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+      
+      # To disable public ips (default: false)
+      # disable_ipv4 = true
+      # disable_ipv6 = true
     },
     {
       name        = "control-plane-nbg1",
@@ -150,6 +154,10 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+      
+      # To disable public ips (default: false)
+      # disable_ipv4 = true
+      # disable_ipv6 = true
     },
     {
       name        = "control-plane-hel1",
@@ -164,6 +172,10 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+      
+      # To disable public ips (default: false)
+      # disable_ipv4 = true
+      # disable_ipv6 = true
     }
   ]
 

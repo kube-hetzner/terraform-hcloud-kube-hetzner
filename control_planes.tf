@@ -29,6 +29,9 @@ module "control_planes" {
   swap_size                    = each.value.swap_size
   zram_size                    = each.value.zram_size
   keep_disk_size               = var.keep_disk_cp
+  disable_ipv4                 = each.value.disable_ipv4
+  disable_ipv6                 = each.value.disable_ipv6
+  network_id                   = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
@@ -88,6 +91,14 @@ resource "hcloud_load_balancer_service" "control_plane" {
 }
 
 locals {
+  control_plane_ips = {
+    for k, v in module.control_planes : k => coalesce(
+      v.ipv4_address,
+      v.ipv6_address,
+      v.private_ipv4_address
+    )
+  }
+  
   k3s-config = { for k, v in local.control_plane_nodes : k => merge(
     {
       node-name = module.control_planes[k].name
@@ -143,7 +154,7 @@ resource "null_resource" "control_plane_config" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[each.key].ipv4_address
+    host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
   }
 
@@ -176,7 +187,7 @@ resource "null_resource" "authentication_config" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[each.key].ipv4_address
+    host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
   }
 
@@ -206,7 +217,7 @@ resource "null_resource" "control_planes" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[each.key].ipv4_address
+    host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
   }
 
