@@ -750,7 +750,9 @@ global:
   EOT
 
 cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
-installCRDs: true
+crds:
+  enabled: true
+  keep: true
   EOT
 
 kured_options = merge({
