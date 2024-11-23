@@ -51,6 +51,17 @@ output "ingress_public_ipv6" {
   value       = local.has_external_load_balancer ? module.control_planes[keys(module.control_planes)[0]].ipv6_address : (var.load_balancer_disable_ipv6 ? null : hcloud_load_balancer.cluster[0].ipv6)
 }
 
+output "lb_control_plane_ipv4" {
+  description = "The public IPv4 address of the Hetzner control plane load balancer"
+  value       = one(hcloud_load_balancer.control_plane[*].ipv4)
+}
+
+output "lb_control_plane_ipv6" {
+  description = "The public IPv6 address of the Hetzner control plane load balancer"
+  value       = one(hcloud_load_balancer.control_plane[*].ipv6)
+}
+
+
 output "k3s_endpoint" {
   description = "A controller endpoint to register new nodes"
   value       = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
