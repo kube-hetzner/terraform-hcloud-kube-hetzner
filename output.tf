@@ -39,12 +39,12 @@ output "ingress_public_ipv6" {
 
 output "lb_control_plane_ipv4" {
   description = "The public IPv4 address of the Hetzner control plane load balancer"
-  value       = var.use_control_plane_lb ? hcloud_load_balancer.control_plane[0].ipv4 : null
+  value       = one(hcloud_load_balancer.control_plane[*].ipv4)
 }
 
 output "lb_control_plane_ipv6" {
   description = "The public IPv6 address of the Hetzner control plane load balancer"
-  value       = var.use_control_plane_lb ? hcloud_load_balancer.control_plane[0].ipv6 : null
+  value       = one(hcloud_load_balancer.control_plane[*].ipv6)
 }
 
 
