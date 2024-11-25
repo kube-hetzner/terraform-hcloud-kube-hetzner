@@ -849,11 +849,14 @@ cloudinit_write_files_common = <<EOT
         # Current time + 300 seconds (5 minutes)
         local END_SECONDS=$((SECONDS + 300))
         while true; do
+            >&2 echo "loop"
             if [[ "$SECONDS" > "$END_SECONDS" ]]; then
+                >&2 echo "timeout reached"
                 exit 1
             fi
             # run command and check return code 
             if $@ ; then
+                >&2 echo "break"
                 break
             else
                 >&2 echo "got failure exit code, repeating"
@@ -864,7 +867,7 @@ cloudinit_write_files_common = <<EOT
 
     myrename () {
       local eth="$1"
-      local eth_connection=$(nmcli -g GENERAL.CONNECTION device show $eth)
+      local eth_connection=$(nmcli -g GENERAL.CONNECTION device show $eth || echo '')
       nmcli connection modify "$eth_connection" \
         con-name $eth \
         connection.interface-name $eth
