@@ -40,8 +40,8 @@ resource "hcloud_server" "server" {
   user_data          = data.cloudinit_config.config.rendered
   keep_disk          = var.keep_disk_size
   public_net {
-    ipv4_enabled = var.disable_ipv4 == true ? false : true
-    ipv6_enabled = var.disable_ipv6 == true ? false : true
+    ipv4_enabled = !var.disable_ipv4
+    ipv6_enabled = !var.disable_ipv6
   }
 
   dynamic "network" {

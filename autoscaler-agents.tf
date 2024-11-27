@@ -64,7 +64,7 @@ resource "null_resource" "configure_autoscaler" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = coalesce(module.control_planes[keys(module.control_planes)[0]].ipv4_address, module.control_planes[keys(module.control_planes)[0]].ipv6_address, module.control_planes[keys(module.control_planes)[0]].private_ipv4_address)
+    host           = local.first_control_plane_ip
     port           = var.ssh_port
   }
 
