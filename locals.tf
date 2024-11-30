@@ -75,7 +75,8 @@ locals {
     resources = concat(
       [
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
-        "https://raw.githubusercontent.com/rancher/system-upgrade-controller/9e7e45c1bdd528093da36be1f1f32472469005e6/manifests/system-upgrade-controller.yaml",
+        "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
+        "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
       var.disable_hetzner_ccm ? [] : ["ccm.yaml"],
@@ -106,17 +107,27 @@ locals {
       ],
       var.disable_hetzner_ccm ? [] : [{ path = "ccm.yaml" }]
     )
+    ]
   })
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
   swap_node_label   = ["node.kubernetes.io/server-swap=enabled"]
 
-  install_k3s_server = concat(local.common_pre_install_k3s_commands, [
-    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC='server ${var.k3s_exec_server_args}' sh -"
-  ], (var.disable_selinux ? [] : local.apply_k3s_selinux), local.common_post_install_k3s_commands)
-  install_k3s_agent = concat(local.common_pre_install_k3s_commands, [
-    "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true INSTALL_K3S_CHANNEL=${var.initial_k3s_channel} INSTALL_K3S_EXEC='agent ${var.k3s_exec_agent_args}' sh -"
-  ], (var.disable_selinux ? [] : local.apply_k3s_selinux), local.common_post_install_k3s_commands)
+  k3s_install_command = "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true %{if var.install_k3s_version == ""}INSTALL_K3S_CHANNEL=${var.initial_k3s_channel}%{else}INSTALL_K3S_VERSION=${var.install_k3s_version}%{endif} INSTALL_K3S_EXEC='%s' sh -"
+
+  install_k3s_server = concat(
+    local.common_pre_install_k3s_commands,
+    [format(local.k3s_install_command, "server ${var.k3s_exec_server_args}")],
+    var.disable_selinux ? [] : local.apply_k3s_selinux,
+    local.common_post_install_k3s_commands
+  )
+
+  install_k3s_agent = concat(
+    local.common_pre_install_k3s_commands,
+    [format(local.k3s_install_command, "agent ${var.k3s_exec_agent_args}")],
+    var.disable_selinux ? [] : local.apply_k3s_selinux,
+    local.common_post_install_k3s_commands
+  )
 
   control_plane_nodes = merge([
     for pool_index, nodepool_obj in var.control_plane_nodepools : {
@@ -422,6 +433,8 @@ locals {
   kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
+
+  kube_apiserver_arg = var.authentication_config != "" ? ["authentication-config=/etc/rancher/k3s/authentication_config.yaml"] : []
 
   cilium_values = var.cilium_values != "" ? var.cilium_values : <<EOT
 # Enable Kubernetes host-scope IPAM mode (required for K3s + Hetzner CCM)
@@ -739,7 +752,9 @@ global:
   EOT
 
 cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : <<EOT
-installCRDs: true
+crds:
+  enabled: true
+  keep: true
   EOT
 
 kured_options = merge({
@@ -785,6 +800,28 @@ else
     systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/k3s/config.yaml && systemctl restart k3s)
   elif systemctl is-active --quiet k3s-agent; then
     systemctl restart k3s-agent || (echo "Error: Failed to restart k3s-agent. Restoring /etc/rancher/k3s/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/k3s/config.yaml && systemctl restart k3s-agent)
+  else
+    echo "No active k3s or k3s-agent service found"
+  fi
+  echo "k3s service or k3s-agent service (re)started successfully"
+fi
+EOF
+
+k3s_authentication_config_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/authentication_config.yaml /etc/rancher/k3s/authentication_config.yaml; then
+  echo "No update required to the authentication_config.yaml file"
+else
+  if [ -f "/etc/rancher/k3s/authentication_config.yaml" ]; then
+    echo "Backing up /etc/rancher/k3s/authentication_config.yaml to /tmp/authentication_config_$DATE.yaml"
+    cp /etc/rancher/k3s/authentication_config.yaml /tmp/authentication_config_$DATE.yaml
+  fi
+  echo "Updated authentication_config.yaml detected, restart of k3s service required"
+  cp /tmp/authentication_config.yaml /etc/rancher/k3s/authentication_config.yaml
+  if systemctl is-active --quiet k3s; then
+    systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/authentication_config.yaml from backup" && cp /tmp/authentication_config_$DATE.yaml /etc/rancher/k3s/authentication_config.yaml && systemctl restart k3s)
+  elif systemctl is-active --quiet k3s-agent; then
+    systemctl restart k3s-agent || (echo "Error: Failed to restart k3s-agent. Restoring /etc/rancher/k3s/authentication_config.yaml from backup" && cp /tmp/authentication_config_$DATE.yaml /etc/rancher/k3s/authentication_config.yaml && systemctl restart k3s-agent)
   else
     echo "No active k3s or k3s-agent service found"
   fi
