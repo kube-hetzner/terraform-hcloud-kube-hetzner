@@ -767,6 +767,12 @@ variable "disable_hetzner_csi" {
   description = "Disable hetzner csi driver."
 }
 
+variable "disable_hetzner_ccm" {
+  type        = bool
+  default     = false
+  description = "Disable hetzner Cloud Controller Manager."
+}
+
 variable "enable_csi_driver_smb" {
   type        = bool
   default     = false
