@@ -107,7 +107,6 @@ locals {
       ],
       var.disable_hetzner_ccm ? [] : [{ path = "ccm.yaml" }]
     )
-    ]
   })
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
