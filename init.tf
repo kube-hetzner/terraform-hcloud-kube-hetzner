@@ -261,7 +261,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/hcloud-csi.yaml.tpl",
       {
-        version = local.csi_version
+        version = coalesce(local.csi_version, "N/A")
         values  = indent(4, trimspace(local.hetzner_csi_values))
     })
     destination = "/var/post_install/hcloud-csi.yaml"
