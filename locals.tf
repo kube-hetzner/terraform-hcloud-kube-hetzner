@@ -850,7 +850,7 @@ cloudinit_write_files_common = <<EOT
         local END_SECONDS=$((SECONDS + 300))
         while true; do
             >&2 echo "loop"
-            if [[ "$SECONDS" > "$END_SECONDS" ]]; then
+            if (( "$SECONDS" > "$END_SECONDS" )); then
                 >&2 echo "timeout reached"
                 exit 1
             fi
