@@ -452,6 +452,30 @@ variable "traefik_resource_limits" {
   description = "Should traefik enable default resource requests and limits. Default values are requests: 100m & 50Mi and limits: 300m & 150Mi."
 }
 
+variable "traefik_resource_values" {
+  type = object({
+    requests = object({
+      cpu = string
+      memory = string
+    })
+    limits = object({
+      cpu = string
+      memory = string
+    })
+  })
+  default = {
+    requests = {
+      memory = "50Mi"
+      cpu = "100m"
+    }
+    limits = {
+      memory = "150Mi"
+      cpu = "300m"
+    }
+  }
+  description = "Requests and limits for Traefik."
+}
+
 variable "traefik_additional_ports" {
   type = list(object({
     name        = string
