@@ -3,7 +3,7 @@ formatter: "markdown table"
 recursive:
   enabled: false
   path: modules
- 
+
 output:
   file: docs/terraform.md
   mode: inject
