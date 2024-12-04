@@ -196,7 +196,7 @@ resource "hcloud_floating_ip_assignment" "agents" {
 }
 
 resource "hcloud_rdns" "agents" {
-  for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip_rdns"), false) }
+  for_each = { for k, v in local.agent_nodes : k => v if lookup(v, "floating_ip_rdns", null) != null }
 
   floating_ip_id = hcloud_floating_ip.agents[each.key].id
   ip_address     = hcloud_floating_ip.agents[each.key].ip_address
