@@ -3,19 +3,19 @@ terraform {
   required_providers {
     github = {
       source  = "integrations/github"
-      version = ">= 5.44.0"
+      version = ">= 6.4.0"
     }
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.43.0"
+      version = ">= 1.49.1"
     }
     local = {
       source  = "hashicorp/local"
-      version = ">= 2.4.0"
+      version = ">= 2.5.2"
     }
     remote = {
       source  = "tenstad/remote"
-      version = ">= 0.1.2"
+      version = ">= 0.1.3"
     }
   }
 }
