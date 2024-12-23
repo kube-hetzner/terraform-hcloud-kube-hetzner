@@ -263,7 +263,7 @@ variable "agent_nodepools" {
   }
 
   validation {
-    condition = sum([for agent_nodepool in var.agent_nodepools : length(coalesce(agent_nodepool.nodes, {})) + coalesce(agent_nodepool.count, 0)]) <= 100
+    condition = length(var.agent_nodepools) == 0 ? true : sum([for agent_nodepool in var.agent_nodepools : length(coalesce(agent_nodepool.nodes, {})) + coalesce(agent_nodepool.count, 0)]) <= 100
     # 154 because the private ip is derived from tonumber(key) + 101. See private_ipv4 in agents.tf
     error_message = "Hetzner does not support networks with more than 100 servers."
   }
