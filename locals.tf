@@ -10,7 +10,7 @@ locals {
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
 
-  ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
+  ccm_version    = length(data.github_release.hetzner_ccm) == 0 ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
   calico_version = length(data.github_release.calico) == 0 ? var.calico_version : data.github_release.calico[0].release_tag
@@ -74,12 +74,13 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
+      var.disable_hetzner_ccm ? [] : ["ccm.yaml"],
+      var.disable_hetzner_ccm ? [] : ["https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
       var.enable_longhorn ? ["longhorn.yaml"] : [],
@@ -88,24 +89,24 @@ locals {
       var.enable_rancher ? ["rancher.yaml"] : [],
       var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
     ),
-    patches = [
-      {
-        target = {
-          group     = "apps"
-          version   = "v1"
-          kind      = "Deployment"
-          name      = "system-upgrade-controller"
-          namespace = "system-upgrade"
+    patches = concat(
+      [
+        {
+          target = {
+            group     = "apps"
+            version   = "v1"
+            kind      = "Deployment"
+            name      = "system-upgrade-controller"
+            namespace = "system-upgrade"
+          }
+          patch = file("${path.module}/kustomize/system-upgrade-controller.yaml")
+        },
+        {
+          path = "kured.yaml"
         }
-        patch = file("${path.module}/kustomize/system-upgrade-controller.yaml")
-      },
-      {
-        path = "kured.yaml"
-      },
-      {
-        path = "ccm.yaml"
-      }
-    ]
+      ],
+      var.disable_hetzner_ccm ? [] : [{ path = "ccm.yaml" }]
+    )
   })
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
@@ -157,6 +158,7 @@ locals {
         server_type : nodepool_obj.server_type,
         longhorn_volume_size : coalesce(nodepool_obj.longhorn_volume_size, 0),
         floating_ip : lookup(nodepool_obj, "floating_ip", false),
+        floating_ip_rdns : lookup(nodepool_obj, "floating_ip_rdns", false),
         location : nodepool_obj.location,
         labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
         taints : concat(local.default_agent_taints, nodepool_obj.taints),
@@ -182,6 +184,7 @@ locals {
           server_type : nodepool_obj.server_type,
           longhorn_volume_size : coalesce(nodepool_obj.longhorn_volume_size, 0),
           floating_ip : lookup(nodepool_obj, "floating_ip", false),
+          floating_ip_rdns : lookup(nodepool_obj, "floating_ip_rdns", false),
           location : nodepool_obj.location,
           labels : concat(local.default_agent_labels, nodepool_obj.swap_size != "" ? local.swap_node_label : [], nodepool_obj.labels),
           taints : concat(local.default_agent_taints, nodepool_obj.taints),
