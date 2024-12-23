@@ -850,15 +850,36 @@ cloudinit_write_files_common = <<EOT
     ip link set $INTERFACE name eth1
     ip link set eth1 up
 
-    eth0_connection=$(nmcli -g GENERAL.CONNECTION device show eth0)
-    nmcli connection modify "$eth0_connection" \
-      con-name eth0 \
-      connection.interface-name eth0
+    myrepeat () {
+        # Current time + 300 seconds (5 minutes)
+        local END_SECONDS=$((SECONDS + 300))
+        while true; do
+            >&2 echo "loop"
+            if (( "$SECONDS" > "$END_SECONDS" )); then
+                >&2 echo "timeout reached"
+                exit 1
+            fi
+            # run command and check return code 
+            if $@ ; then
+                >&2 echo "break"
+                break
+            else
+                >&2 echo "got failure exit code, repeating"
+                sleep 0.5
+            fi
+        done
+    }
 
-    eth1_connection=$(nmcli -g GENERAL.CONNECTION device show eth1)
-    nmcli connection modify "$eth1_connection" \
-      con-name eth1 \
-      connection.interface-name eth1
+    myrename () {
+      local eth="$1"
+      local eth_connection=$(nmcli -g GENERAL.CONNECTION device show $eth || echo '')
+      nmcli connection modify "$eth_connection" \
+        con-name $eth \
+        connection.interface-name $eth
+    }
+
+    myrepeat myrename eth0
+    myrepeat myrename eth1
 
     systemctl restart NetworkManager
   permissions: "0744"
