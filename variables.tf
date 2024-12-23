@@ -206,6 +206,7 @@ variable "agent_nodepools" {
     location                   = string
     backups                    = optional(bool)
     floating_ip                = optional(bool)
+    floating_ip_rdns           = optional(string, null)
     labels                     = list(string)
     taints                     = list(string)
     longhorn_volume_size       = optional(number)
@@ -221,6 +222,7 @@ variable "agent_nodepools" {
       location                   = optional(string)
       backups                    = optional(bool)
       floating_ip                = optional(bool)
+      floating_ip_rdns           = optional(string, null)
       labels                     = optional(list(string))
       taints                     = optional(list(string))
       longhorn_volume_size       = optional(number)
