@@ -558,6 +558,12 @@ module "kube-hetzner" {
   # enable_metrics_server = false
 
   # If you want to enable the k3s built-in local-storage controller set this to "true". Default is "false".
+  # Warning: When enabled together with the Hetzner CSI, there will be two default storage classes: "local-path" and "hcloud-volumes"!
+  #   Even if patched to remove the "default" label, the local-path storage class will be reset as default on each reboot of
+  #   the node where the controller runs.
+  #   This is not a problem if you explicitly define which storageclass to use in your PVCs.
+  #   Workaround if you don't want two default storage classes: leave this to false and add the local-path-provisioner helm chart 
+  #   as an extra (https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#adding-extras).
   # enable_local_storage = false
 
   # If you want to allow non-control-plane workloads to run on the control-plane nodes, set this to "true". The default is "false".

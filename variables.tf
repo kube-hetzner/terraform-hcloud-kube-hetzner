@@ -1108,7 +1108,7 @@ variable "ingress_target_namespace" {
 variable "enable_local_storage" {
   type        = bool
   default     = false
-  description = "Whether to enable or disable k3s local-storage."
+  description = "Whether to enable or disable k3s local-storage. Warning: when enabled, there will be two default storage classes: \"local-path\" and \"hcloud-volumes\"!"
 }
 
 variable "disable_selinux" {
