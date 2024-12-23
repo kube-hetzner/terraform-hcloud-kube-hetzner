@@ -1036,11 +1036,6 @@ cloudinit_runcmd_common = <<EOT
 # Disable rebootmgr service as we use kured instead
 - [systemctl, disable, '--now', 'rebootmgr.service']
 
-%{if length(var.dns_servers) > 0}
-# Set the dns manually
-- [systemctl, 'reload', 'NetworkManager']
-%{endif}
-
 # Bounds the amount of logs that can survive on the system
 - [sed, '-i', 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
 - [sed, '-i', 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
