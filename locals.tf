@@ -728,11 +728,11 @@ additionalArguments:
 %{if var.traefik_resource_limits~}
 resources:
   requests:
-    cpu: "100m"
-    memory: "50Mi"
+    cpu: "${var.traefik_resource_values.requests.cpu}"
+    memory: "${var.traefik_resource_values.requests.memory}"
   limits:
-    cpu: "300m"
-    memory: "150Mi"
+    cpu: "${var.traefik_resource_values.limits.cpu}"
+    memory: "${var.traefik_resource_values.limits.memory}"
 %{endif~}
 %{if var.traefik_autoscaling~}
 autoscaling:
