@@ -457,22 +457,22 @@ variable "traefik_resource_limits" {
 variable "traefik_resource_values" {
   type = object({
     requests = object({
-      cpu = string
+      cpu    = string
       memory = string
     })
     limits = object({
-      cpu = string
+      cpu    = string
       memory = string
     })
   })
   default = {
     requests = {
       memory = "50Mi"
-      cpu = "100m"
+      cpu    = "100m"
     }
     limits = {
       memory = "150Mi"
-      cpu = "300m"
+      cpu    = "300m"
     }
   }
   description = "Requests and limits for Traefik."
