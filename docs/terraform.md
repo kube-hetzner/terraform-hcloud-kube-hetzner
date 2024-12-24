@@ -137,7 +137,6 @@
 | <a name="input_csi_driver_smb_helmchart_bootstrap"></a> [csi\_driver\_smb\_helmchart\_bootstrap](#input\_csi\_driver\_smb\_helmchart\_bootstrap) | Whether the HelmChart csi\_driver\_smb shall be run on control-plane nodes. | `bool` | `false` | no |
 | <a name="input_csi_driver_smb_values"></a> [csi\_driver\_smb\_values](#input\_csi\_driver\_smb\_values) | Additional helm values file to pass to csi-driver-smb as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_csi_driver_smb_version"></a> [csi\_driver\_smb\_version](#input\_csi\_driver\_smb\_version) | Version of csi\_driver\_smb. See https://github.com/kubernetes-csi/csi-driver-smb/releases for the available versions. | `string` | `"*"` | no |
-| <a name="input_disable_hetzner_ccm"></a> [disable\_hetzner\_ccm](#input\_disable\_hetzner\_ccm) | Disable hetzner Cloud Controller Manager. | `bool` | `false` | no |
 | <a name="input_disable_hetzner_csi"></a> [disable\_hetzner\_csi](#input\_disable\_hetzner\_csi) | Disable hetzner csi driver. | `bool` | `false` | no |
 | <a name="input_disable_kube_proxy"></a> [disable\_kube\_proxy](#input\_disable\_kube\_proxy) | Disable kube-proxy in K3s (default false). | `bool` | `false` | no |
 | <a name="input_disable_network_policy"></a> [disable\_network\_policy](#input\_disable\_network\_policy) | Disable k3s default network policy controller (default false, automatically true for calico and cilium). | `bool` | `false` | no |
