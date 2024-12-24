@@ -465,8 +465,6 @@ module "kube-hetzner" {
 
   # To disable Hetzner CSI storage, you can set the following to "true", default is "false".
   # disable_hetzner_csi = true
-  # To disable Hetzner Cloud Controller Manager, you can set the following to "true", default is "false".
-  # disable_hetzner_ccm = true
 
   # If you want to use a specific Hetzner CCM and CSI version, set them below; otherwise, leave them as-is for the latest versions.
   # See https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases for the available versions.
