@@ -51,6 +51,12 @@ In more complex use cases, you may want to deploy to multiple namespaces with a 
 
 For a full demo see the [multiple-namespaces](multiple-namespaces/) example.
 
+### Using Letsencrypt with cert-manager
+
+You can use letsencrypt issuer to issue tls certificate see [example](https://doc.traefik.io/traefik/user-guides/cert-manager/). You need to create a issuer type of `ClusterIssuer` to make is alvailble in all namespaces, unlike in the example. Also note that the `server` in the example is a stagging server, you would need a prod server to use in, well, production. The prod server link can be found at `https://letsencrypt.org/getting-started/`
+
+For a full demo see the [letsencrypt](letsencrypt/)
+
 ## Debugging
 
 To check the existing kustomization, you can run the following command:
