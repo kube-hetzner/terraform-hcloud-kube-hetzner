@@ -654,8 +654,11 @@ service:
 ports:
   web:
 %{if var.traefik_redirect_to_https~}
-    redirectTo:
-      port: websecure
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
+        permanent: true
 %{endif~}
 %{if !local.using_klipper_lb~}
     proxyProtocol:
