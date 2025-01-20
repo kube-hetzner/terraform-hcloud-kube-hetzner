@@ -22,8 +22,8 @@ resource "hcloud_load_balancer" "cluster" {
 resource "hcloud_load_balancer_network" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
 
-  load_balancer_id        = hcloud_load_balancer.cluster.*.id[0]
-  subnet_id               = hcloud_network_subnet.agent.*.id[0]
+  load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
+  subnet_id        = hcloud_network_subnet.agent.*.id[0]
 }
 
 resource "hcloud_load_balancer_target" "cluster" {
@@ -37,7 +37,7 @@ resource "hcloud_load_balancer_target" "cluster" {
 }
 
 locals {
-  first_control_plane_ip =  coalesce(
+  first_control_plane_ip = coalesce(
     module.control_planes[keys(module.control_planes)[0]].ipv4_address,
     module.control_planes[keys(module.control_planes)[0]].ipv6_address,
     module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
