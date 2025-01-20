@@ -146,19 +146,19 @@ variable "keep_disk_size" {
 }
 
 variable "disable_ipv4" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Whether to disable ipv4 on the server. If you disable ipv4 and ipv6 make sure you have an access to your private network."
 }
 
 variable "disable_ipv6" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Whether to disable ipv4 on the server. If you disable ipv4 and ipv6 make sure you have an access to your private network."
 }
 
 variable "network_id" {
-  type = number
-  default = null
+  type        = number
+  default     = null
   description = "The network id to attach the server to."
 }
