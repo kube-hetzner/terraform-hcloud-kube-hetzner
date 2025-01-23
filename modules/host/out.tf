@@ -7,7 +7,7 @@ output "ipv6_address" {
 }
 
 output "private_ipv4_address" {
-  value = one(hcloud_server.server.network).ip
+  value = try(one(hcloud_server.server.network).ip, hcloud_server_network.server[0].ip)
 }
 
 output "name" {

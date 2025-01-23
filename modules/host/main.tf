@@ -70,7 +70,7 @@ resource "hcloud_server" "server" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = coalesce(self.ipv4_address, self.ipv6_address, one(self.network).ip)
+    host           = coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))
     port           = var.ssh_port
   }
 
@@ -86,7 +86,7 @@ resource "hcloud_server" "server" {
   provisioner "local-exec" {
     command = <<-EOT
       timeout 600 bash <<EOF
-        until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${coalesce(self.ipv4_address, self.ipv6_address, one(self.network).ip)} true 2> /dev/null
+        until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))} true 2> /dev/null
         do
           echo "Waiting for MicroOS to become available..."
           sleep 3
@@ -127,7 +127,7 @@ resource "null_resource" "registries" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, one(hcloud_server.server.network).ip)
+    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
     port           = var.ssh_port
   }
 
@@ -147,7 +147,7 @@ resource "hcloud_rdns" "server" {
   count = var.base_domain != "" ? 1 : 0
 
   server_id  = hcloud_server.server.id
-  ip_address = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, one(hcloud_server.server.network).ip)
+  ip_address = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
   dns_ptr    = format("%s.%s", local.name, var.base_domain)
 }
 
@@ -190,7 +190,7 @@ resource "null_resource" "zram" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, one(hcloud_server.server.network).ip)
+    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
     port           = var.ssh_port
   }
 

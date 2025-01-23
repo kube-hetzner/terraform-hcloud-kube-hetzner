@@ -171,7 +171,7 @@ resource "null_resource" "autoscaled_nodes_registries" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = coalesce(each.value.ipv4_address, each.value.ipv6_address, one(each.value.network).ip)
+    host           = coalesce(each.value.ipv4_address, each.value.ipv6_address, try(one(each.value.network).ip, null))
     port           = var.ssh_port
   }
 
