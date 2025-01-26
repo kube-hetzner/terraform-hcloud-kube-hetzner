@@ -280,7 +280,8 @@ locals {
         source_ips  = var.firewall_ssh_source
       },
     ],
-    var.ssh_port == null ? [] : [
+    var.ssh_port != null &&
+    var.firewall_ssh_source == null ? [
       # Allow all traffic to the ssh port
       {
         description = "Allow Incoming SSH Traffic"
@@ -289,7 +290,7 @@ locals {
         port        = var.ssh_port
         source_ips  = ["0.0.0.0/0", "::/0"]
       },
-    ],
+    ] : [],
     var.firewall_kube_api_source == null ? [] : [
       {
         description = "Allow Incoming Requests to Kube API Server"
