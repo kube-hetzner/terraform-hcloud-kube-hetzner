@@ -143,7 +143,9 @@ locals {
         index : node_index
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
-        placement_group : nodepool_obj.placement_group
+        placement_group : nodepool_obj.placement_group,
+        os : nodepool_obj.os
+
       }
     }
   ]...)
@@ -169,6 +171,7 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group
+        os : nodepool_obj.os
       }
     }
   ]...)
@@ -195,6 +198,7 @@ locals {
           placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
           placement_group : nodepool_obj.placement_group,
           index : floor(tonumber(node_key)),
+          os : nodepool_obj.os
         },
         { for key, value in node_obj : key => value if value != null },
         {
@@ -832,7 +836,12 @@ else
 fi
 EOF
 
-cloudinit_write_files_common = <<EOT
+cloudinit_write_files_common_by_os = {
+  microos   = local.opensuse_write_files_common
+  leapmicro = local.opensuse_write_files_common
+}
+
+opensuse_write_files_common = <<EOT
 # Script to rename the private interface to eth1 and unify NetworkManager connection naming
 - path: /etc/cloud/rename_interface.sh
   content: |
@@ -1018,7 +1027,12 @@ cloudinit_write_files_common = <<EOT
 %{endif}
 EOT
 
-cloudinit_runcmd_common = <<EOT
+cloudinit_runcmd_common_by_os = {
+  microos   = local.opensuse_runcmd_common
+  leapmicro = local.opensuse_runcmd_common
+}
+
+opensuse_runcmd_common = <<EOT
 # ensure that /var uses full available disk size, thanks to btrfs this is easy
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 
@@ -1060,4 +1074,32 @@ cloudinit_runcmd_common = <<EOT
 # Cleanup some logs
 - [truncate, '-s', '0', '/var/log/audit/audit.log']
 EOT
+
+snapshot_id_by_os = {
+  leapmicro = local.os_requirements.leapmicro ? {
+    arm = data.hcloud_image.leapmicro_arm_snapshot[0].id,
+    x86 = data.hcloud_image.leapmicro_x86_snapshot[0].id
+  } : null,
+  microos = local.os_requirements.microos ? {
+    arm = data.hcloud_image.microos_arm_snapshot[0].id,
+    x86 = data.hcloud_image.microos_x86_snapshot[0].id
+  } : null
+}
+
+# Get all unique OS requirements across all nodes
+used_os = distinct(concat(
+  [for node in var.control_plane_nodepools : node.os],
+  [for node in var.agent_nodepools : node.os],
+  flatten([
+    for node in var.agent_nodepools :
+    coalesce(values(node.nodes != null ? { for k, n in node.nodes : k => coalesce(n.os, node.os) } : {}), [])
+  ]),
+  [for node in var.autoscaler_nodepools : node.os]
+))
+
+# Check OS image requirements
+os_requirements = {
+  microos   = contains(local.used_os, "microos")
+  leapmicro = contains(local.used_os, "leapmicro")
+}
 }

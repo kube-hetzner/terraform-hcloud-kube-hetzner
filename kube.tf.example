@@ -150,6 +150,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # os = "microos"
     },
     {
       name        = "control-plane-hel1",
@@ -164,6 +167,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # os = "microos"
     }
   ]
 
@@ -184,6 +190,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # os = "microos"
     },
     {
       name        = "agent-large",
@@ -198,6 +207,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # os = "microos"
     },
     {
       name        = "storage",
@@ -218,6 +230,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # os = "microos"
     },
     # Egress nodepool useful to route egress traffic using Hetzner Floating IPs (https://docs.hetzner.com/cloud/floating-ips)
     # used with Cilium's Egress Gateway feature https://docs.cilium.io/en/stable/gettingstarted/egress-gateway/
@@ -256,6 +271,7 @@ module "kube-hetzner" {
       location    = "fsn1",
       labels      = [],
       taints      = [],
+      os          = "microos",
       nodes = {
         "1" : {
           location                  = "nbg1"
@@ -267,6 +283,9 @@ module "kube-hetzner" {
           labels = [
             "testing-labels=b1",
           ]
+        },
+        "30" : {
+          os = "leapmicro"
         }
       }
     },
