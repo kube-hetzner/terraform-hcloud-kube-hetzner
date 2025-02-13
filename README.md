@@ -82,6 +82,7 @@ brew install hashicorp/tap/terraform # OR brew install opentofu
 brew install hashicorp/tap/packer
 brew install kubectl
 brew install hcloud
+brew install coreutils
 ```
 
 ### 💡 [Do not skip] Creating your kube.tf file and the OpenSUSE MicroOS snapshot
