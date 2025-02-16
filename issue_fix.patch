@@ -1,0 +1,82 @@
+diff --git a/locals.tf b/locals.tf
+index d3a9187..0daf123 100644
+--- a/locals.tf
++++ b/locals.tf
+@@ -239,6 +239,25 @@ locals {
+ # or set them to default if the user didn't specify a version.
+ # etc.
+
++# Add logic to truly disable SELinux if disable_selinux = true.
++# We'll do it by appending to cloudinit_runcmd_common.
++  cloudinit_runcmd_common = var.cloudinit_runcmd_common <<EOT
++%{if var.disable_selinux}
++- [sed, '-i', '-E', 's/^SELINUX=[a-z]+/SELINUX=disabled/', '/etc/selinux/config']
++- [setenforce, '0']
++%{endif}
++EOT
++
++# Also, when we generate the final k3s config, ensure selinux is false if disable_selinux=true.
++  # For control-plane nodes:
++  # Inside the k3s-config merge, we skip forcing {selinux=true} if var.disable_selinux is true.
++
++}
++
++  # For example, near line ~345 in the local k3s-config merges, we can do:
++  #   (var.disable_selinux ? { selinux = false } : (v.selinux == true ? { selinux = true } : {}))
++  #   so that if the global disable_selinux is set, it overrides.
++
+ # The default k3s node labels
+ default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+ default_control_plane_labels = concat(local.allow_loadbalancer_target_on_control_plane ? [] : ["node.kubernetes.io/exclude-from-external-load-balancers=true"], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+ diff --git a/control_planes.tf b/control_planes.tf
+index b1fecc7..acd0ab9 100644
+--- a/control_planes.tf
++++ b/control_planes.tf
+@@ -102,7 +102,12 @@ locals {
+         server                       = length(module.control_planes) == 1 ? null : "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ? module.control_planes[keys(module.control_planes)[1]].private_ipv4_address : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+         token                       = local.k3s_token
+         disable-cloud-controller    = true
+-        disable-kube-proxy          = var.disable_kube_proxy
++        disable-kube-proxy          = var.disable_kube_proxy,
++
++        # Force selinux=false if disable_selinux = true
++        # otherwise use the nodepool-specified logic (v.selinux == true)
++        selinux = var.disable_selinux ? false : (v.selinux == true ? true : false)
++
+         disable                     = local.disable_extras
+         kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
+         kube-apiserver-arg          = local.kube_apiserver_arg
+ diff --git a/agents.tf b/agents.tf
+index 0d25c99..efa8d4f 100644
+--- a/agents.tf
++++ b/agents.tf
+@@ -67,7 +67,12 @@ locals {
+       node-name     = module.agents[k].name
+       server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+       token         = local.k3s_token
+-      kubelet-arg   = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_agent_kubelet_args, v.kubelet_args)
++      kubelet-arg   = concat(
++        local.kubelet_arg,
++        var.k3s_global_kubelet_args,
++        var.k3s_agent_kubelet_args,
++        v.kubelet_args
++      )
+       flannel-iface = local.flannel_iface
+       node-ip       = module.agents[k].private_ipv4_address
+       node-label    = v.labels
+@@ -76,7 +81,12 @@ locals {
+       node-taint    = v.taints
+     },
+     var.agent_nodes_custom_config,
+-    (v.selinux == true ? { selinux = true } : {})
++    # Force selinux=false if disable_selinux = true.
++    var.disable_selinux
++      ? { selinux = false }
++      : (
++          v.selinux == true
++          ? { selinux = true }
++          : {}
++        )
+   )
+ }
+}

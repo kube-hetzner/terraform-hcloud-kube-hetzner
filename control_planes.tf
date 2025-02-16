@@ -103,7 +103,7 @@ locals {
       advertise-address           = module.control_planes[k].private_ipv4_address
       node-label                  = v.labels
       node-taint                  = v.taints
-      selinux                     = true
+      selinux                     = var.disable_selinux ? false : (v.selinux == true ? true : false)
       cluster-cidr                = var.cluster_ipv4_cidr
       service-cidr                = var.service_ipv4_cidr
       cluster-dns                 = var.cluster_dns_ipv4
