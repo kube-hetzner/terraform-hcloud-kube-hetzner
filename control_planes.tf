@@ -60,7 +60,10 @@ resource "hcloud_load_balancer_network" "control_plane" {
   load_balancer_id        = hcloud_load_balancer.control_plane.*.id[0]
   subnet_id               = hcloud_network_subnet.control_plane.*.id[0]
   enable_public_interface = var.control_plane_lb_enable_public_interface
-  ip                      = cidrhost(hcloud_network_subnet.control_plane.*.ip_range[0], 1)
+
+  lifecycle {
+    ignore_changes = [ip]
+  }
 }
 
 resource "hcloud_load_balancer_target" "control_plane" {
