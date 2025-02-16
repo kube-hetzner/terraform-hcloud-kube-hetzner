@@ -207,7 +207,19 @@ resource "hcloud_floating_ip_assignment" "agents" {
   ]
 }
 
-resource "terraform_data" "configure_floating_ip" {
+resource "hcloud_rdns" "agents" {
+  for_each = { for k, v in local.agent_nodes : k => v if lookup(v, "floating_ip_rdns", null) != null }
+
+  floating_ip_id = hcloud_floating_ip.agents[each.key].id
+  ip_address     = hcloud_floating_ip.agents[each.key].ip_address
+  dns_ptr        = local.agent_nodes[each.key].floating_ip_rdns
+
+  depends_on = [
+    hcloud_floating_ip.agents
+  ]
+}
+
+resource "null_resource" "configure_floating_ip" {
   for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
   triggers_replace = {

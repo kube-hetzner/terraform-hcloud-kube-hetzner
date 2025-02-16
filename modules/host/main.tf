@@ -63,11 +63,13 @@ resource "hcloud_server" "server" {
   # Wait for MicroOS to reboot and be ready.
   provisioner "local-exec" {
     command = <<-EOT
-      until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
-      do
-        echo "Waiting for MicroOS to become available..."
-        sleep 3
-      done
+      timeout 600 bash <<EOF
+        until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
+        do
+          echo "Waiting for MicroOS to become available..."
+          sleep 3
+        done
+      EOF
     EOT
   }
 
