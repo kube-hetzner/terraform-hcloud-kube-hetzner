@@ -116,7 +116,10 @@ locals {
     var.use_control_plane_lb ? {
       tls-san = concat([
         hcloud_load_balancer.control_plane.*.ipv4[0],
-        hcloud_load_balancer_network.control_plane.*.ip[0], var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : null], var.additional_tls_sans) : {
+        hcloud_load_balancer_network.control_plane.*.ip[0],
+        var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : null
+      ], var.additional_tls_sans)
+      } : {
       tls-san = concat([
         module.control_planes[k].ipv4_address
       ], var.additional_tls_sans)
