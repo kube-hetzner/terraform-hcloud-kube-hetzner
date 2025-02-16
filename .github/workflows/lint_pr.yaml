@@ -18,20 +18,16 @@ jobs:
         uses: aquasecurity/tfsec-pr-commenter-action@v1.3.1
         with:
           github_token: ${{ github.token }}
-          # tfsec does not support terraform 1.5+ (import) blocks,
           tfsec_args: --ignore-hcl-errors
-      # In addition to the Aqua one, run reviewdog Tfsec as well
-      # as it provides more context and can pickup security issues
-      # in underlying modules (more similar to locally running tfsec)
+
       - name: Run tfsec with reviewdog output on the PR
-        uses: reviewdog/action-tfsec@master
+        uses: reviewdog/action-tfsec@v1.17.0
         with:
           github_token: ${{ secrets.github_token }}
-          # level: info # Get more output from reviewdog
-          # reporter: github-pr-review # Change reviewdog reporter
-          filter_mode: nofilter # Check all files, not just the diff
-          fail_on_error: true # Fail action if errors are found
+          filter_mode: nofilter
+          fail_on_error: true
           tfsec_flags: --ignore-hcl-errors
+
   validate:
     runs-on: ubuntu-latest
     name: Validate terraform configuration
@@ -40,7 +36,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: terraform validate
-        uses: dflook/terraform-validate@v1
+        uses: dflook/terraform-validate@v1.46.0
+
   fmt-check:
     runs-on: ubuntu-latest
     name: Check formatting of terraform files
@@ -49,27 +46,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: terraform fmt
-        uses: dflook/terraform-fmt-check@v1
-  # This is failing for some reason, tried debugging but no luck, so commenting out for now.
-  # trivy:
-  #   name: Trivy security scanning
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4
-
-  #     - name: Run Trivy vulnerability scanner in repo mode
-  #       uses: aquasecurity/trivy-action@master
-  #       with:
-  #         scan-type: 'config'
-  #         hide-progress: false
-  #         format: 'sarif'
-  #         output: 'trivy-results.sarif'
-  #         exit-code: '1'
-  #         ignore-unfixed: true
-  #         severity: 'CRITICAL,HIGH'
-
-  #     - name: Upload Trivy scan results to GitHub Security tab
-  #       uses: github/codeql-action/upload-sarif@v2
-  #       with:
-  #         sarif_file: 'trivy-results.sarif'
+        uses: dflook/terraform-fmt-check@v1.46.0
