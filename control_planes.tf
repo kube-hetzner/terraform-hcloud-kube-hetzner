@@ -61,6 +61,8 @@ resource "hcloud_load_balancer_network" "control_plane" {
   subnet_id               = hcloud_network_subnet.control_plane.*.id[0]
   enable_public_interface = var.control_plane_lb_enable_public_interface
 
+  # To ensure backwards compatibility, we ignore changes to the IP address
+  # as before it was set manually.
   lifecycle {
     ignore_changes = [ip]
   }
