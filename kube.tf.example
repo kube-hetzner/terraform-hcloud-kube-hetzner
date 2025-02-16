@@ -251,8 +251,8 @@ module "kube-hetzner" {
     # In this case, the node-pool variables are defaults which can be overridden on a per-node basis.
     # Each key in the nodes map refers to a single node and must be an integer string ("1", "123", ...).
     {
-      name        = "agent-arm-small",
-      server_type = "cax11",
+      name        = "agent-arm-medium",
+      server_type = "cax21",
       location    = "fsn1",
       labels      = [],
       taints      = [],
