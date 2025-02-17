@@ -21,7 +21,7 @@ jobs:
           tfsec_args: --ignore-hcl-errors
 
       - name: Run tfsec with reviewdog output on the PR
-        uses: reviewdog/action-tfsec@v1.17.0
+        uses: reviewdog/action-tfsec@v1.28.4
         with:
           github_token: ${{ secrets.github_token }}
           filter_mode: nofilter
