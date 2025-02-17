@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: terraform validate
-        uses: dflook/terraform-validate@v1.46.0
+        uses: dflook/terraform-validate@v1.46.1
 
   fmt-check:
     runs-on: ubuntu-latest
