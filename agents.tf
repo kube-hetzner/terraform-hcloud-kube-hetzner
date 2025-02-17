@@ -219,7 +219,7 @@ resource "hcloud_rdns" "agents" {
   ]
 }
 
-resource "null_resource" "configure_floating_ip" {
+resource "terraform_data" "configure_floating_ip" {
   for_each = { for k, v in local.agent_nodes : k => v if coalesce(lookup(v, "floating_ip"), false) }
 
   triggers_replace = {
