@@ -184,3 +184,27 @@ resource "null_resource" "autoscaled_nodes_registries" {
     inline = [local.k3s_registries_update_script]
   }
 }
+
+resource "null_resource" "autoscaled_nodes_kubelet_config" {
+  for_each = local.autoscaled_nodes
+  triggers = {
+    kubelet_config = var.k3s_kubelet_config
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = each.value.ipv4_address
+    port           = var.ssh_port
+  }
+
+  provisioner "file" {
+    content     = var.k3s_kubelet_config
+    destination = "/tmp/kubelet.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [local.k3s_kubelet_config_update_script]
+  }
+}

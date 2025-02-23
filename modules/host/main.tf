@@ -143,6 +143,31 @@ resource "null_resource" "registries" {
   depends_on = [hcloud_server.server]
 }
 
+resource "null_resource" "kubelet_config" {
+  triggers = {
+    kubelet_config = var.k3s_kubelet_config
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = hcloud_server.server.ipv4_address
+    port           = var.ssh_port
+  }
+
+  provisioner "file" {
+    content     = var.k3s_kubelet_config
+    destination = "/tmp/kubelet-config.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [var.k3s_kubelet_config_update_script]
+  }
+
+  depends_on = [hcloud_server.server]
+}
+
 resource "hcloud_rdns" "server" {
   count = (var.base_domain != "" && !(var.disable_ipv4 && var.disable_ipv6)) ? 1 : 0
 

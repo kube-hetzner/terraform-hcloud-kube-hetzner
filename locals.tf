@@ -451,7 +451,7 @@ locals {
     },
   var.etcd_s3_backup) : {}
 
-  kubelet_arg                 = ["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"]
+  kubelet_arg                 = concat(["cloud-provider=external", "volume-plugin-dir=/var/lib/kubelet/volumeplugins"], var.k3s_kubelet_config != "" ? ["config=/etc/rancher/k3s/kubelet-config.yaml"] : [])
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
 
@@ -811,6 +811,26 @@ else
 fi
 EOF
 
+k3s_kubelet_config_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/kubelet-config.yaml /etc/rancher/k3s/kubelet-config.yaml; then
+  echo "No update required to the kubelet-config.yaml file"
+else
+  echo "Backing up /etc/rancher/k3s/kubelet-config.yaml to /tmp/kubelet-config_$DATE.yaml"
+  cp /etc/rancher/k3s/kubelet-config.yaml /tmp/kubelet-config_$DATE.yaml
+  echo "Updated kubelet-config.yaml detected, restart of k3s service required"
+  cp /tmp/kubelet-config.yaml /etc/rancher/k3s/kubelet-config.yaml
+  if systemctl is-active --quiet k3s; then
+    systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/kubelet-config.yaml from backup" && cp /tmp/kubelet-config_$DATE.yaml /etc/rancher/k3s/kubelet-config.yaml && systemctl restart k3s)
+  elif systemctl is-active --quiet k3s-agent; then
+    systemctl restart k3s-agent || (echo "Error: Failed to restart k3s-agent. Restoring /etc/rancher/k3s/kubelet-config.yaml from backup" && cp /tmp/kubelet-config_$DATE.yaml /etc/rancher/k3s/kubelet-config.yaml && systemctl restart k3s-agent)
+  else
+    echo "No active k3s or k3s-agent service found"
+  fi
+  echo "k3s service or k3s-agent service (re)started successfully"
+fi
+EOF
+
 k3s_config_update_script = <<EOF
 DATE=`date +%Y-%m-%d_%H-%M-%S`
 if cmp -s /tmp/config.yaml /etc/rancher/k3s/config.yaml; then
@@ -1034,6 +1054,14 @@ cloudinit_write_files_common = <<EOT
 - content: ${base64encode(var.k3s_registries)}
   encoding: base64
   path: /etc/rancher/k3s/registries.yaml
+%{endif}
+
+# Create the k3s kubelet config file if needed
+%{if var.k3s_kubelet_config != ""}
+# Create k3s kubelet config file
+- content: ${base64encode(var.k3s_kubelet_config)}
+  encoding: base64
+  path: /etc/rancher/k3s/kubelet-config.yaml
 %{endif}
 EOT
 
