@@ -894,11 +894,16 @@ cloudinit_write_files_common = <<EOT
     }
 
     myrename () {
-      local eth="$1"
-      local eth_connection=$(nmcli -g GENERAL.CONNECTION device show $eth || echo '')
-      nmcli connection modify "$eth_connection" \
-        con-name $eth \
-        connection.interface-name $eth
+        local eth="$1"
+        local eth_connection
+
+        # In case of a private-only network, eth0 may not exist
+        if ip link show "$eth" &>/dev/null; then
+            eth_connection=$(nmcli -g GENERAL.CONNECTION device show "$eth" || echo '')
+            nmcli connection modify "$eth_connection" \
+              con-name "$eth" \
+              connection.interface-name "$eth"
+        fi
     }
 
     myrepeat myrename eth0

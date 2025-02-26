@@ -138,6 +138,8 @@ module "kube-hetzner" {
       # backups = true
       
       # To disable public ips (default: false)
+      # WARNING: If both values are set to "true", your server will only be accessible via a private network. Make sure you have followed
+      # the instructions regarding this type of setup in README.md: "Use only private IPs in your cluster".
       # disable_ipv4 = true
       # disable_ipv6 = true
     },
@@ -156,6 +158,8 @@ module "kube-hetzner" {
       # backups = true
       
       # To disable public ips (default: false)
+      # WARNING: If both values are set to "true", your server will only be accessible via a private network. Make sure you have followed
+      # the instructions regarding this type of setup in README.md: "Use only private IPs in your cluster".
       # disable_ipv4 = true
       # disable_ipv6 = true
     },
@@ -174,6 +178,8 @@ module "kube-hetzner" {
       # backups = true
       
       # To disable public ips (default: false)
+      # WARNING: If both values are set to "true", your server will only be accessible via a private network. Make sure you have followed
+      # the instructions regarding this type of setup in README.md: "Use only private IPs in your cluster".
       # disable_ipv4 = true
       # disable_ipv6 = true
     }

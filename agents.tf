@@ -243,11 +243,21 @@ resource "null_resource" "configure_floating_ip" {
       #    gateway for the public network)
       # The configuration is stored in file /etc/NetworkManager/system-connections/cloud-init-eth0.nmconnection
       <<-EOT
-      NM_CONNECTION=$(nmcli -g GENERAL.CONNECTION device show eth0)
+      ETH=eth1
+      if ip link show eth0 &>/dev/null; then
+          ETH=eth0
+      fi
+
+      NM_CONNECTION=$(nmcli -g GENERAL.CONNECTION device show "$ETH" 2>/dev/null)
+      if [ -z "$NM_CONNECTION" ]; then
+          echo "ERROR: No NetworkManager connection found for $ETH" >&2
+          exit 1
+      fi
+
       nmcli connection modify "$NM_CONNECTION" \
-        ipv4.method manual \
-        ipv4.addresses ${hcloud_floating_ip.agents[each.key].ip_address}/32,${local.agent_ips[each.key]}/32 gw4 172.31.1.1 \
-        ipv4.route-metric 100 \
+          ipv4.method manual \
+          ipv4.addresses ${hcloud_floating_ip.agents[each.key].ip_address}/32,${local.agent_ips[each.key]}/32 gw4 172.31.1.1 \
+          ipv4.route-metric 100 \
       && nmcli connection up "$NM_CONNECTION"
       EOT
     ]
