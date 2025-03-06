@@ -11,14 +11,26 @@ variable "k3s_token" {
   default     = null
 }
 
+variable "leapmicro_x86_snapshot_id" {
+  description = "Leap Micro x86 snapshot ID to be used. If empty, the most recent image created will be used."
+  type        = string
+  default     = ""
+}
+
+variable "leapmicro_arm_snapshot_id" {
+  description = "Leap Micro ARM snapshot ID to be used. If empty, the most recent image created will be used."
+  type        = string
+  default     = ""
+}
+
 variable "microos_x86_snapshot_id" {
-  description = "MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
+  description = "MicroOS x86 snapshot ID to be used. If empty, the most recent image created will be used."
   type        = string
   default     = ""
 }
 
 variable "microos_arm_snapshot_id" {
-  description = "MicroOS ARM snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
+  description = "MicroOS ARM snapshot ID to be used. If empty, the most recent image created will be used."
   type        = string
   default     = ""
 }
