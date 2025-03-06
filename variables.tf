@@ -196,7 +196,7 @@ variable "control_plane_nodepools" {
     selinux                    = optional(bool, true)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
-    os                         = optional(string, "microos")
+    os                         = optional(string, "leapmicro")
   }))
   default = []
   validation {
@@ -229,7 +229,7 @@ variable "agent_nodepools" {
     selinux                    = optional(bool, true)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
-    os                         = optional(string, "microos")
+    os                         = optional(string, "leapmicro")
     count                      = optional(number, null)
     nodes = optional(map(object({
       server_type                = optional(string)
@@ -347,7 +347,7 @@ variable "autoscaler_nodepools" {
     max_nodes    = number
     labels       = optional(map(string), {})
     kubelet_args = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-    os           = optional(string, "microos")
+    os           = optional(string, "leapmicro")
     taints = optional(list(object({
       key    = string
       value  = string
