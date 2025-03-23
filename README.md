@@ -995,6 +995,67 @@ enable_delete_protection = {
 
 </details>
 
+<details>
+
+<summary>Fix SELinux issues with udica</summary>
+
+Rather than weakening SELinux modules for all workloads on your cluster, it's better to create a profile and apply it to a specific workload. The `udica` tool (pre-installed on MicroOS nodes) helps produce SELinux modules for running containers.
+
+Here's how to use it:
+
+1. Find the container ID for your problematic workload:
+```sh
+crictl ps
+```
+
+2. Generate a container inspection file:
+```sh
+crictl inspect <container-id> > container.json
+```
+
+3. Use udica to create an SELinux profile (with appropriate network access):
+```sh
+udica -j container.json myapp --full-network-access
+```
+
+4. Review the generated policy to understand its permissions and verify if they can be further restricted
+
+5. Install the generated SELinux module:
+```sh
+semodule -i myapp.cil /usr/share/udica/templates/{base_container.cil,net_container.cil}
+```
+
+6. Apply the custom SELinux type to your deployment by adding `securityContext` with `seLinuxOptions`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: my-container
+          image: my-image:latest
+          securityContext:
+            seLinuxOptions:
+              type: myapp.process
+```
+
+This approach is much safer than weakening SELinux for all workloads in your cluster. Many Helm charts support the `securityContext` field as well.
+
+_Thanks for the tip @carolosf._
+
+</details>
+
 ## Debugging
 
 First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without logging in to the UI. That is where the `hcloud` cli comes in.

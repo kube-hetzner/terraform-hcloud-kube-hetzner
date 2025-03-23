@@ -732,6 +732,11 @@ module "kube-hetzner" {
   # Ideally you would set your IP there. And if it changes after cluster deploy, you can always update this variable and apply again.
   # firewall_ssh_source = ["1.2.3.4/32"]
 
+  # By default, SELinux is enabled in enforcing mode on all nodes. For container-specific SELinux issues,
+  # consider using the pre-installed 'udica' tool to create custom, targeted SELinux policies instead of 
+  # disabling SELinux globally. See the "Fix SELinux issues with udica" example in the README for details.
+  # disable_selinux = false
+
   # Adding extra firewall rules, like opening a port
   # More info on the format here https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/firewall
   # extra_firewall_rules = [
