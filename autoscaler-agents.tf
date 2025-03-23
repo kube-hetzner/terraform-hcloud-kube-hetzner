@@ -50,6 +50,8 @@ locals {
       hcloud_servers.autoscaled_nodes : [for v in v.servers : v]
     ]...) : v.name => v
   }
+
+  has_dns_servers = length(var.dns_servers) > 0 ? true : false
 }
 
 resource "null_resource" "configure_autoscaler" {
@@ -100,6 +102,8 @@ data "cloudinit_config" "autoscaler_config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
+        dns_servers       = var.dns_servers
+        has_dns_servers   = local.has_dns_servers
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
@@ -132,6 +136,8 @@ data "cloudinit_config" "autoscaler_legacy_config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
+        dns_servers       = var.dns_servers
+        has_dns_servers   = local.has_dns_servers
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"

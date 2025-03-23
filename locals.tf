@@ -1012,22 +1012,6 @@ cloudinit_write_files_common = <<EOT
   encoding: base64
   path: /etc/rancher/k3s/registries.yaml
 %{endif}
-
-# Apply new DNS config
-%{if length(var.dns_servers) > 0}
-# Set prepare for manual dns config
-- content: |
-    [main]
-    dns=none
-  path: /etc/NetworkManager/conf.d/dns.conf
-
-- content: |
-    %{for server in var.dns_servers~}
-    nameserver ${server}
-    %{endfor}
-  path: /etc/resolv.conf
-  permissions: '0644'
-%{endif}
 EOT
 
 cloudinit_runcmd_common = <<EOT
