@@ -2,8 +2,8 @@ variable "name" {
   description = "Host name"
   type        = string
 }
-variable "microos_snapshot_id" {
-  description = "MicroOS snapshot ID to be used. Per default empty, an initial snapshot will be created"
+variable "os_snapshot_id" {
+  description = "Hetzner OS snapshot ID to be used. Per default empty, an initial snapshot will be created"
   type        = string
   default     = ""
 }
@@ -143,4 +143,10 @@ variable "keep_disk_size" {
   type        = bool
   default     = false
   description = "Whether to keep OS disks of nodes the same size when upgrading a node"
+}
+
+variable "os" {
+  type        = string
+  default     = ""
+  description = "OS name used in the image"
 }

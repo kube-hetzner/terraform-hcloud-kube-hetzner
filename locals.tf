@@ -143,7 +143,9 @@ locals {
         index : node_index
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
-        placement_group : nodepool_obj.placement_group
+        placement_group : nodepool_obj.placement_group,
+        os : nodepool_obj.os
+
       }
     }
   ]...)
@@ -169,6 +171,7 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group
+        os : nodepool_obj.os
       }
     }
   ]...)
@@ -195,6 +198,7 @@ locals {
           placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
           placement_group : nodepool_obj.placement_group,
           index : floor(tonumber(node_key)),
+          os : nodepool_obj.os
         },
         { for key, value in node_obj : key => value if value != null },
         {
@@ -221,7 +225,7 @@ locals {
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
-  control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
+  control_plane_count    = length(var.control_plane_nodepools) > 0 ? sum([for v in var.control_plane_nodepools : v.count]) : 0
   agent_count            = length(var.agent_nodepools) > 0 ? sum([for v in var.agent_nodepools : length(coalesce(v.nodes, {})) + coalesce(v.count, 0)]) : 0
   autoscaler_max_count   = length(var.autoscaler_nodepools) > 0 ? sum([for v in var.autoscaler_nodepools : v.max_nodes]) : 0
   is_single_node_cluster = (local.control_plane_count + local.agent_count + local.autoscaler_max_count) == 1
@@ -843,7 +847,12 @@ else
 fi
 EOF
 
-cloudinit_write_files_common = <<EOT
+cloudinit_write_files_common_by_os = {
+  microos   = local.opensuse_write_files_common
+  leapmicro = local.opensuse_write_files_common
+}
+
+opensuse_write_files_common = <<EOT
 # Script to rename the private interface to eth1 and unify NetworkManager connection naming
 - path: /etc/cloud/rename_interface.sh
   content: |
@@ -1014,7 +1023,12 @@ cloudinit_write_files_common = <<EOT
 %{endif}
 EOT
 
-cloudinit_runcmd_common = <<EOT
+cloudinit_runcmd_common_by_os = {
+  microos   = local.opensuse_runcmd_common
+  leapmicro = local.opensuse_runcmd_common
+}
+
+opensuse_runcmd_common = <<EOT
 # ensure that /var uses full available disk size, thanks to btrfs this is easy
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 
@@ -1063,4 +1077,32 @@ cloudinit_runcmd_common = <<EOT
 - [setenforce, '0']
 %{endif}
 EOT
+
+snapshot_id_by_os = {
+  leapmicro = local.os_requirements.leapmicro ? {
+    arm = var.leapmicro_arm_snapshot_id != "" ? var.leapmicro_arm_snapshot_id : data.hcloud_image.leapmicro_arm_snapshot[0].id,
+    x86 = var.leapmicro_x86_snapshot_id != "" ? var.leapmicro_x86_snapshot_id : data.hcloud_image.leapmicro_x86_snapshot[0].id
+  } : null,
+  microos = local.os_requirements.microos ? {
+    arm = var.microos_arm_snapshot_id != "" ? var.microos_arm_snapshot_id : data.hcloud_image.microos_arm_snapshot[0].id,
+    x86 = var.microos_x86_snapshot_id != "" ? var.microos_x86_snapshot_id : data.hcloud_image.microos_x86_snapshot[0].id
+  } : null
+}
+
+# Get all unique OS requirements across all nodes
+used_os = distinct(concat(
+  [for node in var.control_plane_nodepools : node.os],
+  [for node in var.agent_nodepools : node.os],
+  flatten([
+    for node in var.agent_nodepools :
+    coalesce(values(node.nodes != null ? { for k, n in node.nodes : k => coalesce(n.os, node.os) } : {}), [])
+  ]),
+  [for node in var.autoscaler_nodepools : node.os]
+))
+
+# Check OS image requirements
+os_requirements = {
+  microos   = contains(local.used_os, "microos")
+  leapmicro = contains(local.used_os, "leapmicro")
+}
 }

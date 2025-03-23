@@ -48,7 +48,7 @@ if [[ "$delete_volumes_input" =~ ^([Yy]es|[Yy])$ ]]; then
   DELETE_VOLUMES=1
 fi
 
-read -p "Do you want to delete MicroOS snapshots? (yes/no, default: no): " delete_snapshots_input
+read -p "Do you want to delete LeapMicro and MicroOS snapshots? (yes/no, default: no): " delete_snapshots_input
 DELETE_SNAPSHOTS=0
 if [[ "$delete_snapshots_input" =~ ^([Yy]es|[Yy])$ ]]; then
   DELETE_SNAPSHOTS=1
@@ -179,7 +179,7 @@ function delete_autoscaled_nodes() {
 
 function delete_snapshots() {
   local snapshots
-  while IFS='' read -r line; do snapshots+=("$line"); done < <(hcloud image list --selector 'microos-snapshot=yes' -o noheader -o 'columns=id,name')
+  while IFS='' read -r line; do snapshots+=("$line"); done < <(hcloud image list -o noheader -o 'columns=id,name,labels' | grep -E 'microos-snapshot=yes|leapmicro-snapshot=yes')
 
   for snapshot_info in "${snapshots[@]}"; do
     local ID=$(echo "$snapshot_info" | awk '{print $1}')
