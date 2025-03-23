@@ -1055,5 +1055,12 @@ cloudinit_runcmd_common = <<EOT
 
 # Cleanup some logs
 - [truncate, '-s', '0', '/var/log/audit/audit.log']
+
+# Add logic to truly disable SELinux if disable_selinux = true.
+# We'll do it by appending to cloudinit_runcmd_common.
+%{if var.disable_selinux}
+- [sed, '-i', '-E', 's/^SELINUX=[a-z]+/SELINUX=disabled/', '/etc/selinux/config']
+- [setenforce, '0']
+%{endif}
 EOT
 }

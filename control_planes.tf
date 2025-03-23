@@ -60,7 +60,12 @@ resource "hcloud_load_balancer_network" "control_plane" {
   load_balancer_id        = hcloud_load_balancer.control_plane.*.id[0]
   subnet_id               = hcloud_network_subnet.control_plane.*.id[0]
   enable_public_interface = var.control_plane_lb_enable_public_interface
-  ip                      = cidrhost(hcloud_network_subnet.control_plane.*.ip_range[0], 1)
+
+  # To ensure backwards compatibility, we ignore changes to the IP address
+  # as before it was set manually.
+  lifecycle {
+    ignore_changes = [ip]
+  }
 }
 
 resource "hcloud_load_balancer_target" "control_plane" {
@@ -103,7 +108,7 @@ locals {
       advertise-address           = module.control_planes[k].private_ipv4_address
       node-label                  = v.labels
       node-taint                  = v.taints
-      selinux                     = true
+      selinux                     = var.disable_selinux ? false : (v.selinux == true ? true : false)
       cluster-cidr                = var.cluster_ipv4_cidr
       service-cidr                = var.service_ipv4_cidr
       cluster-dns                 = var.cluster_dns_ipv4
@@ -111,7 +116,11 @@ locals {
     },
     lookup(local.cni_k3s_settings, var.cni_plugin, {}),
     var.use_control_plane_lb ? {
-      tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
+      tls-san = concat([
+        hcloud_load_balancer.control_plane.*.ipv4[0],
+        hcloud_load_balancer_network.control_plane.*.ip[0],
+        var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : null
+      ], var.additional_tls_sans)
       } : {
       tls-san = concat([
         module.control_planes[k].ipv4_address

@@ -236,3 +236,38 @@ WantedBy=multi-user.target
 
   depends_on = [hcloud_server.server]
 }
+
+# Resource to toggle transactional-update.timer based on automatically_upgrade_os setting
+resource "null_resource" "os_upgrade_toggle" {
+  triggers = {
+    os_upgrade_state = var.automatically_upgrade_os ? "enabled" : "disabled"
+    server_id        = hcloud_server.server.id
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = hcloud_server.server.ipv4_address
+    port           = var.ssh_port
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      <<-EOT
+      if [ "${var.automatically_upgrade_os}" = "true" ]; then
+        echo "automatically_upgrade_os changed to true, enabling transactional-update.timer"
+        systemctl enable --now transactional-update.timer || true
+      else
+        echo "automatically_upgrade_os changed to false, disabling transactional-update.timer"
+        systemctl disable --now transactional-update.timer || true
+      fi
+      EOT
+    ]
+  }
+
+  depends_on = [
+    hcloud_server.server,
+    null_resource.registries
+  ]
+}
