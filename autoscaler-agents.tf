@@ -201,7 +201,7 @@ resource "null_resource" "autoscaled_nodes_kubelet_config" {
 
   provisioner "file" {
     content     = var.k3s_kubelet_config
-    destination = "/tmp/kubelet.yaml"
+    destination = "/tmp/kubelet-config.yaml"
   }
 
   provisioner "remote-exec" {
