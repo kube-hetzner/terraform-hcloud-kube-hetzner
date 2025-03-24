@@ -816,8 +816,10 @@ DATE=`date +%Y-%m-%d_%H-%M-%S`
 if cmp -s /tmp/kubelet-config.yaml /etc/rancher/k3s/kubelet-config.yaml; then
   echo "No update required to the kubelet-config.yaml file"
 else
-  echo "Backing up /etc/rancher/k3s/kubelet-config.yaml to /tmp/kubelet-config_$DATE.yaml"
-  cp /etc/rancher/k3s/kubelet-config.yaml /tmp/kubelet-config_$DATE.yaml
+  if [ -f "/etc/rancher/k3s/kubelet-config.yaml" ]; then
+    echo "Backing up /etc/rancher/k3s/kubelet-config.yaml to /tmp/kubelet-config_$DATE.yaml"
+    cp /etc/rancher/k3s/kubelet-config.yaml /tmp/kubelet-config_$DATE.yaml
+  fi
   echo "Updated kubelet-config.yaml detected, restart of k3s service required"
   cp /tmp/kubelet-config.yaml /etc/rancher/k3s/kubelet-config.yaml
   if systemctl is-active --quiet k3s; then
