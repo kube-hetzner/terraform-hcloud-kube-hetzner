@@ -138,8 +138,8 @@ locals {
           module.control_planes[k].ipv4_address != "" ? module.control_planes[k].ipv4_address : null,
           module.control_planes[k].ipv6_address != "" ? module.control_planes[k].ipv6_address : null,
           try(one(module.control_planes[k].network).ip, null)
-        ]), 
-        var.additional_tls_sans)
+        ]),
+      var.additional_tls_sans)
     },
     local.etcd_s3_snapshots,
     var.control_planes_custom_config
