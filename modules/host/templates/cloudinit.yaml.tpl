@@ -34,6 +34,13 @@ runcmd:
 
 ${cloudinit_runcmd_common}
 
+# Configure default route based on public ip availability
+%{if private_network_only~}
+- [ip, route, add, default, via, '10.0.0.1', dev, 'eth0']
+%{else~}
+- [ip, route, add, default, via, '172.31.1.1', dev, 'eth0']
+%{endif~}
+
 %{if swap_size != ""~}
 - |
   btrfs subvolume create /var/lib/swap
