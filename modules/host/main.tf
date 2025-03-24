@@ -176,6 +176,7 @@ data "cloudinit_config" "config" {
         cloudinit_write_files_common = var.cloudinit_write_files_common
         cloudinit_runcmd_common      = var.cloudinit_runcmd_common
         swap_size                    = var.swap_size
+        private_network_only         = var.disable_ipv4 && var.disable_ipv6
       }
     )
   }
@@ -271,7 +272,7 @@ resource "null_resource" "os_upgrade_toggle" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = hcloud_server.server.ipv4_address
+    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
     port           = var.ssh_port
   }
 

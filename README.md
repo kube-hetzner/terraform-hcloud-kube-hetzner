@@ -1001,7 +1001,7 @@ enable_delete_protection = {
 To use only private ips on your cluster, you need in your project:
 1. A network already configured.
 2. A machine with a public IP, with nat configured (see [Hetzner guide](https://community.hetzner.com/tutorials/how-to-set-up-nat-for-cloud-networks)).
-3. Access to your network (you can use wireguard, see [Hetnzer guide](https://docs.hetzner.com/cloud/apps/list/wireguard/)).
+3. Access to your network (you can use wireguard, see [Hetzner guide](https://docs.hetzner.com/cloud/apps/list/wireguard/)).
 4. A route in your network, destination: `0.0.0.0/0` through the private ip of your machine with NAT.
 5. Make sure the connexion to your vpn is established before launching terraform.
 

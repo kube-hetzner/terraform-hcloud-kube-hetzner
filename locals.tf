@@ -1066,7 +1066,6 @@ cloudinit_runcmd_common = <<EOT
 # Make sure the network is up
 - [systemctl, restart, NetworkManager]
 - [systemctl, status, NetworkManager]
-- [ip, route, add, default, via, '172.31.1.1', dev, 'eth0']
 
 # Cleanup some logs
 - [truncate, '-s', '0', '/var/log/audit/audit.log']

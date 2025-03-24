@@ -133,9 +133,13 @@ locals {
         var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : null
       ], var.additional_tls_sans)
       } : {
-      tls-san = concat([
-        module.control_planes[k].ipv4_address
-      ], var.additional_tls_sans)
+      tls-san = concat(
+        compact([
+          module.control_planes[k].ipv4_address != "" ? module.control_planes[k].ipv4_address : null,
+          module.control_planes[k].ipv6_address != "" ? module.control_planes[k].ipv6_address : null,
+          try(one(module.control_planes[k].network).ip, null)
+        ]), 
+        var.additional_tls_sans)
     },
     local.etcd_s3_snapshots,
     var.control_planes_custom_config
