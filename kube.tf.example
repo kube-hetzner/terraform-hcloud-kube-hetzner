@@ -151,7 +151,7 @@ module "kube-hetzner" {
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
 
-      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
       # os = "microos"
     },
     {
@@ -168,7 +168,7 @@ module "kube-hetzner" {
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
 
-      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
       # os = "microos"
     }
   ]
@@ -191,7 +191,7 @@ module "kube-hetzner" {
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
 
-      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
       # os = "microos"
     },
     {
@@ -208,7 +208,7 @@ module "kube-hetzner" {
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
 
-      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
       # os = "microos"
     },
     {
@@ -231,7 +231,7 @@ module "kube-hetzner" {
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
 
-      # Specify OS type (default is "microos"). Use "leapmicro" if needed.
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
       # os = "microos"
     },
     # Egress nodepool useful to route egress traffic using Hetzner Floating IPs (https://docs.hetzner.com/cloud/floating-ips)
