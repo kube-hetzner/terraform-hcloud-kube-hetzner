@@ -108,8 +108,24 @@ locals {
     ]
   })
 
-  apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
-  swap_node_label   = ["node.kubernetes.io/server-swap=enabled"]
+  apply_k3s_selinux = [<<-EOT
+retry_count=0
+max_retries=5
+wait_time=10
+while [ $retry_count -lt $max_retries ]; do
+  /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp && break
+  echo "Failed to apply SELinux module, retrying in $wait_time seconds..."
+  sleep $wait_time
+  retry_count=$((retry_count + 1))
+  wait_time=$((wait_time * 2))
+done
+if [ $retry_count -eq $max_retries ]; then
+  echo "Failed to apply SELinux module after $max_retries attempts"
+  exit 1
+fi
+EOT
+  ]
+  swap_node_label = ["node.kubernetes.io/server-swap=enabled"]
 
   k3s_install_command = "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true %{if var.install_k3s_version == ""}INSTALL_K3S_CHANNEL=${var.initial_k3s_channel}%{else}INSTALL_K3S_VERSION=${var.install_k3s_version}%{endif} INSTALL_K3S_EXEC='%s' sh -"
 
