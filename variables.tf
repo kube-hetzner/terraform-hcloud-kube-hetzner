@@ -209,6 +209,14 @@ variable "control_plane_nodepools" {
     )
     error_message = "Names in control_plane_nodepools must be unique."
   }
+
+  validation {
+    condition = alltrue([
+      for control_plane_nodepool in var.control_plane_nodepools :
+      control_plane_nodepool.os == "microos" || control_plane_nodepool.os == "leapmicro"
+    ])
+    error_message = "The os must be either 'microos' or 'leapmicro'."
+  }
 }
 
 variable "agent_nodepools" {
@@ -283,6 +291,30 @@ variable "agent_nodepools" {
     error_message = "Hetzner does not support networks with more than 100 servers."
   }
 
+  validation {
+    condition = alltrue([
+      for agent_nodepool in var.agent_nodepools :
+      agent_nodepool.os == "microos" || agent_nodepool.os == "leapmicro"
+    ])
+    error_message = <<-EOF
+    Invalid 'os' value at the nodepool level. The 'os' for each 'agent_nodepool' must be either 'microos' or 'leapmicro'.
+    Please correct the nodepool 'os' value.
+    EOF
+  }
+
+  validation {
+    condition = alltrue([
+      for agent_nodepool in var.agent_nodepools :
+      alltrue([
+        for agent_key, agent_node in coalesce(agent_nodepool.nodes, {}) :
+        agent_node.os == "microos" || agent_node.os == "leapmicro" || agent_node.os == null
+      ])
+    ])
+    error_message = <<-EOF
+    Invalid 'os' value at the node level. Each node's 'os' within a nodepool must be either 'microos', 'leapmicro', or unset.
+    Please correct any invalid node 'os' values.
+    EOF
+  }
 }
 
 variable "cluster_autoscaler_image" {
@@ -355,6 +387,18 @@ variable "autoscaler_nodepools" {
     })), [])
   }))
   default = []
+
+  validation {
+    condition = alltrue([
+      for autoscaler_nodepool in var.autoscaler_nodepools :
+      autoscaler_nodepool.os == "microos" || autoscaler_nodepool.os == "leapmicro"
+    ])
+    error_message = <<-EOF
+    Invalid 'os' value at the autoscaler nodepool level. The 'os' for each 'autoscaler_nodepool' must be either 'microos' or 'leapmicro'.
+    If unspecified, it defaults to 'leapmicro', which applies to all nodes in this nodepool.
+    Please correct the autoscaler nodepool 'os' value.
+    EOF
+  }
 }
 
 variable "autoscaler_labels" {
