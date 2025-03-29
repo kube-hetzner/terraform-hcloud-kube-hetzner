@@ -120,6 +120,20 @@ variable "cluster_dns_ipv4" {
   default     = "10.43.0.10"
 }
 
+
+variable "nat_router" {
+  description = "Do you want to pipe all egress through a single nat router which is to be constructed?"
+  nullable    = true
+  default     = null
+  type = object({
+    server_type = string
+    location    = string
+    labels      = optional(map(string), {})
+    enable_sudo = optional(bool, false)
+  })
+}
+
+
 variable "load_balancer_location" {
   description = "Default load balancer location."
   type        = string

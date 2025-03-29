@@ -66,6 +66,12 @@ resource "null_resource" "configure_autoscaler" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Upload the autoscaler resource defintion
@@ -173,6 +179,12 @@ resource "null_resource" "autoscaled_nodes_registries" {
     agent_identity = local.ssh_agent_identity
     host           = coalesce(each.value.ipv4_address, each.value.ipv6_address, try(one(each.value.network).ip, null))
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   provisioner "file" {

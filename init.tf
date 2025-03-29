@@ -24,6 +24,7 @@ resource "hcloud_load_balancer_network" "cluster" {
 
   load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
   subnet_id        = hcloud_network_subnet.agent.*.id[0]
+  ip               = cidrhost(hcloud_network_subnet.agent.*.ip_range[0], 254)
 }
 
 resource "hcloud_load_balancer_target" "cluster" {
@@ -51,6 +52,12 @@ resource "null_resource" "first_control_plane" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Generating k3s master config file
@@ -175,6 +182,12 @@ resource "null_resource" "kustomization" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.

@@ -33,24 +33,30 @@ data "hcloud_network" "k3s" {
   id = local.use_existing_network ? var.existing_network_id[0] : hcloud_network.k3s[0].id
 }
 
-# We start from the end of the subnets cidr array,
-# as we would have fewer control plane nodepools, than agent ones.
+
 resource "hcloud_network_subnet" "control_plane" {
   count        = length(var.control_plane_nodepools)
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
-  ip_range     = local.network_ipv4_subnets[255 - count.index]
+  ip_range     = local.network_ipv4_subnets_control_plane_pools[count.index]
 }
 
-# Here we start at the beginning of the subnets cidr array
 resource "hcloud_network_subnet" "agent" {
   count        = length(var.agent_nodepools)
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
-  ip_range     = local.network_ipv4_subnets[count.index]
+  ip_range     = local.network_ipv4_subnets_agent_pools[count.index]
 }
+
+resource "hcloud_network_subnet" "peripherals" {
+  network_id   = data.hcloud_network.k3s.id
+  type         = "cloud"
+  network_zone = var.network_region
+  ip_range     = local.network_ipv4_subnet_peripherals
+}
+
 
 resource "hcloud_firewall" "k3s" {
   name   = var.cluster_name
