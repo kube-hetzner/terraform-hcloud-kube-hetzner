@@ -54,7 +54,8 @@ locals {
     "cifs-utils",
     "bash-completion",
     "mtr",
-    "tcpdump"
+    "tcpdump",
+    "udica"
   ], var.packages_to_install))
   # Add local variables for inline shell commands
   download_image = "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only "
