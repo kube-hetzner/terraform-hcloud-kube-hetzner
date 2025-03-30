@@ -197,6 +197,9 @@ variable "control_plane_nodepools" {
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
     os                         = optional(string, "leapmicro")
+    disable_ipv4               = optional(bool, false)
+    disable_ipv6               = optional(bool, false)
+    network_id                 = optional(number, 0)
   }))
   default = []
   validation {
@@ -239,6 +242,9 @@ variable "agent_nodepools" {
     placement_group            = optional(string, null)
     os                         = optional(string, "leapmicro")
     count                      = optional(number, null)
+    disable_ipv4               = optional(bool, false)
+    disable_ipv6               = optional(bool, false)
+    network_id                 = optional(number, 0)
     nodes = optional(map(object({
       server_type                = optional(string)
       location                   = optional(string)
@@ -325,7 +331,7 @@ variable "cluster_autoscaler_image" {
 
 variable "cluster_autoscaler_version" {
   type        = string
-  default     = "v1.31.5"
+  default     = "v1.32.0"
   description = "Version of Kubernetes Cluster Autoscaler for Hetzner Cloud. Should be aligned with Kubernetes version. Available versions for the official image can be found at https://explore.ggcr.dev/?repo=registry.k8s.io%2Fautoscaling%2Fcluster-autoscaler."
 }
 
@@ -785,7 +791,7 @@ variable "cilium_values" {
 
 variable "cilium_version" {
   type        = string
-  default     = "1.15.1"
+  default     = "1.17.0"
   description = "Version of Cilium. See https://github.com/cilium/cilium/releases for the available versions."
 }
 

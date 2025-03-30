@@ -30,6 +30,9 @@ module "control_planes" {
   swap_size                    = each.value.swap_size
   zram_size                    = each.value.zram_size
   keep_disk_size               = var.keep_disk_cp
+  disable_ipv4                 = each.value.disable_ipv4
+  disable_ipv6                 = each.value.disable_ipv6
+  network_id                   = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
@@ -61,7 +64,12 @@ resource "hcloud_load_balancer_network" "control_plane" {
   load_balancer_id        = hcloud_load_balancer.control_plane.*.id[0]
   subnet_id               = hcloud_network_subnet.control_plane.*.id[0]
   enable_public_interface = var.control_plane_lb_enable_public_interface
-  ip                      = cidrhost(hcloud_network_subnet.control_plane.*.ip_range[0], 1)
+
+  # To ensure backwards compatibility, we ignore changes to the IP address
+  # as before it was set manually.
+  lifecycle {
+    ignore_changes = [ip]
+  }
 }
 
 resource "hcloud_load_balancer_target" "control_plane" {
@@ -84,6 +92,14 @@ resource "hcloud_load_balancer_service" "control_plane" {
 }
 
 locals {
+  control_plane_ips = {
+    for k, v in module.control_planes : k => coalesce(
+      v.ipv4_address,
+      v.ipv6_address,
+      v.private_ipv4_address
+    )
+  }
+
   k3s-config = { for k, v in local.control_plane_nodes : k => merge(
     {
       node-name = module.control_planes[k].name
@@ -104,7 +120,7 @@ locals {
       advertise-address           = module.control_planes[k].private_ipv4_address
       node-label                  = v.labels
       node-taint                  = v.taints
-      selinux                     = true
+      selinux                     = var.disable_selinux ? false : (v.selinux == true ? true : false)
       cluster-cidr                = var.cluster_ipv4_cidr
       service-cidr                = var.service_ipv4_cidr
       cluster-dns                 = var.cluster_dns_ipv4
@@ -112,11 +128,19 @@ locals {
     },
     lookup(local.cni_k3s_settings, var.cni_plugin, {}),
     var.use_control_plane_lb ? {
-      tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
-      } : {
       tls-san = concat([
-        module.control_planes[k].ipv4_address
+        hcloud_load_balancer.control_plane.*.ipv4[0],
+        hcloud_load_balancer_network.control_plane.*.ip[0],
+        var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : null
       ], var.additional_tls_sans)
+      } : {
+      tls-san = concat(
+        compact([
+          module.control_planes[k].ipv4_address != "" ? module.control_planes[k].ipv4_address : null,
+          module.control_planes[k].ipv6_address != "" ? module.control_planes[k].ipv6_address : null,
+          try(one(module.control_planes[k].network).ip, null)
+        ]),
+      var.additional_tls_sans)
     },
     local.etcd_s3_snapshots,
     var.control_planes_custom_config
@@ -135,7 +159,7 @@ resource "null_resource" "control_plane_config" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[each.key].ipv4_address
+    host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
   }
 
@@ -168,7 +192,7 @@ resource "null_resource" "authentication_config" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[each.key].ipv4_address
+    host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
   }
 
@@ -198,7 +222,7 @@ resource "null_resource" "control_planes" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[each.key].ipv4_address
+    host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
   }
 

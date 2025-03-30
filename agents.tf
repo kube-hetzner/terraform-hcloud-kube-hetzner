@@ -30,6 +30,9 @@ module "agents" {
   swap_size                    = each.value.swap_size
   zram_size                    = each.value.zram_size
   keep_disk_size               = var.keep_disk_agents
+  disable_ipv4                 = each.value.disable_ipv4
+  disable_ipv6                 = each.value.disable_ipv6
+  network_id                   = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
 
   private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
@@ -46,18 +49,34 @@ module "agents" {
 locals {
   k3s-agent-config = { for k, v in local.agent_nodes : k => merge(
     {
-      node-name     = module.agents[k].name
-      server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-      token         = local.k3s_token
-      kubelet-arg   = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_agent_kubelet_args, v.kubelet_args)
+      node-name = module.agents[k].name
+      server    = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+      token     = local.k3s_token
+      kubelet-arg = concat(
+        local.kubelet_arg,
+        var.k3s_global_kubelet_args,
+        var.k3s_agent_kubelet_args,
+        v.kubelet_args
+      )
       flannel-iface = local.flannel_iface
       node-ip       = module.agents[k].private_ipv4_address
       node-label    = v.labels
       node-taint    = v.taints
     },
     var.agent_nodes_custom_config,
-    (v.selinux == true ? { selinux = true } : {})
+    # Force selinux=false if disable_selinux = true.
+    var.disable_selinux
+    ? { selinux = false }
+    : (v.selinux == true ? { selinux = true } : {})
   ) }
+
+  agent_ips = {
+    for k, v in module.agents : k => coalesce(
+      v.ipv4_address,
+      v.ipv6_address,
+      v.private_ipv4_address
+    )
+  }
 }
 
 resource "null_resource" "agent_config" {
@@ -72,7 +91,7 @@ resource "null_resource" "agent_config" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.agents[each.key].ipv4_address
+    host           = local.agent_ips[each.key]
     port           = var.ssh_port
   }
 
@@ -98,7 +117,7 @@ resource "null_resource" "agents" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.agents[each.key].ipv4_address
+    host           = local.agent_ips[each.key]
     port           = var.ssh_port
   }
 
@@ -167,7 +186,7 @@ resource "null_resource" "configure_longhorn_volume" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.agents[each.key].ipv4_address
+    host           = local.agent_ips[each.key]
     port           = var.ssh_port
   }
 
@@ -226,11 +245,21 @@ resource "null_resource" "configure_floating_ip" {
       #    gateway for the public network)
       # The configuration is stored in file /etc/NetworkManager/system-connections/cloud-init-eth0.nmconnection
       <<-EOT
-      NM_CONNECTION=$(nmcli -g GENERAL.CONNECTION device show eth0)
+      ETH=eth1
+      if ip link show eth0 &>/dev/null; then
+          ETH=eth0
+      fi
+
+      NM_CONNECTION=$(nmcli -g GENERAL.CONNECTION device show "$ETH" 2>/dev/null)
+      if [ -z "$NM_CONNECTION" ]; then
+          echo "ERROR: No NetworkManager connection found for $ETH" >&2
+          exit 1
+      fi
+
       nmcli connection modify "$NM_CONNECTION" \
-        ipv4.method manual \
-        ipv4.addresses ${hcloud_floating_ip.agents[each.key].ip_address}/32,${module.agents[each.key].ipv4_address}/32 gw4 172.31.1.1 \
-        ipv4.route-metric 100 \
+          ipv4.method manual \
+          ipv4.addresses ${hcloud_floating_ip.agents[each.key].ip_address}/32,${local.agent_ips[each.key]}/32 gw4 172.31.1.1 \
+          ipv4.route-metric 100 \
       && nmcli connection up "$NM_CONNECTION"
       EOT
     ]
@@ -240,7 +269,7 @@ resource "null_resource" "configure_floating_ip" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.agents[each.key].ipv4_address
+    host           = local.agent_ips[each.key]
     port           = var.ssh_port
   }
 

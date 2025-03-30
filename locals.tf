@@ -161,7 +161,9 @@ EOT
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group,
         os : nodepool_obj.os
-
+        disable_ipv4 : nodepool_obj.disable_ipv4,
+        disable_ipv6 : nodepool_obj.disable_ipv6,
+        network_id : nodepool_obj.network_id,
       }
     }
   ]...)
@@ -188,6 +190,10 @@ EOT
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group
         os : nodepool_obj.os
+        placement_group : nodepool_obj.placement_group,
+        disable_ipv4 : nodepool_obj.disable_ipv4,
+        disable_ipv6 : nodepool_obj.disable_ipv6,
+        network_id : nodepool_obj.network_id,
       }
     }
   ]...)
@@ -215,6 +221,9 @@ EOT
           placement_group : nodepool_obj.placement_group,
           index : floor(tonumber(node_key)),
           os : nodepool_obj.os
+          disable_ipv4 : nodepool_obj.disable_ipv4,
+          disable_ipv6 : nodepool_obj.disable_ipv6,
+          network_id : nodepool_obj.network_id,
         },
         { for key, value in node_obj : key => value if value != null },
         {
@@ -877,7 +886,8 @@ opensuse_write_files_common = <<EOT
 
     sleep 11
 
-    INTERFACE=$(ip link show | awk '/^3:/{print $2}' | sed 's/://g')
+    # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
+    INTERFACE=$(ip link show | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
     MAC=$(cat /sys/class/net/$INTERFACE/address)
 
     cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
@@ -897,7 +907,7 @@ opensuse_write_files_common = <<EOT
                 >&2 echo "timeout reached"
                 exit 1
             fi
-            # run command and check return code 
+            # run command and check return code
             if $@ ; then
                 >&2 echo "break"
                 break
@@ -909,11 +919,16 @@ opensuse_write_files_common = <<EOT
     }
 
     myrename () {
-      local eth="$1"
-      local eth_connection=$(nmcli -g GENERAL.CONNECTION device show $eth || echo '')
-      nmcli connection modify "$eth_connection" \
-        con-name $eth \
-        connection.interface-name $eth
+        local eth="$1"
+        local eth_connection
+
+        # In case of a private-only network, eth0 may not exist
+        if ip link show "$eth" &>/dev/null; then
+            eth_connection=$(nmcli -g GENERAL.CONNECTION device show "$eth" || echo '')
+            nmcli connection modify "$eth_connection" \
+              con-name "$eth" \
+              connection.interface-name "$eth"
+        fi
     }
 
     myrepeat myrename eth0
@@ -1004,6 +1019,7 @@ opensuse_write_files_common = <<EOT
     allow container_t { cert_t container_log_t }:dir read;
     allow container_t { cert_t container_log_t }:lnk_file read;
     allow container_t cert_t:file { read open };
+    allow container_t container_var_lib_t:dir { add_name remove_name write read create };
     allow container_t container_var_lib_t:file { create open read write rename lock setattr getattr unlink };
     allow container_t etc_t:dir { add_name remove_name write create setattr watch };
     allow container_t etc_t:file { create setattr unlink write };
@@ -1020,7 +1036,7 @@ opensuse_write_files_common = <<EOT
     allow container_t kernel_t:system module_request;
     allow container_t var_log_t:dir { add_name write remove_name watch read };
     allow container_t var_log_t:file { create lock open read setattr write unlink getattr };
-    allow container_t var_lib_t:dir { add_name write read };
+    allow container_t var_lib_t:dir { add_name remove_name write read create };
     allow container_t var_lib_t:file { create lock open read setattr write getattr };
     allow container_t proc_t:filesystem associate;
     allow container_t self:bpf map_create;
@@ -1035,22 +1051,6 @@ opensuse_write_files_common = <<EOT
 - content: ${base64encode(var.k3s_registries)}
   encoding: base64
   path: /etc/rancher/k3s/registries.yaml
-%{endif}
-
-# Apply new DNS config
-%{if length(var.dns_servers) > 0}
-# Set prepare for manual dns config
-- content: |
-    [main]
-    dns=none
-  path: /etc/NetworkManager/conf.d/dns.conf
-
-- content: |
-    %{for server in var.dns_servers~}
-    nameserver ${server}
-    %{endfor}
-  path: /etc/resolv.conf
-  permissions: '0644'
 %{endif}
 EOT
 
@@ -1096,10 +1096,16 @@ opensuse_runcmd_common = <<EOT
 # Make sure the network is up
 - [systemctl, restart, NetworkManager]
 - [systemctl, status, NetworkManager]
-- [ip, route, add, default, via, '172.31.1.1', dev, 'eth0']
 
 # Cleanup some logs
 - [truncate, '-s', '0', '/var/log/audit/audit.log']
+
+# Add logic to truly disable SELinux if disable_selinux = true.
+# We'll do it by appending to cloudinit_runcmd_common.
+%{if var.disable_selinux}
+- [sed, '-i', '-E', 's/^SELINUX=[a-z]+/SELINUX=disabled/', '/etc/selinux/config']
+- [setenforce, '0']
+%{endif}
 EOT
 
 snapshot_id_by_os = {

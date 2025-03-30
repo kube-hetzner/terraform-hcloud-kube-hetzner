@@ -50,6 +50,8 @@ locals {
       hcloud_servers.autoscaled_nodes : [for v in v.servers : v]
     ]...) : v.name => v
   }
+
+  has_dns_servers = length(var.dns_servers) > 0 ? true : false
 }
 
 resource "null_resource" "configure_autoscaler" {
@@ -62,7 +64,7 @@ resource "null_resource" "configure_autoscaler" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    host           = local.first_control_plane_ip
     port           = var.ssh_port
   }
 
@@ -103,6 +105,8 @@ data "cloudinit_config" "autoscaler_config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
+        dns_servers       = var.dns_servers
+        has_dns_servers   = local.has_dns_servers
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
@@ -135,6 +139,8 @@ data "cloudinit_config" "autoscaler_legacy_config" {
       "${path.module}/templates/autoscaler-cloudinit.yaml.tpl",
       {
         hostname          = "autoscaler"
+        dns_servers       = var.dns_servers
+        has_dns_servers   = local.has_dns_servers
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         k3s_config = yamlencode({
           server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
@@ -171,7 +177,7 @@ resource "null_resource" "autoscaled_nodes_registries" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = data.hcloud_servers.autoscaled_nodes[each.key].servers[0].ipv4_address
+    host           = coalesce(each.value.ipv4_address, each.value.ipv6_address, try(one(each.value.network).ip, null))
     port           = var.ssh_port
   }
 

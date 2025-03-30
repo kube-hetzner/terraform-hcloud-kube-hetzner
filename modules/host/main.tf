@@ -19,6 +19,15 @@ resource "random_string" "identity_file" {
   upper   = false
 }
 
+variable "network" {
+  type = object({
+    network_id = number
+    ip         = string
+    alias_ips  = list(string)
+  })
+  default = null
+}
+
 resource "hcloud_server" "server" {
   name               = local.name
   image              = var.os_snapshot_id
@@ -30,6 +39,19 @@ resource "hcloud_server" "server" {
   backups            = var.backups
   user_data          = data.cloudinit_config.config.rendered
   keep_disk          = var.keep_disk_size
+  public_net {
+    ipv4_enabled = !var.disable_ipv4
+    ipv6_enabled = !var.disable_ipv6
+  }
+
+  dynamic "network" {
+    for_each = var.network_id > 0 ? [""] : []
+    content {
+      network_id = var.network_id
+      ip         = var.private_ipv4
+      alias_ips  = []
+    }
+  }
 
   labels = var.labels
 
@@ -48,7 +70,7 @@ resource "hcloud_server" "server" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = self.ipv4_address
+    host           = coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))
     port           = var.ssh_port
   }
 
@@ -64,7 +86,7 @@ resource "hcloud_server" "server" {
   provisioner "local-exec" {
     command = <<-EOT
       timeout 600 bash <<EOF
-        until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${self.ipv4_address} true 2> /dev/null
+        until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))} true 2> /dev/null
         do
           echo "Waiting for ${var.os} to become available..."
           sleep 3
@@ -105,7 +127,7 @@ resource "null_resource" "registries" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = hcloud_server.server.ipv4_address
+    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
     port           = var.ssh_port
   }
 
@@ -125,11 +147,12 @@ resource "hcloud_rdns" "server" {
   count = var.base_domain != "" ? 1 : 0
 
   server_id  = hcloud_server.server.id
-  ip_address = hcloud_server.server.ipv4_address
+  ip_address = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
   dns_ptr    = format("%s.%s", local.name, var.base_domain)
 }
 
 resource "hcloud_server_network" "server" {
+  count     = var.network_id > 0 ? 0 : 1
   ip        = var.private_ipv4
   server_id = hcloud_server.server.id
   subnet_id = var.ipv4_subnet_id
@@ -147,11 +170,15 @@ data "cloudinit_config" "config" {
       "${path.module}/templates/cloudinit.yaml.tpl",
       {
         hostname                     = local.name
+        dns_servers                  = var.dns_servers
+        has_dns_servers              = local.has_dns_servers
         sshAuthorizedKeys            = concat([var.ssh_public_key], var.ssh_additional_public_keys)
         cloudinit_write_files_common = var.cloudinit_write_files_common
         cloudinit_runcmd_common      = var.cloudinit_runcmd_common
         swap_size                    = var.swap_size
         os                           = var.os
+        private_network_only         = var.disable_ipv4 && var.disable_ipv6
+
       }
     )
   }
@@ -166,7 +193,7 @@ resource "null_resource" "zram" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = hcloud_server.server.ipv4_address
+    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
     port           = var.ssh_port
   }
 
@@ -234,4 +261,39 @@ WantedBy=multi-user.target
   }
 
   depends_on = [hcloud_server.server]
+}
+
+# Resource to toggle transactional-update.timer based on automatically_upgrade_os setting
+resource "null_resource" "os_upgrade_toggle" {
+  triggers = {
+    os_upgrade_state = var.automatically_upgrade_os ? "enabled" : "disabled"
+    server_id        = hcloud_server.server.id
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
+    port           = var.ssh_port
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      <<-EOT
+      if [ "${var.automatically_upgrade_os}" = "true" ]; then
+        echo "automatically_upgrade_os changed to true, enabling transactional-update.timer"
+        systemctl enable --now transactional-update.timer || true
+      else
+        echo "automatically_upgrade_os changed to false, disabling transactional-update.timer"
+        systemctl disable --now transactional-update.timer || true
+      fi
+      EOT
+    ]
+  }
+
+  depends_on = [
+    hcloud_server.server,
+    null_resource.registries
+  ]
 }
