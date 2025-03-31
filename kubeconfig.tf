@@ -1,4 +1,6 @@
 resource "ssh_sensitive_resource" "kubeconfig" {
+  # Note: moved from remote_file to ssh_sensitive_resource because
+  # remote_file does not support bastion hosts and ssh_sensitive_resource does.
   # The default behaviour is to run file blocks and commands at create time
   # You can also specify 'destroy' to run the commands at destroy time
   when = "create"

@@ -879,6 +879,9 @@ cloudinit_write_files_common = <<EOT
 
     sleep 11
 
+    # Somehow sometimes on private-ip only setups, the 
+    # interface may already be correctly names, and this
+    # block should be skipped.
     if ! ip link show eth1; then
 
       # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
