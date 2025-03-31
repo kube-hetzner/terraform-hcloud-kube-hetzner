@@ -132,7 +132,7 @@ variable "nat_router" {
     enable_sudo = optional(bool, false)
   })
   validation {
-    condition = (var.nat_router != null && var.use_control_plane_lb) || (var.nat_router == null)
+    condition     = (var.nat_router != null && var.use_control_plane_lb) || (var.nat_router == null)
     error_message = "If you enable the use of a NAT router, you must set use_control_plane_lb=true."
   }
 }
