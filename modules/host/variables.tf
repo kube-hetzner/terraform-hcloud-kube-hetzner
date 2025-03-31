@@ -149,6 +149,7 @@ variable "os" {
   type        = string
   default     = ""
   description = "OS name used in the image"
+}
 
 variable "disable_ipv4" {
   type        = bool
