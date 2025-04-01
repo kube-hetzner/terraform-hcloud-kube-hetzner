@@ -36,7 +36,8 @@ data "cloudinit_config" "nat_router_config" {
   }
 }
 
-resource "hcloud_network_route" "privNet" {
+resource "hcloud_network_route" "nat_route_public_internet" {
+  count       = var.nat_router != null ? 1 : 0
   network_id  = data.hcloud_network.k3s.id
   destination = "0.0.0.0/0"
   gateway     = local.nat_router_ip
@@ -97,6 +98,11 @@ resource "hcloud_server" "nat_router" {
 
 resource "null_resource" "nat_router_await_cloud_init" {
   count = var.nat_router != null ? 1 : 0
+
+  depends_on = [
+    hcloud_network_route.nat_route_public_internet,
+    hcloud_server.nat_router,
+  ]
 
   triggers = {
     config = data.cloudinit_config.nat_router_config[0].rendered
