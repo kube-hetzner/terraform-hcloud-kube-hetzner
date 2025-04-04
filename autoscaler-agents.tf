@@ -76,12 +76,13 @@ resource "null_resource" "configure_autoscaler" {
 
   # Create/Apply the definition
   provisioner "remote-exec" {
-    inline = ["kubectl apply -f /tmp/autoscaler.yaml"]
+    inline = ["${local.kubectl_cli} apply -f /tmp/autoscaler.yaml"]
   }
 
   depends_on = [
     hcloud_load_balancer.cluster,
-    null_resource.control_planes,
+    null_resource.control_planes_k3s,
+    null_resource.control_planes_rke2,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume,
     data.hcloud_image.microos_x86_snapshot
@@ -114,7 +115,7 @@ data "cloudinit_config" "autoscaler_config" {
           node-taint    = concat(local.default_agent_taints, [for taint in var.autoscaler_nodepools[count.index].taints : "${taint.key}=${taint.value}:${taint.effect}"])
           selinux       = true
         })
-        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
+        install_k3s_agent_script     = join("\n", concat(local.install_k8s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
         cloudinit_runcmd_common      = local.cloudinit_runcmd_common
       }
@@ -148,7 +149,7 @@ data "cloudinit_config" "autoscaler_legacy_config" {
           node-taint    = concat(local.default_agent_taints, var.autoscaler_taints)
           selinux       = true
         })
-        install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
+        install_k3s_agent_script     = join("\n", concat(local.install_k8s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
         cloudinit_runcmd_common      = local.cloudinit_runcmd_common
       }
@@ -181,6 +182,6 @@ resource "null_resource" "autoscaled_nodes_registries" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_registries_update_script]
+    inline = [local.k8s_registries_update_script]
   }
 }

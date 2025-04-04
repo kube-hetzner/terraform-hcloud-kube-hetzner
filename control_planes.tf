@@ -23,7 +23,7 @@ module "control_planes" {
   ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.dns_servers
   k3s_registries               = var.k3s_registries
-  k3s_registries_update_script = local.k3s_registries_update_script
+  k3s_registries_update_script = local.k8s_registries_update_script
   cloudinit_write_files_common = local.cloudinit_write_files_common
   cloudinit_runcmd_common      = local.cloudinit_runcmd_common
   swap_size                    = each.value.swap_size
@@ -98,6 +98,54 @@ locals {
       v.private_ipv4_address
     )
   }
+  # cni_settings = local.kubernetes_distribution == "k3s" ? local.cni_k3s_settings : local.cni_rke2_settings
+  # TODO: Review this in detail. Make sure that the settings are correct for both k3s and rke2, otherwise separate them
+  rke2-config = { for k, v in local.control_plane_nodes : k => merge(
+    {
+      node-name = module.control_planes[k].name
+      server = length(module.control_planes) == 1 ? null : "https://${
+        var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] :
+        module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
+        module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
+      module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:9345"
+      token                       = local.k3s_token
+      disable-cloud-controller    = true
+      disable-kube-proxy          = var.disable_kube_proxy
+      disable                     = local.disable_extras
+      kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
+      kube-apiserver-arg          = local.kube_apiserver_arg
+      kube-controller-manager-arg = local.kube_controller_manager_arg
+      node-ip                     = module.control_planes[k].private_ipv4_address
+      advertise-address           = module.control_planes[k].private_ipv4_address
+      node-label                  = v.labels
+      node-taint                  = v.taints
+      # TODO: Fix this, currently it needs to be false
+      # selinux                     = var.disable_selinux ? false : (v.selinux == true ? true : false)
+      selinux               = false
+      cluster-cidr          = var.cluster_ipv4_cidr
+      service-cidr          = var.service_ipv4_cidr
+      cluster-dns           = var.cluster_dns_ipv4
+      write-kubeconfig-mode = "0644" # needed for import into rancher
+      cni                   = var.cni_plugin
+    },
+    var.use_control_plane_lb ? {
+      tls-san = concat([
+        hcloud_load_balancer.control_plane.*.ipv4[0],
+        hcloud_load_balancer_network.control_plane.*.ip[0],
+        var.kubeconfig_server_address != "" ? var.kubeconfig_server_address : null
+      ], var.additional_tls_sans)
+      } : {
+      tls-san = concat(
+        compact([
+          module.control_planes[k].ipv4_address != "" ? module.control_planes[k].ipv4_address : null,
+          module.control_planes[k].ipv6_address != "" ? module.control_planes[k].ipv6_address : null,
+          try(one(module.control_planes[k].network).ip, null)
+        ]),
+      var.additional_tls_sans)
+    },
+    local.etcd_s3_snapshots,
+    var.control_planes_custom_config
+  ) }
 
   k3s-config = { for k, v in local.control_plane_nodes : k => merge(
     {
@@ -146,8 +194,40 @@ locals {
   ) }
 }
 
-resource "null_resource" "control_plane_config" {
-  for_each = local.control_plane_nodes
+resource "null_resource" "control_plane_config_rke2" {
+  for_each = local.kubernetes_distribution == "rke2" ? local.control_plane_nodes : {}
+
+  triggers = {
+    control_plane_id = module.control_planes[each.key].id
+    config           = sha1(yamlencode(local.rke2-config[each.key]))
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.control_plane_ips[each.key]
+    port           = var.ssh_port
+  }
+
+  # Generating k8s server config file
+  provisioner "file" {
+    content     = yamlencode(local.rke2-config[each.key])
+    destination = "/tmp/config.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [local.k8s_config_update_script]
+  }
+
+  depends_on = [
+    null_resource.first_control_plane,
+    hcloud_network_subnet.control_plane
+  ]
+}
+
+resource "null_resource" "control_plane_config_k3s" {
+  for_each = local.kubernetes_distribution == "k3s" ? local.control_plane_nodes : {}
 
   triggers = {
     control_plane_id = module.control_planes[each.key].id
@@ -162,14 +242,14 @@ resource "null_resource" "control_plane_config" {
     port           = var.ssh_port
   }
 
-  # Generating k3s server config file
+  # Generating k8s server config file
   provisioner "file" {
     content     = yamlencode(local.k3s-config[each.key])
     destination = "/tmp/config.yaml"
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_config_update_script]
+    inline = [local.k8s_config_update_script]
   }
 
   depends_on = [
@@ -201,7 +281,7 @@ resource "null_resource" "authentication_config" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_authentication_config_update_script]
+    inline = [local.k8s_authentication_config_update_script]
   }
 
   depends_on = [
@@ -210,8 +290,53 @@ resource "null_resource" "authentication_config" {
   ]
 }
 
-resource "null_resource" "control_planes" {
-  for_each = local.control_plane_nodes
+resource "null_resource" "control_planes_rke2" {
+  for_each = local.kubernetes_distribution == "rke2" ? local.control_plane_nodes : {}
+
+  triggers = {
+    control_plane_id = module.control_planes[each.key].id
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.control_plane_ips[each.key]
+    port           = var.ssh_port
+  }
+
+  # Install k3s server
+  provisioner "remote-exec" {
+    inline = local.install_k8s_server
+  }
+
+  # Start the server and wait until it is ready.
+  provisioner "remote-exec" {
+    inline = [
+      "systemctl start rke2-server",
+      "mkdir -p /var/post_install /var/user_kustomize",
+      <<-EOT
+      timeout 360 bash <<EOF
+        until systemctl status rke2-server > /dev/null; do
+          systemctl start rke2-server 2> /dev/null
+          echo "Waiting for the rke2 server to start..."
+          sleep 3
+        done
+      EOF
+      EOT
+    ]
+  }
+
+  depends_on = [
+    null_resource.first_control_plane,
+    null_resource.control_plane_config_rke2,
+    null_resource.authentication_config,
+    hcloud_network_subnet.control_plane
+  ]
+}
+
+resource "null_resource" "control_planes_k3s" {
+  for_each = local.kubernetes_distribution == "k3s" ? local.control_plane_nodes : {}
 
   triggers = {
     control_plane_id = module.control_planes[each.key].id
@@ -230,13 +355,11 @@ resource "null_resource" "control_planes" {
     inline = local.install_k3s_server
   }
 
-  # Start the k3s server and wait for it to have started correctly
+  # Start the server and wait until it is ready.
   provisioner "remote-exec" {
     inline = [
       "systemctl start k3s 2> /dev/null",
-      # prepare the needed directories
       "mkdir -p /var/post_install /var/user_kustomize",
-      # wait for the server to be ready
       <<-EOT
       timeout 360 bash <<EOF
         until systemctl status k3s > /dev/null; do
@@ -251,7 +374,7 @@ resource "null_resource" "control_planes" {
 
   depends_on = [
     null_resource.first_control_plane,
-    null_resource.control_plane_config,
+    null_resource.control_plane_config_k3s,
     null_resource.authentication_config,
     hcloud_network_subnet.control_plane
   ]

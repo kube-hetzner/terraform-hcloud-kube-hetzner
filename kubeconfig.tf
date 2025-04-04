@@ -1,4 +1,5 @@
-data "remote_file" "kubeconfig" {
+data "remote_file" "kubeconfig_k3s" {
+  count = local.kubernetes_distribution == "k3s" ? 1 : 0
   conn {
     host        = local.first_control_plane_ip
     port        = var.ssh_port
@@ -8,7 +9,21 @@ data "remote_file" "kubeconfig" {
   }
   path = "/etc/rancher/k3s/k3s.yaml"
 
-  depends_on = [null_resource.control_planes[0]]
+  depends_on = [null_resource.control_planes_k3s[0]]
+}
+
+data "remote_file" "kubeconfig_rke2" {
+  count = local.kubernetes_distribution == "rke2" ? 1 : 0
+  conn {
+    host        = local.first_control_plane_ip
+    port        = var.ssh_port
+    user        = "root"
+    private_key = var.ssh_private_key
+    agent       = var.ssh_private_key == null
+  }
+  path = "/etc/rancher/rke2/rke2.yaml"
+
+  depends_on = [null_resource.control_planes_rke2[0]]
 }
 
 locals {
@@ -21,7 +36,7 @@ locals {
     :
     (can(local.first_control_plane_ip) ? local.first_control_plane_ip : "unknown")
   )
-  kubeconfig_external = replace(replace(data.remote_file.kubeconfig.content, "127.0.0.1", local.kubeconfig_server_address), "default", var.cluster_name)
+  kubeconfig_external = replace(replace(local.kubernetes_distribution == "k3s" ? data.remote_file.kubeconfig_k3s[0].content : data.remote_file.kubeconfig_rke2[0].content, "127.0.0.1", local.kubeconfig_server_address), "default", var.cluster_name)
   kubeconfig_parsed   = yamldecode(local.kubeconfig_external)
   kubeconfig_data = {
     host                   = local.kubeconfig_parsed["clusters"][0]["cluster"]["server"]

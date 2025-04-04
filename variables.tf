@@ -4,6 +4,17 @@ variable "hcloud_token" {
   sensitive   = true
 }
 
+variable "kubernetes_distribution_type" {
+    description = "Kubernetes distribution type. Can be either k3s or rke2."
+    type        = string
+    default     = "k3s"
+
+    validation {
+        condition     = contains(["k3s", "rke2"], var.kubernetes_distribution_type)
+        error_message = "The Kubernetes distribution type must be either k3s or rke2."
+    }
+}
+
 variable "k3s_token" {
   description = "k3s master token (must match when restoring a cluster)."
   type        = string
@@ -181,7 +192,7 @@ variable "control_plane_nodepools" {
     swap_size                  = optional(string, "")
     zram_size                  = optional(string, "")
     kubelet_args               = optional(list(string), ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-    selinux                    = optional(bool, true)
+    selinux                    = optional(bool, false)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
     disable_ipv4               = optional(bool, false)
@@ -216,7 +227,7 @@ variable "agent_nodepools" {
     swap_size                  = optional(string, "")
     zram_size                  = optional(string, "")
     kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-    selinux                    = optional(bool, true)
+    selinux                    = optional(bool, false)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
     count                      = optional(number, null)
@@ -235,7 +246,7 @@ variable "agent_nodepools" {
       swap_size                  = optional(string, "")
       zram_size                  = optional(string, "")
       kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-      selinux                    = optional(bool, true)
+      selinux                    = optional(bool, false)
       placement_group_compat_idx = optional(number, 0)
       placement_group            = optional(string, null)
       append_index_to_node_name  = optional(bool, true)
@@ -587,6 +598,12 @@ variable "install_k3s_version" {
   type        = string
   default     = ""
   description = "Allows you to specify the k3s version (Example: v1.29.6+k3s2). Supersedes initial_k3s_channel. See https://github.com/k3s-io/k3s/releases for available versions."
+}
+
+variable "install_rke2_version" {
+  type        = string
+  default     = "v1.32.3+rke2r1"
+  description = "Allows you to specify the rke2 version (Example: v1.32.3+rke2r1). Supersedes initial_rke2_channel. See https://github.com/rancher/rke2/releases for available versions."
 }
 
 variable "system_upgrade_enable_eviction" {

@@ -45,6 +45,7 @@ locals {
 }
 
 resource "null_resource" "first_control_plane" {
+  count = local.kubernetes_distribution == "k3s" ? 1 : 0
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
@@ -92,7 +93,7 @@ resource "null_resource" "first_control_plane" {
 
   # Install k3s server
   provisioner "remote-exec" {
-    inline = local.install_k3s_server
+    inline = local.install_k8s_server
   }
 
   # Upon reboot start k3s and wait for it to be ready to receive commands
@@ -124,6 +125,119 @@ resource "null_resource" "first_control_plane" {
 
   depends_on = [
     hcloud_network_subnet.control_plane
+  ]
+}
+
+resource "null_resource" "control_plane_setup_rke2" {
+  count = local.kubernetes_distribution == "rke2" ? 1 : 0
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.first_control_plane_ip
+    port           = var.ssh_port
+  }
+
+  # Create /var/lib/rancher/rke2/server/manifests directory
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir -p /var/lib/rancher/rke2/server/manifests/",
+    ]
+  }
+
+  # Generating rke2 master config file
+  provisioner "file" {
+    content = yamlencode(
+      merge(
+        {
+          node-name                   = module.control_planes[keys(module.control_planes)[0]].name
+          token                       = local.k3s_token
+          disable-cloud-controller    = true
+          disable-kube-proxy          = var.disable_kube_proxy
+          disable                     = local.disable_rke2_extras
+          kubelet-arg                 = local.kubelet_arg
+          kube-controller-manager-arg = local.kube_controller_manager_arg
+          node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+          advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+          node-taint                  = local.control_plane_nodes[keys(module.control_planes)[0]].taints
+          node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
+          selinux                     = false
+          cluster-cidr                = var.cluster_ipv4_cidr
+          service-cidr                = var.service_ipv4_cidr
+          cluster-dns                 = var.cluster_dns_ipv4
+          cni                         = "none"
+        },
+        var.use_control_plane_lb ? {
+          tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
+          } : {
+          tls-san = concat([local.first_control_plane_ip], var.additional_tls_sans)
+        },
+        local.etcd_s3_snapshots,
+        var.control_planes_custom_config,
+        (local.control_plane_nodes[keys(module.control_planes)[0]].selinux == true ? { selinux = true } : {})
+      )
+    )
+
+    destination = "/tmp/config.yaml"
+  }
+
+  # Upload the cilium install file
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/${var.cni_plugin}.yaml.tpl",
+      {
+        values  = indent(4, trimspace(local.desired_cni_values))
+        version = local.desired_cni_version
+    })
+    destination = "/var/lib/rancher/rke2/server/manifests/${var.cni_plugin}.yaml"
+  }
+}
+
+resource "null_resource" "first_control_plane_rke2" {
+  count = local.kubernetes_distribution == "rke2" ? 1 : 0
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.first_control_plane_ip
+    port           = var.ssh_port
+  }
+
+  # Install k3s server
+  provisioner "remote-exec" {
+    inline = local.install_k8s_server
+  }
+
+  # Upon reboot start k3s and wait for it to be ready to receive commands
+  provisioner "remote-exec" {
+    inline = [
+      "systemctl start rke2-server",
+      # prepare the needed directories
+      "mkdir -p /var/post_install /var/user_kustomize",
+      # wait for rke2-server to become ready
+      <<-EOT
+      timeout 120 bash <<EOF
+        until systemctl status rke2-server > /dev/null; do
+          systemctl start rke2-server
+          echo "Waiting for the rke2-server server to start..."
+          sleep 2
+        done
+        until [ -e /etc/rancher/rke2/rke2.yaml ]; do
+          echo "Waiting for kubectl config..."
+          sleep 2
+        done
+        until [[ "$(${local.kubectl_cli} get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
+          echo "Waiting for the cluster to become ready..."
+          sleep 2
+        done
+      EOF
+      EOT
+    ]
+  }
+
+  depends_on = [
+    hcloud_network_subnet.control_plane,
+    null_resource.control_plane_setup_rke2,
   ]
 }
 
@@ -233,6 +347,7 @@ resource "null_resource" "kustomization" {
 
   # Upload the calico patch config, for the kustomization of the calico manifest
   # This method is a stub which could be replaced by a more practical helm implementation
+  # TODO: Does this need to move to /var/lib/rancher/rke2/server/manifests?
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/calico.yaml.tpl",
@@ -243,15 +358,15 @@ resource "null_resource" "kustomization" {
   }
 
   # Upload the cilium install file
-  provisioner "file" {
-    content = templatefile(
-      "${path.module}/templates/cilium.yaml.tpl",
-      {
-        values  = indent(4, trimspace(local.cilium_values))
-        version = var.cilium_version
-    })
-    destination = "/var/post_install/cilium.yaml"
-  }
+  # provisioner "file" {
+  #   content = templatefile(
+  #     "${path.module}/templates/cilium.yaml.tpl",
+  #     {
+  #       values  = indent(4, trimspace(local.cilium_values))
+  #       version = var.cilium_version
+  #   })
+  #   destination = local.kubernetes_distribution == "rke2" ? "/var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml" : "/var/post_install/cilium.yaml"
+  # }
 
   # Upload the system upgrade controller plans config
   provisioner "file" {
@@ -343,8 +458,8 @@ resource "null_resource" "kustomization" {
   provisioner "remote-exec" {
     inline = [
       "set -ex",
-      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
-      "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
+      "${local.kubectl_cli} -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | ${local.kubectl_cli} apply -f -",
+      "${local.kubectl_cli} -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | ${local.kubectl_cli} apply -f -",
     ]
   }
 
@@ -367,7 +482,7 @@ resource "null_resource" "kustomization" {
       # the cluster had become unvailable for a few seconds, at this very instant.
       <<-EOT
       timeout 360 bash <<EOF
-        until [[ "\$(kubectl get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
+        until [[ "$(${local.kubectl_cli} get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
           echo "Waiting for the cluster to become ready..."
           sleep 2
         done
@@ -378,16 +493,18 @@ resource "null_resource" "kustomization" {
 
       [
         # Ready, set, go for the kustomization
-        "kubectl apply -k /var/post_install",
+        "echo 'Deploying the kustomization.yaml...'",
+        "echo 'Applying everything in /var/post_install...'",
+        "${local.kubectl_cli} apply -k /var/post_install",
         "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
-        "kubectl -n system-upgrade wait --for=condition=available --timeout=360s deployment/system-upgrade-controller",
+        "${local.kubectl_cli} -n system-upgrade wait --for=condition=available --timeout=360s deployment/system-upgrade-controller",
         "sleep 7", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
-        "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
+        "${local.kubectl_cli} -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
       local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 360 bash <<EOF
-      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
+      until [ -n "\$(${local.kubectl_cli} get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
           sleep 2
       done
@@ -398,7 +515,8 @@ resource "null_resource" "kustomization" {
 
   depends_on = [
     hcloud_load_balancer.cluster,
-    null_resource.control_planes,
+    null_resource.control_planes_k3s,
+    null_resource.control_planes_rke2,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume
   ]
