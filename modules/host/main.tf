@@ -144,7 +144,7 @@ resource "null_resource" "registries" {
 }
 
 resource "hcloud_rdns" "server" {
-  count = var.base_domain != "" ? 1 : 0
+  count = (var.base_domain != "" && !(var.disable_ipv4 && var.disable_ipv6)) ? 1 : 0
 
   server_id  = hcloud_server.server.id
   ip_address = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
