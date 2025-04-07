@@ -146,17 +146,17 @@ output "haproxy_values" {
 
 output "nat_router_public_ipv4" {
   description = "The address of the nat router, if it exists."
-  value = try(hcloud_server.nat_router[0].ipv4_address, null)
+  value       = try(hcloud_server.nat_router[0].ipv4_address, null)
 }
 output "nat_router_public_ipv6" {
   description = "The address of the nat router, if it exists."
-  value = try(hcloud_server.nat_router[0].ipv6_address, null)
+  value       = try(hcloud_server.nat_router[0].ipv6_address, null)
 }
 output "nat_router_username" {
   description = "The non-root user as which you can ssh into the router."
-  value = "nat-router" # hard-coded in cloud-init template.
+  value       = "nat-router" # hard-coded in cloud-init template.
 }
 output "nat_router_ssh_port" {
   description = "The non-root user as which you can ssh into the router."
-  value = var.ssh_port
+  value       = var.ssh_port
 }
