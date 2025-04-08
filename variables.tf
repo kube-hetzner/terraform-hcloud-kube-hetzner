@@ -120,6 +120,24 @@ variable "cluster_dns_ipv4" {
   default     = "10.43.0.10"
 }
 
+
+variable "nat_router" {
+  description = "Do you want to pipe all egress through a single nat router which is to be constructed?"
+  nullable    = true
+  default     = null
+  type = object({
+    server_type = string
+    location    = string
+    labels      = optional(map(string), {})
+    enable_sudo = optional(bool, false)
+  })
+  validation {
+    condition     = (var.nat_router != null && var.use_control_plane_lb) || (var.nat_router == null)
+    error_message = "If you enable the use of a NAT router, you must set use_control_plane_lb=true."
+  }
+}
+
+
 variable "load_balancer_location" {
   description = "Default load balancer location."
   type        = string
@@ -357,6 +375,18 @@ variable "autoscaler_taints" {
   description = "Taints for nodes created by the Cluster Autoscaler."
   type        = list(string)
   default     = []
+}
+
+variable "autoscaler_disable_ipv4" {
+  description = "Disable IPV4 on all autoscaler nodes."
+  type        = bool
+  default     = false
+}
+
+variable "autoscaler_disable_ipv6" {
+  description = "Disable IPV6 on all autoscaler nodes."
+  type        = bool
+  default     = false
 }
 
 variable "hetzner_ccm_version" {
