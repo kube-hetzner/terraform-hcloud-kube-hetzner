@@ -377,6 +377,18 @@ variable "autoscaler_taints" {
   default     = []
 }
 
+variable "autoscaler_disable_ipv4" {
+  description = "Disable IPV4 on all autoscaler nodes."
+  type        = bool
+  default     = false
+}
+
+variable "autoscaler_disable_ipv6" {
+  description = "Disable IPV6 on all autoscaler nodes."
+  type        = bool
+  default     = false
+}
+
 variable "hetzner_ccm_version" {
   type        = string
   default     = null
