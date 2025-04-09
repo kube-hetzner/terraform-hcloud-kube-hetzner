@@ -498,6 +498,7 @@ bpf:
 %{if var.enable_wireguard}
 encryption:
   enabled: true
+  # Enable node encryption for node-to-node traffic
   nodeEncryption: true
   type: wireguard
 %{endif~}
