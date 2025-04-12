@@ -178,6 +178,7 @@ resource "null_resource" "agents" {
   provisioner "remote-exec" {
     inline = concat(var.enable_longhorn || var.enable_iscsid ? ["systemctl enable --now iscsid"] : [], local.kubernetes_distribution == "rke2" ? [
       "systemctl start rke2-agent 2> /dev/null",
+      "systemctl enable rke2-agent",
       <<-EOT
       timeout 120 bash <<EOF
         until systemctl status rke2-agent > /dev/null; do

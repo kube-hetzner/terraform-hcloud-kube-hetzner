@@ -130,6 +130,18 @@ resource "null_resource" "first_control_plane" {
 
 resource "null_resource" "control_plane_setup_rke2" {
   count = local.kubernetes_distribution == "rke2" ? 1 : 0
+
+  triggers = {
+    # Redeploy helm charts when the underlying values change
+    helm_values_yaml = join("---\n", [
+      local.desired_cni_values
+    ])
+    # Redeploy when versions of addons need to be updated
+    versions = join("\n", [
+      coalesce(local.desired_cni_version, "N/A"),
+    ])
+  }
+
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
@@ -195,6 +207,7 @@ resource "null_resource" "control_plane_setup_rke2" {
 
 resource "null_resource" "first_control_plane_rke2" {
   count = local.kubernetes_distribution == "rke2" ? 1 : 0
+
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
@@ -211,6 +224,7 @@ resource "null_resource" "first_control_plane_rke2" {
   # Upon reboot start k3s and wait for it to be ready to receive commands
   provisioner "remote-exec" {
     inline = [
+      # "systemctl enable rke2-server",
       "systemctl start rke2-server",
       # prepare the needed directories
       "mkdir -p /var/post_install /var/user_kustomize",

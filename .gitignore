@@ -42,3 +42,5 @@ kustomization.yaml
 kube.tf
 .terraform.lock.hcl
 issue_fix.patch
+
+.idea/

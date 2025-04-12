@@ -111,7 +111,7 @@ locals {
       token                       = local.k3s_token
       disable-cloud-controller    = true
       disable-kube-proxy          = var.disable_kube_proxy
-      disable                     = local.disable_extras
+      disable                     = local.disable_rke2_extras
       kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
       kube-apiserver-arg          = local.kube_apiserver_arg
       kube-controller-manager-arg = local.kube_controller_manager_arg
@@ -126,7 +126,7 @@ locals {
       service-cidr          = var.service_ipv4_cidr
       cluster-dns           = var.cluster_dns_ipv4
       write-kubeconfig-mode = "0644" # needed for import into rancher
-      cni                   = var.cni_plugin
+      cni                   = "none"
     },
     var.use_control_plane_lb ? {
       tls-san = concat([
@@ -200,6 +200,7 @@ resource "null_resource" "control_plane_config_rke2" {
   triggers = {
     control_plane_id = module.control_planes[each.key].id
     config           = sha1(yamlencode(local.rke2-config[each.key]))
+    cni_values       = sha1(local.desired_cni_values)
   }
 
   connection {
@@ -214,6 +215,24 @@ resource "null_resource" "control_plane_config_rke2" {
   provisioner "file" {
     content     = yamlencode(local.rke2-config[each.key])
     destination = "/tmp/config.yaml"
+  }
+
+  # Create /var/lib/rancher/rke2/server/manifests directory
+  provisioner "remote-exec" {
+    inline = [
+      "mkdir -p /var/lib/rancher/rke2/server/manifests/",
+    ]
+  }
+
+  # Upload the cilium install file
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/${var.cni_plugin}.yaml.tpl",
+      {
+        values  = indent(4, trimspace(local.desired_cni_values))
+        version = local.desired_cni_version
+    })
+    destination = "/var/lib/rancher/rke2/server/manifests/${var.cni_plugin}.yaml"
   }
 
   provisioner "remote-exec" {
@@ -314,11 +333,12 @@ resource "null_resource" "control_planes_rke2" {
   provisioner "remote-exec" {
     inline = [
       "systemctl start rke2-server",
+      "systemctl enable rke2-server",
       "mkdir -p /var/post_install /var/user_kustomize",
       <<-EOT
       timeout 360 bash <<EOF
         until systemctl status rke2-server > /dev/null; do
-          systemctl start rke2-server 2> /dev/null
+          systemctl start rke2-server
           echo "Waiting for the rke2 server to start..."
           sleep 3
         done
