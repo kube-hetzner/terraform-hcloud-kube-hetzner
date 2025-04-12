@@ -41,7 +41,9 @@ locals {
       cluster_config                             = base64encode(jsonencode(local.cluster_config))
       firewall_id                                = hcloud_firewall.k3s.id
       cluster_name                               = local.cluster_prefix
-      node_pools                                 = var.autoscaler_nodepools
+      node_pools                                 = var.autoscaler_nodepools,
+      disable_ipv4                               = var.autoscaler_disable_ipv4,
+      disable_ipv6                               = var.autoscaler_disable_ipv6,
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
@@ -116,7 +118,8 @@ data "cloudinit_config" "autoscaler_config" {
         })
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
-        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common,
+        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
       }
     )
   }
@@ -150,7 +153,8 @@ data "cloudinit_config" "autoscaler_legacy_config" {
         })
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
-        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common,
+        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
       }
     )
   }
