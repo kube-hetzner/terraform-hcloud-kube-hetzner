@@ -9,7 +9,7 @@ data "remote_file" "kubeconfig_k3s" {
   }
   path = "/etc/rancher/k3s/k3s.yaml"
 
-  depends_on = [null_resource.control_planes_k3s[0]]
+  depends_on = [null_resource.control_planes[0]]
 }
 
 data "remote_file" "kubeconfig_rke2" {

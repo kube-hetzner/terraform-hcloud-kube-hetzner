@@ -93,7 +93,7 @@ resource "null_resource" "configure_autoscaler" {
 
   depends_on = [
     hcloud_load_balancer.cluster,
-    null_resource.control_planes_k3s,
+    null_resource.control_planes,
     null_resource.control_planes_rke2,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume,

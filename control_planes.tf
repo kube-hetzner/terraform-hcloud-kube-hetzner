@@ -245,7 +245,7 @@ resource "null_resource" "control_plane_config_rke2" {
   ]
 }
 
-resource "null_resource" "control_plane_config_k3s" {
+resource "null_resource" "control_plane_config" {
   for_each = local.kubernetes_distribution == "k3s" ? local.control_plane_nodes : {}
 
   triggers = {
@@ -268,7 +268,7 @@ resource "null_resource" "control_plane_config_k3s" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k8s_config_update_script]
+    inline = [local.k3s_config_update_script]
   }
 
   depends_on = [
@@ -300,7 +300,7 @@ resource "null_resource" "authentication_config" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k8s_authentication_config_update_script]
+    inline = [local.k3s_authentication_config_update_script]
   }
 
   depends_on = [
@@ -355,7 +355,7 @@ resource "null_resource" "control_planes_rke2" {
   ]
 }
 
-resource "null_resource" "control_planes_k3s" {
+resource "null_resource" "control_planes" {
   for_each = local.kubernetes_distribution == "k3s" ? local.control_plane_nodes : {}
 
   triggers = {
@@ -394,7 +394,7 @@ resource "null_resource" "control_planes_k3s" {
 
   depends_on = [
     null_resource.first_control_plane,
-    null_resource.control_plane_config_k3s,
+    null_resource.control_plane_config,
     null_resource.authentication_config,
     hcloud_network_subnet.control_plane
   ]

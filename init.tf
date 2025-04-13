@@ -263,6 +263,7 @@ resource "random_password" "rancher_bootstrap" {
 }
 
 # This is where all the setup of Kubernetes components happen
+# This is where all the setup of Kubernetes components happen
 resource "null_resource" "kustomization" {
   triggers = {
     # Redeploy helm charts when the underlying values change
@@ -361,7 +362,6 @@ resource "null_resource" "kustomization" {
 
   # Upload the calico patch config, for the kustomization of the calico manifest
   # This method is a stub which could be replaced by a more practical helm implementation
-  # TODO: Does this need to move to /var/lib/rancher/rke2/server/manifests?
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/calico.yaml.tpl",
@@ -372,15 +372,15 @@ resource "null_resource" "kustomization" {
   }
 
   # Upload the cilium install file
-  # provisioner "file" {
-  #   content = templatefile(
-  #     "${path.module}/templates/cilium.yaml.tpl",
-  #     {
-  #       values  = indent(4, trimspace(local.cilium_values))
-  #       version = var.cilium_version
-  #   })
-  #   destination = local.kubernetes_distribution == "rke2" ? "/var/lib/rancher/rke2/server/manifests/rke2-cilium-config.yaml" : "/var/post_install/cilium.yaml"
-  # }
+  provisioner "file" {
+    content = templatefile(
+      "${path.module}/templates/cilium.yaml.tpl",
+      {
+        values  = indent(4, trimspace(local.cilium_values))
+        version = var.cilium_version
+    })
+    destination = "/var/post_install/cilium.yaml"
+  }
 
   # Upload the system upgrade controller plans config
   provisioner "file" {
@@ -472,8 +472,8 @@ resource "null_resource" "kustomization" {
   provisioner "remote-exec" {
     inline = [
       "set -ex",
-      "${local.kubectl_cli} -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | ${local.kubectl_cli} apply -f -",
-      "${local.kubectl_cli} -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | ${local.kubectl_cli} apply -f -",
+      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
+      "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
     ]
   }
 
@@ -496,7 +496,7 @@ resource "null_resource" "kustomization" {
       # the cluster had become unvailable for a few seconds, at this very instant.
       <<-EOT
       timeout 360 bash <<EOF
-        until [[ "$(${local.kubectl_cli} get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
+        until [[ "\$(kubectl get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
           echo "Waiting for the cluster to become ready..."
           sleep 2
         done
@@ -507,18 +507,16 @@ resource "null_resource" "kustomization" {
 
       [
         # Ready, set, go for the kustomization
-        "echo 'Deploying the kustomization.yaml...'",
-        "echo 'Applying everything in /var/post_install...'",
-        "${local.kubectl_cli} apply -k /var/post_install",
+        "kubectl apply -k /var/post_install",
         "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
-        "${local.kubectl_cli} -n system-upgrade wait --for=condition=available --timeout=360s deployment/system-upgrade-controller",
+        "kubectl -n system-upgrade wait --for=condition=available --timeout=360s deployment/system-upgrade-controller",
         "sleep 7", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
-        "${local.kubectl_cli} -n system-upgrade apply -f /var/post_install/plans.yaml"
+        "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
       local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 360 bash <<EOF
-      until [ -n "\$(${local.kubectl_cli} get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
+      until [ -n "\$(kubectl get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
           echo "Waiting for load-balancer to get an IP..."
           sleep 2
       done
@@ -529,9 +527,283 @@ resource "null_resource" "kustomization" {
 
   depends_on = [
     hcloud_load_balancer.cluster,
-    null_resource.control_planes_k3s,
-    null_resource.control_planes_rke2,
+    null_resource.control_planes,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume
   ]
 }
+
+
+# resource "null_resource" "rke2_kustomization" {
+#   count = local.kubernetes_distribution == "rke2" ? 1 : 0
+#   triggers = {
+#     # Redeploy helm charts when the underlying values change
+#     helm_values_yaml = join("---\n", [
+#       local.traefik_values,
+#       local.nginx_values,
+#       local.haproxy_values,
+#       local.calico_values,
+#       local.cilium_values,
+#       local.longhorn_values,
+#       local.csi_driver_smb_values,
+#       local.cert_manager_values,
+#       local.rancher_values,
+#       local.hetzner_csi_values
+#     ])
+#     # Redeploy when versions of addons need to be updated
+#     versions = join("\n", [
+#       coalesce(var.initial_k3s_channel, "N/A"),
+#       coalesce(var.install_k3s_version, "N/A"),
+#       coalesce(var.cluster_autoscaler_version, "N/A"),
+#       coalesce(var.hetzner_ccm_version, "N/A"),
+#       coalesce(var.hetzner_csi_version, "N/A"),
+#       coalesce(var.kured_version, "N/A"),
+#       coalesce(var.calico_version, "N/A"),
+#       coalesce(var.cilium_version, "N/A"),
+#       coalesce(var.traefik_version, "N/A"),
+#       coalesce(var.nginx_version, "N/A"),
+#       coalesce(var.haproxy_version, "N/A"),
+#     ])
+#     options = join("\n", [
+#       for option, value in local.kured_options : "${option}=${value}"
+#     ])
+#   }
+#
+#   connection {
+#     user           = "root"
+#     private_key    = var.ssh_private_key
+#     agent_identity = local.ssh_agent_identity
+#     host           = local.first_control_plane_ip
+#     port           = var.ssh_port
+#   }
+#
+#   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
+#   provisioner "file" {
+#     content     = local.kustomization_backup_yaml
+#     destination = "/var/post_install/kustomization.yaml"
+#   }
+#
+#   # Upload traefik ingress controller config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/traefik_ingress.yaml.tpl",
+#       {
+#         version          = var.traefik_version
+#         values           = indent(4, trimspace(local.traefik_values))
+#         target_namespace = local.ingress_controller_namespace
+#       })
+#     destination = "/var/post_install/traefik_ingress.yaml"
+#   }
+#
+#   # Upload nginx ingress controller config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/nginx_ingress.yaml.tpl",
+#       {
+#         version          = var.nginx_version
+#         values           = indent(4, trimspace(local.nginx_values))
+#         target_namespace = local.ingress_controller_namespace
+#       })
+#     destination = "/var/post_install/nginx_ingress.yaml"
+#   }
+#
+#   # Upload haproxy ingress controller config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/haproxy_ingress.yaml.tpl",
+#       {
+#         version          = var.haproxy_version
+#         values           = indent(4, trimspace(local.haproxy_values))
+#         target_namespace = local.ingress_controller_namespace
+#       })
+#     destination = "/var/post_install/haproxy_ingress.yaml"
+#   }
+#
+#   # Upload the CCM patch config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/ccm.yaml.tpl",
+#       {
+#         cluster_cidr_ipv4   = var.cluster_ipv4_cidr
+#         default_lb_location = var.load_balancer_location
+#         using_klipper_lb    = local.using_klipper_lb
+#       })
+#     destination = "/var/post_install/ccm.yaml"
+#   }
+#
+#   # Upload the calico patch config, for the kustomization of the calico manifest
+#   # This method is a stub which could be replaced by a more practical helm implementation
+#   # TODO: Does this need to move to /var/lib/rancher/rke2/server/manifests?
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/calico.yaml.tpl",
+#       {
+#         values = trimspace(local.calico_values)
+#       })
+#     destination = "/var/post_install/calico.yaml"
+#   }
+#
+#   # Upload the cilium install file
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/cilium.yaml.tpl",
+#       {
+#         values  = indent(4, trimspace(local.cilium_values))
+#         version = var.cilium_version
+#       })
+#     destination = local.kubernetes_distribution == "rke2" ? "/tmp/rke2-cilium-config.yaml" : "/var/post_install/cilium.yaml"
+#   }
+#
+#   # Upload the system upgrade controller plans config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/plans.yaml.tpl",
+#       {
+#         channel          = var.initial_k3s_channel
+#         version          = var.install_k3s_version
+#         disable_eviction = !var.system_upgrade_enable_eviction
+#         drain            = var.system_upgrade_use_drain
+#       })
+#     destination = "/var/post_install/plans.yaml"
+#   }
+#
+#   # Upload the Longhorn config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/longhorn.yaml.tpl",
+#       {
+#         longhorn_namespace  = var.longhorn_namespace
+#         longhorn_repository = var.longhorn_repository
+#         version             = var.longhorn_version
+#         bootstrap           = var.longhorn_helmchart_bootstrap
+#         values              = indent(4, trimspace(local.longhorn_values))
+#       })
+#     destination = "/var/post_install/longhorn.yaml"
+#   }
+#
+#   # Upload the csi-driver config (ignored if csi is disabled)
+#   provisioner "file" {
+#     content = var.disable_hetzner_csi ? "" : templatefile(
+#       "${path.module}/templates/hcloud-csi.yaml.tpl",
+#       {
+#         version = coalesce(local.csi_version, "*")
+#         values  = indent(4, trimspace(local.hetzner_csi_values))
+#       }
+#     )
+#     destination = "/var/post_install/hcloud-csi.yaml"
+#   }
+#
+#   # Upload the csi-driver-smb config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/csi-driver-smb.yaml.tpl",
+#       {
+#         version   = var.csi_driver_smb_version
+#         bootstrap = var.csi_driver_smb_helmchart_bootstrap
+#         values    = indent(4, trimspace(local.csi_driver_smb_values))
+#       })
+#     destination = "/var/post_install/csi-driver-smb.yaml"
+#   }
+#
+#   # Upload the cert-manager config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/cert_manager.yaml.tpl",
+#       {
+#         version   = var.cert_manager_version
+#         bootstrap = var.cert_manager_helmchart_bootstrap
+#         values    = indent(4, trimspace(local.cert_manager_values))
+#       })
+#     destination = "/var/post_install/cert_manager.yaml"
+#   }
+#
+#   # Upload the Rancher config
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/rancher.yaml.tpl",
+#       {
+#         rancher_install_channel = var.rancher_install_channel
+#         version                 = var.rancher_version
+#         bootstrap               = var.rancher_helmchart_bootstrap
+#         values                  = indent(4, trimspace(local.rancher_values))
+#       })
+#     destination = "/var/post_install/rancher.yaml"
+#   }
+#
+#   provisioner "file" {
+#     content = templatefile(
+#       "${path.module}/templates/kured.yaml.tpl",
+#       {
+#         options = local.kured_options
+#       }
+#     )
+#     destination = "/var/post_install/kured.yaml"
+#   }
+#
+#   # Deploy secrets, logging is automatically disabled due to sensitive variables
+#   provisioner "remote-exec" {
+#     inline = [
+#       "set -ex",
+#       "${local.kubectl_cli} -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | ${local.kubectl_cli} apply -f -",
+#       "${local.kubectl_cli} -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | ${local.kubectl_cli} apply -f -",
+#     ]
+#   }
+#
+#   # Deploy our post-installation kustomization
+#   provisioner "remote-exec" {
+#     inline = concat([
+#       "set -ex",
+#
+#       # This ugly hack is here, because terraform serializes the
+#       # embedded yaml files with "- |2", when there is more than
+#       # one yamldocument in the embedded file. Kustomize does not understand
+#       # that syntax and tries to parse the blocks content as a file, resulting
+#       # in weird errors. so gnu sed with funny escaping is used to
+#       # replace lines like "- |3" by "- |" (yaml block syntax).
+#       # due to indendation this should not changes the embedded
+#       # manifests themselves
+#       "sed -i 's/^- |[0-9]\\+$/- |/g' /var/post_install/kustomization.yaml",
+#
+#       # Wait for k3s to become ready (we check one more time) because in some edge cases,
+#       # the cluster had become unvailable for a few seconds, at this very instant.
+#       <<-EOT
+#       timeout 360 bash <<EOF
+#         until [[ "$(${local.kubectl_cli} get --raw='/readyz' 2> /dev/null)" == "ok" ]]; do
+#           echo "Waiting for the cluster to become ready..."
+#           sleep 2
+#         done
+#       EOF
+#       EOT
+#     ]
+#       ,
+#
+#       [
+#         # Ready, set, go for the kustomization
+#         "echo 'Deploying the kustomization.yaml...'",
+#         "echo 'Applying everything in /var/post_install...'",
+#         "${local.kubectl_cli} apply -k /var/post_install",
+#         "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
+#         "${local.kubectl_cli} -n system-upgrade wait --for=condition=available --timeout=360s deployment/system-upgrade-controller",
+#         "sleep 7", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
+#         "${local.kubectl_cli} -n system-upgrade apply -f /var/post_install/plans.yaml"
+#       ],
+#         local.has_external_load_balancer ? [] : [
+#         <<-EOT
+#       timeout 360 bash <<EOF
+#       until [ -n "\$(${local.kubectl_cli} get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
+#           echo "Waiting for load-balancer to get an IP..."
+#           sleep 2
+#       done
+#       EOF
+#       EOT
+#       ])
+#   }
+#
+#   depends_on = [
+#     hcloud_load_balancer.cluster,
+#     null_resource.control_planes,
+#     null_resource.control_planes_rke2,
+#     random_password.rancher_bootstrap,
+#     hcloud_volume.longhorn_volume
+#   ]
+# }
