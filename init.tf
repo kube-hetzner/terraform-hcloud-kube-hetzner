@@ -167,6 +167,7 @@ resource "null_resource" "kustomization" {
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
     ])
+    ccm_use_helm = var.hetzner_ccm_use_helm
   }
 
   connection {
@@ -389,7 +390,14 @@ resource "null_resource" "kustomization" {
       EOT
       ]
       ,
-
+      var.hetzner_ccm_use_helm ? [
+        "echo 'Remove legacy ccm manifests if they exist'",
+        "kubectl delete serviceaccount,deployment -n kube-system --field-selector 'metadata.name=hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
+        "kubectl delete clusterrolebinding -n kube-system --field-selector 'metadata.name=system:hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
+      ] : [
+        "echo 'Uninstall helm ccm manifests if they exist'",
+        "kubectl delete --ignore-not-found -n kube-system helmchart.helm.cattle.io/hcloud-cloud-controller-manager",
+      ],
       [
         # Ready, set, go for the kustomization
         "kubectl apply -k /var/post_install",
