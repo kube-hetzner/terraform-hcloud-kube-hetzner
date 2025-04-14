@@ -148,7 +148,8 @@ resource "null_resource" "kustomization" {
       local.csi_driver_smb_values,
       local.cert_manager_values,
       local.rancher_values,
-      local.hetzner_csi_values
+      local.hetzner_csi_values,
+      local.kustomization_backup_yaml
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
