@@ -394,7 +394,7 @@ resource "null_resource" "kustomization" {
         "echo 'Remove legacy ccm manifests if they exist'",
         "kubectl delete serviceaccount,deployment -n kube-system --field-selector 'metadata.name=hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
         "kubectl delete clusterrolebinding -n kube-system --field-selector 'metadata.name=system:hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
-      ] : [
+        ] : [
         "echo 'Uninstall helm ccm manifests if they exist'",
         "kubectl delete --ignore-not-found -n kube-system helmchart.helm.cattle.io/hcloud-cloud-controller-manager",
       ],
