@@ -74,11 +74,11 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],
+      var.hetzner_ccm_use_helm ? ["hcloud-ccm-helm.yaml"] : ["https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml"],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
@@ -88,7 +88,7 @@ locals {
       var.enable_rancher ? ["rancher.yaml"] : [],
       var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
     ),
-    patches = [
+    patches = concat([
       {
         target = {
           group     = "apps"
@@ -101,11 +101,10 @@ locals {
       },
       {
         path = "kured.yaml"
-      },
-      {
-        path = "ccm.yaml"
       }
-    ]
+      ],
+      var.hetzner_ccm_use_helm ? [] : [{ path = "ccm.yaml" }]
+    )
   })
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]

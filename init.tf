@@ -219,9 +219,9 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/haproxy_ingress.yaml"
   }
 
-  # Upload the CCM patch config
+  # Upload the CCM patch config using the legacy deployment
   provisioner "file" {
-    content = templatefile(
+    content = var.hetzner_ccm_use_helm ? "" : templatefile(
       "${path.module}/templates/ccm.yaml.tpl",
       {
         cluster_cidr_ipv4   = var.cluster_ipv4_cidr
@@ -229,6 +229,20 @@ resource "null_resource" "kustomization" {
         using_klipper_lb    = local.using_klipper_lb
     })
     destination = "/var/post_install/ccm.yaml"
+  }
+
+  # Upload the CCM patch config using helm
+  provisioner "file" {
+    content = var.hetzner_ccm_use_helm ? templatefile(
+      "${path.module}/templates/hcloud-ccm-helm.yaml.tpl",
+      {
+        version             = coalesce(local.ccm_version, "*")
+        using_klipper_lb    = local.using_klipper_lb
+        default_lb_location = var.load_balancer_location
+
+      }
+    ) : ""
+    destination = "/var/post_install/hcloud-ccm-helm.yaml"
   }
 
   # Upload the calico patch config, for the kustomization of the calico manifest
