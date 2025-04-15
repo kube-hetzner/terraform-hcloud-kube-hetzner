@@ -263,7 +263,6 @@ resource "random_password" "rancher_bootstrap" {
 }
 
 # This is where all the setup of Kubernetes components happen
-# This is where all the setup of Kubernetes components happen
 resource "null_resource" "kustomization" {
   triggers = {
     # Redeploy helm charts when the underlying values change

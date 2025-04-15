@@ -538,7 +538,6 @@ kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
 
 # Access to Kube API Server (mandatory if kube-proxy is disabled)
 k8sServiceHost: "127.0.0.1"
-# TODO: This was 6444 with k3s, does this need to be dynamic?
 k8sServicePort: "${local.kubernetes_distribution == "rke2" ? "6443" : "6444"}"
 
 # Set Tunnel Mode or Native Routing Mode (supported by Hetzner CCM Route Controller)
