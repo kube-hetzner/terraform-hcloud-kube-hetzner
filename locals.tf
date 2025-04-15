@@ -163,7 +163,7 @@ locals {
     local.common_pre_install_k3s_commands,
     [format(local.k3s_install_command, "agent ${var.k3s_exec_agent_args}")],
     var.disable_selinux ? [] : local.apply_k3s_selinux,
-    local.common_post_install_k8s_commands
+    local.common_post_install_k3s_commands
   )
   install_rke2_agent = concat(
     local.common_pre_install_k8s_commands,

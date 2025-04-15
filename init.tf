@@ -93,7 +93,7 @@ resource "null_resource" "first_control_plane" {
 
   # Install k3s server
   provisioner "remote-exec" {
-    inline = local.install_k8s_server
+    inline = local.install_k3s_server
   }
 
   # Upon reboot start k3s and wait for it to be ready to receive commands
