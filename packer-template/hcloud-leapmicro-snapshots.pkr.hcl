@@ -37,14 +37,19 @@ variable "packages_to_install" {
 
 locals {
   needed_packages = join(" ", concat([
-    "restorecond",
+    "busybox-bzip2",
+    "container-selinux",
     "policycoreutils",
+    "policycoreutils-devel",
     "policycoreutils-python-utils",
-    "setools-console",
+    "python3-policycoreutils",
+    "python311-setools",
+    "restorecond",
+    "selinux-policy",
+    "fuse-overlayfs",
+    #"fuse",
+    #"libfuse3",
     "audit",
-    "bind-utils",
-    "wireguard-tools",
-    "fuse",
     "open-iscsi",
     "nfs-client",
     "xfsprogs",
@@ -53,10 +58,17 @@ locals {
     "git",
     "cifs-utils",
     "bash-completion",
-    "mtr",
-    "tcpdump",
     "udica"
   ], var.packages_to_install))
+
+  # leap_oss_packages = join(" ", [
+  #   #"bind-utils",
+  #   "bzip2",
+  #   "wireguard-tools",
+  #   "mtr",
+  #   "tcpdump"
+  # ])
+
   # Add local variables for inline shell commands
   download_image = "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only "
 
@@ -71,32 +83,50 @@ locals {
   install_packages = <<-EOT
     set -ex
 
-    zypper --non-interactive addrepo --refresh --priority 100 https://download.opensuse.org/tumbleweed/repo/oss/ tumbleweed-oss
+    # echo "First reboot successful, installing needed packages..."
+    ARCH=$(uname -m)
+    REPO_URL="https://ftp.rz.uni-wuerzburg.de/opensuse/distribution/leap-micro/6.1/product/repo/openSUSE-Leap-Micro-6.1-$ARCH"
+    transactional-update shell <<- EOF
+    setenforce 0
+
+    # Added mirror with higher prio.
+    # As of now (23.04.2025), the main repo doesn't have container-selinux in vers. 2.236
+    # thereforce, we prioritize the mirrors, as they seem to have the proper versions
+
+    zypper ar "$REPO_URL" uni-wuerzburg-mirror
     zypper --non-interactive --gpg-auto-import-keys refresh
 
-    # echo "First reboot successful, installing needed packages..."
-    transactional-update --continue shell <<- EOF
-    setenforce 0
-    zypper --non-interactive install -y ${local.needed_packages}
+    zypper --verbose --non-interactive install --allow-vendor-change ${local.needed_packages}
+
     rpm --import https://rpm.rancher.io/public.key
-    zypper install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.stable.1/k3s-selinux-1.6-1.slemicro.noarch.rpm
+    zypper --verbose --non-interactive install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.stable.1/k3s-selinux-1.6-1.slemicro.noarch.rpm
     zypper addlock k3s-selinux
+
     restorecon -Rv /etc/selinux/targeted/policy
     restorecon -Rv /var/lib
+    fixfiles restore
+    touch /.autorelabel
+
+    echo so what do we have here
+    rpm -qa |grep container
+    zypper search-packages -s container-selinux
+
     sed -i '/disable_root/c\disable_root: false' /etc/cloud/cloud.cfg
     sed -i '/keys_to_console/s/^/#/' /etc/cloud/cloud.cfg
     sed -i '/^#*PermitRootLogin/s/.*/PermitRootLogin yes/' /etc/ssh/ssh_config.d/50-suse.conf
+    setenforce 1
+    EOF
+    sleep 10 && udevadm settle && reboot
+  EOT
 
-    # fail2ban install
+  install_fail2ban = <<-EOT
+    transactional-update shell <<- EOF
     git clone --branch 1.1.0 --depth 1 https://github.com/fail2ban/fail2ban.git
     cd fail2ban
     python3 setup.py install --without-tests
     cp build/fail2ban.service /etc/systemd/system/
     systemctl enable fail2ban.service
-
-    setenforce 1
     EOF
-    sleep 10 && udevadm settle && reboot
   EOT
 
   clean_up = <<-EOT
@@ -161,10 +191,19 @@ build {
     expect_disconnect = true
   }
 
+  # Install Fail2Ban
+  # (Requires git; transactional-update makes reboot necessary, so handled in a separate step)
+  provisioner "shell" {
+    pause_before      = "5s"
+    inline            = [local.install_fail2ban]
+    expect_disconnect = true
+  }
+
   # Ensure connection to Leap Micro x86 and do house-keeping
   provisioner "shell" {
     pause_before = "5s"
     inline       = [local.clean_up]
+    expect_disconnect = true
   }
 }
 
@@ -187,6 +226,14 @@ build {
   provisioner "shell" {
     pause_before      = "5s"
     inline            = [local.install_packages]
+    expect_disconnect = true
+  }
+
+  # Install Fail2Ban
+  # (Requires git; transactional-update makes reboot necessary, so handled in a separate step)
+  provisioner "shell" {
+    pause_before      = "5s"
+    inline            = [local.install_fail2ban]
     expect_disconnect = true
   }
 
