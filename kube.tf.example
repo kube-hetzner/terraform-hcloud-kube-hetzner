@@ -156,6 +156,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
+      # os = "microos"
       
       # To disable public ips (default: false)
       # WARNING: If both values are set to "true", your server will only be accessible via a private network. Make sure you have followed
@@ -176,6 +179,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
+      # os = "microos"
       
       # To disable public ips (default: false)
       # WARNING: If both values are set to "true", your server will only be accessible via a private network. Make sure you have followed
@@ -202,6 +208,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
+      # os = "microos"
     },
     {
       name        = "agent-large",
@@ -216,6 +225,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
+      # os = "microos"
     },
     {
       name        = "storage",
@@ -236,6 +248,9 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
+
+      # Specify OS type (default is "leapmicro"). Use "microos" if needed.
+      # os = "microos"
     },
     # Egress nodepool useful to route egress traffic using Hetzner Floating IPs (https://docs.hetzner.com/cloud/floating-ips)
     # used with Cilium's Egress Gateway feature https://docs.cilium.io/en/stable/gettingstarted/egress-gateway/
@@ -274,6 +289,7 @@ module "kube-hetzner" {
       location    = "fsn1",
       labels      = [],
       taints      = [],
+      os          = "microos",
       nodes = {
         "1" : {
           location                  = "nbg1"
@@ -285,6 +301,9 @@ module "kube-hetzner" {
           labels = [
             "testing-labels=b1",
           ]
+        },
+        "30" : {
+          os = "leapmicro"
         }
       }
     },
