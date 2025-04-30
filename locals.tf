@@ -1110,12 +1110,12 @@ EOT
 
 snapshot_id_by_os = {
   leapmicro = local.os_requirements.leapmicro ? {
-    arm = var.leapmicro_arm_snapshot_id != "" ? var.leapmicro_arm_snapshot_id : data.hcloud_image.leapmicro_arm_snapshot[0].id,
-    x86 = var.leapmicro_x86_snapshot_id != "" ? var.leapmicro_x86_snapshot_id : data.hcloud_image.leapmicro_x86_snapshot[0].id
+    arm = var.leapmicro_arm_snapshot_id != "" ? var.leapmicro_arm_snapshot_id : try(data.hcloud_image.leapmicro_arm_snapshot[0].id, ""),
+    x86 = var.leapmicro_x86_snapshot_id != "" ? var.leapmicro_x86_snapshot_id : try(data.hcloud_image.leapmicro_x86_snapshot[0].id, "")
   } : null,
   microos = local.os_requirements.microos ? {
-    arm = var.microos_arm_snapshot_id != "" ? var.microos_arm_snapshot_id : data.hcloud_image.microos_arm_snapshot[0].id,
-    x86 = var.microos_x86_snapshot_id != "" ? var.microos_x86_snapshot_id : data.hcloud_image.microos_x86_snapshot[0].id
+    arm = var.microos_arm_snapshot_id != "" ? var.microos_arm_snapshot_id : try(data.hcloud_image.microos_arm_snapshot[0].id, ""),
+    x86 = var.microos_x86_snapshot_id != "" ? var.microos_x86_snapshot_id : try(data.hcloud_image.microos_x86_snapshot[0].id, "")
   } : null
 }
 
