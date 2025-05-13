@@ -995,7 +995,7 @@ cloudinit_write_files_common = <<EOT
     allow container_t { cert_t container_log_t }:lnk_file read;
     allow container_t cert_t:file { read open };
     allow container_t container_var_lib_t:dir { add_name remove_name write read create };
-    allow container_t container_var_lib_t:file { create open read write rename lock setattr getattr unlink };
+    allow container_t container_var_lib_t:file { append create open read write rename lock setattr getattr unlink };
     allow container_t etc_t:dir { add_name remove_name write create setattr watch };
     allow container_t etc_t:file { create setattr unlink write };
     allow container_t etc_t:sock_file { create unlink };
@@ -1012,7 +1012,7 @@ cloudinit_write_files_common = <<EOT
     allow container_t var_log_t:dir { add_name write remove_name watch read };
     allow container_t var_log_t:file { create lock open read setattr write unlink getattr };
     allow container_t var_lib_t:dir { add_name remove_name write read create };
-    allow container_t var_lib_t:file { create lock open read setattr write getattr };
+    allow container_t var_lib_t:file { append create open read write rename lock setattr getattr unlink };
     allow container_t proc_t:filesystem associate;
     allow container_t self:bpf map_create;
     allow container_t self:io_uring sqpoll;
