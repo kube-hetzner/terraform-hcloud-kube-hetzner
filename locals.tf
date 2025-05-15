@@ -861,12 +861,17 @@ cloudinit_write_files_common = <<EOT
     sleep 11
 
     # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-    INTERFACE=$(ip link show | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+    INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
     MAC=$(cat /sys/class/net/$INTERFACE/address)
 
     cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
     SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
     EOF
+
+    if [ "$INTERFACE" = "eth1" ]; then
+      echo "Interface $INTERFACE already points to $MAC, skipping..."
+      exit 0
+    fi
 
     ip link set $INTERFACE down
     ip link set $INTERFACE name eth1
