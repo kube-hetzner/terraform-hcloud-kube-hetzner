@@ -1013,6 +1013,7 @@ If you follow this values, in your kube.tf, please set:
 - `existing_network_id = [YOURID]` (with the brackets)
 - `network_ipv4_cidr = "10.0.0.0/9"`
 - Add `disable_ipv4 = true` and  `disable_ipv6 = true` in all machines in all nodepools (control planes + agents).
+- Add `autoscaler_disable_ipv4 = true` and `autoscaler_disable_ipv6 = true` to disable public ips on autoscaled nodes.
 
 This setup is compatible with a loadbalancer for your control planes, however you should consider to set
 `control_plane_lb_enable_public_interface = false` to keep ip private.

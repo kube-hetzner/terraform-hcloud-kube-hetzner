@@ -359,6 +359,19 @@ variable "autoscaler_taints" {
   default     = []
 }
 
+variable "autoscaler_disable_ipv4" {
+  description = "Disable IPv4 on nodes created by the Cluster Autoscaler."
+  type        = bool
+  default     = false
+}
+
+variable "autoscaler_disable_ipv6" {
+  description = "Disable IPv6 on nodes created by the Cluster Autoscaler."
+  type        = bool
+  default     = false
+}
+
+
 variable "hetzner_ccm_version" {
   type        = string
   default     = null
