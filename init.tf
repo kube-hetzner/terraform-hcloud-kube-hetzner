@@ -167,6 +167,7 @@ resource "null_resource" "kustomization" {
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
     ])
+    ccm_use_helm = var.hetzner_ccm_use_helm
   }
 
   connection {
@@ -219,9 +220,9 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/haproxy_ingress.yaml"
   }
 
-  # Upload the CCM patch config
+  # Upload the CCM patch config using the legacy deployment
   provisioner "file" {
-    content = templatefile(
+    content = var.hetzner_ccm_use_helm ? "" : templatefile(
       "${path.module}/templates/ccm.yaml.tpl",
       {
         cluster_cidr_ipv4   = var.cluster_ipv4_cidr
@@ -229,6 +230,20 @@ resource "null_resource" "kustomization" {
         using_klipper_lb    = local.using_klipper_lb
     })
     destination = "/var/post_install/ccm.yaml"
+  }
+
+  # Upload the CCM patch config using helm
+  provisioner "file" {
+    content = var.hetzner_ccm_use_helm ? templatefile(
+      "${path.module}/templates/hcloud-ccm-helm.yaml.tpl",
+      {
+        version             = coalesce(local.ccm_version, "*")
+        using_klipper_lb    = local.using_klipper_lb
+        default_lb_location = var.load_balancer_location
+
+      }
+    ) : ""
+    destination = "/var/post_install/hcloud-ccm-helm.yaml"
   }
 
   # Upload the calico patch config, for the kustomization of the calico manifest
@@ -375,7 +390,14 @@ resource "null_resource" "kustomization" {
       EOT
       ]
       ,
-
+      var.hetzner_ccm_use_helm ? [
+        "echo 'Remove legacy ccm manifests if they exist'",
+        "kubectl delete serviceaccount,deployment -n kube-system --field-selector 'metadata.name=hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
+        "kubectl delete clusterrolebinding -n kube-system --field-selector 'metadata.name=system:hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
+        ] : [
+        "echo 'Uninstall helm ccm manifests if they exist'",
+        "kubectl delete --ignore-not-found -n kube-system helmchart.helm.cattle.io/hcloud-cloud-controller-manager",
+      ],
       [
         # Ready, set, go for the kustomization
         "kubectl apply -k /var/post_install",

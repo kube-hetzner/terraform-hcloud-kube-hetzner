@@ -365,6 +365,12 @@ variable "hetzner_ccm_version" {
   description = "Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. See https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases for the available versions."
 }
 
+variable "hetzner_ccm_use_helm" {
+  type        = bool
+  default     = false
+  description = "Whether to use the helm chart for the Hetzner CCM or the legacy manifest which is the default."
+}
+
 variable "hetzner_csi_version" {
   type        = string
   default     = null

@@ -487,6 +487,10 @@ module "kube-hetzner" {
   # If you want to use a specific Hetzner CCM and CSI version, set them below; otherwise, leave them as-is for the latest versions.
   # See https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases for the available versions.
   # hetzner_ccm_version = ""
+
+  # By default, new installations use Helm to install Hetzner CCM. You can use the legacy deployment method (using `kubectl apply`) by setting `hetzner_ccm_use_helm = false`.
+  hetzner_ccm_use_helm = true
+
   # See https://github.com/hetznercloud/csi-driver/releases for the available versions.
   # hetzner_csi_version = ""
 
