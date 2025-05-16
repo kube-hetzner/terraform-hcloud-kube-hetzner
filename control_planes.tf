@@ -81,6 +81,7 @@ resource "hcloud_load_balancer_target" "control_plane" {
   use_private_ip   = true
 }
 
+# TODO: Adjust me for RKE2
 resource "hcloud_load_balancer_service" "control_plane" {
   count = var.use_control_plane_lb ? 1 : 0
 
@@ -98,8 +99,8 @@ locals {
       v.private_ipv4_address
     )
   }
+  # TODO: What about this?
   # cni_settings = local.kubernetes_distribution == "k3s" ? local.cni_k3s_settings : local.cni_rke2_settings
-  # TODO: Review this in detail. Make sure that the settings are correct for both k3s and rke2, otherwise separate them
   rke2-config = { for k, v in local.control_plane_nodes : k => merge(
     {
       node-name = module.control_planes[k].name
