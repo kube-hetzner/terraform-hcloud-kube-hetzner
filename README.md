@@ -292,6 +292,8 @@ For Traefik, Nginx, HAProxy, Rancher, Cilium, Traefik, and Longhorn, for maximum
 
 If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating one or more `extra-manifests/kustomization.yaml.tpl` files beside your `kube.tf`.
 
+If you'd like to use a different folder name, you can configure it using the `extra_kustomize_folder` variable. By default, it is set to `extra-manifests`. This can be useful when working with multiple environments, allowing you to deploy different manifests for each one.
+
 These files need to be valid `Kustomization` manifests, additionally supporting terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable (via a map) to the module).
 
 All files in the `extra-manifests` directory and its subdirectories including the rendered versions of the `*.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
