@@ -94,8 +94,6 @@ locals {
   common_pre_install_k8s_commands = var.kubernetes_distribution_type == "rke2" ? local.common_pre_install_rke2_commands : local.common_pre_install_k3s_commands
 
   common_post_install_k3s_commands = concat(var.postinstall_exec, ["restorecon -v /usr/local/bin/k3s"])
-  # TODO: Review if this below is correct and makes sense
-  # common_post_install_rke2_commands = concat(var.postinstall_exec, ["restorecon -v /usr/local/bin/rke2-server", "restorecon -v /usr/local/bin/rke2-agent"])
   common_post_install_rke2_commands = concat(var.postinstall_exec, [])
   common_post_install_k8s_commands  = var.kubernetes_distribution_type == "rke2" ? local.common_post_install_rke2_commands : local.common_post_install_k3s_commands
 

@@ -103,11 +103,11 @@ locals {
   rke2-config = { for k, v in local.control_plane_nodes : k => merge(
     {
       node-name = module.control_planes[k].name
-      server = length(module.control_planes) == 1 ? null : "https://${
-        var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] :
-        module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
-        module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
-      module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:9345"
+      server = (
+        length(module.control_planes) == 1 ? null :
+        module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ? null :
+        "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:9345"
+      )
       token                       = local.k3s_token
       disable-cloud-controller    = true
       disable-kube-proxy          = var.disable_kube_proxy
@@ -137,6 +137,7 @@ locals {
       } : {
       tls-san = concat(
         compact([
+          module.control_planes[keys(module.control_planes)[0]].private_ipv4_address != "" ? module.control_planes[keys(module.control_planes)[0]].private_ipv4_address : null,
           module.control_planes[k].ipv4_address != "" ? module.control_planes[k].ipv4_address : null,
           module.control_planes[k].ipv6_address != "" ? module.control_planes[k].ipv6_address : null,
           try(one(module.control_planes[k].network).ip, null)
@@ -324,7 +325,7 @@ resource "null_resource" "control_planes_rke2" {
     port           = var.ssh_port
   }
 
-  # Install k3s server
+  # Install rke2 server
   provisioner "remote-exec" {
     inline = local.install_k8s_server
   }
@@ -348,7 +349,7 @@ resource "null_resource" "control_planes_rke2" {
   }
 
   depends_on = [
-    null_resource.first_control_plane,
+    null_resource.first_control_plane_rke2,
     null_resource.control_plane_config_rke2,
     null_resource.authentication_config,
     hcloud_network_subnet.control_plane
