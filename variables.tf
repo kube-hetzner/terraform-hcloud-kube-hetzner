@@ -192,7 +192,7 @@ variable "control_plane_nodepools" {
     swap_size                  = optional(string, "")
     zram_size                  = optional(string, "")
     kubelet_args               = optional(list(string), ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-    selinux                    = optional(bool, true)
+    selinux                    = optional(bool, false)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
     disable_ipv4               = optional(bool, false)
@@ -227,7 +227,7 @@ variable "agent_nodepools" {
     swap_size                  = optional(string, "")
     zram_size                  = optional(string, "")
     kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-    selinux                    = optional(bool, true)
+    selinux                    = optional(bool, false)
     placement_group_compat_idx = optional(number, 0)
     placement_group            = optional(string, null)
     count                      = optional(number, null)
@@ -246,7 +246,7 @@ variable "agent_nodepools" {
       swap_size                  = optional(string, "")
       zram_size                  = optional(string, "")
       kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
-      selinux                    = optional(bool, true)
+      selinux                    = optional(bool, false)
       placement_group_compat_idx = optional(number, 0)
       placement_group            = optional(string, null)
       append_index_to_node_name  = optional(bool, true)
@@ -1154,7 +1154,7 @@ variable "enable_local_storage" {
 
 variable "disable_selinux" {
   type        = bool
-  default     = false
+  default     = true
   description = "Disable SELinux on all nodes."
 }
 
