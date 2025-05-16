@@ -102,11 +102,11 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],
+      var.hetzner_ccm_use_helm ? ["hcloud-ccm-helm.yaml"] : ["https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml"],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       local.kubernetes_distribution == "k3s" ? lookup(local.cni_install_resources, var.cni_plugin, []) : [],
@@ -116,7 +116,7 @@ locals {
       var.enable_rancher ? ["rancher.yaml"] : [],
       var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
     ),
-    patches = [
+    patches = concat([
       {
         target = {
           group     = "apps"
@@ -129,11 +129,10 @@ locals {
       },
       {
         path = "kured.yaml"
-      },
-      {
-        path = "ccm.yaml"
       }
-    ]
+      ],
+      var.hetzner_ccm_use_helm ? [] : [{ path = "ccm.yaml" }]
+    )
   })
 
   # TODO: What needs changing for rke2 here?
@@ -998,12 +997,17 @@ cloudinit_write_files_common = <<EOT
     sleep 11
 
     # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-    INTERFACE=$(ip link show | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+    INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
     MAC=$(cat /sys/class/net/$INTERFACE/address)
 
     cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
     SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
     EOF
+
+    if [ "$INTERFACE" = "eth1" ]; then
+      echo "Interface $INTERFACE already points to $MAC, skipping..."
+      exit 0
+    fi
 
     ip link set $INTERFACE down
     ip link set $INTERFACE name eth1
@@ -1136,7 +1140,7 @@ cloudinit_write_files_common = <<EOT
     allow container_t { cert_t container_log_t }:lnk_file read;
     allow container_t cert_t:file { read open };
     allow container_t container_var_lib_t:dir { add_name remove_name write read create };
-    allow container_t container_var_lib_t:file { create open read write rename lock setattr getattr unlink };
+    allow container_t container_var_lib_t:file { append create open read write rename lock setattr getattr unlink };
     allow container_t etc_t:dir { add_name remove_name write create setattr watch };
     allow container_t etc_t:file { create setattr unlink write };
     allow container_t etc_t:sock_file { create unlink };
@@ -1153,7 +1157,7 @@ cloudinit_write_files_common = <<EOT
     allow container_t var_log_t:dir { add_name write remove_name watch read };
     allow container_t var_log_t:file { create lock open read setattr write unlink getattr };
     allow container_t var_lib_t:dir { add_name remove_name write read create };
-    allow container_t var_lib_t:file { create lock open read setattr write getattr };
+    allow container_t var_lib_t:file { append create open read write rename lock setattr getattr unlink };
     allow container_t proc_t:filesystem associate;
     allow container_t self:bpf map_create;
     allow container_t self:io_uring sqpoll;
