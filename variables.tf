@@ -117,7 +117,7 @@ variable "service_ipv4_cidr" {
 variable "cluster_dns_ipv4" {
   description = "Internal Service IPv4 address of core-dns."
   type        = string
-  default     = "10.43.0.10"
+  default     = null
 }
 
 variable "load_balancer_location" {
