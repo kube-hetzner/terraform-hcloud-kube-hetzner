@@ -606,9 +606,20 @@ variable "install_k3s_version" {
   description = "Allows you to specify the k3s version (Example: v1.29.6+k3s2). Supersedes initial_k3s_channel. See https://github.com/k3s-io/k3s/releases for available versions."
 }
 
+variable "initial_rke2_channel" {
+  type        = string
+  default     = "v1.32" # Please update kube.tf.example too when changing this variable
+  description = "Allows you to specify an initial rke2 channel. See https://update.rke2.io/v1-release/channels for available channels."
+
+  validation {
+    condition     = contains(["stable", "latest", "testing", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26", "v1.27", "v1.28", "v1.29", "v1.30", "v1.31", "v1.32", "v1.33"], var.initial_rke2_channel)
+    error_message = "The initial rke2 channel must be one of stable, latest or testing, or any of the minor kube versions like v1.31."
+  }
+}
+
 variable "install_rke2_version" {
   type        = string
-  default     = "v1.32.3+rke2r1"
+  default     = "v1.32.4+rke2r1"
   description = "Allows you to specify the rke2 version (Example: v1.32.3+rke2r1). Supersedes initial_rke2_channel. See https://github.com/rancher/rke2/releases for available versions."
 }
 

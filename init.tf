@@ -216,7 +216,7 @@ resource "null_resource" "first_control_plane_rke2" {
     port           = var.ssh_port
   }
 
-  # Install k3s server
+  # Install rke2 server
   provisioner "remote-exec" {
     inline = local.install_k8s_server
   }
@@ -574,8 +574,8 @@ resource "null_resource" "rke2_kustomization" {
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
-      coalesce(var.initial_k3s_channel, "N/A"),
-      coalesce(var.install_k3s_version, "N/A"),
+      coalesce(var.initial_rke2_channel, "N/A"),
+      coalesce(var.install_rke2_version, "N/A"),
       coalesce(var.cluster_autoscaler_version, "N/A"),
       coalesce(var.hetzner_ccm_version, "N/A"),
       coalesce(var.hetzner_csi_version, "N/A"),
@@ -673,16 +673,16 @@ resource "null_resource" "rke2_kustomization" {
         values  = indent(4, trimspace(local.cilium_values))
         version = var.cilium_version
       })
-    destination = local.kubernetes_distribution == "rke2" ? "/tmp/rke2-cilium-config.yaml" : "/var/post_install/cilium.yaml"
+    destination = "/tmp/rke2-cilium-config.yaml"
   }
 
   # Upload the system upgrade controller plans config
   provisioner "file" {
     content = templatefile(
-      "${path.module}/templates/plans.yaml.tpl",
+      "${path.module}/templates/plans_rke2.yaml.tpl",
       {
-        channel          = var.initial_k3s_channel
-        version          = var.install_k3s_version
+        channel          = var.initial_rke2_channel
+        version          = var.install_rke2_version
         disable_eviction = !var.system_upgrade_enable_eviction
         drain            = var.system_upgrade_use_drain
       })
