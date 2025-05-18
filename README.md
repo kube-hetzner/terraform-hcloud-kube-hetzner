@@ -757,7 +757,7 @@ module "kube-hetzner" {
 
   # ...
 
-  postinstall_exec = [
+  postinstall_exec = compact([
     (
       local.etcd_snapshot_name == "" ? "" :
       <<-EOF
@@ -815,7 +815,7 @@ module "kube-hetzner" {
       fi
       EOF
     )
-  ]
+  ])
   # ...
 }
 ```
