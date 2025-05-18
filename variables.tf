@@ -1039,6 +1039,12 @@ variable "extra_kustomize_parameters" {
   description = "All values will be passed to the `kustomization.tmp.yml` template."
 }
 
+variable "extra_kustomize_folder" {
+  type        = string
+  default     = "extra-manifests"
+  description = "Folder from where to upload extra manifests"
+}
+
 variable "create_kubeconfig" {
   type        = bool
   default     = true
