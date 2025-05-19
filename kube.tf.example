@@ -360,6 +360,10 @@ module "kube-hetzner" {
   #    # kubelet_args = ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"]
   #  }
   # ]
+  #
+  # To disable public ips on your autoscaled nodes, uncomment the following lines:
+  # autoscaler_disable_ipv4 = true
+  # autoscaler_disable_ipv6 = true
 
   # ⚠️ Deprecated, will be removed after a new Cluster Autoscaler version has been released which support the new way of setting labels and taints. See above.
   # Add extra labels on nodes started by the Cluster Autoscaler
