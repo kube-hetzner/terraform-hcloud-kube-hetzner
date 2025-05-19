@@ -152,7 +152,6 @@ locals {
   install_rke2_server = concat(
     local.common_pre_install_k8s_commands,
     [format(local.rke2_install_command, "server ${var.k3s_exec_server_args}")],
-    var.disable_selinux ? [] : local.apply_k3s_selinux,
     local.common_post_install_k8s_commands
   )
 
@@ -165,7 +164,6 @@ locals {
   install_rke2_agent = concat(
     local.common_pre_install_k8s_commands,
     [format(local.rke2_install_command, "agent ${var.k3s_exec_agent_args}")],
-    var.disable_selinux ? [] : local.apply_k3s_selinux,
     local.common_post_install_k8s_commands
   )
 
@@ -612,7 +610,6 @@ spec:
 
   EOT
 
-  # TODO: Cover all possible cni plugins
   desired_cni_values  = var.cni_plugin == "cilium" ? local.cilium_values : local.calico_values
   desired_cni_version = var.cni_plugin == "cilium" ? var.cilium_version : var.calico_version
 
@@ -1164,6 +1161,39 @@ cloudinit_write_files_common = <<EOT
     allow container_t io_uring_t:anon_inode { create map read write };
     allow container_t container_var_run_t:dir { add_name remove_name write };
     allow container_t container_var_run_t:file { create open read rename unlink write };
+
+    # RKE2
+
+    rke2_filetrans_named_content(container_runtime_t)
+    rke2_filetrans_named_content(unconfined_service_t)
+
+    #######################
+    # type rke2_service_t #
+    #######################
+    rke2_service_domain_template(rke2_service)
+    container_read_lib_files(rke2_service_t)
+    allow rke2_service_t container_var_lib_t:sock_file { write };
+    allow rke2_service_t container_runtime_t:unix_stream_socket { connectto };
+
+    ##########################
+    # type rke2_service_db_t #
+    ##########################
+    rke2_service_domain_template(rke2_service_db)
+    container_manage_lib_dirs(rke2_service_db_t)
+    container_manage_lib_files(rke2_service_db_t)
+    allow rke2_service_db_t container_var_lib_t:file { map };
+
+    #########################
+    # Longhorn ISCSID_T FIX #
+    #########################
+    # https://github.com/longhorn/longhorn/issues/5627#issuecomment-1577498183
+    allow iscsid_t self:capability dac_override;
+
+    ###################
+    # type rke2_tls_t #
+    ###################
+    type rke2_tls_t;
+    container_file(rke2_tls_t);
 
 # Create the k3s registries file if needed
 # TODO: Review that this can stay and behaves the same in rke2 as with k3s
