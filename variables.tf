@@ -128,7 +128,7 @@ variable "service_ipv4_cidr" {
 variable "cluster_dns_ipv4" {
   description = "Internal Service IPv4 address of core-dns."
   type        = string
-  default     = "10.43.0.10"
+  default     = null
 }
 
 variable "load_balancer_location" {
@@ -1065,6 +1065,12 @@ variable "extra_kustomize_parameters" {
   type        = map(any)
   default     = {}
   description = "All values will be passed to the `kustomization.tmp.yml` template."
+}
+
+variable "extra_kustomize_folder" {
+  type        = string
+  default     = "extra-manifests"
+  description = "Folder from where to upload extra manifests"
 }
 
 variable "create_kubeconfig" {

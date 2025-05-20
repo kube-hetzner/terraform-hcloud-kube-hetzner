@@ -74,7 +74,7 @@ resource "null_resource" "first_control_plane" {
           node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
           cluster-cidr                = var.cluster_ipv4_cidr
           service-cidr                = var.service_ipv4_cidr
-          cluster-dns                 = var.cluster_dns_ipv4
+          cluster-dns                 = local.cluster_dns_ipv4
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
         var.use_control_plane_lb ? {
@@ -292,6 +292,11 @@ resource "null_resource" "kustomization" {
       coalesce(var.traefik_version, "N/A"),
       coalesce(var.nginx_version, "N/A"),
       coalesce(var.haproxy_version, "N/A"),
+      coalesce(var.cert_manager_version, "N/A"),
+      coalesce(var.csi_driver_smb_version, "N/A"),
+      coalesce(var.longhorn_version, "N/A"),
+      coalesce(var.rancher_version, "N/A"),
+      coalesce(var.sys_upgrade_controller_version, "N/A"),
     ])
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
