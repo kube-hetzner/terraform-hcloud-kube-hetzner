@@ -176,7 +176,7 @@ resource "null_resource" "control_plane_setup_rke2" {
           selinux                     = false
           cluster-cidr                = var.cluster_ipv4_cidr
           service-cidr                = var.service_ipv4_cidr
-          cluster-dns                 = var.cluster_dns_ipv4
+          cluster-dns                 = local.cluster_dns_ipv4
           cni                         = "none"
         },
         var.use_control_plane_lb ? {
@@ -590,10 +590,16 @@ resource "null_resource" "rke2_kustomization" {
       coalesce(var.traefik_version, "N/A"),
       coalesce(var.nginx_version, "N/A"),
       coalesce(var.haproxy_version, "N/A"),
+      coalesce(var.cert_manager_version, "N/A"),
+      coalesce(var.csi_driver_smb_version, "N/A"),
+      coalesce(var.longhorn_version, "N/A"),
+      coalesce(var.rancher_version, "N/A"),
+      coalesce(var.sys_upgrade_controller_version, "N/A"),
     ])
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
     ])
+    ccm_use_helm = var.hetzner_ccm_use_helm
   }
 
   connection {
@@ -618,7 +624,7 @@ resource "null_resource" "rke2_kustomization" {
         version          = var.traefik_version
         values           = indent(4, trimspace(local.traefik_values))
         target_namespace = local.ingress_controller_namespace
-      })
+    })
     destination = "/var/post_install/traefik_ingress.yaml"
   }
 
@@ -630,7 +636,7 @@ resource "null_resource" "rke2_kustomization" {
         version          = var.nginx_version
         values           = indent(4, trimspace(local.nginx_values))
         target_namespace = local.ingress_controller_namespace
-      })
+    })
     destination = "/var/post_install/nginx_ingress.yaml"
   }
 
@@ -642,21 +648,24 @@ resource "null_resource" "rke2_kustomization" {
         version          = var.haproxy_version
         values           = indent(4, trimspace(local.haproxy_values))
         target_namespace = local.ingress_controller_namespace
-      })
+    })
     destination = "/var/post_install/haproxy_ingress.yaml"
   }
 
-  # Upload the CCM patch config
+  # Upload the CCM patch config using helm
   provisioner "file" {
-    content = templatefile(
-      "${path.module}/templates/ccm.yaml.tpl",
+    content = var.hetzner_ccm_use_helm ? templatefile(
+      "${path.module}/templates/hcloud-ccm-helm.yaml.tpl",
       {
-        cluster_cidr_ipv4   = var.cluster_ipv4_cidr
-        default_lb_location = var.load_balancer_location
+        version             = coalesce(local.ccm_version, "*")
         using_klipper_lb    = local.using_klipper_lb
-      })
-    destination = "/var/post_install/ccm.yaml"
+        default_lb_location = var.load_balancer_location
+
+      }
+    ) : ""
+    destination = "/var/post_install/hcloud-ccm-helm.yaml"
   }
+
 
   # Upload the calico patch config, for the kustomization of the calico manifest
   # This method is a stub which could be replaced by a more practical helm implementation
@@ -666,7 +675,7 @@ resource "null_resource" "rke2_kustomization" {
       "${path.module}/templates/calico.yaml.tpl",
       {
         values = trimspace(local.calico_values)
-      })
+    })
     destination = "/var/post_install/calico.yaml"
   }
 
@@ -677,7 +686,7 @@ resource "null_resource" "rke2_kustomization" {
       {
         values  = indent(4, trimspace(local.cilium_values))
         version = var.cilium_version
-      })
+    })
     destination = "/tmp/rke2-cilium-config.yaml"
   }
 
@@ -690,7 +699,7 @@ resource "null_resource" "rke2_kustomization" {
         version          = var.install_rke2_version
         disable_eviction = !var.system_upgrade_enable_eviction
         drain            = var.system_upgrade_use_drain
-      })
+    })
     destination = "/var/post_install/plans.yaml"
   }
 
@@ -704,7 +713,7 @@ resource "null_resource" "rke2_kustomization" {
         version             = var.longhorn_version
         bootstrap           = var.longhorn_helmchart_bootstrap
         values              = indent(4, trimspace(local.longhorn_values))
-      })
+    })
     destination = "/var/post_install/longhorn.yaml"
   }
 
@@ -728,7 +737,7 @@ resource "null_resource" "rke2_kustomization" {
         version   = var.csi_driver_smb_version
         bootstrap = var.csi_driver_smb_helmchart_bootstrap
         values    = indent(4, trimspace(local.csi_driver_smb_values))
-      })
+    })
     destination = "/var/post_install/csi-driver-smb.yaml"
   }
 
@@ -740,7 +749,7 @@ resource "null_resource" "rke2_kustomization" {
         version   = var.cert_manager_version
         bootstrap = var.cert_manager_helmchart_bootstrap
         values    = indent(4, trimspace(local.cert_manager_values))
-      })
+    })
     destination = "/var/post_install/cert_manager.yaml"
   }
 
@@ -753,7 +762,7 @@ resource "null_resource" "rke2_kustomization" {
         version                 = var.rancher_version
         bootstrap               = var.rancher_helmchart_bootstrap
         values                  = indent(4, trimspace(local.rancher_values))
-      })
+    })
     destination = "/var/post_install/rancher.yaml"
   }
 
@@ -801,9 +810,16 @@ resource "null_resource" "rke2_kustomization" {
         done
       EOF
       EOT
-    ]
+      ]
       ,
-
+        var.hetzner_ccm_use_helm ? [
+        "echo 'Remove legacy ccm manifests if they exist'",
+        "${local.kubectl_cli} delete serviceaccount,deployment -n kube-system --field-selector 'metadata.name=hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
+        "${local.kubectl_cli} delete clusterrolebinding -n kube-system --field-selector 'metadata.name=system:hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
+      ] : [
+        "echo 'Uninstall helm ccm manifests if they exist'",
+        "${local.kubectl_cli} delete --ignore-not-found -n kube-system helmchart.helm.cattle.io/hcloud-cloud-controller-manager",
+      ],
       [
         # Ready, set, go for the kustomization
         "echo 'Deploying the kustomization.yaml...'",
@@ -814,7 +830,7 @@ resource "null_resource" "rke2_kustomization" {
         "sleep 7", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
         "${local.kubectl_cli} -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],
-        local.has_external_load_balancer ? [] : [
+      local.has_external_load_balancer ? [] : [
         <<-EOT
       timeout 360 bash <<EOF
       until [ -n "\$(${local.kubectl_cli} get -n ${local.ingress_controller_namespace} service/${lookup(local.ingress_controller_service_names, var.ingress_controller)} --output=jsonpath='{.status.loadBalancer.ingress[0].${var.lb_hostname != "" ? "hostname" : "ip"}}' 2> /dev/null)" ]; do
@@ -823,7 +839,7 @@ resource "null_resource" "rke2_kustomization" {
       done
       EOF
       EOT
-      ])
+    ])
   }
 
   depends_on = [
