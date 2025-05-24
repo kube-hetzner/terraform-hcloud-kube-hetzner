@@ -4,11 +4,11 @@ locals {
 
 data "remote_file" "kubeconfig" {
   conn {
-    host = local.is_ipv6_address ? "[${local.first_control_plane_ip}]" : local.first_control_plane_ip
-    port = var.ssh_port
-    user = "root"
+    host        = local.is_ipv6_address ? "[${local.first_control_plane_ip}]" : local.first_control_plane_ip
+    port        = var.ssh_port
+    user        = "root"
     private_key = var.ssh_private_key
-    agent = var.ssh_private_key == null
+    agent       = var.ssh_private_key == null
   }
   path = "/etc/rancher/k3s/k3s.yaml"
 
