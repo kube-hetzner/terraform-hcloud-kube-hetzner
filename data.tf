@@ -28,12 +28,12 @@ data "github_release" "calico" {
   retrieve_by = "latest"
 }
 
-# data "hcloud_load_balancer" "cluster" {
-#   count = local.has_external_load_balancer ? 0 : 1
-#   name  = var.cluster_name
+data "hcloud_load_balancer" "cluster" {
+  count = local.has_external_load_balancer ? 0 : 1
+  name  = var.cluster_name
 
-#   depends_on = [null_resource.kustomization]
-# }
+  depends_on = [hcloud_load_balancer.cluster]
+}
 
 data "hcloud_ssh_keys" "keys_by_selector" {
   count         = length(var.ssh_hcloud_key_label) > 0 ? 1 : 0
