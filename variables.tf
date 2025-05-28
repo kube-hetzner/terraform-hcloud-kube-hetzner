@@ -619,8 +619,8 @@ variable "initial_rke2_channel" {
 
 variable "install_rke2_version" {
   type        = string
-  default     = "v1.32.4+rke2r1"
-  description = "Allows you to specify the rke2 version (Example: v1.32.3+rke2r1). Supersedes initial_rke2_channel. See https://github.com/rancher/rke2/releases for available versions."
+  default     = "v1.32.5+rke2r1"
+  description = "Allows you to specify the rke2 version (Example: v1.32.5+rke2r1). Supersedes initial_rke2_channel. See https://github.com/rancher/rke2/releases for available versions."
 }
 
 variable "system_upgrade_enable_eviction" {

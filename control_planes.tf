@@ -125,7 +125,7 @@ locals {
       selinux               = false
       cluster-cidr          = var.cluster_ipv4_cidr
       service-cidr          = var.service_ipv4_cidr
-      cluster-dns           = var.cluster_dns_ipv4
+      cluster-dns           = local.cluster_dns_ipv4
       write-kubeconfig-mode = "0644" # needed for import into rancher
       cni                   = "none"
     },
@@ -302,7 +302,7 @@ resource "null_resource" "authentication_config" {
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_authentication_config_update_script]
+    inline = [local.k8s_authentication_config_update_script]
   }
 
   depends_on = [
