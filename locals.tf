@@ -568,6 +568,14 @@ persistence:
   EOT
 
   hetzner_csi_values = var.hetzner_csi_values != "" ? var.hetzner_csi_values : <<EOT
+node:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: DoesNotExist
   EOT
 
   nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
