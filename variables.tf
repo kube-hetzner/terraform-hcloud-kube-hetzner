@@ -1078,7 +1078,7 @@ variable "control_planes_custom_config" {
 variable "agent_nodes_custom_config" {
   type        = any
   default     = {}
-  description = "Custom agent nodes configuration."
+  description = "Custom agent nodes configuration. Applied to the agend nodes and the autoscaler nodes."
 }
 
 variable "k3s_registries" {
