@@ -1072,13 +1072,13 @@ variable "enable_wireguard" {
 variable "control_planes_custom_config" {
   type        = any
   default     = {}
-  description = "Custom control plane configuration e.g to allow etcd monitoring."
+  description = "Additional configuration for control planes that will be added to k3s's config.yaml. E.g to allow etcd monitoring."
 }
 
 variable "agent_nodes_custom_config" {
   type        = any
   default     = {}
-  description = "Custom agent nodes configuration. Applied to the agend nodes and the autoscaler nodes."
+  description = "Additional configuration for agent nodes and autoscaler nodes that will be added to k3s's config.yaml. E.g to allow kube-proxy monitoring."
 }
 
 variable "k3s_registries" {
