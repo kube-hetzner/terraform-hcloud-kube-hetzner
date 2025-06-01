@@ -112,7 +112,7 @@ data "cloudinit_config" "autoscaler_config" {
           flannel-iface = local.flannel_iface
           node-label    = concat(local.default_agent_labels, [for k, v in var.autoscaler_nodepools[count.index].labels : "${k}=${v}"])
           node-taint    = concat(local.default_agent_taints, [for taint in var.autoscaler_nodepools[count.index].taints : "${taint.key}=${taint.value}:${taint.effect}"])
-          selinux       = ! var.disable_selinux
+          selinux       = !var.disable_selinux
         })
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
@@ -146,7 +146,7 @@ data "cloudinit_config" "autoscaler_legacy_config" {
           flannel-iface = local.flannel_iface
           node-label    = concat(local.default_agent_labels, var.autoscaler_labels)
           node-taint    = concat(local.default_agent_taints, var.autoscaler_taints)
-          selinux       = ! var.disable_selinux
+          selinux       = !var.disable_selinux
         })
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
