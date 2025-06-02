@@ -23,7 +23,11 @@ resource "hcloud_load_balancer_network" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
 
   load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
-  subnet_id        = hcloud_network_subnet.agent.*.id[0]
+  subnet_id = (
+    length(hcloud_network_subnet.agent) > 0
+    ? hcloud_network_subnet.agent.*.id[0]
+    : hcloud_network_subnet.control_plane.*.id[0]
+  )
 }
 
 resource "hcloud_load_balancer_target" "cluster" {
