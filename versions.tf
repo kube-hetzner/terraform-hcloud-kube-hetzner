@@ -17,5 +17,9 @@ terraform {
       source  = "tenstad/remote"
       version = ">= 0.1.3"
     }
+    assert = {
+      source  = "hashicorp/assert"
+      version = ">= 0.16.0"
+    }
   }
 }
