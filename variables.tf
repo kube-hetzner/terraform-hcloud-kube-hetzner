@@ -1000,6 +1000,11 @@ variable "dns_servers" {
     condition     = length(var.dns_servers) <= 3
     error_message = "The list must have no more than 3 items."
   }
+
+  validation {
+    condition     = alltrue([for ip in var.dns_servers : provider::assert::ip(ip)])
+    error_message = "Some IP addresses are incorrect."
+  }
 }
 
 variable "address_for_connectivity_test" {
