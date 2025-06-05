@@ -61,6 +61,11 @@ output "lb_control_plane_ipv6" {
   value       = one(hcloud_load_balancer.control_plane[*].ipv6)
 }
 
+output "lb_control_plane_private_ipv4" {
+  description = "The private IPv4 address of the Hetzner control plane load balancer"
+  value       = one(hcloud_load_balancer_network.control_plane[*].ip)
+}
+
 
 output "k3s_endpoint" {
   description = "A controller endpoint to register new nodes"

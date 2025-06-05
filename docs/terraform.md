@@ -279,6 +279,7 @@
 | <a name="output_kubeconfig_file"></a> [kubeconfig\_file](#output\_kubeconfig\_file) | Kubeconfig file content with external IP address, or internal IP address if only private ips are available |
 | <a name="output_lb_control_plane_ipv4"></a> [lb\_control\_plane\_ipv4](#output\_lb\_control\_plane\_ipv4) | The public IPv4 address of the Hetzner control plane load balancer |
 | <a name="output_lb_control_plane_ipv6"></a> [lb\_control\_plane\_ipv6](#output\_lb\_control\_plane\_ipv6) | The public IPv6 address of the Hetzner control plane load balancer |
+| <a name="output_lb_control_plane_private_ipv4"></a> [lb\_control\_plane\_private\_ipv4](#output\_lb\_control\_plane\_private\_ipv4) | The private IPv4 address of the Hetzner control plane load balancer |
 | <a name="output_longhorn_values"></a> [longhorn\_values](#output\_longhorn\_values) | Helm values.yaml used for Longhorn |
 | <a name="output_network_id"></a> [network\_id](#output\_network\_id) | The ID of the HCloud network. |
 | <a name="output_nginx_values"></a> [nginx\_values](#output\_nginx\_values) | Helm values.yaml used for nginx-ingress |
