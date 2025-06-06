@@ -167,7 +167,7 @@ resource "null_resource" "control_plane_setup_rke2" {
           disable-cloud-controller    = true
           disable-kube-proxy          = var.disable_kube_proxy
           disable                     = local.disable_rke2_extras
-          kubelet-arg                 = local.kubelet_arg
+          kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, local.control_plane_nodes[keys(module.control_planes)[0]].kubelet_args)
           kube-controller-manager-arg = local.kube_controller_manager_arg
           node-ip                     = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
           advertise-address           = module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
@@ -812,11 +812,11 @@ resource "null_resource" "rke2_kustomization" {
       EOT
       ]
       ,
-        var.hetzner_ccm_use_helm ? [
+      var.hetzner_ccm_use_helm ? [
         "echo 'Remove legacy ccm manifests if they exist'",
         "${local.kubectl_cli} delete serviceaccount,deployment -n kube-system --field-selector 'metadata.name=hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
         "${local.kubectl_cli} delete clusterrolebinding -n kube-system --field-selector 'metadata.name=system:hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
-      ] : [
+        ] : [
         "echo 'Uninstall helm ccm manifests if they exist'",
         "${local.kubectl_cli} delete --ignore-not-found -n kube-system helmchart.helm.cattle.io/hcloud-cloud-controller-manager",
       ],
