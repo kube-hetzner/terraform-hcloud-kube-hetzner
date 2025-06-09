@@ -301,7 +301,8 @@ locals {
   default_agent_taints         = concat([], var.cni_plugin == "cilium" ? ["node.cilium.io/agent-not-ready:NoExecute"] : [])
 
   base_firewall_rules = concat(
-    var.firewall_ssh_source == null ? [] : [
+    var.firewall_ssh_source == null ||
+    var.enable_tailscale.restrict_firewall ? [] : [
       # Allow all traffic to the ssh port
       {
         description = "Allow Incoming SSH Traffic"
@@ -311,7 +312,8 @@ locals {
         source_ips  = var.firewall_ssh_source
       },
     ],
-    var.firewall_kube_api_source == null ? [] : [
+    var.firewall_kube_api_source == null ||
+    var.enable_tailscale.restrict_firewall ? [] : [
       {
         description = "Allow Incoming Requests to Kube API Server"
         direction   = "in"

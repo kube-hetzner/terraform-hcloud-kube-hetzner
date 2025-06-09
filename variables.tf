@@ -141,17 +141,25 @@ variable "enable_tailscale" {
         with NetworkManager, so it's advised to disable it or configure DNS
         override on Tailscale side.
       - extra_up_args – list of additional arguments for `tailscale up`.
+      - restrict_firewall – disable SSH and Kube API on the node's public
+        interface (overrides `firewall_kube_api_source` and
+        `firewall_ssh_source`).
+
+    Mind that if you're changing the state of Tailscale on a cluster it's
+    important to disable `restrict_firewall` option, so it's possible to connect
+    to the servers via SSH on a public interface to change the configuration.
     EOF
 
   type = object({
-    enable           = optional(bool, true)
-    auth_key         = optional(string, "")
-    advertise_tags   = optional(list(string), [])
-    advertise_routes = optional(list(string), [])
-    advertise_cp_lb  = optional(bool, false)
-    ssh              = optional(bool, false)
-    accept_dns       = optional(bool, false)
-    extra_up_args    = optional(list(string), [])
+    enable            = optional(bool, true)
+    auth_key          = optional(string, "")
+    advertise_tags    = optional(list(string), [])
+    advertise_routes  = optional(list(string), [])
+    advertise_cp_lb   = optional(bool, false)
+    ssh               = optional(bool, false)
+    accept_dns        = optional(bool, false)
+    extra_up_args     = optional(list(string), [])
+    restrict_firewall = optional(bool, false)
   })
   default  = { enable = false }
   nullable = false
@@ -177,6 +185,14 @@ variable "enable_tailscale" {
       : providers::assert::cidr(route)
     ])
     error_message = "Provide valid CIDR routes."
+  }
+
+  validation {
+    condition = (
+      (var.enable_tailscale.restrict_firewall && var.enable_tailscale.enable)
+      || !var.enable_tailscale.restrict_firewall
+    )
+    error_message = "Cannot restrict firewall if Tailscale if disabled."
   }
 }
 

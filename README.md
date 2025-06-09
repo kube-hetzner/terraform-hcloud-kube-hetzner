@@ -1168,7 +1168,9 @@ Tailscale can be dynamically enabled and disabled on an existing cluster.
    }
    ```
 
-6. Other fields available in `enable_tailscale`:
+6. After the initial deployment, you can restrict the firewall on the public interfaces of the nodes by enabling `restrict_firewall` flag. Mind that if you're changing the state of Tailscale on a cluster it's important to disable `restrict_firewall` option, so it's possible to connect to the servers via SSH on a public interface to change the configuration.
+
+7. Other fields available in `enable_tailscale`:
 
    - `enable` – explicitly enable/disable Tailscale.
    - `advertise_routes` – additional list of routes to advertise on tailnet (can be used with `advertise_cp_lb`).
