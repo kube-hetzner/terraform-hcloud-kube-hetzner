@@ -289,13 +289,19 @@ module "kube-hetzner" {
       }
     },
   ]
-  # Add custom control plane configuration options here.
+  # Add additional configuration options for control planes here.
   # E.g to enable monitoring for etcd, proxy etc:
   # control_planes_custom_config = {
   #  etcd-expose-metrics = true,
   #  kube-controller-manager-arg = "bind-address=0.0.0.0",
   #  kube-proxy-arg ="metrics-bind-address=0.0.0.0",
   #  kube-scheduler-arg = "bind-address=0.0.0.0",
+  # }
+
+  # Add additional configuration options for agent nodes and autoscaler nodes here.
+  # E.g to enable monitoring for proxy:
+  # agent_nodes_custom_config = {
+  #  kube-proxy-arg ="metrics-bind-address=0.0.0.0",
   # }
 
   # You can enable encrypted wireguard for the CNI by setting this to "true". Default is "false".
@@ -360,6 +366,10 @@ module "kube-hetzner" {
   #    # kubelet_args = ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"]
   #  }
   # ]
+  #
+  # To disable public ips on your autoscaled nodes, uncomment the following lines:
+  # autoscaler_disable_ipv4 = true
+  # autoscaler_disable_ipv6 = true
 
   # ⚠️ Deprecated, will be removed after a new Cluster Autoscaler version has been released which support the new way of setting labels and taints. See above.
   # Add extra labels on nodes started by the Cluster Autoscaler
@@ -1173,7 +1183,7 @@ terraform {
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.49.1"
+      version = ">= 1.51.0"
     }
   }
 }

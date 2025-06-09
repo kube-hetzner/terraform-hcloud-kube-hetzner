@@ -23,7 +23,20 @@ resource "hcloud_load_balancer_network" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
 
   load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
-  subnet_id        = hcloud_network_subnet.agent.*.id[0]
+  subnet_id = (
+    length(hcloud_network_subnet.agent) > 0
+    ? hcloud_network_subnet.agent.*.id[0]
+    : hcloud_network_subnet.control_plane.*.id[0]
+  )
+  enable_public_interface = true
+
+  lifecycle {
+    create_before_destroy = false
+    ignore_changes = [
+      ip,
+      enable_public_interface
+    ]
+  }
 }
 
 resource "hcloud_load_balancer_target" "cluster" {
@@ -32,8 +45,21 @@ resource "hcloud_load_balancer_target" "cluster" {
   depends_on       = [hcloud_load_balancer_network.cluster]
   type             = "label_selector"
   load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
-  label_selector   = join(",", [for k, v in merge(local.labels, local.labels_control_plane_node, local.labels_agent_node) : "${k}=${v}"])
-  use_private_ip   = true
+  label_selector = join(",", concat(
+    [for k, v in local.labels : "${k}=${v}"],
+    [
+      # Generic label merge from control plane and agent namespaces with "or",
+      # resulting in: role in (control_plane_node,agent_node)
+      for key in keys(merge(local.labels_control_plane_node, local.labels_agent_node)) :
+      "${key} in (${
+        join(",", compact([
+          for labels in [local.labels_control_plane_node, local.labels_agent_node] :
+          try(labels[key], "")
+        ]))
+      })"
+    ]
+  ))
+  use_private_ip = true
 }
 
 locals {
@@ -189,13 +215,19 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/kustomization.yaml"
   }
 
+  # Upload the flannel RBAC fix
+  provisioner "file" {
+    content     = file("${path.module}/kustomize/flannel-rbac.yaml")
+    destination = "/var/post_install/flannel-rbac.yaml"
+  }
+
   # Upload traefik ingress controller config
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
         version          = var.traefik_version
-        values           = indent(4, trimspace(local.traefik_values))
+        values           = indent(4, local.traefik_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/traefik_ingress.yaml"
@@ -207,7 +239,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
         version          = var.nginx_version
-        values           = indent(4, trimspace(local.nginx_values))
+        values           = indent(4, local.nginx_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/nginx_ingress.yaml"
@@ -219,7 +251,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/haproxy_ingress.yaml.tpl",
       {
         version          = var.haproxy_version
-        values           = indent(4, trimspace(local.haproxy_values))
+        values           = indent(4, local.haproxy_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/haproxy_ingress.yaml"
@@ -267,7 +299,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        values  = indent(4, trimspace(local.cilium_values))
+        values  = indent(4, local.cilium_values)
         version = var.cilium_version
     })
     destination = "/var/post_install/cilium.yaml"
@@ -295,7 +327,7 @@ resource "null_resource" "kustomization" {
         longhorn_repository = var.longhorn_repository
         version             = var.longhorn_version
         bootstrap           = var.longhorn_helmchart_bootstrap
-        values              = indent(4, trimspace(local.longhorn_values))
+        values              = indent(4, local.longhorn_values)
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -306,7 +338,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/hcloud-csi.yaml.tpl",
       {
         version = coalesce(local.csi_version, "*")
-        values  = indent(4, trimspace(local.hetzner_csi_values))
+        values  = indent(4, local.hetzner_csi_values)
       }
     )
     destination = "/var/post_install/hcloud-csi.yaml"
@@ -319,7 +351,7 @@ resource "null_resource" "kustomization" {
       {
         version   = var.csi_driver_smb_version
         bootstrap = var.csi_driver_smb_helmchart_bootstrap
-        values    = indent(4, trimspace(local.csi_driver_smb_values))
+        values    = indent(4, local.csi_driver_smb_values)
     })
     destination = "/var/post_install/csi-driver-smb.yaml"
   }
@@ -331,7 +363,7 @@ resource "null_resource" "kustomization" {
       {
         version   = var.cert_manager_version
         bootstrap = var.cert_manager_helmchart_bootstrap
-        values    = indent(4, trimspace(local.cert_manager_values))
+        values    = indent(4, local.cert_manager_values)
     })
     destination = "/var/post_install/cert_manager.yaml"
   }
@@ -344,7 +376,7 @@ resource "null_resource" "kustomization" {
         rancher_install_channel = var.rancher_install_channel
         version                 = var.rancher_version
         bootstrap               = var.rancher_helmchart_bootstrap
-        values                  = indent(4, trimspace(local.rancher_values))
+        values                  = indent(4, local.rancher_values)
     })
     destination = "/var/post_install/rancher.yaml"
   }

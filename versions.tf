@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.5.0"
+  required_version = ">= 1.8.0"
   required_providers {
     github = {
       source  = "integrations/github"
@@ -7,7 +7,7 @@ terraform {
     }
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.49.1"
+      version = ">= 1.51.0"
     }
     local = {
       source  = "hashicorp/local"
@@ -16,6 +16,10 @@ terraform {
     remote = {
       source  = "tenstad/remote"
       version = ">= 0.1.3"
+    }
+    assert = {
+      source  = "hashicorp/assert"
+      version = ">= 0.16.0"
     }
   }
 }

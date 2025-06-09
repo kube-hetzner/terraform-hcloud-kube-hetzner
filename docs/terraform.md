@@ -3,9 +3,10 @@
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.8.0 |
+| <a name="requirement_assert"></a> [assert](#requirement\_assert) | >= 0.16.0 |
 | <a name="requirement_github"></a> [github](#requirement\_github) | >= 6.4.0 |
-| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.49.1 |
+| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.51.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.5.2 |
 | <a name="requirement_remote"></a> [remote](#requirement\_remote) | >= 0.1.3 |
 
@@ -15,7 +16,7 @@
 |------|---------|
 | <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
 | <a name="provider_github"></a> [github](#provider\_github) | >= 6.4.0 |
-| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.49.1 |
+| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.51.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | >= 2.5.2 |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 | <a name="provider_random"></a> [random](#provider\_random) | n/a |
@@ -95,13 +96,15 @@
 |------|-------------|------|---------|:--------:|
 | <a name="input_additional_k3s_environment"></a> [additional\_k3s\_environment](#input\_additional\_k3s\_environment) | Additional environment variables for the k3s binary. See for example https://docs.k3s.io/advanced#configuring-an-http-proxy . | `map(any)` | `{}` | no |
 | <a name="input_additional_tls_sans"></a> [additional\_tls\_sans](#input\_additional\_tls\_sans) | Additional TLS SANs to allow connection to control-plane through it. | `list(string)` | `[]` | no |
-| <a name="input_address_for_connectivity_test"></a> [address\_for\_connectivity\_test](#input\_address\_for\_connectivity\_test) | Before installing k3s, we actually verify that there is internet connectivity. By default we ping 1.1.1.1, but if you use a proxy, you may simply want to ping that proxy instead (assuming that the proxy has its own checks for internet connectivity). | `string` | `"1.1.1.1"` | no |
+| <a name="input_address_for_connectivity_test"></a> [address\_for\_connectivity\_test](#input\_address\_for\_connectivity\_test) | The address to test for external connectivity before proceeding with the installation. Defaults to Google's public DNS. | `string` | `"8.8.8.8"` | no |
 | <a name="input_agent_nodepools"></a> [agent\_nodepools](#input\_agent\_nodepools) | Number of agent nodes. | <pre>list(object({<br/>    name                       = string<br/>    server_type                = string<br/>    location                   = string<br/>    backups                    = optional(bool)<br/>    floating_ip                = optional(bool)<br/>    floating_ip_rdns           = optional(string, null)<br/>    labels                     = list(string)<br/>    taints                     = list(string)<br/>    longhorn_volume_size       = optional(number)<br/>    swap_size                  = optional(string, "")<br/>    zram_size                  = optional(string, "")<br/>    kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])<br/>    selinux                    = optional(bool, true)<br/>    placement_group_compat_idx = optional(number, 0)<br/>    placement_group            = optional(string, null)<br/>    count                      = optional(number, null)<br/>    disable_ipv4               = optional(bool, false)<br/>    disable_ipv6               = optional(bool, false)<br/>    network_id                 = optional(number, 0)<br/>    nodes = optional(map(object({<br/>      server_type                = optional(string)<br/>      location                   = optional(string)<br/>      backups                    = optional(bool)<br/>      floating_ip                = optional(bool)<br/>      floating_ip_rdns           = optional(string, null)<br/>      labels                     = optional(list(string))<br/>      taints                     = optional(list(string))<br/>      longhorn_volume_size       = optional(number)<br/>      swap_size                  = optional(string, "")<br/>      zram_size                  = optional(string, "")<br/>      kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])<br/>      selinux                    = optional(bool, true)<br/>      placement_group_compat_idx = optional(number, 0)<br/>      placement_group            = optional(string, null)<br/>      append_index_to_node_name  = optional(bool, true)<br/>    })))<br/>  }))</pre> | `[]` | no |
 | <a name="input_agent_nodes_custom_config"></a> [agent\_nodes\_custom\_config](#input\_agent\_nodes\_custom\_config) | Custom agent nodes configuration. | `any` | `{}` | no |
 | <a name="input_allow_scheduling_on_control_plane"></a> [allow\_scheduling\_on\_control\_plane](#input\_allow\_scheduling\_on\_control\_plane) | Whether to allow non-control-plane workloads to run on the control-plane nodes. | `bool` | `false` | no |
 | <a name="input_authentication_config"></a> [authentication\_config](#input\_authentication\_config) | Strucutred authentication configuration. This can be used to define external authentication providers. | `string` | `""` | no |
 | <a name="input_automatically_upgrade_k3s"></a> [automatically\_upgrade\_k3s](#input\_automatically\_upgrade\_k3s) | Whether to automatically upgrade k3s based on the selected channel. | `bool` | `true` | no |
 | <a name="input_automatically_upgrade_os"></a> [automatically\_upgrade\_os](#input\_automatically\_upgrade\_os) | Whether to enable or disable automatic os updates. Defaults to true. Should be disabled for single-node clusters | `bool` | `true` | no |
+| <a name="input_autoscaler_disable_ipv4"></a> [autoscaler\_disable\_ipv4](#input\_autoscaler\_disable\_ipv4) | Disable IPv4 on nodes created by the Cluster Autoscaler. | `bool` | `false` | no |
+| <a name="input_autoscaler_disable_ipv6"></a> [autoscaler\_disable\_ipv6](#input\_autoscaler\_disable\_ipv6) | Disable IPv6 on nodes created by the Cluster Autoscaler. | `bool` | `false` | no |
 | <a name="input_autoscaler_labels"></a> [autoscaler\_labels](#input\_autoscaler\_labels) | Labels for nodes created by the Cluster Autoscaler. | `list(string)` | `[]` | no |
 | <a name="input_autoscaler_nodepools"></a> [autoscaler\_nodepools](#input\_autoscaler\_nodepools) | Cluster autoscaler nodepools. | <pre>list(object({<br/>    name         = string<br/>    server_type  = string<br/>    location     = string<br/>    min_nodes    = number<br/>    max_nodes    = number<br/>    labels       = optional(map(string), {})<br/>    kubelet_args = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])<br/>    taints = optional(list(object({<br/>      key    = string<br/>      value  = string<br/>      effect = string<br/>    })), [])<br/>  }))</pre> | `[]` | no |
 | <a name="input_autoscaler_taints"></a> [autoscaler\_taints](#input\_autoscaler\_taints) | Taints for nodes created by the Cluster Autoscaler. | `list(string)` | `[]` | no |
@@ -160,7 +163,7 @@
 | <a name="input_extra_firewall_rules"></a> [extra\_firewall\_rules](#input\_extra\_firewall\_rules) | Additional firewall rules to apply to the cluster. | `list(any)` | `[]` | no |
 | <a name="input_extra_kustomize_deployment_commands"></a> [extra\_kustomize\_deployment\_commands](#input\_extra\_kustomize\_deployment\_commands) | Commands to be executed after the `kubectl apply -k <dir>` step. | `string` | `""` | no |
 | <a name="input_extra_kustomize_folder"></a> [extra\_kustomize\_folder](#input\_extra\_kustomize\_folder) | Folder from where to upload extra manifests | `string` | `"extra-manifests"` | no |
-| <a name="input_extra_kustomize_parameters"></a> [extra\_kustomize\_parameters](#input\_extra\_kustomize\_parameters) | All values will be passed to the `kustomization.tmp.yml` template. | `map(any)` | `{}` | no |
+| <a name="input_extra_kustomize_parameters"></a> [extra\_kustomize\_parameters](#input\_extra\_kustomize\_parameters) | All values will be passed to the `kustomization.tmp.yml` template. | `any` | `{}` | no |
 | <a name="input_firewall_kube_api_source"></a> [firewall\_kube\_api\_source](#input\_firewall\_kube\_api\_source) | Source networks that have Kube API access to the servers. | `list(string)` | <pre>[<br/>  "0.0.0.0/0",<br/>  "::/0"<br/>]</pre> | no |
 | <a name="input_firewall_ssh_source"></a> [firewall\_ssh\_source](#input\_firewall\_ssh\_source) | Source networks that have SSH access to the servers. | `list(string)` | <pre>[<br/>  "0.0.0.0/0",<br/>  "::/0"<br/>]</pre> | no |
 | <a name="input_haproxy_additional_proxy_protocol_ips"></a> [haproxy\_additional\_proxy\_protocol\_ips](#input\_haproxy\_additional\_proxy\_protocol\_ips) | Additional trusted proxy protocol IPs to pass to haproxy. | `list(string)` | `[]` | no |
@@ -264,6 +267,7 @@
 | <a name="output_control_planes_public_ipv4"></a> [control\_planes\_public\_ipv4](#output\_control\_planes\_public\_ipv4) | The public IPv4 addresses of the controlplane servers. |
 | <a name="output_control_planes_public_ipv6"></a> [control\_planes\_public\_ipv6](#output\_control\_planes\_public\_ipv6) | The public IPv6 addresses of the controlplane servers. |
 | <a name="output_csi_driver_smb_values"></a> [csi\_driver\_smb\_values](#output\_csi\_driver\_smb\_values) | Helm values.yaml used for SMB CSI driver |
+| <a name="output_domain_assignments"></a> [domain\_assignments](#output\_domain\_assignments) | Assignments of domains to IPs based on reverse DNS |
 | <a name="output_haproxy_values"></a> [haproxy\_values](#output\_haproxy\_values) | Helm values.yaml used for HAProxy |
 | <a name="output_ingress_public_ipv4"></a> [ingress\_public\_ipv4](#output\_ingress\_public\_ipv4) | The public IPv4 address of the Hetzner load balancer (with fallback to first control plane node) |
 | <a name="output_ingress_public_ipv6"></a> [ingress\_public\_ipv6](#output\_ingress\_public\_ipv6) | The public IPv6 address of the Hetzner load balancer (with fallback to first control plane node) |
