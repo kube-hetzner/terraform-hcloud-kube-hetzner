@@ -28,6 +28,15 @@ resource "hcloud_load_balancer_network" "cluster" {
     ? hcloud_network_subnet.agent.*.id[0]
     : hcloud_network_subnet.control_plane.*.id[0]
   )
+  enable_public_interface = true
+
+  lifecycle {
+    create_before_destroy = false
+    ignore_changes = [
+      ip,
+      enable_public_interface
+    ]
+  }
 }
 
 resource "hcloud_load_balancer_target" "cluster" {
