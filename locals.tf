@@ -99,6 +99,13 @@ locals {
       local.install_system_alias,
       local.install_kubectl_bash_completion,
     ],
+    length(local.dns_servers_ipv4) > 0 ? [
+      "nmcli con mod eth0 ipv4.dns ${join(",", local.dns_servers_ipv4)}"
+    ] : [],
+    length(local.dns_servers_ipv6) > 0 ? [
+      "nmcli con mod eth0 ipv6.dns ${join(",", local.dns_servers_ipv6)}"
+    ] : [],
+    local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
     # User-defined commands to execute just before installing rke2.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
@@ -107,7 +114,7 @@ locals {
 
   common_pre_install_k8s_commands = var.kubernetes_distribution_type == "rke2" ? local.common_pre_install_rke2_commands : local.common_pre_install_k3s_commands
 
-  common_post_install_k3s_commands = concat(var.postinstall_exec, ["restorecon -v /usr/local/bin/k3s"])
+  common_post_install_k3s_commands  = concat(var.postinstall_exec, ["restorecon -v /usr/local/bin/k3s"])
   common_post_install_rke2_commands = concat(var.postinstall_exec, [])
   common_post_install_k8s_commands  = var.kubernetes_distribution_type == "rke2" ? local.common_post_install_rke2_commands : local.common_post_install_k3s_commands
 
@@ -123,7 +130,7 @@ locals {
       var.hetzner_ccm_use_helm ? ["hcloud-ccm-helm.yaml"] : ["https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml"],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
-        local.kubernetes_distribution == "k3s" ? lookup(local.cni_install_resources, var.cni_plugin, []) : [],
+      local.kubernetes_distribution == "k3s" ? lookup(local.cni_install_resources, var.cni_plugin, []) : [],
       var.cni_plugin == "flannel" ? ["flannel-rbac.yaml"] : [],
       var.enable_longhorn ? ["longhorn.yaml"] : [],
       var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
@@ -184,7 +191,7 @@ locals {
 
   install_k8s_server = var.kubernetes_distribution_type == "rke2" ? local.install_rke2_server : local.install_k3s_server
   install_k8s_agent  = var.kubernetes_distribution_type == "rke2" ? local.install_rke2_agent : local.install_k3s_agent
-  kubectl_cli = var.kubernetes_distribution_type == "rke2" ? "/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml" : "kubectl"
+  kubectl_cli        = var.kubernetes_distribution_type == "rke2" ? "/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml" : "kubectl"
 
   control_plane_nodes = merge([
     for pool_index, nodepool_obj in var.control_plane_nodepools : {
@@ -284,7 +291,7 @@ locals {
 
   use_existing_network = length(var.existing_network_id) > 0
 
-  # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
+  # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potentially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
   # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
@@ -336,8 +343,8 @@ locals {
   # Default k8s node labels
   default_agent_labels = concat([], var.automatically_upgrade_k3s ? [local.kubernetes_distribution == "rke2" ? "rke2_upgrade=true" : "k3s_upgrade=true"] : [])
   default_control_plane_labels = concat(
-      local.allow_loadbalancer_target_on_control_plane ? [] : ["node.kubernetes.io/exclude-from-external-load-balancers=true"],
-      var.automatically_upgrade_k3s ? [local.kubernetes_distribution == "rke2" ? "rke2_upgrade=true" : "k3s_upgrade=true"] : []
+    local.allow_loadbalancer_target_on_control_plane ? [] : ["node.kubernetes.io/exclude-from-external-load-balancers=true"],
+    var.automatically_upgrade_k3s ? [local.kubernetes_distribution == "rke2" ? "rke2_upgrade=true" : "k3s_upgrade=true"] : []
   )
   default_autoscaler_labels = concat([], var.automatically_upgrade_k3s ? [local.kubernetes_distribution == "rke2" ? "rke2_upgrade=true" : "k3s_upgrade=true"] : [])
 
@@ -483,10 +490,6 @@ locals {
 
   prefer_bundled_bin_config = var.k3s_prefer_bundled_bin ? { "prefer-bundled-bin" = true } : {}
 
-  cni_install_resource_patches = {
-    "calico" = ["calico.yaml"]
-  }
-
   cni_k3s_settings = {
     "flannel" = {
       disable-network-policy = var.disable_network_policy
@@ -503,7 +506,7 @@ locals {
   }
 
   # TODO: Needs review, straight copy & pasted from cni_k3s_settings
-  #  Result: It seems that none of the settings are suported in rke2
+  #  Result: It seems that none of the settings are supported in rke2
   # cni_rke2_settings = {
   #   "flannel" = {
   #     disable-network-policy = var.disable_network_policy

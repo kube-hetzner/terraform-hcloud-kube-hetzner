@@ -15,7 +15,7 @@ data "remote_file" "kubeconfig_k3s" {
 data "remote_file" "kubeconfig_rke2" {
   count = local.kubernetes_distribution == "rke2" ? 1 : 0
   conn {
-    host        = local.first_control_plane_ip
+    host        = can(ipv6(local.first_control_plane_ip)) ? "[${local.first_control_plane_ip}]" : local.first_control_plane_ip
     port        = var.ssh_port
     user        = "root"
     private_key = var.ssh_private_key

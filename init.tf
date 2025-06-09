@@ -213,7 +213,8 @@ resource "null_resource" "control_plane_setup_rke2" {
         },
         local.etcd_s3_snapshots,
         var.control_planes_custom_config,
-        (local.control_plane_nodes[keys(module.control_planes)[0]].selinux == true ? { selinux = true } : {})
+        (local.control_plane_nodes[keys(module.control_planes)[0]].selinux == true ? { selinux = true } : {}),
+        local.prefer_bundled_bin_config
       )
     )
 
@@ -655,7 +656,7 @@ resource "null_resource" "rke2_kustomization" {
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
         version          = var.traefik_version
-        values           = indent(4, trimspace(local.traefik_values))
+        values           = indent(4, local.traefik_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/traefik_ingress.yaml"
@@ -667,7 +668,7 @@ resource "null_resource" "rke2_kustomization" {
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
         version          = var.nginx_version
-        values           = indent(4, trimspace(local.nginx_values))
+        values           = indent(4, local.nginx_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/nginx_ingress.yaml"
@@ -679,7 +680,7 @@ resource "null_resource" "rke2_kustomization" {
       "${path.module}/templates/haproxy_ingress.yaml.tpl",
       {
         version          = var.haproxy_version
-        values           = indent(4, trimspace(local.haproxy_values))
+        values           = indent(4, local.haproxy_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/haproxy_ingress.yaml"
@@ -707,7 +708,7 @@ resource "null_resource" "rke2_kustomization" {
     content = templatefile(
       "${path.module}/templates/calico.yaml.tpl",
       {
-        values = trimspace(local.calico_values)
+        values = local.calico_values
     })
     destination = "/var/post_install/calico.yaml"
   }
@@ -717,7 +718,7 @@ resource "null_resource" "rke2_kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        values  = indent(4, trimspace(local.cilium_values))
+        values  = indent(4, local.cilium_values)
         version = var.cilium_version
     })
     destination = "/tmp/rke2-cilium-config.yaml"
@@ -745,7 +746,7 @@ resource "null_resource" "rke2_kustomization" {
         longhorn_repository = var.longhorn_repository
         version             = var.longhorn_version
         bootstrap           = var.longhorn_helmchart_bootstrap
-        values              = indent(4, trimspace(local.longhorn_values))
+        values              = indent(4, local.longhorn_values)
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -756,7 +757,7 @@ resource "null_resource" "rke2_kustomization" {
       "${path.module}/templates/hcloud-csi.yaml.tpl",
       {
         version = coalesce(local.csi_version, "*")
-        values  = indent(4, trimspace(local.hetzner_csi_values))
+        values  = indent(4, local.hetzner_csi_values)
       }
     )
     destination = "/var/post_install/hcloud-csi.yaml"
@@ -769,7 +770,7 @@ resource "null_resource" "rke2_kustomization" {
       {
         version   = var.csi_driver_smb_version
         bootstrap = var.csi_driver_smb_helmchart_bootstrap
-        values    = indent(4, trimspace(local.csi_driver_smb_values))
+        values    = indent(4, local.csi_driver_smb_values)
     })
     destination = "/var/post_install/csi-driver-smb.yaml"
   }
@@ -781,7 +782,7 @@ resource "null_resource" "rke2_kustomization" {
       {
         version   = var.cert_manager_version
         bootstrap = var.cert_manager_helmchart_bootstrap
-        values    = indent(4, trimspace(local.cert_manager_values))
+        values    = indent(4, local.cert_manager_values)
     })
     destination = "/var/post_install/cert_manager.yaml"
   }
@@ -794,7 +795,7 @@ resource "null_resource" "rke2_kustomization" {
         rancher_install_channel = var.rancher_install_channel
         version                 = var.rancher_version
         bootstrap               = var.rancher_helmchart_bootstrap
-        values                  = indent(4, trimspace(local.rancher_values))
+        values                  = indent(4, local.rancher_values)
     })
     destination = "/var/post_install/rancher.yaml"
   }

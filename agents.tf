@@ -76,11 +76,12 @@ locals {
       node-name = module.agents[k].name
       server    = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:9345"
       token     = local.k3s_token
+      # Kubelet arg precedence (last wins): local.kubelet_arg > v.kubelet_args > k3s_global_kubelet_args > k3s_agent_kubelet_args
       kubelet-arg = concat(
         local.kubelet_arg,
+        v.kubelet_args,
         var.k3s_global_kubelet_args,
-        var.k3s_agent_kubelet_args,
-        v.kubelet_args
+        var.k3s_agent_kubelet_args
       )
       node-ip    = module.agents[k].private_ipv4_address
       node-label = v.labels
@@ -121,33 +122,6 @@ resource "null_resource" "agent_config" {
   # Generating k3s agent config file
   provisioner "file" {
     content     = local.kubernetes_distribution == "rke2" ? yamlencode(local.rke2-agent-config[each.key]) : yamlencode(local.k3s-agent-config[each.key])
-    destination = "/tmp/config.yaml"
-  }
-
-  provisioner "remote-exec" {
-    inline = [local.k8s_config_update_script]
-  }
-}
-
-resource "null_resource" "agent_config_rke2" {
-  for_each = local.kubernetes_distribution == "rke2" ? local.agent_nodes : {}
-
-  triggers = {
-    agent_id = module.agents[each.key].id
-    config   = local.kubernetes_distribution == "rke2" ? sha1(yamlencode(local.rke2-agent-config[each.key])) : sha1(yamlencode(local.k3s-agent-config[each.key]))
-  }
-
-  connection {
-    user           = "root"
-    private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
-    host           = local.agent_ips[each.key]
-    port           = var.ssh_port
-  }
-
-  # Generating k3s agent config file
-  provisioner "file" {
-    content     = yamlencode(local.rke2-agent-config[each.key])
     destination = "/tmp/config.yaml"
   }
 
