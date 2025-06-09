@@ -116,7 +116,8 @@ data "cloudinit_config" "autoscaler_config" {
             node-taint    = concat(local.default_agent_taints, [for taint in var.autoscaler_nodepools[count.index].taints : "${taint.key}=${tostring(taint.value)}:${taint.effect}"])
             selinux       = !var.disable_selinux
           },
-          var.agent_nodes_custom_config
+          var.agent_nodes_custom_config,
+          local.prefer_bundled_bin_config
         ))
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
@@ -154,7 +155,8 @@ data "cloudinit_config" "autoscaler_legacy_config" {
             node-taint    = concat(local.default_agent_taints, var.autoscaler_taints)
             selinux       = !var.disable_selinux
           },
-          var.agent_nodes_custom_config
+          var.agent_nodes_custom_config,
+          local.prefer_bundled_bin_config
         ))
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common

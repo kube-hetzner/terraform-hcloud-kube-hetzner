@@ -64,6 +64,7 @@ locals {
       node-taint    = v.taints
     },
     var.agent_nodes_custom_config,
+    local.prefer_bundled_bin_config,
     # Force selinux=false if disable_selinux = true.
     var.disable_selinux
     ? { selinux = false }

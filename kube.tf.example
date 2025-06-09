@@ -732,7 +732,8 @@ module "kube-hetzner" {
   #         prefix: "oidc:"
   #   EOT
 
-
+  # Set to true if util-linux breaks on the OS (temporary regression fixed in util-linux v2.41.1).
+  # k3s_prefer_bundled_bin = true
 
   # Additional flags to pass to the k3s server command (the control plane).
   # k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
