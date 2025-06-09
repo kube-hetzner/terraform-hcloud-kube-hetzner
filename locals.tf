@@ -485,6 +485,9 @@ ipv4NativeRoutingCIDR: "${local.cilium_ipv4_native_routing_cidr}"
 installNoConntrackIptablesRules: true
 %{endif~}
 
+# Perform a gradual roll out on config update.
+rollOutCiliumPods: true
+
 endpointRoutes:
   # Enable use of per endpoint routes instead of routing via the cilium_host interface.
   enabled: true
