@@ -22,6 +22,7 @@ module "control_planes" {
   backups                      = each.value.backups
   ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.dns_servers
+  control_plane_lb_priv_ip     = local.control_plane_lb_priv_ip
   k3s_registries               = var.k3s_registries
   k3s_registries_update_script = local.k3s_registries_update_script
   cloudinit_write_files_common = local.cloudinit_write_files_common

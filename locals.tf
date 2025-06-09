@@ -10,6 +10,9 @@ locals {
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
 
+  # Control plane load balancer IP (if enabled).
+  control_plane_lb_priv_ip = try(hcloud_load_balancer_network.control_plane.*.ip[0], "")
+
   ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
@@ -23,6 +26,9 @@ locals {
   # Separate out IPv4 and IPv6 DNS hosts.
   dns_servers_ipv4 = [for ip in var.dns_servers : ip if provider::assert::ipv4(ip)]
   dns_servers_ipv6 = [for ip in var.dns_servers : ip if provider::assert::ipv6(ip)]
+
+  # Tailscale requires native routing mode in order for the subnet router to work correctly.
+  cilium_routing_mode = var.enable_tailscale.enable ? "native" : var.cilium_routing_mode
 
   additional_k3s_environment = join("\n",
     [
@@ -506,8 +512,8 @@ k8sServiceHost: "127.0.0.1"
 k8sServicePort: "6444"
 
 # Set Tunnel Mode or Native Routing Mode (supported by Hetzner CCM Route Controller)
-routingMode: "${var.cilium_routing_mode}"
-%{if var.cilium_routing_mode == "native"~}
+routingMode: "${local.cilium_routing_mode}"
+%{if local.cilium_routing_mode == "native"~}
 # Set the native routable CIDR
 ipv4NativeRoutingCIDR: "${local.cilium_ipv4_native_routing_cidr}"
 

@@ -1141,9 +1141,37 @@ Tailscale can be dynamically enabled and disabled on an existing cluster.
    }
    ```
 
-5. Other fields available in `enable_tailscale`:
+5. It's possible to use the Tailscale subnet router feature with control plane load balancer, which enables highly available access to the private IP, making it possible to disable the public interface on the LB without the need to set up an additional jump host. Mind that each host needs to have the route approved either through the Tailscale admin panel or by using Tailscale Terraform provider. Here is an example how to enable the LB router, disable external access on the load balancer, and auto approve the new routes with the [Tailscale Terraform provider][Tailscale-Terraform] (previously configured for provisioning authorization key):
+
+   ```tf
+   module "kube-hetzner" {
+     ...
+
+     use_control_plane_lb                     = true
+     control_plane_lb_enable_public_interface = false
+
+     enable_tailscale = {
+       ...
+       advertise_cp_lb = true
+     }
+   }
+
+   data "tailscale_device" "nodes" {
+     count    = length(module.kube-hetzner.tailscale_devices)
+     hostname = module.kube-hetzner.tailscale_devices[count.index].name
+   }
+
+   resource "tailscale_device_subnet_routes" "hetzner_access" {
+     count     = length(module.kube-hetzner.tailscale_devices)
+     device_id = data.tailscale_device.nodes[count.index].id
+     routes    = module.kube-hetzner.tailscale_devices[count.index].routes
+   }
+   ```
+
+6. Other fields available in `enable_tailscale`:
 
    - `enable` – explicitly enable/disable Tailscale.
+   - `advertise_routes` – additional list of routes to advertise on tailnet (can be used with `advertise_cp_lb`).
    - `ssh` – enable [Tailscale SSH][Tailscale-SSH] (it's an additional Tailscale feature, and it's not the same as accessing SSH via Tailnet IP).
    - `accept_dns` – enable Tailscale MagicDNS. Mind that it might interfere with NetworkManager, so it's advised to disable it or configure DNS override on Tailscale side.
    - `extra_up_args` – list of additional arguments for `tailscale up`.

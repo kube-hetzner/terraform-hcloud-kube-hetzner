@@ -72,15 +72,23 @@ variable "private_ipv4" {
   type        = string
 }
 
+variable "control_plane_lb_priv_ip" {
+  description = "Control plane load balancer private IP."
+  type        = string
+  default     = ""
+}
+
 variable "enable_tailscale" {
   description = "Enable Tailscale on the node"
   type = object({
-    enable         = optional(bool, true)
-    auth_key       = optional(string, "")
-    advertise_tags = optional(list(string), [])
-    ssh            = optional(bool, false)
-    accept_dns     = optional(bool, false)
-    extra_up_args  = optional(list(string), [])
+    enable           = optional(bool, true)
+    auth_key         = optional(string, "")
+    advertise_tags   = optional(list(string), [])
+    advertise_routes = optional(list(string), [])
+    advertise_cp_lb  = optional(bool, false)
+    ssh              = optional(bool, false)
+    accept_dns       = optional(bool, false)
+    extra_up_args    = optional(list(string), [])
   })
   default  = { enable = false }
   nullable = false

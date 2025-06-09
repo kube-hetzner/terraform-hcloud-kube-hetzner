@@ -119,10 +119,15 @@ resource "hcloud_server" "server" {
 }
 
 locals {
+  tailscale_routes = concat(
+    var.enable_tailscale.advertise_routes,
+    var.enable_tailscale.advertise_cp_lb ? ["${var.control_plane_lb_priv_ip}/32"] : []
+  )
   tailscale_args = concat(
     var.enable_tailscale.extra_up_args,
     [
       "--accept-dns=${var.enable_tailscale.accept_dns}",
+      "--advertise-routes=${join(",", local.tailscale_routes)}",
       "--advertise-tags=${join(",", var.enable_tailscale.advertise_tags)}",
       "--ssh=${var.enable_tailscale.ssh}",
     ]
@@ -172,6 +177,9 @@ resource "terraform_data" "tailscale_setup_init" {
       "transactional-update apply",
       "systemctl enable --now tailscaled",
       "systemctl restart NetworkManager",
+      "echo 'net.ipv4.ip_forward = 1' > /etc/sysctl.d/99-tailscale.conf",
+      "echo 'net.ipv6.conf.all.forwarding = 1' > /etc/sysctl.d/99-tailscale.conf",
+      "sysctl -p /etc/sysctl.d/99-tailscale.conf",
     ]
   }
 

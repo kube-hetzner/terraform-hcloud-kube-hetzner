@@ -129,6 +129,12 @@ variable "enable_tailscale" {
       - auth_key – authorization key used to connect to the Tailnet.
       - advertise_tags – list of tags for the node (needs to be allowed by the
         authorization key).
+      - advertise_routes – list of routes the node should advertise on Tailnet.
+      - advertise_cp_lb – advertise the private IP of the control plane load
+        balancer on Tailnet, with failover from all nodes, allowing for
+        disabling the public interface on the load balancer. Mind that each host
+        needs to have the route approved either through Tailslace admin panel or
+        by using Tailscale Terraform provider.
       - ssh – enable Tailscale SSH (https://tailscale.com/kb/1193/tailscale-ssh,
         not the same as accessing SSH via Tailnet IP).
       - accept_dns – enable Tailscale MagicDNS. Mind that it might interfere
@@ -138,12 +144,14 @@ variable "enable_tailscale" {
     EOF
 
   type = object({
-    enable         = optional(bool, true)
-    auth_key       = optional(string, "")
-    advertise_tags = optional(list(string), [])
-    ssh            = optional(bool, false)
-    accept_dns     = optional(bool, false)
-    extra_up_args  = optional(list(string), [])
+    enable           = optional(bool, true)
+    auth_key         = optional(string, "")
+    advertise_tags   = optional(list(string), [])
+    advertise_routes = optional(list(string), [])
+    advertise_cp_lb  = optional(bool, false)
+    ssh              = optional(bool, false)
+    accept_dns       = optional(bool, false)
+    extra_up_args    = optional(list(string), [])
   })
   default  = { enable = false }
   nullable = false
@@ -161,6 +169,14 @@ variable "enable_tailscale" {
       for tag in var.enable_tailscale.advertise_tags : startswith(tag, "tag:")
     ])
     error_message = "All Tailscale tags need to start with \"tag:\"."
+  }
+
+  validation {
+    condition = alltrue([
+      for route in var.enable_tailscale.advertise_routes
+      : providers::assert::cidr(route)
+    ])
+    error_message = "Provide valid CIDR routes."
   }
 }
 
