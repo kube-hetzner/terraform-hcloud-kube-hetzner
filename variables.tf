@@ -120,6 +120,50 @@ variable "cluster_dns_ipv4" {
   default     = null
 }
 
+variable "enable_tailscale" {
+  description = <<-EOF
+    Enable Tailscale on nodes. Requires passing Tailscale authorization key
+    capable of creating devices with tags given with `advertise_tags`.
+
+    Fields:
+      - auth_key – authorization key used to connect to the Tailnet.
+      - advertise_tags – list of tags for the node (needs to be allowed by the
+        authorization key).
+      - ssh – enable Tailscale SSH (https://tailscale.com/kb/1193/tailscale-ssh,
+        not the same as accessing SSH via Tailnet IP).
+      - accept_dns – enable Tailscale MagicDNS. Mind that it might interfere
+        with NetworkManager, so it's advised to disable it or configure DNS
+        override on Tailscale side.
+      - extra_up_args – list of additional arguments for `tailscale up`.
+    EOF
+
+  type = object({
+    enable         = optional(bool, true)
+    auth_key       = optional(string, "")
+    advertise_tags = optional(list(string), [])
+    ssh            = optional(bool, false)
+    accept_dns     = optional(bool, false)
+    extra_up_args  = optional(list(string), [])
+  })
+  default  = { enable = false }
+  nullable = false
+
+  validation {
+    condition = (
+      (var.enable_tailscale.enable && startswith(var.enable_tailscale.auth_key, "tskey-"))
+      || !var.enable_tailscale.enable
+    )
+    error_message = "You need to provide a valid Tailscale authorization key."
+  }
+
+  validation {
+    condition = alltrue([
+      for tag in var.enable_tailscale.advertise_tags : startswith(tag, "tag:")
+    ])
+    error_message = "All Tailscale tags need to start with \"tag:\"."
+  }
+}
+
 variable "load_balancer_location" {
   description = "Default load balancer location."
   type        = string

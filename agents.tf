@@ -32,6 +32,7 @@ module "agents" {
   disable_ipv4                 = each.value.disable_ipv4
   disable_ipv6                 = each.value.disable_ipv6
   network_id                   = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
+  enable_tailscale             = var.enable_tailscale
 
   private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
@@ -72,6 +73,7 @@ locals {
 
   agent_ips = {
     for k, v in module.agents : k => coalesce(
+      v.tailscale_ip_address,
       v.ipv4_address,
       v.ipv6_address,
       v.private_ipv4_address

@@ -72,6 +72,20 @@ variable "private_ipv4" {
   type        = string
 }
 
+variable "enable_tailscale" {
+  description = "Enable Tailscale on the node"
+  type = object({
+    enable         = optional(bool, true)
+    auth_key       = optional(string, "")
+    advertise_tags = optional(list(string), [])
+    ssh            = optional(bool, false)
+    accept_dns     = optional(bool, false)
+    extra_up_args  = optional(list(string), [])
+  })
+  default  = { enable = false }
+  nullable = false
+}
+
 variable "server_type" {
   description = "The server type"
   type        = string

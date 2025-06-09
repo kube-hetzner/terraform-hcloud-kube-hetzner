@@ -156,6 +156,7 @@
 | <a name="input_enable_longhorn"></a> [enable\_longhorn](#input\_enable\_longhorn) | Whether or not to enable Longhorn. | `bool` | `false` | no |
 | <a name="input_enable_metrics_server"></a> [enable\_metrics\_server](#input\_enable\_metrics\_server) | Whether to enable or disable k3s metric server. | `bool` | `true` | no |
 | <a name="input_enable_rancher"></a> [enable\_rancher](#input\_enable\_rancher) | Enable rancher. | `bool` | `false` | no |
+| <a name="input_enable_tailscale"></a> [enable\_tailscale](#input\_enable\_tailscale) | Enable Tailscale on nodes. Requires passing Tailscale authorization key<br/>capable of creating devices with tags given with `advertise_tags`.<br/><br/>Fields:<br/>  - auth\_key – authorization key used to connect to the Tailnet.<br/>  - advertise\_tags – list of tags for the node (needs to be allowed by the<br/>    authorization key).<br/>  - ssh – enable Tailscale SSH (https://tailscale.com/kb/1193/tailscale-ssh,<br/>    not the same as accessing SSH via Tailnet IP).<br/>  - accept\_dns – enable Tailscale MagicDNS. Mind that it might interfere<br/>    with NetworkManager, so it's advised to disable it or configure DNS<br/>    override on Tailscale side.<br/>  - extra\_up\_args – list of additional arguments for `tailscale up`. | <pre>object({<br/>    enable         = optional(bool, true)<br/>    auth_key       = optional(string, "")<br/>    advertise_tags = optional(list(string), [])<br/>    ssh            = optional(bool, false)<br/>    accept_dns     = optional(bool, false)<br/>    extra_up_args  = optional(list(string), [])<br/>  })</pre> | <pre>{<br/>  "enable": false<br/>}</pre> | no |
 | <a name="input_enable_wireguard"></a> [enable\_wireguard](#input\_enable\_wireguard) | Use wireguard-native as the backend for CNI. | `bool` | `false` | no |
 | <a name="input_etcd_s3_backup"></a> [etcd\_s3\_backup](#input\_etcd\_s3\_backup) | Etcd cluster state backup to S3 storage | `map(any)` | `{}` | no |
 | <a name="input_existing_network_id"></a> [existing\_network\_id](#input\_existing\_network\_id) | If you want to create the private network before calling this module, you can do so and pass its id here. NOTE: make sure to adapt network\_ipv4\_cidr accordingly to a range which does not collide with your other nodes. | `list(string)` | `[]` | no |
@@ -282,5 +283,6 @@
 | <a name="output_network_id"></a> [network\_id](#output\_network\_id) | The ID of the HCloud network. |
 | <a name="output_nginx_values"></a> [nginx\_values](#output\_nginx\_values) | Helm values.yaml used for nginx-ingress |
 | <a name="output_ssh_key_id"></a> [ssh\_key\_id](#output\_ssh\_key\_id) | The ID of the HCloud SSH key. |
+| <a name="output_tailscale_devices"></a> [tailscale\_devices](#output\_tailscale\_devices) | Mapping of Tailscale devices to their properties (like IP). |
 | <a name="output_traefik_values"></a> [traefik\_values](#output\_traefik\_values) | Helm values.yaml used for Traefik |
 <!-- END_TF_DOCS -->

@@ -32,6 +32,7 @@ module "control_planes" {
   disable_ipv4                 = each.value.disable_ipv4
   disable_ipv6                 = each.value.disable_ipv6
   network_id                   = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
+  enable_tailscale             = var.enable_tailscale
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
@@ -93,6 +94,7 @@ resource "hcloud_load_balancer_service" "control_plane" {
 locals {
   control_plane_ips = {
     for k, v in module.control_planes : k => coalesce(
+      v.tailscale_ip_address,
       v.ipv4_address,
       v.ipv6_address,
       v.private_ipv4_address
@@ -136,6 +138,7 @@ locals {
       } : {
       tls-san = concat(
         compact([
+          module.control_planes[k].tailscale_ip_address != "" ? module.control_planes[k].tailscale_ip_address : null,
           module.control_planes[k].ipv4_address != "" ? module.control_planes[k].ipv4_address : null,
           module.control_planes[k].ipv6_address != "" ? module.control_planes[k].ipv6_address : null,
           try(one(module.control_planes[k].network).ip, null)

@@ -118,6 +118,120 @@ resource "hcloud_server" "server" {
 
 }
 
+locals {
+  tailscale_args = concat(
+    var.enable_tailscale.extra_up_args,
+    [
+      "--accept-dns=${var.enable_tailscale.accept_dns}",
+      "--advertise-tags=${join(",", var.enable_tailscale.advertise_tags)}",
+      "--ssh=${var.enable_tailscale.ssh}",
+    ]
+  )
+  tailscale_args_concat = join(" ", local.tailscale_args)
+
+  tailscale_up_cmd = "tailscale up --authkey=${var.enable_tailscale.auth_key} ${local.tailscale_args_concat}"
+
+  # Tailscale connection is destroyed in the tailscale_ip stage so that the
+  # connection can be established on the public IP in later stages.
+  tailscale_ip_cmd = (var.enable_tailscale.enable
+    ? "tailscale ip -1 || echo"
+    : "tailscale down --accept-risk=lose-ssh || echo"
+  )
+
+  # Regular server IP using public or private IP.
+  server_ip = coalesce(
+    hcloud_server.server.ipv4_address,
+    hcloud_server.server.ipv6_address,
+    try(one(hcloud_server.server.network).ip,
+    null)
+  )
+  # Server IP prioritizing Tailnet IP.
+  server_ip_tail = coalesce(local.tailscale_ip, local.server_ip)
+}
+
+# Tailscale initialization run once on enable.
+resource "terraform_data" "tailscale_setup_init" {
+  count = var.enable_tailscale.enable ? 1 : 0
+
+  triggers_replace = {
+    server    = hcloud_server.server.id
+    tailscale = var.enable_tailscale.enable
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.server_ip
+    port           = var.ssh_port
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "transactional-update pkg install -y tailscale",
+      "transactional-update apply",
+      "systemctl enable --now tailscaled",
+      "systemctl restart NetworkManager",
+    ]
+  }
+
+  provisioner "remote-exec" {
+    inline = [local.tailscale_up_cmd]
+  }
+
+  depends_on = [hcloud_server.server]
+}
+
+# Get Tailnet IP address or disable connection.
+resource "ssh_resource" "tailscale_ip" {
+  triggers = {
+    server    = hcloud_server.server.id
+    tailscale = var.enable_tailscale.enable
+  }
+
+  host        = local.server_ip
+  user        = "root"
+  private_key = var.ssh_private_key
+  agent       = var.ssh_private_key == null
+  port        = var.ssh_port
+
+  commands = [local.tailscale_ip_cmd]
+
+  depends_on = [terraform_data.tailscale_setup_init]
+}
+
+locals {
+  tailscale_ip = try(trimspace(ssh_resource.tailscale_ip.result), "")
+}
+
+# Apply new Tailscale configuration.
+resource "terraform_data" "tailscale_setup_change" {
+  count = var.enable_tailscale.enable ? 1 : 0
+
+  triggers_replace = {
+    server    = hcloud_server.server.id
+    tailscale = var.enable_tailscale.enable
+    args      = local.tailscale_args_concat
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.server_ip_tail
+    port           = var.ssh_port
+  }
+
+  provisioner "remote-exec" {
+    inline = [local.tailscale_up_cmd]
+  }
+
+  depends_on = [
+    hcloud_server.server,
+    ssh_resource.tailscale_ip,
+  ]
+}
+
 resource "null_resource" "registries" {
   triggers = {
     registries = var.k3s_registries
@@ -127,7 +241,7 @@ resource "null_resource" "registries" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
+    host           = local.server_ip_tail
     port           = var.ssh_port
   }
 
@@ -140,14 +254,17 @@ resource "null_resource" "registries" {
     inline = [var.k3s_registries_update_script]
   }
 
-  depends_on = [hcloud_server.server]
+  depends_on = [
+    hcloud_server.server,
+    ssh_resource.tailscale_ip,
+  ]
 }
 
 resource "hcloud_rdns" "server" {
   count = (var.base_domain != "" && !var.disable_ipv4) ? 1 : 0
 
   server_id  = hcloud_server.server.id
-  ip_address = coalesce(hcloud_server.server.ipv4_address, try(one(hcloud_server.server.network).ip, null))
+  ip_address = local.server_ip
   dns_ptr    = format("%s.%s", local.name, var.base_domain)
 }
 
@@ -199,7 +316,7 @@ resource "null_resource" "zram" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
+    host           = local.server_ip_tail
     port           = var.ssh_port
   }
 
@@ -266,7 +383,10 @@ WantedBy=multi-user.target
     ])
   }
 
-  depends_on = [hcloud_server.server]
+  depends_on = [
+    hcloud_server.server,
+    ssh_resource.tailscale_ip,
+  ]
 }
 
 # Resource to toggle transactional-update.timer based on automatically_upgrade_os setting
@@ -280,7 +400,7 @@ resource "null_resource" "os_upgrade_toggle" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
+    host           = local.server_ip_tail
     port           = var.ssh_port
   }
 
@@ -300,6 +420,7 @@ resource "null_resource" "os_upgrade_toggle" {
 
   depends_on = [
     hcloud_server.server,
-    null_resource.registries
+    null_resource.registries,
+    ssh_resource.tailscale_ip,
   ]
 }

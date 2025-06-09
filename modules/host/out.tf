@@ -27,3 +27,8 @@ output "domain_assignments" {
     }
   ]
 }
+
+output "tailscale_ip_address" {
+  description = "The Tailscale Tailnet IP address of the server"
+  value       = local.tailscale_ip
+}

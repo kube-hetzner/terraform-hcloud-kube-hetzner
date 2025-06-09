@@ -392,7 +392,33 @@ locals {
         port        = ""
         source_ips  = ["0.0.0.0/0", "::/0"]
       }
-    ]
+    ],
+    var.enable_tailscale.enable ? [
+      {
+        description     = "Allow direct Tailscale Wireguard connection"
+        direction       = "in"
+        protocol        = "udp"
+        port            = "41641"
+        source_ips      = ["0.0.0.0/0", "::/0"]
+        destination_ips = []
+      },
+      {
+        description     = "Allow direct Tailscale Wireguard connection"
+        direction       = "out"
+        protocol        = "udp"
+        port            = "41641"
+        source_ips      = []
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      },
+      {
+        description     = "Allow Tailscale to use STUN protocol"
+        direction       = "out"
+        protocol        = "udp"
+        port            = "3478"
+        source_ips      = []
+        destination_ips = ["0.0.0.0/0", "::/0"]
+      }
+    ] : [],
   )
 
   # create a new firewall list based on base_firewall_rules but with direction-protocol-port as key
@@ -497,8 +523,17 @@ endpointRoutes:
   enabled: true
 
 loadBalancer:
+%{if var.enable_tailscale.enable~}
+  # Enable LoadBalancer & NodePort XDP Acceleration. Direct routing
+  # (routingMode=native) is recommended to achieve optimal performance, but the
+  # tailscale0 device does not support it and must be excluded. The
+  # 'best-effort' mode uses native routing where supported and disables it for
+  # unsupported devices like tailscale0.
+  acceleration: best-effort
+%{else~}
   # Enable LoadBalancer & NodePort XDP Acceleration (direct routing (routingMode=native) is recommended to achieve optimal performance)
   acceleration: native
+%{endif~}
 
 bpf:
   # Enable eBPF-based Masquerading ("The eBPF-based implementation is the most efficient implementation")

@@ -99,6 +99,16 @@ output "domain_assignments" {
   )
 }
 
+output "tailscale_devices" {
+  description = "Mapping of Tailscale devices to their properties (like IP)."
+  value = var.enable_tailscale.enable ? {
+    for node in concat(values(module.control_planes), values(module.agents)) :
+    node.name => {
+      ip = node.tailscale_ip_address
+    }
+  } : {}
+}
+
 # Keeping for backward compatibility
 output "kubeconfig_file" {
   value       = local.kubeconfig_external

@@ -1083,6 +1083,81 @@ _Thanks for the tip @carolosf._
 
 </details>
 
+<details>
+
+<summary>Use Tailscale to connect to the nodes</summary>
+
+[Tailscale] is a secure, easy-to-use VPN service that creates a private mesh network between your servers, devices, and cloud environments. It simplifies secure connectivity, allowing you to securely access your Hetzner nodes from anywhere without exposing SSH on the public IP, and without the need to set up an additional jump host.
+
+Tailscale can be dynamically enabled and disabled on an existing cluster.
+
+1. In order to enable Tailscale on your cluster, first you need to [create your Tailscale account][Tailscale-login] (e.g., by using your GitHub account).
+
+2. Install and enable Tailscale on the computer you're deploying from by following the guide presented after login.
+
+3. Add a machine tag, which will be used to assign to Hetzner nodes by going to [Access controls][Tailscale-ACL] page, and adding a tag in the `tagOwners` map (in this example `tag:hetzner`):
+
+   ```json
+   {
+     "tagOwners": {
+       "tag:hetzner": ["autogroup:admin"],
+     },
+
+     ...
+   }
+   ```
+
+4. In order to enable Tailscale in the `hcloud-kube` module you need to
+   provision a device authorization key. It can be obtained either manually in the [Keys settings][Tailscale-keys] by generating an *Auth key* or by using the [Tailscale Terraform provider][Tailscale-Terraform] with an OAuth key.
+
+   The OAuth key can be generated in the [OAuth clients settings][Tailscale-OAuth]. The minimal scope is *Auth Keys: write* with the tag added in the previous step. Then you can use this key indefinitely to automatically provision Tailscale nodes. Please note that OAuth credentials are confidential, and you should take care to secure them as for all other secrets. Here is an example provider and auth key configuration:
+
+   ```tf
+   provider "tailscale" {
+     tailnet             = var.tailnet_name
+     oauth_client_id     = var.oauth_client_id
+     oauth_client_secret = var.oauth_client_secret
+   }
+
+   locals {
+    tailscale_tags = ["tag:hetzner"]
+   }
+
+   resource "tailscale_tailnet_key" "kube-hetzner" {
+     description   = "kube-hetzner"
+     reusable      = true
+     ephemeral     = true
+     preauthorized = true
+     tags          = local.tailscale_tags
+   }
+
+   module "kube-hetzner" {
+     ...
+
+     enable_tailscale = {
+       auth_key = tailscale_tailnet_key.kube-hetzner.key
+       advertise_tags = local.tailscale_tags
+     }
+   }
+   ```
+
+5. Other fields available in `enable_tailscale`:
+
+   - `enable` – explicitly enable/disable Tailscale.
+   - `ssh` – enable [Tailscale SSH][Tailscale-SSH] (it's an additional Tailscale feature, and it's not the same as accessing SSH via Tailnet IP).
+   - `accept_dns` – enable Tailscale MagicDNS. Mind that it might interfere with NetworkManager, so it's advised to disable it or configure DNS override on Tailscale side.
+   - `extra_up_args` – list of additional arguments for `tailscale up`.
+
+[Tailscale]: https://tailscale.com/
+[Tailscale-login]: https://login.tailscale.com/login
+[Tailscale-ACL]: https://login.tailscale.com/admin/acls/file
+[Tailscale-keys]: https://login.tailscale.com/admin/settings/keys
+[Tailscale-Terraform]: https://registry.terraform.io/providers/tailscale/tailscale
+[Tailscale-OAuth]: https://login.tailscale.com/admin/settings/oauth
+[Tailscale-SSH]: https://tailscale.com/kb/1193/tailscale-ssh
+
+</details>
+
 ## Debugging
 
 First and foremost, it depends, but it's always good to have a quick look into Hetzner quickly without logging in to the UI. That is where the `hcloud` cli comes in.
