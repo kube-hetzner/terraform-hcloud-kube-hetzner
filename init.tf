@@ -23,7 +23,11 @@ resource "hcloud_load_balancer_network" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
 
   load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
-  subnet_id        = hcloud_network_subnet.agent.*.id[0]
+  subnet_id = (
+    length(hcloud_network_subnet.agent) > 0
+    ? hcloud_network_subnet.agent.*.id[0]
+    : hcloud_network_subnet.control_plane.*.id[0]
+  )
 }
 
 resource "hcloud_load_balancer_target" "cluster" {
@@ -32,8 +36,21 @@ resource "hcloud_load_balancer_target" "cluster" {
   depends_on       = [hcloud_load_balancer_network.cluster]
   type             = "label_selector"
   load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
-  label_selector   = join(",", [for k, v in merge(local.labels, local.labels_control_plane_node, local.labels_agent_node) : "${k}=${v}"])
-  use_private_ip   = true
+  label_selector = join(",", concat(
+    [for k, v in local.labels : "${k}=${v}"],
+    [
+      # Generic label merge from control plane and agent namespaces with "or",
+      # resulting in: role in (control_plane_node,agent_node)
+      for key in keys(merge(local.labels_control_plane_node, local.labels_agent_node)) :
+      "${key} in (${
+        join(",", compact([
+          for labels in [local.labels_control_plane_node, local.labels_agent_node] :
+          try(labels[key], "")
+        ]))
+      })"
+    ]
+  ))
+  use_private_ip = true
 }
 
 locals {
