@@ -17,6 +17,13 @@ locals {
 
   cilium_ipv4_native_routing_cidr = coalesce(var.cilium_ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
 
+  # Check if the user has set custom DNS servers.
+  has_dns_servers = length(var.dns_servers) > 0
+
+  # Separate out IPv4 and IPv6 DNS hosts.
+  dns_servers_ipv4 = [for ip in var.dns_servers : ip if provider::assert::ipv4(ip)]
+  dns_servers_ipv6 = [for ip in var.dns_servers : ip if provider::assert::ipv6(ip)]
+
   additional_k3s_environment = join("\n",
     [
       for var_name, var_value in var.additional_k3s_environment :
@@ -61,6 +68,13 @@ locals {
       local.install_system_alias,
       local.install_kubectl_bash_completion,
     ],
+    length(local.dns_servers_ipv4) > 0 ? [
+      "nmcli con mod eth0 ipv4.dns ${join(",", local.dns_servers_ipv4)}"
+    ] : [],
+    length(local.dns_servers_ipv6) > 0 ? [
+      "nmcli con mod eth0 ipv6.dns ${join(",", local.dns_servers_ipv6)}"
+    ] : [],
+    local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
@@ -82,6 +96,7 @@ locals {
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
+      var.cni_plugin == "flannel" ? ["flannel-rbac.yaml"] : [],
       var.enable_longhorn ? ["longhorn.yaml"] : [],
       var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
       var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
@@ -290,17 +305,6 @@ locals {
         source_ips  = var.firewall_ssh_source
       },
     ],
-    var.ssh_port != null &&
-    var.firewall_ssh_source == null ? [
-      # Allow all traffic to the ssh port
-      {
-        description = "Allow Incoming SSH Traffic"
-        direction   = "in"
-        protocol    = "tcp"
-        port        = var.ssh_port
-        source_ips  = ["0.0.0.0/0", "::/0"]
-      },
-    ] : [],
     var.firewall_kube_api_source == null ? [] : [
       {
         description = "Allow Incoming Requests to Kube API Server"
@@ -484,6 +488,9 @@ ipv4NativeRoutingCIDR: "${local.cilium_ipv4_native_routing_cidr}"
 # Bypass iptables Connection Tracking for Pod traffic (only works in Native Routing Mode)
 installNoConntrackIptablesRules: true
 %{endif~}
+
+# Perform a gradual roll out on config update.
+rollOutCiliumPods: true
 
 endpointRoutes:
   # Enable use of per endpoint routes instead of routing via the cilium_host interface.
@@ -675,6 +682,7 @@ service:
 %{endif~}
 %{endif~}
 ports:
+%{if var.traefik_redirect_to_https || !local.using_klipper_lb~}
   web:
 %{if var.traefik_redirect_to_https~}
     redirections:
@@ -698,7 +706,10 @@ ports:
 %{for ip in var.traefik_additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
+%{endif~}
+%{endif~}
   websecure:
+%{if !local.using_klipper_lb~}
     proxyProtocol:
       trustedIPs:
         - 127.0.0.1/32
