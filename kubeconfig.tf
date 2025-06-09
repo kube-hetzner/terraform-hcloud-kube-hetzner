@@ -1,10 +1,6 @@
-locals {
-  is_ipv6_address = strcontains(local.first_control_plane_ip, ":") && !strcontains(local.first_control_plane_ip, ".")
-}
-
 data "remote_file" "kubeconfig" {
   conn {
-    host        = local.is_ipv6_address ? "[${local.first_control_plane_ip}]" : local.first_control_plane_ip
+    host        = can(ipv6(local.first_control_plane_ip)) ? "[${local.first_control_plane_ip}]" : local.first_control_plane_ip
     port        = var.ssh_port
     user        = "root"
     private_key = var.ssh_private_key
