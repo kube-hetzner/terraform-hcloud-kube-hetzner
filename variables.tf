@@ -1021,7 +1021,7 @@ variable "dns_servers" {
 }
 
 variable "address_for_connectivity_test" {
-  description = "The address to test for external connectivity before proceeding with the installation. Defaults to Cloudflare's public DNS."
+  description = "The address to test for external connectivity before proceeding with the installation. Defaults to Google's public DNS."
   type        = string
   default     = "8.8.8.8"
 }
