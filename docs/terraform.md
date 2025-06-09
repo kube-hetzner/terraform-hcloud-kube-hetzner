@@ -264,6 +264,7 @@
 | <a name="output_control_planes_public_ipv4"></a> [control\_planes\_public\_ipv4](#output\_control\_planes\_public\_ipv4) | The public IPv4 addresses of the controlplane servers. |
 | <a name="output_control_planes_public_ipv6"></a> [control\_planes\_public\_ipv6](#output\_control\_planes\_public\_ipv6) | The public IPv6 addresses of the controlplane servers. |
 | <a name="output_csi_driver_smb_values"></a> [csi\_driver\_smb\_values](#output\_csi\_driver\_smb\_values) | Helm values.yaml used for SMB CSI driver |
+| <a name="output_domain_assignments"></a> [domain\_assignments](#output\_domain\_assignments) | Assignments of domains to IPs based on reverse DNS |
 | <a name="output_haproxy_values"></a> [haproxy\_values](#output\_haproxy\_values) | Helm values.yaml used for HAProxy |
 | <a name="output_ingress_public_ipv4"></a> [ingress\_public\_ipv4](#output\_ingress\_public\_ipv4) | The public IPv4 address of the Hetzner load balancer (with fallback to first control plane node) |
 | <a name="output_ingress_public_ipv6"></a> [ingress\_public\_ipv6](#output\_ingress\_public\_ipv6) | The public IPv6 address of the Hetzner load balancer (with fallback to first control plane node) |
