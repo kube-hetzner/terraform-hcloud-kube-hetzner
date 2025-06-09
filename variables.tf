@@ -1047,7 +1047,7 @@ variable "extra_kustomize_deployment_commands" {
 }
 
 variable "extra_kustomize_parameters" {
-  type        = map(any)
+  type        = any
   default     = {}
   description = "All values will be passed to the `kustomization.tmp.yml` template."
 }
