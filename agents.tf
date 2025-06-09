@@ -51,11 +51,12 @@ locals {
       node-name = module.agents[k].name
       server    = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
       token     = local.k3s_token
+      # Kubelet arg precedence (last wins): local.kubelet_arg > v.kubelet_args > k3s_global_kubelet_args > k3s_agent_kubelet_args
       kubelet-arg = concat(
         local.kubelet_arg,
+        v.kubelet_args,
         var.k3s_global_kubelet_args,
-        var.k3s_agent_kubelet_args,
-        v.kubelet_args
+        var.k3s_agent_kubelet_args
       )
       flannel-iface = local.flannel_iface
       node-ip       = module.agents[k].private_ipv4_address
