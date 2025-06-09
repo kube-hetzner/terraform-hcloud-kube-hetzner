@@ -1021,9 +1021,9 @@ variable "dns_servers" {
 }
 
 variable "address_for_connectivity_test" {
+  description = "The address to test for external connectivity before proceeding with the installation. Defaults to Cloudflare's public DNS."
   type        = string
-  default     = "1.1.1.1"
-  description = "Before installing k3s, we actually verify that there is internet connectivity. By default we ping 1.1.1.1, but if you use a proxy, you may simply want to ping that proxy instead (assuming that the proxy has its own checks for internet connectivity)."
+  default     = "8.8.8.8"
 }
 
 variable "additional_k3s_environment" {
