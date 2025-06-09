@@ -289,13 +289,19 @@ module "kube-hetzner" {
       }
     },
   ]
-  # Add custom control plane configuration options here.
+  # Add additional configuration options for control planes here.
   # E.g to enable monitoring for etcd, proxy etc:
   # control_planes_custom_config = {
   #  etcd-expose-metrics = true,
   #  kube-controller-manager-arg = "bind-address=0.0.0.0",
   #  kube-proxy-arg ="metrics-bind-address=0.0.0.0",
   #  kube-scheduler-arg = "bind-address=0.0.0.0",
+  # }
+
+  # Add additional configuration options for agent nodes and autoscaler nodes here.
+  # E.g to enable monitoring for proxy:
+  # agent_nodes_custom_config = {
+  #  kube-proxy-arg ="metrics-bind-address=0.0.0.0",
   # }
 
   # You can enable encrypted wireguard for the CNI by setting this to "true". Default is "false".
