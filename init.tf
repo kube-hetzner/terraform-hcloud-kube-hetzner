@@ -215,6 +215,12 @@ resource "null_resource" "kustomization" {
     destination = "/var/post_install/kustomization.yaml"
   }
 
+  # Upload the flannel RBAC fix
+  provisioner "file" {
+    content     = file("${path.module}/kustomize/flannel-rbac.yaml")
+    destination = "/var/post_install/flannel-rbac.yaml"
+  }
+
   # Upload traefik ingress controller config
   provisioner "file" {
     content = templatefile(
