@@ -3,7 +3,7 @@
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.8.0 |
 | <a name="requirement_assert"></a> [assert](#requirement\_assert) | >= 0.16.0 |
 | <a name="requirement_github"></a> [github](#requirement\_github) | >= 6.4.0 |
 | <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.51.0 |
