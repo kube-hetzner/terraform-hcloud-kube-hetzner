@@ -5,7 +5,7 @@
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.5.0 |
 | <a name="requirement_github"></a> [github](#requirement\_github) | >= 6.4.0 |
-| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.49.1 |
+| <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.51.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.5.2 |
 | <a name="requirement_remote"></a> [remote](#requirement\_remote) | >= 0.1.3 |
 
@@ -15,7 +15,7 @@
 |------|---------|
 | <a name="provider_cloudinit"></a> [cloudinit](#provider\_cloudinit) | n/a |
 | <a name="provider_github"></a> [github](#provider\_github) | >= 6.4.0 |
-| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.49.1 |
+| <a name="provider_hcloud"></a> [hcloud](#provider\_hcloud) | >= 1.51.0 |
 | <a name="provider_local"></a> [local](#provider\_local) | >= 2.5.2 |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 | <a name="provider_random"></a> [random](#provider\_random) | n/a |
@@ -102,6 +102,8 @@
 | <a name="input_authentication_config"></a> [authentication\_config](#input\_authentication\_config) | Strucutred authentication configuration. This can be used to define external authentication providers. | `string` | `""` | no |
 | <a name="input_automatically_upgrade_k3s"></a> [automatically\_upgrade\_k3s](#input\_automatically\_upgrade\_k3s) | Whether to automatically upgrade k3s based on the selected channel. | `bool` | `true` | no |
 | <a name="input_automatically_upgrade_os"></a> [automatically\_upgrade\_os](#input\_automatically\_upgrade\_os) | Whether to enable or disable automatic os updates. Defaults to true. Should be disabled for single-node clusters | `bool` | `true` | no |
+| <a name="input_autoscaler_disable_ipv4"></a> [autoscaler\_disable\_ipv4](#input\_autoscaler\_disable\_ipv4) | Disable IPv4 on nodes created by the Cluster Autoscaler. | `bool` | `false` | no |
+| <a name="input_autoscaler_disable_ipv6"></a> [autoscaler\_disable\_ipv6](#input\_autoscaler\_disable\_ipv6) | Disable IPv6 on nodes created by the Cluster Autoscaler. | `bool` | `false` | no |
 | <a name="input_autoscaler_labels"></a> [autoscaler\_labels](#input\_autoscaler\_labels) | Labels for nodes created by the Cluster Autoscaler. | `list(string)` | `[]` | no |
 | <a name="input_autoscaler_nodepools"></a> [autoscaler\_nodepools](#input\_autoscaler\_nodepools) | Cluster autoscaler nodepools. | <pre>list(object({<br/>    name         = string<br/>    server_type  = string<br/>    location     = string<br/>    min_nodes    = number<br/>    max_nodes    = number<br/>    labels       = optional(map(string), {})<br/>    kubelet_args = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])<br/>    taints = optional(list(object({<br/>      key    = string<br/>      value  = string<br/>      effect = string<br/>    })), [])<br/>  }))</pre> | `[]` | no |
 | <a name="input_autoscaler_taints"></a> [autoscaler\_taints](#input\_autoscaler\_taints) | Taints for nodes created by the Cluster Autoscaler. | `list(string)` | `[]` | no |
