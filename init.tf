@@ -221,7 +221,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
         version          = var.traefik_version
-        values           = indent(4, trimspace(local.traefik_values))
+        values           = indent(4, local.traefik_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/traefik_ingress.yaml"
@@ -233,7 +233,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
         version          = var.nginx_version
-        values           = indent(4, trimspace(local.nginx_values))
+        values           = indent(4, local.nginx_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/nginx_ingress.yaml"
@@ -245,7 +245,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/haproxy_ingress.yaml.tpl",
       {
         version          = var.haproxy_version
-        values           = indent(4, trimspace(local.haproxy_values))
+        values           = indent(4, local.haproxy_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/haproxy_ingress.yaml"
@@ -293,7 +293,7 @@ resource "null_resource" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        values  = indent(4, trimspace(local.cilium_values))
+        values  = indent(4, local.cilium_values)
         version = var.cilium_version
     })
     destination = "/var/post_install/cilium.yaml"
@@ -321,7 +321,7 @@ resource "null_resource" "kustomization" {
         longhorn_repository = var.longhorn_repository
         version             = var.longhorn_version
         bootstrap           = var.longhorn_helmchart_bootstrap
-        values              = indent(4, trimspace(local.longhorn_values))
+        values              = indent(4, local.longhorn_values)
     })
     destination = "/var/post_install/longhorn.yaml"
   }
@@ -332,7 +332,7 @@ resource "null_resource" "kustomization" {
       "${path.module}/templates/hcloud-csi.yaml.tpl",
       {
         version = coalesce(local.csi_version, "*")
-        values  = indent(4, trimspace(local.hetzner_csi_values))
+        values  = indent(4, local.hetzner_csi_values)
       }
     )
     destination = "/var/post_install/hcloud-csi.yaml"
@@ -345,7 +345,7 @@ resource "null_resource" "kustomization" {
       {
         version   = var.csi_driver_smb_version
         bootstrap = var.csi_driver_smb_helmchart_bootstrap
-        values    = indent(4, trimspace(local.csi_driver_smb_values))
+        values    = indent(4, local.csi_driver_smb_values)
     })
     destination = "/var/post_install/csi-driver-smb.yaml"
   }
@@ -357,7 +357,7 @@ resource "null_resource" "kustomization" {
       {
         version   = var.cert_manager_version
         bootstrap = var.cert_manager_helmchart_bootstrap
-        values    = indent(4, trimspace(local.cert_manager_values))
+        values    = indent(4, local.cert_manager_values)
     })
     destination = "/var/post_install/cert_manager.yaml"
   }
@@ -370,7 +370,7 @@ resource "null_resource" "kustomization" {
         rancher_install_channel = var.rancher_install_channel
         version                 = var.rancher_version
         bootstrap               = var.rancher_helmchart_bootstrap
-        values                  = indent(4, trimspace(local.rancher_values))
+        values                  = indent(4, local.rancher_values)
     })
     destination = "/var/post_install/rancher.yaml"
   }
