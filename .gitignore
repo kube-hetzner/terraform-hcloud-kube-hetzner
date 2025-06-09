@@ -45,3 +45,6 @@ issue_fix.patch
 
 # AI related files
 CLAUDE.md
+
+# Misc
+.DS_Store

@@ -430,6 +430,8 @@ locals {
     "cilium" = ["cilium.yaml"]
   }
 
+  prefer_bundled_bin_config = var.k3s_prefer_bundled_bin ? { "prefer-bundled-bin" = true } : {}
+
   cni_install_resource_patches = {
     "calico" = ["calico.yaml"]
   }

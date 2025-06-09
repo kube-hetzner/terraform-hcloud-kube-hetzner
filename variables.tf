@@ -1129,6 +1129,12 @@ variable "k3s_exec_agent_args" {
   description = "Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example."
 }
 
+variable "k3s_prefer_bundled_bin" {
+  type        = bool
+  default     = false
+  description = "Whether to use the bundled k3s mount binary instead of the one from the distro's util-linux package."
+}
+
 variable "k3s_global_kubelet_args" {
   type        = list(string)
   default     = []

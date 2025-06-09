@@ -143,7 +143,8 @@ locals {
       var.additional_tls_sans)
     },
     local.etcd_s3_snapshots,
-    var.control_planes_custom_config
+    var.control_planes_custom_config,
+    local.prefer_bundled_bin_config
   ) }
 }
 
