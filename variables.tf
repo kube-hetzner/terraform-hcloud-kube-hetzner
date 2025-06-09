@@ -370,6 +370,19 @@ variable "autoscaler_taints" {
   default     = []
 }
 
+variable "autoscaler_disable_ipv4" {
+  description = "Disable IPv4 on nodes created by the Cluster Autoscaler."
+  type        = bool
+  default     = false
+}
+
+variable "autoscaler_disable_ipv6" {
+  description = "Disable IPv6 on nodes created by the Cluster Autoscaler."
+  type        = bool
+  default     = false
+}
+
+
 variable "hetzner_ccm_version" {
   type        = string
   default     = null
@@ -1028,12 +1041,17 @@ variable "dns_servers" {
     condition     = length(var.dns_servers) <= 3
     error_message = "The list must have no more than 3 items."
   }
+
+  validation {
+    condition     = alltrue([for ip in var.dns_servers : provider::assert::ip(ip)])
+    error_message = "Some IP addresses are incorrect."
+  }
 }
 
 variable "address_for_connectivity_test" {
+  description = "The address to test for external connectivity before proceeding with the installation. Defaults to Google's public DNS."
   type        = string
-  default     = "1.1.1.1"
-  description = "Before installing k3s, we actually verify that there is internet connectivity. By default we ping 1.1.1.1, but if you use a proxy, you may simply want to ping that proxy instead (assuming that the proxy has its own checks for internet connectivity)."
+  default     = "8.8.8.8"
 }
 
 variable "additional_k3s_environment" {
@@ -1062,7 +1080,7 @@ variable "extra_kustomize_deployment_commands" {
 }
 
 variable "extra_kustomize_parameters" {
-  type        = map(any)
+  type        = any
   default     = {}
   description = "All values will be passed to the `kustomization.tmp.yml` template."
 }
@@ -1100,13 +1118,13 @@ variable "enable_wireguard" {
 variable "control_planes_custom_config" {
   type        = any
   default     = {}
-  description = "Custom control plane configuration e.g to allow etcd monitoring."
+  description = "Additional configuration for control planes that will be added to k3s's config.yaml. E.g to allow etcd monitoring."
 }
 
 variable "agent_nodes_custom_config" {
   type        = any
   default     = {}
-  description = "Custom agent nodes configuration."
+  description = "Additional configuration for agent nodes and autoscaler nodes that will be added to k3s's config.yaml. E.g to allow kube-proxy monitoring."
 }
 
 variable "k3s_registries" {
@@ -1137,6 +1155,12 @@ variable "k3s_exec_agent_args" {
   type        = string
   default     = ""
   description = "Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example."
+}
+
+variable "k3s_prefer_bundled_bin" {
+  type        = bool
+  default     = false
+  description = "Whether to use the bundled k3s mount binary instead of the one from the distro's util-linux package."
 }
 
 variable "k3s_global_kubelet_args" {

@@ -157,11 +157,12 @@ locals {
         module.control_planes[k].private_ipv4_address == module.control_planes[keys(module.control_planes)[0]].private_ipv4_address ?
         module.control_planes[keys(module.control_planes)[1]].private_ipv4_address :
       module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-      token                       = local.k3s_token
-      disable-cloud-controller    = true
-      disable-kube-proxy          = var.disable_kube_proxy
-      disable                     = local.disable_extras
-      kubelet-arg                 = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, v.kubelet_args)
+      token                    = local.k3s_token
+      disable-cloud-controller = true
+      disable-kube-proxy       = var.disable_kube_proxy
+      disable                  = local.disable_extras
+      # Kubelet arg precedence (last wins): local.kubelet_arg > v.kubelet_args > k3s_global_kubelet_args > k3s_control_plane_kubelet_args
+      kubelet-arg                 = concat(local.kubelet_arg, v.kubelet_args, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args)
       kube-apiserver-arg          = local.kube_apiserver_arg
       kube-controller-manager-arg = local.kube_controller_manager_arg
       flannel-iface               = local.flannel_iface
@@ -192,7 +193,8 @@ locals {
       var.additional_tls_sans)
     },
     local.etcd_s3_snapshots,
-    var.control_planes_custom_config
+    var.control_planes_custom_config,
+    local.prefer_bundled_bin_config
   ) }
 }
 
