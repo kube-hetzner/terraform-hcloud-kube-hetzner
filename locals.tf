@@ -682,6 +682,7 @@ service:
 %{endif~}
 %{endif~}
 ports:
+%{if var.traefik_redirect_to_https || !local.using_klipper_lb~}
   web:
 %{if var.traefik_redirect_to_https~}
     redirections:
@@ -705,7 +706,10 @@ ports:
 %{for ip in var.traefik_additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
+%{endif~}
+%{endif~}
   websecure:
+%{if !local.using_klipper_lb~}
     proxyProtocol:
       trustedIPs:
         - 127.0.0.1/32
