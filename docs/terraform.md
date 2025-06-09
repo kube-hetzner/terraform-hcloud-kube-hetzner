@@ -189,6 +189,7 @@
 | <a name="input_k3s_exec_agent_args"></a> [k3s\_exec\_agent\_args](#input\_k3s\_exec\_agent\_args) | Agents nodes are started with `k3s agent {k3s_exec_agent_args}`. Use this to add kubelet-arg for example. | `string` | `""` | no |
 | <a name="input_k3s_exec_server_args"></a> [k3s\_exec\_server\_args](#input\_k3s\_exec\_server\_args) | The control plane is started with `k3s server {k3s_exec_server_args}`. Use this to add kube-apiserver-arg for example. | `string` | `""` | no |
 | <a name="input_k3s_global_kubelet_args"></a> [k3s\_global\_kubelet\_args](#input\_k3s\_global\_kubelet\_args) | Global kubelet args for all nodes. | `list(string)` | `[]` | no |
+| <a name="input_k3s_prefer_bundled_bin"></a> [k3s\_prefer\_bundled\_bin](#input\_k3s\_prefer\_bundled\_bin) | Whether to use the bundled k3s mount binary instead of the one from the distro's util-linux package. | `bool` | `false` | no |
 | <a name="input_k3s_registries"></a> [k3s\_registries](#input\_k3s\_registries) | K3S registries.yml contents. It used to access private docker registries. | `string` | `" "` | no |
 | <a name="input_k3s_token"></a> [k3s\_token](#input\_k3s\_token) | k3s master token (must match when restoring a cluster). | `string` | `null` | no |
 | <a name="input_keep_disk_agents"></a> [keep\_disk\_agents](#input\_keep\_disk\_agents) | Whether to keep OS disks of nodes the same size when upgrading an agent node | `bool` | `false` | no |
