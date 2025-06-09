@@ -52,8 +52,6 @@ locals {
       hcloud_servers.autoscaled_nodes : [for v in v.servers : v]
     ]...) : v.name => v
   }
-
-  has_dns_servers = length(var.dns_servers) > 0 ? true : false
 }
 
 resource "null_resource" "configure_autoscaler" {

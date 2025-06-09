@@ -17,6 +17,13 @@ locals {
 
   cilium_ipv4_native_routing_cidr = coalesce(var.cilium_ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
 
+  # Check if the user has set custom DNS servers.
+  has_dns_servers = length(var.dns_servers) > 0
+
+  # Separate out IPv4 and IPv6 DNS hosts.
+  dns_servers_ipv4 = [for ip in var.dns_servers : ip if provider::assert::ipv4(ip)]
+  dns_servers_ipv6 = [for ip in var.dns_servers : ip if provider::assert::ipv6(ip)]
+
   additional_k3s_environment = join("\n",
     [
       for var_name, var_value in var.additional_k3s_environment :
@@ -61,6 +68,13 @@ locals {
       local.install_system_alias,
       local.install_kubectl_bash_completion,
     ],
+    length(local.dns_servers_ipv4) > 0 ? [
+      "nmcli con mod eth0 ipv4.dns ${join(",", local.dns_servers_ipv4)}"
+    ] : [],
+    length(local.dns_servers_ipv6) > 0 ? [
+      "nmcli con mod eth0 ipv6.dns ${join(",", local.dns_servers_ipv6)}"
+    ] : [],
+    local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
