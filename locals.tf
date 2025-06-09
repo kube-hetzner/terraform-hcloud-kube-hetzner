@@ -241,7 +241,7 @@ locals {
   has_external_load_balancer = local.using_klipper_lb || var.ingress_controller == "none"
   load_balancer_name         = "${var.cluster_name}-${var.ingress_controller}"
 
-  lb_cluster_has_network = length(try(data.hcloud_load_balancer.cluster[0].network_zone, "")) > 0
+  lb_cluster_has_network = length(try(data.hcloud_load_balancer.cluster[0].private_network, try(data.hcloud_load_balancer.cluster[0].network, []))) > 0
 
   ingress_controller_service_names = {
     "traefik" = "traefik"
