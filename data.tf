@@ -31,6 +31,7 @@ data "github_release" "calico" {
 data "hcloud_load_balancer" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
   name  = local.load_balancer_name
+}
 
 data "hcloud_ssh_keys" "keys_by_selector" {
   count         = length(var.ssh_hcloud_key_label) > 0 ? 1 : 0
