@@ -20,7 +20,7 @@ resource "hcloud_load_balancer" "cluster" {
 }
 
 resource "hcloud_load_balancer_network" "cluster" {
-  count = local.has_external_load_balancer || local.lb_cluster_has_network ? 0 : 1
+  count = local.has_external_load_balancer ? 0 : 1
 
   load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
   subnet_id = (
@@ -28,6 +28,15 @@ resource "hcloud_load_balancer_network" "cluster" {
     ? hcloud_network_subnet.agent.*.id[0]
     : hcloud_network_subnet.control_plane.*.id[0]
   )
+  enable_public_interface = true
+
+  lifecycle {
+    create_before_destroy = false
+    ignore_changes = [
+      ip,
+      enable_public_interface
+    ]
+  }
 }
 
 resource "hcloud_load_balancer_target" "cluster" {
