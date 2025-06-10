@@ -53,7 +53,9 @@ locals {
       cluster_config                             = base64encode(jsonencode(local.desired_cluster_config))
       firewall_id                                = hcloud_firewall.k3s.id
       cluster_name                               = local.cluster_prefix
-      node_pools                                 = var.autoscaler_nodepools
+      node_pools                                 = var.autoscaler_nodepools,
+      disable_ipv4                               = var.autoscaler_disable_ipv4,
+      disable_ipv6                               = var.autoscaler_disable_ipv6,
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
