@@ -17,7 +17,7 @@ For more details, refer to the [Kubernetes issue #130999](https://github.com/kub
 Run the following command to identify nodes with issues:
 
 ```bash
-kubectl get pods -o wide --all-namespaces | grep CreateContainerConfigError | awk '{printf "%s,", $8} END {print ""}'
+kubectl get pods -o wide --all-namespaces | grep CreateContainerConfigError | awk '{printf "%s%s", $8, (NR == total ? "" : ",")} {total=NR} END {print ""}'
 ```
 
 **Note:** The output may include duplicates or irrelevant entries (e.g., pods with uptime of 12h).
