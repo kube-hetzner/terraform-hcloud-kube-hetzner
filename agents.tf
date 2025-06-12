@@ -23,7 +23,7 @@ module "agents" {
   ipv4_subnet_id               = hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].id
   dns_servers                  = var.dns_servers
   k3s_registries               = var.k3s_registries
-  k3s_registries_update_script = local.k3s_registries_update_script
+  k3s_registries_update_script = local.k8s_registries_update_script
   cloudinit_write_files_common = local.cloudinit_write_files_common
   cloudinit_runcmd_common      = local.cloudinit_runcmd_common
   swap_size                    = each.value.swap_size
@@ -71,6 +71,29 @@ locals {
     : (v.selinux == true ? { selinux = true } : {})
   ) }
 
+  rke2-agent-config = { for k, v in local.agent_nodes : k => merge(
+    {
+      node-name = module.agents[k].name
+      server    = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:9345"
+      token     = local.k3s_token
+      # Kubelet arg precedence (last wins): local.kubelet_arg > v.kubelet_args > k3s_global_kubelet_args > k3s_agent_kubelet_args
+      kubelet-arg = concat(
+        local.kubelet_arg,
+        v.kubelet_args,
+        var.k3s_global_kubelet_args,
+        var.k3s_agent_kubelet_args
+      )
+      node-ip    = module.agents[k].private_ipv4_address
+      node-label = v.labels
+      node-taint = v.taints
+    },
+    var.agent_nodes_custom_config,
+    # Force selinux=false if disable_selinux = true.
+    var.disable_selinux
+    ? { selinux = false }
+    : (v.selinux == true ? { selinux = true } : {})
+  ) }
+
   agent_ips = {
     for k, v in module.agents : k => coalesce(
       v.ipv4_address,
@@ -85,7 +108,7 @@ resource "null_resource" "agent_config" {
 
   triggers = {
     agent_id = module.agents[each.key].id
-    config   = sha1(yamlencode(local.k3s-agent-config[each.key]))
+    config   = local.kubernetes_distribution == "rke2" ? sha1(yamlencode(local.rke2-agent-config[each.key])) : sha1(yamlencode(local.k3s-agent-config[each.key]))
   }
 
   connection {
@@ -98,12 +121,12 @@ resource "null_resource" "agent_config" {
 
   # Generating k3s agent config file
   provisioner "file" {
-    content     = yamlencode(local.k3s-agent-config[each.key])
+    content     = local.kubernetes_distribution == "rke2" ? yamlencode(local.rke2-agent-config[each.key]) : yamlencode(local.k3s-agent-config[each.key])
     destination = "/tmp/config.yaml"
   }
 
   provisioner "remote-exec" {
-    inline = [local.k3s_config_update_script]
+    inline = [local.k8s_config_update_script]
   }
 }
 
@@ -124,12 +147,24 @@ resource "null_resource" "agents" {
 
   # Install k3s agent
   provisioner "remote-exec" {
-    inline = local.install_k3s_agent
+    inline = local.install_k8s_agent
   }
 
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
-    inline = concat(var.enable_longhorn || var.enable_iscsid ? ["systemctl enable --now iscsid"] : [], [
+    inline = concat(var.enable_longhorn || var.enable_iscsid ? ["systemctl enable --now iscsid"] : [], local.kubernetes_distribution == "rke2" ? [
+      "systemctl start rke2-agent 2> /dev/null",
+      "systemctl enable rke2-agent",
+      <<-EOT
+      timeout 120 bash <<EOF
+        until systemctl status rke2-agent > /dev/null; do
+          systemctl start rke2-agent 2> /dev/null
+          echo "Waiting for the rke2 agent to start..."
+          sleep 2
+        done
+      EOF
+      EOT
+      ] : [
       "systemctl start k3s-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
