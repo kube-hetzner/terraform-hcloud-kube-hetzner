@@ -120,6 +120,82 @@ variable "cluster_dns_ipv4" {
   default     = null
 }
 
+variable "enable_tailscale" {
+  description = <<-EOF
+    Enable Tailscale on nodes. Requires passing Tailscale authorization key
+    capable of creating devices with tags given with `advertise_tags`.
+
+    Fields:
+      - auth_key – authorization key used to connect to the Tailnet.
+      - advertise_tags – list of tags for the node (needs to be allowed by the
+        authorization key).
+      - advertise_routes – list of routes the node should advertise on Tailnet.
+      - advertise_cp_lb – advertise the private IP of the control plane load
+        balancer on Tailnet, with failover from all nodes, allowing for
+        disabling the public interface on the load balancer. Mind that each host
+        needs to have the route approved either through Tailslace admin panel or
+        by using Tailscale Terraform provider.
+      - ssh – enable Tailscale SSH (https://tailscale.com/kb/1193/tailscale-ssh,
+        not the same as accessing SSH via Tailnet IP).
+      - accept_dns – enable Tailscale MagicDNS. Mind that it might interfere
+        with NetworkManager, so it's advised to disable it or configure DNS
+        override on Tailscale side.
+      - extra_up_args – list of additional arguments for `tailscale up`.
+      - restrict_firewall – disable SSH and Kube API on the node's public
+        interface (overrides `firewall_kube_api_source` and
+        `firewall_ssh_source`).
+
+    Mind that if you're changing the state of Tailscale on a cluster it's
+    important to disable `restrict_firewall` option, so it's possible to connect
+    to the servers via SSH on a public interface to change the configuration.
+    EOF
+
+  type = object({
+    enable            = optional(bool, true)
+    auth_key          = optional(string, "")
+    advertise_tags    = optional(list(string), [])
+    advertise_routes  = optional(list(string), [])
+    advertise_cp_lb   = optional(bool, false)
+    ssh               = optional(bool, false)
+    accept_dns        = optional(bool, false)
+    extra_up_args     = optional(list(string), [])
+    restrict_firewall = optional(bool, false)
+  })
+  default  = { enable = false }
+  nullable = false
+
+  validation {
+    condition = (
+      (var.enable_tailscale.enable && startswith(var.enable_tailscale.auth_key, "tskey-"))
+      || !var.enable_tailscale.enable
+    )
+    error_message = "You need to provide a valid Tailscale authorization key."
+  }
+
+  validation {
+    condition = alltrue([
+      for tag in var.enable_tailscale.advertise_tags : startswith(tag, "tag:")
+    ])
+    error_message = "All Tailscale tags need to start with \"tag:\"."
+  }
+
+  validation {
+    condition = alltrue([
+      for route in var.enable_tailscale.advertise_routes
+      : providers::assert::cidr(route)
+    ])
+    error_message = "Provide valid CIDR routes."
+  }
+
+  validation {
+    condition = (
+      (var.enable_tailscale.restrict_firewall && var.enable_tailscale.enable)
+      || !var.enable_tailscale.restrict_firewall
+    )
+    error_message = "Cannot restrict firewall if Tailscale if disabled."
+  }
+}
+
 variable "load_balancer_location" {
   description = "Default load balancer location."
   type        = string
