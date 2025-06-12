@@ -749,6 +749,15 @@ module "kube-hetzner" {
   # k3s_agent_kubelet_args = []
   # k3s_autoscaler_kubelet_args = []
 
+  # https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/
+  # k3s_kubelet_config = <<-EOT
+  #   apiVersion: kubelet.config.k8s.io/v1beta1
+  #   kind: KubeletConfiguration
+  #   imageGCLowThresholdPercent: 40
+  #   imageGCHighThresholdPercent: 50
+  #   imageMaximumGCAge: 24h
+  # EOT
+
   # If you want to allow all outbound traffic you can set this to "false". Default is "true".
   # restrict_outbound_traffic = false
 

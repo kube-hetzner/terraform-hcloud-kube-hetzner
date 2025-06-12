@@ -1105,6 +1105,12 @@ variable "k3s_registries" {
   type        = string
 }
 
+variable "k3s_kubelet_config" {
+  description = "K3S kubelet-config.yaml contents. It used to configure the kubelet."
+  default     = ""
+  type        = string
+}
+
 variable "additional_tls_sans" {
   description = "Additional TLS SANs to allow connection to control-plane through it."
   default     = []
