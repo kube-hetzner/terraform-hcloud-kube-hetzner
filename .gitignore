@@ -42,3 +42,9 @@ kustomization.yaml
 kube.tf
 .terraform.lock.hcl
 issue_fix.patch
+
+# AI related files
+CLAUDE.md
+
+# Misc
+.DS_Store

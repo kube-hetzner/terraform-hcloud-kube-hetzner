@@ -292,6 +292,8 @@ For Traefik, Nginx, HAProxy, Rancher, Cilium, Traefik, and Longhorn, for maximum
 
 If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating one or more `extra-manifests/kustomization.yaml.tpl` files beside your `kube.tf`.
 
+If you'd like to use a different folder name, you can configure it using the `extra_kustomize_folder` variable. By default, it is set to `extra-manifests`. This can be useful when working with multiple environments, allowing you to deploy different manifests for each one.
+
 These files need to be valid `Kustomization` manifests, additionally supporting terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable (via a map) to the module).
 
 All files in the `extra-manifests` directory and its subdirectories including the rendered versions of the `*.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
@@ -755,7 +757,7 @@ module "kube-hetzner" {
 
   # ...
 
-  postinstall_exec = [
+  postinstall_exec = compact([
     (
       local.etcd_snapshot_name == "" ? "" :
       <<-EOF
@@ -813,7 +815,7 @@ module "kube-hetzner" {
       fi
       EOF
     )
-  ]
+  ])
   # ...
 }
 ```
@@ -1013,6 +1015,7 @@ If you follow this values, in your kube.tf, please set:
 - `existing_network_id = [YOURID]` (with the brackets)
 - `network_ipv4_cidr = "10.0.0.0/9"`
 - Add `disable_ipv4 = true` and  `disable_ipv6 = true` in all machines in all nodepools (control planes + agents).
+- Add `autoscaler_disable_ipv4 = true` and `autoscaler_disable_ipv6 = true` to disable public ips on autoscaled nodes.
 
 This setup is compatible with a loadbalancer for your control planes, however you should consider to set
 `control_plane_lb_enable_public_interface = false` to keep ip private.

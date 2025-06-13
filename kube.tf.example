@@ -136,7 +136,7 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
-      
+
       # To disable public ips (default: false)
       # WARNING: If both values are set to "true", your server will only be accessible via a private network. Make sure you have followed
       # the instructions regarding this type of setup in README.md: "Use only private IPs in your cluster".
@@ -156,7 +156,7 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
-      
+
       # To disable public ips (default: false)
       # WARNING: If both values are set to "true", your server will only be accessible via a private network. Make sure you have followed
       # the instructions regarding this type of setup in README.md: "Use only private IPs in your cluster".
@@ -176,7 +176,7 @@ module "kube-hetzner" {
 
       # Enable automatic backups via Hetzner (default: false)
       # backups = true
-      
+
       # To disable public ips (default: false)
       # WARNING: If both values are set to "true", your server will only be accessible via a private network. Make sure you have followed
       # the instructions regarding this type of setup in README.md: "Use only private IPs in your cluster".
@@ -289,13 +289,19 @@ module "kube-hetzner" {
       }
     },
   ]
-  # Add custom control plane configuration options here.
+  # Add additional configuration options for control planes here.
   # E.g to enable monitoring for etcd, proxy etc:
   # control_planes_custom_config = {
   #  etcd-expose-metrics = true,
   #  kube-controller-manager-arg = "bind-address=0.0.0.0",
   #  kube-proxy-arg ="metrics-bind-address=0.0.0.0",
   #  kube-scheduler-arg = "bind-address=0.0.0.0",
+  # }
+
+  # Add additional configuration options for agent nodes and autoscaler nodes here.
+  # E.g to enable monitoring for proxy:
+  # agent_nodes_custom_config = {
+  #  kube-proxy-arg ="metrics-bind-address=0.0.0.0",
   # }
 
   # You can enable encrypted wireguard for the CNI by setting this to "true". Default is "false".
@@ -377,6 +383,10 @@ module "kube-hetzner" {
   #    # kubelet_args = ["kube-reserved=cpu=250m,memory=1500Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"]
   #  }
   # ]
+  #
+  # To disable public ips on your autoscaled nodes, uncomment the following lines:
+  # autoscaler_disable_ipv4 = true
+  # autoscaler_disable_ipv6 = true
 
   # ⚠️ Deprecated, will be removed after a new Cluster Autoscaler version has been released which support the new way of setting labels and taints. See above.
   # Add extra labels on nodes started by the Cluster Autoscaler
@@ -504,6 +514,10 @@ module "kube-hetzner" {
   # If you want to use a specific Hetzner CCM and CSI version, set them below; otherwise, leave them as-is for the latest versions.
   # See https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases for the available versions.
   # hetzner_ccm_version = ""
+
+  # By default, new installations use Helm to install Hetzner CCM. You can use the legacy deployment method (using `kubectl apply`) by setting `hetzner_ccm_use_helm = false`.
+  hetzner_ccm_use_helm = true
+
   # See https://github.com/hetznercloud/csi-driver/releases for the available versions.
   # hetzner_csi_version = ""
 
@@ -595,7 +609,7 @@ module "kube-hetzner" {
   #   Even if patched to remove the "default" label, the local-path storage class will be reset as default on each reboot of
   #   the node where the controller runs.
   #   This is not a problem if you explicitly define which storageclass to use in your PVCs.
-  #   Workaround if you don't want two default storage classes: leave this to false and add the local-path-provisioner helm chart 
+  #   Workaround if you don't want two default storage classes: leave this to false and add the local-path-provisioner helm chart
   #   as an extra (https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#adding-extras).
   # enable_local_storage = false
 
@@ -646,7 +660,7 @@ module "kube-hetzner" {
   # Allows you to specify the k3s version. If defined, supersedes initial_k3s_channel.
   # See https://github.com/k3s-io/k3s/releases for the available versions.
   # install_k3s_version = "v1.30.2+k3s2"
-  
+
   # Allows you to specify either stable, latest, testing or supported minor versions.
   # see https://rancher.com/docs/k3s/latest/en/upgrades/basic/ and https://update.k3s.io/v1-release/channels
   # ⚠️ If you are going to use Rancher addons for instance, it's always a good idea to fix the kube version to one minor version below the latest stable,
@@ -694,8 +708,8 @@ module "kube-hetzner" {
   #   "trust anchor --store /root/ca.crt",
   # ]
 
-  # Structured authentication configuration. Multiple authentication providers support requires v1.30+ of 
-  # kubernetes.  
+  # Structured authentication configuration. Multiple authentication providers support requires v1.30+ of
+  # kubernetes.
   # https://kubernetes.io/docs/reference/access-authn-authz/authentication/#using-authentication-configuration
   #
   # authentication_config = <<-EOT
@@ -735,7 +749,8 @@ module "kube-hetzner" {
   #         prefix: "oidc:"
   #   EOT
 
-
+  # Set to true if util-linux breaks on the OS (temporary regression fixed in util-linux v2.41.1).
+  # k3s_prefer_bundled_bin = true
 
   # Additional flags to pass to the k3s server command (the control plane).
   # k3s_exec_server_args = "--kube-apiserver-arg enable-admission-plugins=PodTolerationRestriction,PodNodeSelector"
@@ -768,7 +783,7 @@ module "kube-hetzner" {
   # firewall_ssh_source = ["1.2.3.4/32"]
 
   # By default, SELinux is enabled in enforcing mode on all nodes. For container-specific SELinux issues,
-  # consider using the pre-installed 'udica' tool to create custom, targeted SELinux policies instead of 
+  # consider using the pre-installed 'udica' tool to create custom, targeted SELinux policies instead of
   # disabling SELinux globally. See the "Fix SELinux issues with udica" example in the README for details.
   # disable_selinux = false
 
@@ -1186,7 +1201,7 @@ terraform {
   required_providers {
     hcloud = {
       source  = "hetznercloud/hcloud"
-      version = ">= 1.49.1"
+      version = ">= 1.51.0"
     }
   }
 }

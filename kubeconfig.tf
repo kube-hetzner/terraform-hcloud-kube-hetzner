@@ -10,7 +10,7 @@ resource "ssh_sensitive_resource" "kubeconfig" {
   bastion_user        = local.ssh_bastion.bastion_user
   bastion_private_key = local.ssh_bastion.bastion_private_key
 
-  host        = local.first_control_plane_ip
+  host        = can(ipv6(local.first_control_plane_ip)) ? "[${local.first_control_plane_ip}]" : local.first_control_plane_ip
   port        = var.ssh_port
   user        = "root"
   private_key = var.ssh_private_key
