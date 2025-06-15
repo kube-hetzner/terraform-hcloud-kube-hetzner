@@ -41,22 +41,25 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
 
 Assumptions (change these to your values!):
 - vSwitch subnet: `10.1.0.0/24`
-- vSwitch ID: `4022`
+- vSwitch ID: `9999` # arbitrary value, replace with your vSwitch ID
 - Main interface: `enp6s0`
 
-```bash
-nmcli connection add type vlan con-name vlan4022 ifname vlan4022 vlan.parent enp6s0 vlan.id 4022
+> [!CAUTION]
+> The routes and CIDR notations depend on your local setup and may vary depending on your network configuration.
 
-nmcli connection modify vlan4022 802-3-ethernet.mtu 1400
-nmcli connection modify vlan4022 ipv4.addresses '10.1.0.2/24'
-nmcli connection modify vlan4022 ipv4.gateway '10.1.0.1'
-nmcli connection modify vlan4022 ipv4.method manual
+```bash
+nmcli connection add type vlan con-name vlan9999 ifname vlan9999 vlan.parent enp6s0 vlan.id 9999
+
+nmcli connection modify vlan9999 802-3-ethernet.mtu 1400
+nmcli connection modify vlan9999 ipv4.addresses '10.1.0.2/24'
+nmcli connection modify vlan9999 ipv4.gateway '10.1.0.1'
+nmcli connection modify vlan9999 ipv4.method manual
 # Route all 10.x IPs through the vSwitch gateway
-nmcli connection modify vlan4022 +ipv4.routes "10.0.0.0/8 10.1.0.1"
+nmcli connection modify vlan9999 +ipv4.routes "10.0.0.0/8 10.1.0.1"
 
 # Apply the config
-nmcli connection down vlan4022
-nmcli connection up vlan4022
+nmcli connection down vlan9999
+nmcli connection up vlan9999
 ```
 
 </details>
