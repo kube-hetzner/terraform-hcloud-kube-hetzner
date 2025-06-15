@@ -19,13 +19,6 @@ resource "local_file" "hetzner_ccm_values" {
   file_permission = "600"
 }
 
-resource "local_file" "cilium_values" {
-  count           = var.export_values && var.cni_plugin == "cilium" ? 1 : 0
-  content         = local.cilium_values
-  filename        = "cilium_values.yaml"
-  file_permission = "600"
-}
-
 resource "local_file" "csi_driver_smb_values" {
   count           = var.export_values && var.enable_csi_driver_smb ? 1 : 0
   content         = local.csi_driver_smb_values
