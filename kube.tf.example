@@ -977,9 +977,6 @@ module "kube-hetzner" {
   # The following is an example, please note that the current indentation inside the EOT is important.
   /*   cilium_values = <<EOT
 
-  # Hetzner Cloud Controller Manager, all Hetzner Cloud Controller Manager helm values can be found at https://github.com/hetznercloud/hcloud-cloud-controller-manager/blob/main/chart/values.yaml
-  /* hetzner_ccm_values = <<EOT
-
 ipam:
   mode: kubernetes
 k8s:
