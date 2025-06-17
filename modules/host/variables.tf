@@ -162,3 +162,13 @@ variable "network_id" {
   default     = null
   description = "The network id to attach the server to."
 }
+
+variable "ssh_bastion" {
+  type = object({
+
+    bastion_host        = string
+    bastion_port        = number
+    bastion_user        = string
+    bastion_private_key = string
+  })
+}

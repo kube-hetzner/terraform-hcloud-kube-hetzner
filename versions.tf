@@ -13,9 +13,9 @@ terraform {
       source  = "hashicorp/local"
       version = ">= 2.5.2"
     }
-    remote = {
-      source  = "tenstad/remote"
-      version = ">= 0.1.3"
+    ssh = {
+      source  = "loafoe/ssh"
+      version = "2.7.0"
     }
     assert = {
       source  = "hashicorp/assert"
