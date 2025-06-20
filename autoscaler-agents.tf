@@ -41,7 +41,9 @@ locals {
       cluster_config                             = base64encode(jsonencode(local.cluster_config))
       firewall_id                                = hcloud_firewall.k3s.id
       cluster_name                               = local.cluster_prefix
-      node_pools                                 = var.autoscaler_nodepools
+      node_pools                                 = var.autoscaler_nodepools,
+      disable_ipv4                               = var.autoscaler_disable_ipv4,
+      disable_ipv6                               = var.autoscaler_disable_ipv6,
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
@@ -50,8 +52,6 @@ locals {
       hcloud_servers.autoscaled_nodes : [for v in v.servers : v]
     ]...) : v.name => v
   }
-
-  has_dns_servers = length(var.dns_servers) > 0 ? true : false
 }
 
 resource "null_resource" "configure_autoscaler" {
@@ -105,18 +105,24 @@ data "cloudinit_config" "autoscaler_config" {
         dns_servers       = var.dns_servers
         has_dns_servers   = local.has_dns_servers
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
-        k3s_config = yamlencode({
-          server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-          token         = local.k3s_token
-          kubelet-arg   = concat(local.kubelet_arg, var.k3s_global_kubelet_args, var.k3s_autoscaler_kubelet_args, var.autoscaler_nodepools[count.index].kubelet_args)
-          flannel-iface = local.flannel_iface
-          node-label    = concat(local.default_agent_labels, [for k, v in var.autoscaler_nodepools[count.index].labels : "${k}=${v}"])
-          node-taint    = concat(local.default_agent_taints, [for taint in var.autoscaler_nodepools[count.index].taints : "${taint.key}=${taint.value}:${taint.effect}"])
-          selinux       = true
-        })
+        k3s_config = yamlencode(merge(
+          {
+            server = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+            token  = local.k3s_token
+            # Kubelet arg precedence (last wins): local.kubelet_arg > nodepool.kubelet_args > k3s_global_kubelet_args > k3s_autoscaler_kubelet_args
+            kubelet-arg   = concat(local.kubelet_arg, var.autoscaler_nodepools[count.index].kubelet_args, var.k3s_global_kubelet_args, var.k3s_autoscaler_kubelet_args)
+            flannel-iface = local.flannel_iface
+            node-label    = concat(local.default_agent_labels, [for k, v in var.autoscaler_nodepools[count.index].labels : "${k}=${v}"])
+            node-taint    = concat(local.default_agent_taints, [for taint in var.autoscaler_nodepools[count.index].taints : "${taint.key}=${tostring(taint.value)}:${taint.effect}"])
+            selinux       = !var.disable_selinux
+          },
+          var.agent_nodes_custom_config,
+          local.prefer_bundled_bin_config
+        ))
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
-        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common,
+        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
       }
     )
   }
@@ -139,18 +145,23 @@ data "cloudinit_config" "autoscaler_legacy_config" {
         dns_servers       = var.dns_servers
         has_dns_servers   = local.has_dns_servers
         sshAuthorizedKeys = concat([var.ssh_public_key], var.ssh_additional_public_keys)
-        k3s_config = yamlencode({
-          server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
-          token         = local.k3s_token
-          kubelet-arg   = local.kubelet_arg
-          flannel-iface = local.flannel_iface
-          node-label    = concat(local.default_agent_labels, var.autoscaler_labels)
-          node-taint    = concat(local.default_agent_taints, var.autoscaler_taints)
-          selinux       = true
-        })
+        k3s_config = yamlencode(merge(
+          {
+            server        = "https://${var.use_control_plane_lb ? hcloud_load_balancer_network.control_plane.*.ip[0] : module.control_planes[keys(module.control_planes)[0]].private_ipv4_address}:6443"
+            token         = local.k3s_token
+            kubelet-arg   = local.kubelet_arg
+            flannel-iface = local.flannel_iface
+            node-label    = concat(local.default_agent_labels, var.autoscaler_labels)
+            node-taint    = concat(local.default_agent_taints, var.autoscaler_taints)
+            selinux       = !var.disable_selinux
+          },
+          var.agent_nodes_custom_config,
+          local.prefer_bundled_bin_config
+        ))
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common
-        cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common,
+        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
       }
     )
   }

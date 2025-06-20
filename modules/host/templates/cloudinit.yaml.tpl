@@ -1,7 +1,5 @@
 #cloud-config
 
-debug: True
-
 write_files:
 
 ${cloudinit_write_files_common}

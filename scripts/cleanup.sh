@@ -21,7 +21,7 @@ fi
 
 
 # Try to guess the cluster name
-GUESSED_CLUSTER_NAME=$(grep -oP 'cluster_name\s*=\s*"\K([^"]+)' kube.tf)
+GUESSED_CLUSTER_NAME=$(sed -n 's/^[[:space:]]*cluster_name[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' kube.tf 2>/dev/null)
 
 if [ -n "$GUESSED_CLUSTER_NAME" ]; then
   echo "Cluster name '$GUESSED_CLUSTER_NAME' has been detected in the kube.tf file."
@@ -62,7 +62,6 @@ fi
 
 HCLOUD_SELECTOR=(--selector='provisioner=terraform' --selector="cluster=$CLUSTER_NAME")
 HCLOUD_OUTPUT_OPTIONS=(-o noheader -o 'columns=id')
-NODEPOOLS=( $(${terraform_command} state list | grep -oP 'module.kube-hetzner.data.hcloud_servers.autoscaled_nodes\["\K([^"]+)') )
 
 VOLUMES=()
 while IFS='' read -r line; do VOLUMES+=("$line"); done < <(hcloud volume list "${HCLOUD_SELECTOR[@]}" "${HCLOUD_OUTPUT_OPTIONS[@]}")

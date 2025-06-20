@@ -1,5 +1,5 @@
 locals {
-  user_kustomization_templates = try(fileset("extra-manifests", "**/*.yaml.tpl"), toset([]))
+  user_kustomization_templates = try(fileset(var.extra_kustomize_folder, "**/*.yaml.tpl"), toset([]))
 }
 
 resource "null_resource" "kustomization_user" {
@@ -20,12 +20,12 @@ resource "null_resource" "kustomization_user" {
   }
 
   provisioner "file" {
-    content     = templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters)
+    content     = templatefile("${var.extra_kustomize_folder}/${each.key}", var.extra_kustomize_parameters)
     destination = replace("/var/user_kustomize/${each.key}", ".yaml.tpl", ".yaml")
   }
 
   triggers = {
-    manifest_sha1 = "${sha1(templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters))}"
+    manifest_sha1 = "${sha1(templatefile("${var.extra_kustomize_folder}/${each.key}", var.extra_kustomize_parameters))}"
   }
 
   depends_on = [
