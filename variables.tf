@@ -305,6 +305,14 @@ variable "agent_nodepools" {
     error_message = "Hetzner does not support networks with more than 100 servers."
   }
 
+  validation {
+    condition = (
+      can(regex("^/([a-zA-Z0-9._-]+/?)*$", var.longhorn_mount_path)) &&
+      !endswith(var.longhorn_mount_path, "/") || var.longhorn_mount_path == "/"
+    )
+    error_message = "The longhorn_mount_path must be a valid absolute Linux path without a trailing slash (except root '/'), and contain only alphanumeric characters, dashes, underscores, and dots."
+  }
+
 }
 
 variable "cluster_autoscaler_image" {
