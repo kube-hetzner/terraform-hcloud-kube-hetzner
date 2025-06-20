@@ -192,10 +192,10 @@ resource "null_resource" "configure_longhorn_volume" {
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = [
-      "mkdir ${var.longhorn_mount_path} >/dev/null 2>&1",
-      "mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} ${var.longhorn_mount_path}",
-      "${var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
-      "echo '${hcloud_volume.longhorn_volume[each.key].linux_device} ${var.longhorn_mount_path} ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
+      "mkdir -p ${each.value.longhorn_mount_path} >/dev/null 2>&1",
+      "mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} ${each.value.longhorn_mount_path}",
+      "${var.longhorn_fstype == \"ext4\" ? \"resize2fs\" : \"xfs_growfs\"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
+      "grep -qF '${each.value.longhorn_mount_path}' /etc/fstab || echo '${hcloud_volume.longhorn_volume[each.key].linux_device} ${each.value.longhorn_mount_path} ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
     ]
   }
 
