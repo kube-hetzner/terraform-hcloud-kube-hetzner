@@ -719,8 +719,8 @@ ports:
 %{endfor~}
 %{endif~}
 %{endif~}
-  websecure:
 %{if !local.using_klipper_lb~}
+  websecure:
     proxyProtocol:
       trustedIPs:
         - 127.0.0.1/32
