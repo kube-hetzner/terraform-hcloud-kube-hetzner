@@ -1,5 +1,5 @@
 locals {
-  user_kustomization_templates = try(fileset("extra-manifests", "**/*.yaml.tpl"), toset([]))
+  user_kustomization_templates = try(fileset(var.extra_kustomize_folder, "**/*.yaml.tpl"), toset([]))
 }
 
 resource "terraform_data" "kustomization_user" {
@@ -9,7 +9,7 @@ resource "terraform_data" "kustomization_user" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    host           = local.first_control_plane_ip
     port           = var.ssh_port
   }
 
@@ -20,12 +20,12 @@ resource "terraform_data" "kustomization_user" {
   }
 
   provisioner "file" {
-    content     = templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters)
+    content     = templatefile("${var.extra_kustomize_folder}/${each.key}", var.extra_kustomize_parameters)
     destination = replace("/var/user_kustomize/${each.key}", ".yaml.tpl", ".yaml")
   }
 
   triggers_replace = {
-    manifest_sha1 = "${sha1(templatefile("extra-manifests/${each.key}", var.extra_kustomize_parameters))}"
+    manifest_sha1 = "${sha1(templatefile("${var.extra_kustomize_folder}/${each.key}", var.extra_kustomize_parameters))}"
   }
 
   depends_on = [
@@ -44,7 +44,7 @@ resource "terraform_data" "kustomization_user_deploy" {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    host           = local.first_control_plane_ip
     port           = var.ssh_port
   }
 

@@ -19,13 +19,63 @@ resource "hcloud_load_balancer" "cluster" {
   }
 }
 
+resource "hcloud_load_balancer_network" "cluster" {
+  count = local.has_external_load_balancer ? 0 : 1
+
+  load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
+  subnet_id = (
+    length(hcloud_network_subnet.agent) > 0
+    ? hcloud_network_subnet.agent.*.id[0]
+    : hcloud_network_subnet.control_plane.*.id[0]
+  )
+  enable_public_interface = true
+
+  lifecycle {
+    create_before_destroy = false
+    ignore_changes = [
+      ip,
+      enable_public_interface
+    ]
+  }
+}
+
+resource "hcloud_load_balancer_target" "cluster" {
+  count = local.has_external_load_balancer ? 0 : 1
+
+  depends_on       = [hcloud_load_balancer_network.cluster]
+  type             = "label_selector"
+  load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
+  label_selector = join(",", concat(
+    [for k, v in local.labels : "${k}=${v}"],
+    [
+      # Generic label merge from control plane and agent namespaces with "or",
+      # resulting in: role in (control_plane_node,agent_node)
+      for key in keys(merge(local.labels_control_plane_node, local.labels_agent_node)) :
+      "${key} in (${
+        join(",", compact([
+          for labels in [local.labels_control_plane_node, local.labels_agent_node] :
+          try(labels[key], "")
+        ]))
+      })"
+    ]
+  ))
+  use_private_ip = true
+}
+
+locals {
+  first_control_plane_ip = coalesce(
+    module.control_planes[keys(module.control_planes)[0]].ipv4_address,
+    module.control_planes[keys(module.control_planes)[0]].ipv6_address,
+    module.control_planes[keys(module.control_planes)[0]].private_ipv4_address
+  )
+}
 
 resource "terraform_data" "first_control_plane" {
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    host           = local.first_control_plane_ip
     port           = var.ssh_port
   }
 
@@ -49,17 +99,18 @@ resource "terraform_data" "first_control_plane" {
           node-label                  = local.control_plane_nodes[keys(module.control_planes)[0]].labels
           cluster-cidr                = var.cluster_ipv4_cidr
           service-cidr                = var.service_ipv4_cidr
-          cluster-dns                 = var.cluster_dns_ipv4
+          cluster-dns                 = local.cluster_dns_ipv4
         },
         lookup(local.cni_k3s_settings, var.cni_plugin, {}),
         var.use_control_plane_lb ? {
           tls-san = concat([hcloud_load_balancer.control_plane.*.ipv4[0], hcloud_load_balancer_network.control_plane.*.ip[0]], var.additional_tls_sans)
           } : {
-          tls-san = concat([module.control_planes[keys(module.control_planes)[0]].ipv4_address], var.additional_tls_sans)
+          tls-san = concat([local.first_control_plane_ip], var.additional_tls_sans)
         },
         local.etcd_s3_snapshots,
         var.control_planes_custom_config,
-        (local.control_plane_nodes[keys(module.control_planes)[0]].selinux == true ? { selinux = true } : {})
+        (local.control_plane_nodes[keys(module.control_planes)[0]].selinux == true ? { selinux = true } : {}),
+        local.prefer_bundled_bin_config
       )
     )
 
@@ -143,17 +194,23 @@ resource "terraform_data" "kustomization" {
       coalesce(var.traefik_version, "N/A"),
       coalesce(var.nginx_version, "N/A"),
       coalesce(var.haproxy_version, "N/A"),
+      coalesce(var.cert_manager_version, "N/A"),
+      coalesce(var.csi_driver_smb_version, "N/A"),
+      coalesce(var.longhorn_version, "N/A"),
+      coalesce(var.rancher_version, "N/A"),
+      coalesce(var.sys_upgrade_controller_version, "N/A"),
     ])
     options = join("\n", [
       for option, value in local.kured_options : "${option}=${value}"
     ])
+    ccm_use_helm = var.hetzner_ccm_use_helm
   }
 
   connection {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
-    host           = module.control_planes[keys(module.control_planes)[0]].ipv4_address
+    host           = local.first_control_plane_ip
     port           = var.ssh_port
   }
 
@@ -163,13 +220,19 @@ resource "terraform_data" "kustomization" {
     destination = "/var/post_install/kustomization.yaml"
   }
 
+  # Upload the flannel RBAC fix
+  provisioner "file" {
+    content     = file("${path.module}/kustomize/flannel-rbac.yaml")
+    destination = "/var/post_install/flannel-rbac.yaml"
+  }
+
   # Upload traefik ingress controller config
   provisioner "file" {
     content = templatefile(
       "${path.module}/templates/traefik_ingress.yaml.tpl",
       {
         version          = var.traefik_version
-        values           = indent(4, trimspace(local.traefik_values))
+        values           = indent(4, local.traefik_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/traefik_ingress.yaml"
@@ -181,7 +244,7 @@ resource "terraform_data" "kustomization" {
       "${path.module}/templates/nginx_ingress.yaml.tpl",
       {
         version          = var.nginx_version
-        values           = indent(4, trimspace(local.nginx_values))
+        values           = indent(4, local.nginx_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/nginx_ingress.yaml"
@@ -193,15 +256,15 @@ resource "terraform_data" "kustomization" {
       "${path.module}/templates/haproxy_ingress.yaml.tpl",
       {
         version          = var.haproxy_version
-        values           = indent(4, trimspace(local.haproxy_values))
+        values           = indent(4, local.haproxy_values)
         target_namespace = local.ingress_controller_namespace
     })
     destination = "/var/post_install/haproxy_ingress.yaml"
   }
 
-  # Upload the CCM patch config
+  # Upload the CCM patch config using the legacy deployment
   provisioner "file" {
-    content = templatefile(
+    content = var.hetzner_ccm_use_helm ? "" : templatefile(
       "${path.module}/templates/ccm.yaml.tpl",
       {
         cluster_cidr_ipv4   = var.cluster_ipv4_cidr
@@ -209,6 +272,20 @@ resource "terraform_data" "kustomization" {
         using_klipper_lb    = local.using_klipper_lb
     })
     destination = "/var/post_install/ccm.yaml"
+  }
+
+  # Upload the CCM patch config using helm
+  provisioner "file" {
+    content = var.hetzner_ccm_use_helm ? templatefile(
+      "${path.module}/templates/hcloud-ccm-helm.yaml.tpl",
+      {
+        version             = coalesce(local.ccm_version, "*")
+        using_klipper_lb    = local.using_klipper_lb
+        default_lb_location = var.load_balancer_location
+
+      }
+    ) : ""
+    destination = "/var/post_install/hcloud-ccm-helm.yaml"
   }
 
   # Upload the calico patch config, for the kustomization of the calico manifest
@@ -227,7 +304,7 @@ resource "terraform_data" "kustomization" {
     content = templatefile(
       "${path.module}/templates/cilium.yaml.tpl",
       {
-        values  = indent(4, trimspace(local.cilium_values))
+        values  = indent(4, local.cilium_values)
         version = var.cilium_version
     })
     destination = "/var/post_install/cilium.yaml"
@@ -255,24 +332,20 @@ resource "terraform_data" "kustomization" {
         longhorn_repository = var.longhorn_repository
         version             = var.longhorn_version
         bootstrap           = var.longhorn_helmchart_bootstrap
-        values              = indent(4, trimspace(local.longhorn_values))
+        values              = indent(4, local.longhorn_values)
     })
     destination = "/var/post_install/longhorn.yaml"
   }
 
   # Upload the csi-driver config (ignored if csi is disabled)
   provisioner "file" {
-    content = templatefile(
+    content = var.disable_hetzner_csi ? "" : templatefile(
       "${path.module}/templates/hcloud-csi.yaml.tpl",
       {
-        # local.csi_version is null when disable_hetzner_csi = true
-        # In that case, we set it to "*" so that the templatefile() can handle it,
-        # because tempaltefile() does not support null values. Moreover, coalesce() doesn't
-        # support empty strings either.
-        # The entire file is ignored by kustomization.yaml anyway if disable_hetzner_csi = true.
         version = coalesce(local.csi_version, "*")
-        values  = indent(4, trimspace(local.hetzner_csi_values))
-    })
+        values  = indent(4, local.hetzner_csi_values)
+      }
+    )
     destination = "/var/post_install/hcloud-csi.yaml"
   }
 
@@ -283,7 +356,7 @@ resource "terraform_data" "kustomization" {
       {
         version   = var.csi_driver_smb_version
         bootstrap = var.csi_driver_smb_helmchart_bootstrap
-        values    = indent(4, trimspace(local.csi_driver_smb_values))
+        values    = indent(4, local.csi_driver_smb_values)
     })
     destination = "/var/post_install/csi-driver-smb.yaml"
   }
@@ -295,7 +368,7 @@ resource "terraform_data" "kustomization" {
       {
         version   = var.cert_manager_version
         bootstrap = var.cert_manager_helmchart_bootstrap
-        values    = indent(4, trimspace(local.cert_manager_values))
+        values    = indent(4, local.cert_manager_values)
     })
     destination = "/var/post_install/cert_manager.yaml"
   }
@@ -308,7 +381,7 @@ resource "terraform_data" "kustomization" {
         rancher_install_channel = var.rancher_install_channel
         version                 = var.rancher_version
         bootstrap               = var.rancher_helmchart_bootstrap
-        values                  = indent(4, trimspace(local.rancher_values))
+        values                  = indent(4, local.rancher_values)
     })
     destination = "/var/post_install/rancher.yaml"
   }
@@ -359,7 +432,14 @@ resource "terraform_data" "kustomization" {
       EOT
       ]
       ,
-
+      var.hetzner_ccm_use_helm ? [
+        "echo 'Remove legacy ccm manifests if they exist'",
+        "kubectl delete serviceaccount,deployment -n kube-system --field-selector 'metadata.name=hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
+        "kubectl delete clusterrolebinding -n kube-system --field-selector 'metadata.name=system:hcloud-cloud-controller-manager' --selector='app.kubernetes.io/managed-by!=Helm'",
+        ] : [
+        "echo 'Uninstall helm ccm manifests if they exist'",
+        "kubectl delete --ignore-not-found -n kube-system helmchart.helm.cattle.io/hcloud-cloud-controller-manager",
+      ],
       [
         # Ready, set, go for the kustomization
         "kubectl apply -k /var/post_install",

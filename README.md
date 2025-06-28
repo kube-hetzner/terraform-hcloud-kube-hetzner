@@ -12,7 +12,7 @@
   </p>
   <hr />
     <p align="center">
-    🔥 Introducing <a href="https://chat.openai.com/g/g-UEqjc2qiW-kh-assistant" target="_blank">KH Assistant</a>, our Custom-GPT kube.tf generator to get you going fast, just tell it what you need! 🚀
+    🔥 Introducing <a href="https://chatgpt.com/g/g-67df95cd1e0c8191baedfa3179061581-kh-assistant" target="_blank">KH Assistant</a>, our Custom-GPT kube.tf generator to get you going fast, just tell it what you need! 🚀
   </p>
   <hr />
 </p>
@@ -291,6 +291,8 @@ For Traefik, Nginx, HAProxy, Rancher, Cilium, Traefik, and Longhorn, for maximum
 ## Adding Extras
 
 If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating one or more `extra-manifests/kustomization.yaml.tpl` files beside your `kube.tf`.
+
+If you'd like to use a different folder name, you can configure it using the `extra_kustomize_folder` variable. By default, it is set to `extra-manifests`. This can be useful when working with multiple environments, allowing you to deploy different manifests for each one.
 
 These files need to be valid `Kustomization` manifests, additionally supporting terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable (via a map) to the module).
 
@@ -755,7 +757,7 @@ module "kube-hetzner" {
 
   # ...
 
-  postinstall_exec = [
+  postinstall_exec = compact([
     (
       local.etcd_snapshot_name == "" ? "" :
       <<-EOF
@@ -813,7 +815,7 @@ module "kube-hetzner" {
       fi
       EOF
     )
-  ]
+  ])
   # ...
 }
 ```
@@ -992,6 +994,92 @@ enable_delete_protection = {
   floating_ip = true
 }
 ```
+
+</details>
+<details>
+
+<summary>Use only private ips in your cluster</summary>
+
+To use only private ips on your cluster, you need in your project:
+1. A network already configured.
+2. A machine with a public IP, with nat configured (see [Hetzner guide](https://community.hetzner.com/tutorials/how-to-set-up-nat-for-cloud-networks)).
+3. Access to your network (you can use wireguard, see [Hetzner guide](https://docs.hetzner.com/cloud/apps/list/wireguard/)).
+4. A route in your network, destination: `0.0.0.0/0` through the private ip of your machine with NAT.
+5. Make sure the connexion to your vpn is established before launching terraform.
+
+Recommended values:
+- Network range: `10.0.0.0/8`
+- Subnet for your wireguard and NAT machine: `10.128.0.0/16`
+
+If you follow this values, in your kube.tf, please set:
+- `existing_network_id = [YOURID]` (with the brackets)
+- `network_ipv4_cidr = "10.0.0.0/9"`
+- Add `disable_ipv4 = true` and  `disable_ipv6 = true` in all machines in all nodepools (control planes + agents).
+- Add `autoscaler_disable_ipv4 = true` and `autoscaler_disable_ipv6 = true` to disable public ips on autoscaled nodes.
+
+This setup is compatible with a loadbalancer for your control planes, however you should consider to set
+`control_plane_lb_enable_public_interface = false` to keep ip private.
+</details>
+
+
+<details>
+
+<summary>Fix SELinux issues with udica</summary>
+
+Rather than weakening SELinux modules for all workloads on your cluster, it's better to create a profile and apply it to a specific workload. The `udica` tool (pre-installed on MicroOS nodes) helps produce SELinux modules for running containers.
+
+Here's how to use it:
+
+1. Find the container ID for your problematic workload:
+```sh
+crictl ps
+```
+
+2. Generate a container inspection file:
+```sh
+crictl inspect <container-id> > container.json
+```
+
+3. Use udica to create an SELinux profile (with appropriate network access):
+```sh
+udica -j container.json myapp --full-network-access
+```
+
+4. Review the generated policy to understand its permissions and verify if they can be further restricted
+
+5. Install the generated SELinux module:
+```sh
+semodule -i myapp.cil /usr/share/udica/templates/{base_container.cil,net_container.cil}
+```
+
+6. Apply the custom SELinux type to your deployment by adding `securityContext` with `seLinuxOptions`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: my-container
+          image: my-image:latest
+          securityContext:
+            seLinuxOptions:
+              type: myapp.process
+```
+
+This approach is much safer than weakening SELinux for all workloads in your cluster. Many Helm charts support the `securityContext` field as well.
+
+_Thanks for the tip @carolosf._
 
 </details>
 

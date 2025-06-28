@@ -17,6 +17,13 @@ locals {
 
   cilium_ipv4_native_routing_cidr = coalesce(var.cilium_ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
 
+  # Check if the user has set custom DNS servers.
+  has_dns_servers = length(var.dns_servers) > 0
+
+  # Separate out IPv4 and IPv6 DNS hosts.
+  dns_servers_ipv4 = [for ip in var.dns_servers : ip if provider::assert::ipv4(ip)]
+  dns_servers_ipv6 = [for ip in var.dns_servers : ip if provider::assert::ipv6(ip)]
+
   additional_k3s_environment = join("\n",
     [
       for var_name, var_value in var.additional_k3s_environment :
@@ -61,6 +68,13 @@ locals {
       local.install_system_alias,
       local.install_kubectl_bash_completion,
     ],
+    length(local.dns_servers_ipv4) > 0 ? [
+      "nmcli con mod eth0 ipv4.dns ${join(",", local.dns_servers_ipv4)}"
+    ] : [],
+    length(local.dns_servers_ipv6) > 0 ? [
+      "nmcli con mod eth0 ipv6.dns ${join(",", local.dns_servers_ipv6)}"
+    ] : [],
+    local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
@@ -74,21 +88,22 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml",
         "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],
+      var.hetzner_ccm_use_helm ? ["hcloud-ccm-helm.yaml"] : ["https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml"],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
       lookup(local.cni_install_resources, var.cni_plugin, []),
+      var.cni_plugin == "flannel" ? ["flannel-rbac.yaml"] : [],
       var.enable_longhorn ? ["longhorn.yaml"] : [],
       var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
       var.enable_cert_manager || var.enable_rancher ? ["cert_manager.yaml"] : [],
       var.enable_rancher ? ["rancher.yaml"] : [],
       var.rancher_registration_manifest_url != "" ? [var.rancher_registration_manifest_url] : []
     ),
-    patches = [
+    patches = concat([
       {
         target = {
           group     = "apps"
@@ -101,11 +116,10 @@ locals {
       },
       {
         path = "kured.yaml"
-      },
-      {
-        path = "ccm.yaml"
       }
-    ]
+      ],
+      var.hetzner_ccm_use_helm ? [] : [{ path = "ccm.yaml" }]
+    )
   })
 
   apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
@@ -143,7 +157,10 @@ locals {
         index : node_index
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
-        placement_group : nodepool_obj.placement_group
+        placement_group : nodepool_obj.placement_group,
+        disable_ipv4 : nodepool_obj.disable_ipv4,
+        disable_ipv6 : nodepool_obj.disable_ipv6,
+        network_id : nodepool_obj.network_id,
       }
     }
   ]...)
@@ -168,7 +185,10 @@ locals {
         index : node_index
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
-        placement_group : nodepool_obj.placement_group
+        placement_group : nodepool_obj.placement_group,
+        disable_ipv4 : nodepool_obj.disable_ipv4,
+        disable_ipv6 : nodepool_obj.disable_ipv6,
+        network_id : nodepool_obj.network_id,
       }
     }
   ]...)
@@ -195,6 +215,9 @@ locals {
           placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
           placement_group : nodepool_obj.placement_group,
           index : floor(tonumber(node_key)),
+          disable_ipv4 : nodepool_obj.disable_ipv4,
+          disable_ipv6 : nodepool_obj.disable_ipv6,
+          network_id : nodepool_obj.network_id,
         },
         { for key, value in node_obj : key => value if value != null },
         {
@@ -219,6 +242,8 @@ locals {
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
+  # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
+  cluster_dns_ipv4 = var.cluster_dns_ipv4 != null ? var.cluster_dns_ipv4 : cidrhost(var.service_ipv4_cidr, 10)
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
@@ -280,17 +305,6 @@ locals {
         source_ips  = var.firewall_ssh_source
       },
     ],
-    var.ssh_port != null &&
-    var.firewall_ssh_source == null ? [
-      # Allow all traffic to the ssh port
-      {
-        description = "Allow Incoming SSH Traffic"
-        direction   = "in"
-        protocol    = "tcp"
-        port        = var.ssh_port
-        source_ips  = ["0.0.0.0/0", "::/0"]
-      },
-    ] : [],
     var.firewall_kube_api_source == null ? [] : [
       {
         description = "Allow Incoming Requests to Kube API Server"
@@ -416,6 +430,8 @@ locals {
     "cilium" = ["cilium.yaml"]
   }
 
+  prefer_bundled_bin_config = var.k3s_prefer_bundled_bin ? { "prefer-bundled-bin" = true } : {}
+
   cni_install_resource_patches = {
     "calico" = ["calico.yaml"]
   }
@@ -475,6 +491,9 @@ ipv4NativeRoutingCIDR: "${local.cilium_ipv4_native_routing_cidr}"
 installNoConntrackIptablesRules: true
 %{endif~}
 
+# Perform a gradual roll out on config update.
+rollOutCiliumPods: true
+
 endpointRoutes:
   # Enable use of per endpoint routes instead of routing via the cilium_host interface.
   enabled: true
@@ -489,6 +508,8 @@ bpf:
 %{if var.enable_wireguard}
 encryption:
   enabled: true
+  # Enable node encryption for node-to-node traffic
+  nodeEncryption: true
   type: wireguard
 %{endif~}
 %{if var.cilium_egress_gateway_enabled}
@@ -555,8 +576,17 @@ persistence:
   csi_driver_smb_values = var.csi_driver_smb_values != "" ? var.csi_driver_smb_values : <<EOT
   EOT
 
-  hetzner_csi_values = var.hetzner_csi_values != "" ? var.hetzner_csi_values : <<EOT
-  EOT
+  hetzner_csi_values = var.hetzner_csi_values != "" ? var.hetzner_csi_values : (!local.allow_scheduling_on_control_plane ? <<-EOT
+node:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: "node-role.kubernetes.io/control-plane"
+                operator: DoesNotExist
+EOT
+  : "")
 
   nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
 controller:
@@ -663,6 +693,7 @@ service:
 %{endif~}
 %{endif~}
 ports:
+%{if var.traefik_redirect_to_https || !local.using_klipper_lb~}
   web:
 %{if var.traefik_redirect_to_https~}
     redirections:
@@ -686,7 +717,10 @@ ports:
 %{for ip in var.traefik_additional_trusted_ips~}
         - "${ip}"
 %{endfor~}
+%{endif~}
+%{endif~}
   websecure:
+%{if !local.using_klipper_lb~}
     proxyProtocol:
       trustedIPs:
         - 127.0.0.1/32
@@ -852,12 +886,18 @@ cloudinit_write_files_common = <<EOT
 
     sleep 11
 
-    INTERFACE=$(ip link show | awk '/^3:/{print $2}' | sed 's/://g')
+    # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
+    INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
     MAC=$(cat /sys/class/net/$INTERFACE/address)
 
     cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
     SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
     EOF
+
+    if [ "$INTERFACE" = "eth1" ]; then
+      echo "Interface $INTERFACE already points to $MAC, skipping..."
+      exit 0
+    fi
 
     ip link set $INTERFACE down
     ip link set $INTERFACE name eth1
@@ -872,7 +912,7 @@ cloudinit_write_files_common = <<EOT
                 >&2 echo "timeout reached"
                 exit 1
             fi
-            # run command and check return code 
+            # run command and check return code
             if $@ ; then
                 >&2 echo "break"
                 break
@@ -884,11 +924,16 @@ cloudinit_write_files_common = <<EOT
     }
 
     myrename () {
-      local eth="$1"
-      local eth_connection=$(nmcli -g GENERAL.CONNECTION device show $eth || echo '')
-      nmcli connection modify "$eth_connection" \
-        con-name $eth \
-        connection.interface-name $eth
+        local eth="$1"
+        local eth_connection
+
+        # In case of a private-only network, eth0 may not exist
+        if ip link show "$eth" &>/dev/null; then
+            eth_connection=$(nmcli -g GENERAL.CONNECTION device show "$eth" || echo '')
+            nmcli connection modify "$eth_connection" \
+              con-name "$eth" \
+              connection.interface-name "$eth"
+        fi
     }
 
     myrepeat myrename eth0
@@ -979,7 +1024,8 @@ cloudinit_write_files_common = <<EOT
     allow container_t { cert_t container_log_t }:dir read;
     allow container_t { cert_t container_log_t }:lnk_file read;
     allow container_t cert_t:file { read open };
-    allow container_t container_var_lib_t:file { create open read write rename lock setattr getattr unlink };
+    allow container_t container_var_lib_t:dir { add_name remove_name write read create };
+    allow container_t container_var_lib_t:file { append create open read write rename lock setattr getattr unlink };
     allow container_t etc_t:dir { add_name remove_name write create setattr watch };
     allow container_t etc_t:file { create setattr unlink write };
     allow container_t etc_t:sock_file { create unlink };
@@ -995,8 +1041,8 @@ cloudinit_write_files_common = <<EOT
     allow container_t kernel_t:system module_request;
     allow container_t var_log_t:dir { add_name write remove_name watch read };
     allow container_t var_log_t:file { create lock open read setattr write unlink getattr };
-    allow container_t var_lib_t:dir { add_name write read };
-    allow container_t var_lib_t:file { create lock open read setattr write getattr };
+    allow container_t var_lib_t:dir { add_name remove_name write read create };
+    allow container_t var_lib_t:file { append create open read write rename lock setattr getattr unlink };
     allow container_t proc_t:filesystem associate;
     allow container_t self:bpf map_create;
     allow container_t self:io_uring sqpoll;
@@ -1010,22 +1056,6 @@ cloudinit_write_files_common = <<EOT
 - content: ${base64encode(var.k3s_registries)}
   encoding: base64
   path: /etc/rancher/k3s/registries.yaml
-%{endif}
-
-# Apply new DNS config
-%{if length(var.dns_servers) > 0}
-# Set prepare for manual dns config
-- content: |
-    [main]
-    dns=none
-  path: /etc/NetworkManager/conf.d/dns.conf
-
-- content: |
-    %{for server in var.dns_servers~}
-    nameserver ${server}
-    %{endfor}
-  path: /etc/resolv.conf
-  permissions: '0644'
 %{endif}
 EOT
 
@@ -1066,9 +1096,15 @@ cloudinit_runcmd_common = <<EOT
 # Make sure the network is up
 - [systemctl, restart, NetworkManager]
 - [systemctl, status, NetworkManager]
-- [ip, route, add, default, via, '172.31.1.1', dev, 'eth0']
 
 # Cleanup some logs
 - [truncate, '-s', '0', '/var/log/audit/audit.log']
+
+# Add logic to truly disable SELinux if disable_selinux = true.
+# We'll do it by appending to cloudinit_runcmd_common.
+%{if var.disable_selinux}
+- [sed, '-i', '-E', 's/^SELINUX=[a-z]+/SELINUX=disabled/', '/etc/selinux/config']
+- [setenforce, '0']
+%{endif}
 EOT
 }

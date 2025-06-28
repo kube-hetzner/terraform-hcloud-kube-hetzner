@@ -1,10 +1,18 @@
 #cloud-config
 
-debug: True
-
 write_files:
 
 ${cloudinit_write_files_common}
+
+# Apply DNS config
+%{ if has_dns_servers ~}
+manage_resolv_conf: true
+resolv_conf:
+  nameservers:
+%{ for dns_server in dns_servers ~}
+    - ${dns_server}
+%{ endfor ~}
+%{ endif ~}
 
 # Add ssh authorized keys
 ssh_authorized_keys:
@@ -23,6 +31,13 @@ preserve_hostname: true
 runcmd:
 
 ${cloudinit_runcmd_common}
+
+# Configure default route based on public ip availability
+%{if private_network_only~}
+- [ip, route, add, default, via, '10.0.0.1', dev, 'eth0']
+%{else~}
+- [ip, route, add, default, via, '172.31.1.1', dev, 'eth0']
+%{endif~}
 
 %{if swap_size != ""~}
 - |
