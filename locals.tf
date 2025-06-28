@@ -68,11 +68,14 @@ locals {
       local.install_system_alias,
       local.install_kubectl_bash_completion,
     ],
-    length(local.dns_servers_ipv4) > 0 ? [
-      "nmcli con mod eth0 ipv4.dns ${join(",", local.dns_servers_ipv4)}"
-    ] : [],
-    length(local.dns_servers_ipv6) > 0 ? [
-      "nmcli con mod eth0 ipv6.dns ${join(",", local.dns_servers_ipv6)}"
+    local.has_dns_servers ? [
+      join("\n", compact([
+        "IFACE=$(ip route show default | awk '{print $5; exit}')",
+        "if [ -n \"$IFACE\" ]; then",
+        length(local.dns_servers_ipv4) > 0 ? "  nmcli con mod \"$IFACE\" ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
+        length(local.dns_servers_ipv6) > 0 ? "  nmcli con mod \"$IFACE\" ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
+        "fi"
+      ]))
     ] : [],
     local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
     # User-defined commands to execute just before installing k3s.
