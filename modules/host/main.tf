@@ -279,8 +279,8 @@ moved {
 }
 
 # Resource to toggle transactional-update.timer based on automatically_upgrade_os setting
-resource "null_resource" "os_upgrade_toggle" {
-  triggers = {
+resource "terraform_data" "os_upgrade_toggle" {
+  triggers_replace = {
     os_upgrade_state = var.automatically_upgrade_os ? "enabled" : "disabled"
     server_id        = hcloud_server.server.id
   }
@@ -309,6 +309,11 @@ resource "null_resource" "os_upgrade_toggle" {
 
   depends_on = [
     hcloud_server.server,
-    null_resource.registries
+    terraform_data.registries
   ]
+}
+
+moved {
+  from = null_resource.os_upgrade_toggle
+  to   = terraform_data.os_upgrade_toggle
 }
