@@ -10,6 +10,8 @@ locals {
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
 
+  kubernetes_distribution = var.kubernetes_distribution_type
+
   ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
   csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
@@ -84,7 +86,40 @@ locals {
     ["timeout 180s /bin/sh -c 'while ! ping -c 1 ${var.address_for_connectivity_test} >/dev/null 2>&1; do echo \"Ready for k3s installation, waiting for a successful connection to the internet...\"; sleep 5; done; echo Connected'"]
   )
 
-  common_post_install_k3s_commands = concat(var.postinstall_exec, ["restorecon -v /usr/local/bin/k3s"])
+  common_pre_install_rke2_commands = concat(
+    [
+      "set -ex",
+      # rename the private network interface to eth1
+      "/etc/cloud/rename_interface.sh",
+      # prepare the rke2 config directory
+      "mkdir -p /etc/rancher/rke2",
+      # move the config file into place and adjust permissions
+      "[ -f /tmp/config.yaml ] && mv /tmp/config.yaml /etc/rancher/rke2/config.yaml",
+      "chmod 0600 /etc/rancher/rke2/config.yaml",
+      # if the server has already been initialized just stop here
+      "[ -e /etc/rancher/rke2/rke2.yaml ] && exit 0",
+      local.install_additional_k3s_environment,
+      local.install_system_alias,
+      local.install_kubectl_bash_completion,
+    ],
+    length(local.dns_servers_ipv4) > 0 ? [
+      "nmcli con mod eth0 ipv4.dns ${join(",", local.dns_servers_ipv4)}"
+    ] : [],
+    length(local.dns_servers_ipv6) > 0 ? [
+      "nmcli con mod eth0 ipv6.dns ${join(",", local.dns_servers_ipv6)}"
+    ] : [],
+    local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
+    # User-defined commands to execute just before installing rke2.
+    var.preinstall_exec,
+    # Wait for a successful connection to the internet.
+    ["timeout 180s /bin/sh -c 'while ! ping -c 1 ${var.address_for_connectivity_test} >/dev/null 2>&1; do echo \"Ready for rke2 installation, waiting for a successful connection to the internet...\"; sleep 5; done; echo Connected'"]
+  )
+
+  common_pre_install_k8s_commands = var.kubernetes_distribution_type == "rke2" ? local.common_pre_install_rke2_commands : local.common_pre_install_k3s_commands
+
+  common_post_install_k3s_commands  = concat(var.postinstall_exec, ["restorecon -v /usr/local/bin/k3s"])
+  common_post_install_rke2_commands = concat(var.postinstall_exec, [])
+  common_post_install_k8s_commands  = var.kubernetes_distribution_type == "rke2" ? local.common_post_install_rke2_commands : local.common_post_install_k3s_commands
 
   kustomization_backup_yaml = yamlencode({
     apiVersion = "kustomize.config.k8s.io/v1beta1"
@@ -98,7 +133,7 @@ locals {
       var.hetzner_ccm_use_helm ? ["hcloud-ccm-helm.yaml"] : ["https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases/download/${local.ccm_version}/ccm-networks.yaml"],
       var.disable_hetzner_csi ? [] : ["hcloud-csi.yaml"],
       lookup(local.ingress_controller_install_resources, var.ingress_controller, []),
-      lookup(local.cni_install_resources, var.cni_plugin, []),
+      local.kubernetes_distribution == "k3s" ? lookup(local.cni_install_resources, var.cni_plugin, []) : [],
       var.cni_plugin == "flannel" ? ["flannel-rbac.yaml"] : [],
       var.enable_longhorn ? ["longhorn.yaml"] : [],
       var.enable_csi_driver_smb ? ["csi-driver-smb.yaml"] : [],
@@ -125,16 +160,24 @@ locals {
     )
   })
 
-  apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
-  swap_node_label   = ["node.kubernetes.io/server-swap=enabled"]
+  # TODO: What needs changing for rke2 here?
+  apply_k3s_selinux  = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
+  apply_rke2_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/rke2.pp"]
+  swap_node_label    = ["node.kubernetes.io/server-swap=enabled"]
 
-  k3s_install_command = "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true %{if var.install_k3s_version == ""}INSTALL_K3S_CHANNEL=${var.initial_k3s_channel}%{else}INSTALL_K3S_VERSION=${var.install_k3s_version}%{endif} INSTALL_K3S_EXEC='%s' sh -"
+  k3s_install_command  = "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true %{if var.install_k3s_version == ""}INSTALL_K3S_CHANNEL=${var.initial_k3s_channel}%{else}INSTALL_K3S_VERSION=${var.install_k3s_version}%{endif} INSTALL_K3S_EXEC='%s' sh -"
+  rke2_install_command = "curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION=${var.install_rke2_version} INSTALL_RKE2_EXEC='%s' sh -"
 
   install_k3s_server = concat(
     local.common_pre_install_k3s_commands,
     [format(local.k3s_install_command, "server ${var.k3s_exec_server_args}")],
     var.disable_selinux ? [] : local.apply_k3s_selinux,
-    local.common_post_install_k3s_commands
+    local.common_post_install_k8s_commands
+  )
+  install_rke2_server = concat(
+    local.common_pre_install_k8s_commands,
+    [format(local.rke2_install_command, "server ${var.k3s_exec_server_args}")],
+    local.common_post_install_k8s_commands
   )
 
   install_k3s_agent = concat(
@@ -143,6 +186,15 @@ locals {
     var.disable_selinux ? [] : local.apply_k3s_selinux,
     local.common_post_install_k3s_commands
   )
+  install_rke2_agent = concat(
+    local.common_pre_install_k8s_commands,
+    [format(local.rke2_install_command, "agent ${var.k3s_exec_agent_args}")],
+    local.common_post_install_k8s_commands
+  )
+
+  install_k8s_server = var.kubernetes_distribution_type == "rke2" ? local.install_rke2_server : local.install_k3s_server
+  install_k8s_agent  = var.kubernetes_distribution_type == "rke2" ? local.install_rke2_agent : local.install_k3s_agent
+  kubectl_cli        = var.kubernetes_distribution_type == "rke2" ? "/var/lib/rancher/rke2/bin/kubectl --kubeconfig /etc/rancher/rke2/rke2.yaml" : "kubectl"
 
   control_plane_nodes = merge([
     for pool_index, nodepool_obj in var.control_plane_nodepools : {
@@ -242,7 +294,7 @@ locals {
 
   use_existing_network = length(var.existing_network_id) > 0
 
-  # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
+  # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potentially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
   # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
@@ -282,16 +334,22 @@ locals {
   ingress_max_replica_count    = (var.ingress_max_replica_count > local.ingress_replica_count) ? var.ingress_max_replica_count : local.ingress_replica_count
 
   # disable k3s extras
-  disable_extras = concat(var.enable_local_storage ? [] : ["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
+  # TODO: Extend to work with rke2
+  disable_extras      = concat(var.enable_local_storage ? [] : ["local-storage"], local.using_klipper_lb ? [] : ["servicelb"], ["traefik"], var.enable_metrics_server ? [] : ["metrics-server"])
+  disable_rke2_extras = ["rke2-ingress-nginx"]
 
   # Determine if scheduling should be allowed on control plane nodes, which will be always true for single node clusters and clusters or if scheduling is allowed on control plane nodes
   allow_scheduling_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
   # Determine if loadbalancer target should be allowed on control plane nodes, which will be always true for single node clusters or if scheduling is allowed on control plane nodes
   allow_loadbalancer_target_on_control_plane = local.is_single_node_cluster ? true : var.allow_scheduling_on_control_plane
 
-  # Default k3s node labels
-  default_agent_labels         = concat([], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
-  default_control_plane_labels = concat(local.allow_loadbalancer_target_on_control_plane ? [] : ["node.kubernetes.io/exclude-from-external-load-balancers=true"], var.automatically_upgrade_k3s ? ["k3s_upgrade=true"] : [])
+  # Default k8s node labels
+  default_agent_labels = concat([], var.automatically_upgrade_k3s ? [local.kubernetes_distribution == "rke2" ? "rke2_upgrade=true" : "k3s_upgrade=true"] : [])
+  default_control_plane_labels = concat(
+    local.allow_loadbalancer_target_on_control_plane ? [] : ["node.kubernetes.io/exclude-from-external-load-balancers=true"],
+    var.automatically_upgrade_k3s ? [local.kubernetes_distribution == "rke2" ? "rke2_upgrade=true" : "k3s_upgrade=true"] : []
+  )
+  default_autoscaler_labels = concat([], var.automatically_upgrade_k3s ? [local.kubernetes_distribution == "rke2" ? "rke2_upgrade=true" : "k3s_upgrade=true"] : [])
 
   # Default k3s node taints
   default_control_plane_taints = concat([], local.allow_scheduling_on_control_plane ? [] : ["node-role.kubernetes.io/control-plane:NoSchedule"])
@@ -413,7 +471,7 @@ locals {
 
   labels = {
     "provisioner" = "terraform",
-    "engine"      = "k3s"
+    "engine"      = local.kubernetes_distribution
     "cluster"     = var.cluster_name
   }
 
@@ -435,10 +493,6 @@ locals {
 
   prefer_bundled_bin_config = var.k3s_prefer_bundled_bin ? { "prefer-bundled-bin" = true } : {}
 
-  cni_install_resource_patches = {
-    "calico" = ["calico.yaml"]
-  }
-
   cni_k3s_settings = {
     "flannel" = {
       disable-network-policy = var.disable_network_policy
@@ -453,6 +507,23 @@ locals {
       flannel-backend        = "none"
     }
   }
+
+  # TODO: Needs review, straight copy & pasted from cni_k3s_settings
+  #  Result: It seems that none of the settings are supported in rke2
+  # cni_rke2_settings = {
+  #   "flannel" = {
+  #     disable-network-policy = var.disable_network_policy
+  #     flannel-backend        = var.enable_wireguard ? "wireguard-native" : "vxlan"
+  #   }
+  #   "calico" = {
+  #     disable-network-policy = true
+  #     flannel-backend        = "none"
+  #   }
+  #   "cilium" = {
+  #     disable-network-policy = true
+  #     flannel-backend        = "none"
+  #   }
+  # }
 
   etcd_s3_snapshots = length(keys(var.etcd_s3_backup)) > 0 ? merge(
     {
@@ -482,7 +553,7 @@ kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
 
 # Access to Kube API Server (mandatory if kube-proxy is disabled)
 k8sServiceHost: "127.0.0.1"
-k8sServicePort: "6444"
+k8sServicePort: "${local.kubernetes_distribution == "rke2" ? "6443" : "6444"}"
 
 # Set Tunnel Mode or Native Routing Mode (supported by Hetzner CCM Route Controller)
 routingMode: "${var.cilium_routing_mode}"
@@ -563,6 +634,9 @@ spec:
               value: "${var.enable_wireguard}"
 
   EOT
+
+  desired_cni_values  = var.cni_plugin == "cilium" ? local.cilium_values : local.calico_values
+  desired_cni_version = var.cni_plugin == "cilium" ? var.cilium_version : var.calico_version
 
   longhorn_values = var.longhorn_values != "" ? var.longhorn_values : <<EOT
 defaultSettings:
@@ -880,6 +954,74 @@ else
 fi
 EOF
 
+rke2_registries_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/registries.yaml /etc/rancher/rke2/registries.yaml; then
+  echo "No update required to the registries.yaml file"
+else
+  echo "Backing up /etc/rancher/rke2/registries.yaml to /tmp/registries_$DATE.yaml"
+  cp /etc/rancher/rke2/registries.yaml /tmp/registries_$DATE.yaml
+  echo "Updated registries.yaml detected, restart of rke2 service required"
+  cp /tmp/registries.yaml /etc/rancher/rke2/registries.yaml
+  if systemctl is-active --quiet rke2-server; then
+    systemctl restart rke2-server || (echo "Error: Failed to restart rke2-server. Restoring /etc/rancher/rke2/registries.yaml from backup" && cp /tmp/registries_$DATE.yaml /etc/rancher/rke2/registries.yaml && systemctl restart rke2-server)
+  elif systemctl is-active --quiet rke2-agent; then
+    systemctl restart rke2-agent || (echo "Error: Failed to restart rke2-agent. Restoring /etc/rancher/rke2/registries.yaml from backup" && cp /tmp/registries_$DATE.yaml /etc/rancher/rke2/registries.yaml && systemctl restart rke2-agent)
+  else
+    echo "No active rke2-server or rke2-agent service found"
+  fi
+  echo "rke2-server service or rke2-agent service restarted successfully"
+fi
+EOF
+
+rke2_config_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/config.yaml /etc/rancher/rke2/config.yaml; then
+  echo "No update required to the config.yaml file"
+else
+  if [ -f "/etc/rancher/rke2/config.yaml" ]; then
+    echo "Backing up /etc/rancher/rke2/config.yaml to /tmp/config_$DATE.yaml"
+    cp /etc/rancher/rke2/config.yaml /tmp/config_$DATE.yaml
+  fi
+  echo "Updated config.yaml detected, restart of rke2-server service required"
+  cp /tmp/config.yaml /etc/rancher/rke2/config.yaml
+  if systemctl is-active --quiet rke2-server; then
+    systemctl restart rke2-server || (echo "Error: Failed to restart rke2-server. Restoring /etc/rancher/rke2/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/rke2/config.yaml && systemctl restart rke2-server)
+  elif systemctl is-active --quiet rke2-agent; then
+    systemctl restart rke2-agent || (echo "Error: Failed to restart rke2-agent. Restoring /etc/rancher/rke2/config.yaml from backup" && cp /tmp/config_$DATE.yaml /etc/rancher/rke2/config.yaml && systemctl restart rke2-agent)
+  else
+    echo "No active rke2-server or rke2-agent service found"
+  fi
+  echo "rke2-server service or rke2-agent service (re)started successfully"
+fi
+EOF
+
+rke2_authentication_config_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if cmp -s /tmp/authentication_config.yaml /etc/rancher/rke2/authentication_config.yaml; then
+  echo "No update required to the authentication_config.yaml file"
+else
+  if [ -f "/etc/rancher/rke2/authentication_config.yaml" ]; then
+    echo "Backing up /etc/rancher/rke2/authentication_config.yaml to /tmp/authentication_config_$DATE.yaml"
+    cp /etc/rancher/rke2/authentication_config.yaml /tmp/authentication_config_$DATE.yaml
+  fi
+  echo "Updated authentication_config.yaml detected, restart of rke2-server service required"
+  cp /tmp/authentication_config.yaml /etc/rancher/rke2/authentication_config.yaml
+  if systemctl is-active --quiet rke2-server; then
+    systemctl restart rke2-server || (echo "Error: Failed to restart rke2-server. Restoring /etc/rancher/rke2/authentication_config.yaml from backup" && cp /tmp/authentication_config_$DATE.yaml /etc/rancher/rke2/authentication_config.yaml && systemctl restart rke2-server)
+  elif systemctl is-active --quiet rke2-agent; then
+    systemctl restart rke2-agent || (echo "Error: Failed to restart rke2-agent. Restoring /etc/rancher/rke2/authentication_config.yaml from backup" && cp /tmp/authentication_config_$DATE.yaml /etc/rancher/rke2/authentication_config.yaml && systemctl restart rke2-agent)
+  else
+    echo "No active rke2-server or rke2-agent service found"
+  fi
+  echo "rke2-server service or rke2-agent service (re)started successfully"
+fi
+EOF
+
+k8s_registries_update_script            = local.kubernetes_distribution == "k3s" ? local.k3s_registries_update_script : local.rke2_registries_update_script
+k8s_config_update_script                = local.kubernetes_distribution == "k3s" ? local.k3s_config_update_script : local.rke2_config_update_script
+k8s_authentication_config_update_script = local.kubernetes_distribution == "k3s" ? local.k3s_authentication_config_update_script : local.rke2_authentication_config_update_script
+
 cloudinit_write_files_common = <<EOT
 # Script to rename the private interface to eth1 and unify NetworkManager connection naming
 - path: /etc/cloud/rename_interface.sh
@@ -972,6 +1114,11 @@ cloudinit_write_files_common = <<EOT
     gpgkey=https://rpm.rancher.io/public.key
   path: /etc/zypp/repos.d/rancher-k3s-common.repo
 
+# Create Rancher rke2 repo config
+# TODO: Finish this if its needed like the above one? When is this used? Don't we just use the URL installation method?
+# - content: |
+
+
 # Create the kube_hetzner_selinux.te file, that allows in SELinux to not interfere with various needed services
 - path: /root/kube_hetzner_selinux.te
   content: |
@@ -1053,7 +1200,41 @@ cloudinit_write_files_common = <<EOT
     allow container_t container_var_run_t:dir { add_name remove_name write };
     allow container_t container_var_run_t:file { create open read rename unlink write };
 
+    # RKE2
+
+    rke2_filetrans_named_content(container_runtime_t)
+    rke2_filetrans_named_content(unconfined_service_t)
+
+    #######################
+    # type rke2_service_t #
+    #######################
+    rke2_service_domain_template(rke2_service)
+    container_read_lib_files(rke2_service_t)
+    allow rke2_service_t container_var_lib_t:sock_file { write };
+    allow rke2_service_t container_runtime_t:unix_stream_socket { connectto };
+
+    ##########################
+    # type rke2_service_db_t #
+    ##########################
+    rke2_service_domain_template(rke2_service_db)
+    container_manage_lib_dirs(rke2_service_db_t)
+    container_manage_lib_files(rke2_service_db_t)
+    allow rke2_service_db_t container_var_lib_t:file { map };
+
+    #########################
+    # Longhorn ISCSID_T FIX #
+    #########################
+    # https://github.com/longhorn/longhorn/issues/5627#issuecomment-1577498183
+    allow iscsid_t self:capability dac_override;
+
+    ###################
+    # type rke2_tls_t #
+    ###################
+    type rke2_tls_t;
+    container_file(rke2_tls_t);
+
 # Create the k3s registries file if needed
+# TODO: Review that this can stay and behaves the same in rke2 as with k3s
 %{if var.k3s_registries != ""}
 # Create k3s registries file
 - content: ${base64encode(var.k3s_registries)}
