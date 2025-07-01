@@ -118,8 +118,8 @@ resource "hcloud_server" "server" {
 
 }
 
-resource "null_resource" "registries" {
-  triggers = {
+resource "terraform_data" "registries" {
+  triggers_replace = {
     registries = var.k3s_registries
   }
 
@@ -141,6 +141,10 @@ resource "null_resource" "registries" {
   }
 
   depends_on = [hcloud_server.server]
+}
+moved {
+  from = null_resource.registries
+  to   = terraform_data.registries
 }
 
 resource "hcloud_rdns" "server" {
@@ -190,8 +194,8 @@ data "cloudinit_config" "config" {
   }
 }
 
-resource "null_resource" "zram" {
-  triggers = {
+resource "terraform_data" "zram" {
+  triggers_replace = {
     zram_size = var.zram_size
   }
 
@@ -269,9 +273,14 @@ WantedBy=multi-user.target
   depends_on = [hcloud_server.server]
 }
 
+moved {
+  from = null_resource.zram
+  to   = terraform_data.zram
+}
+
 # Resource to toggle transactional-update.timer based on automatically_upgrade_os setting
-resource "null_resource" "os_upgrade_toggle" {
-  triggers = {
+resource "terraform_data" "os_upgrade_toggle" {
+  triggers_replace = {
     os_upgrade_state = var.automatically_upgrade_os ? "enabled" : "disabled"
     server_id        = hcloud_server.server.id
   }
@@ -300,6 +309,11 @@ resource "null_resource" "os_upgrade_toggle" {
 
   depends_on = [
     hcloud_server.server,
-    null_resource.registries
+    terraform_data.registries
   ]
+}
+
+moved {
+  from = null_resource.os_upgrade_toggle
+  to   = terraform_data.os_upgrade_toggle
 }
