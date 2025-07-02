@@ -1,12 +1,12 @@
 locals {
   cluster_prefix = var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""
   first_nodepool_snapshot_id = length(var.autoscaler_nodepools) == 0 ? "" : (
-    substr(var.autoscaler_nodepools[0].server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
+    local.snapshot_id_by_os[var.autoscaler_nodepools[0].os][substr(var.autoscaler_nodepools[0].server_type, 0, 3) == "cax" ? "arm" : "x86"]
   )
 
   imageList = {
-    arm64 : tostring(data.hcloud_image.microos_arm_snapshot.id)
-    amd64 : tostring(data.hcloud_image.microos_x86_snapshot.id)
+    arm64 : length(var.autoscaler_nodepools) == 0 ? "" : tostring(local.snapshot_id_by_os[var.autoscaler_nodepools[0].os]["arm"])
+    amd64 : length(var.autoscaler_nodepools) == 0 ? "" : tostring(local.snapshot_id_by_os[var.autoscaler_nodepools[0].os]["x86"])
   }
 
   nodeConfigName = var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""
@@ -84,7 +84,10 @@ resource "null_resource" "configure_autoscaler" {
     null_resource.control_planes,
     random_password.rancher_bootstrap,
     hcloud_volume.longhorn_volume,
-    data.hcloud_image.microos_x86_snapshot
+    data.hcloud_image.microos_x86_snapshot,
+    data.hcloud_image.microos_arm_snapshot,
+    data.hcloud_image.leapmicro_x86_snapshot,
+    data.hcloud_image.leapmicro_arm_snapshot
   ]
 }
 
@@ -120,9 +123,9 @@ data "cloudinit_config" "autoscaler_config" {
           local.prefer_bundled_bin_config
         ))
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
-        cloudinit_write_files_common = local.cloudinit_write_files_common
-        cloudinit_runcmd_common      = local.cloudinit_runcmd_common,
-        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
+        cloudinit_write_files_common = local.cloudinit_write_files_common_by_os["leapmicro"]
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common_by_os["leapmicro"]
+        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6
       }
     )
   }
@@ -159,9 +162,9 @@ data "cloudinit_config" "autoscaler_legacy_config" {
           local.prefer_bundled_bin_config
         ))
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
-        cloudinit_write_files_common = local.cloudinit_write_files_common
-        cloudinit_runcmd_common      = local.cloudinit_runcmd_common,
-        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
+        cloudinit_write_files_common = local.cloudinit_write_files_common_by_os["leapmicro"]
+        cloudinit_runcmd_common      = local.cloudinit_runcmd_common_by_os["leapmicro"]
+        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6
       }
     )
   }
@@ -173,7 +176,10 @@ data "hcloud_servers" "autoscaled_nodes" {
 }
 
 resource "null_resource" "autoscaled_nodes_registries" {
-  for_each = local.autoscaled_nodes
+  for_each = {
+    for np in var.autoscaler_nodepools :
+    np.name => np if length(data.hcloud_servers.autoscaled_nodes[np.name].servers) > 0
+  }
   triggers = {
     registries = var.k3s_registries
   }
