@@ -53,7 +53,7 @@ resource "hcloud_placement_group" "control_plane_named" {
 }
 
 resource "hcloud_placement_group" "agent" {
-  count  = local.control_plane_placement_compat_groups
+  count  = local.agent_placement_compat_groups
   name   = "${var.cluster_name}-agent-${count.index + 1}"
   labels = local.labels
   type   = "spread"

@@ -83,6 +83,22 @@ output "agent_nodes" {
   value       = [for node in module.agents : node]
 }
 
+output "domain_assignments" {
+  description = "Assignments of domains to IPs based on reverse DNS"
+  value = concat(
+    # Propagate domain assignments from control plane and agent nodes.
+    flatten([
+      for node in concat(values(module.control_planes), values(module.agents)) :
+      node.domain_assignments
+    ]),
+    # Get assignments from floating IPs.
+    [for rdns in hcloud_rdns.agents : {
+      domain = rdns.dns_ptr
+      ips    = [rdns.ip_address]
+    }]
+  )
+}
+
 # Keeping for backward compatibility
 output "kubeconfig_file" {
   value       = local.kubeconfig_external
