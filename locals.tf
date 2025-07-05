@@ -70,10 +70,18 @@ locals {
     ],
     local.has_dns_servers ? [
       join("\n", compact([
-        "IFACE=$(ip route show default | awk '{print $5; exit}')",
+        "# Get the default interface",
+        "IFACE=$(ip route show default 2>/dev/null | grep -E '^default' | head -1 | awk '{for(i=1;i<=NF;i++) if($i==\"dev\") print $(i+1)}')",
+        "if [ -z \"$IFACE\" ]; then",
+        "  # Fallback: try to get any interface that's up and has an IP",
+        "  IFACE=$(ip route show 2>/dev/null | grep -v '^default' | head -1 | awk '{for(i=1;i<=NF;i++) if($i==\"dev\") print $(i+1)}')",
+        "fi",
         "if [ -n \"$IFACE\" ]; then",
-        length(local.dns_servers_ipv4) > 0 ? "  nmcli con mod \"$IFACE\" ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
-        length(local.dns_servers_ipv6) > 0 ? "  nmcli con mod \"$IFACE\" ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
+        "  CONNECTION=$(nmcli -g GENERAL.CONNECTION device show \"$IFACE\" 2>/dev/null | head -1)",
+        "  if [ -n \"$CONNECTION\" ]; then",
+        length(local.dns_servers_ipv4) > 0 ? "    nmcli con mod \"$CONNECTION\" ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
+        length(local.dns_servers_ipv6) > 0 ? "    nmcli con mod \"$CONNECTION\" ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
+        "  fi",
         "fi"
       ]))
     ] : [],
