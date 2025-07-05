@@ -176,10 +176,7 @@ data "hcloud_servers" "autoscaled_nodes" {
 }
 
 resource "null_resource" "autoscaled_nodes_registries" {
-  for_each = {
-    for np in var.autoscaler_nodepools :
-    np.name => np if length(data.hcloud_servers.autoscaled_nodes[np.name].servers) > 0
-  }
+  for_each = local.autoscaled_nodes
   triggers = {
     registries = var.k3s_registries
   }
