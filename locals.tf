@@ -71,10 +71,10 @@ locals {
     local.has_dns_servers ? [
       join("\n", compact([
         "# Get the default interface",
-        "IFACE=$(ip route show default 2>/dev/null | grep -E '^default' | head -1 | awk '{for(i=1;i<=NF;i++) if($i==\"dev\") print $(i+1)}')",
+        "IFACE=$(ip route show default 2>/dev/null | awk '/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
         "if [ -z \"$IFACE\" ]; then",
         "  # Fallback: try to get any interface that's up and has an IP",
-        "  IFACE=$(ip route show 2>/dev/null | grep -v '^default' | head -1 | awk '{for(i=1;i<=NF;i++) if($i==\"dev\") print $(i+1)}')",
+        "    IFACE=$(ip route show 2>/dev/null | awk '!/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
         "fi",
         "if [ -n \"$IFACE\" ]; then",
         "  CONNECTION=$(nmcli -g GENERAL.CONNECTION device show \"$IFACE\" 2>/dev/null | head -1)",
