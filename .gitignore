@@ -35,6 +35,7 @@ terraform.rc
 
 *_kubeconfig.yaml
 *_kubeconfig.yaml-e
+kubeconfig.yaml
 terraform.tfvars
 plans-custom.yaml
 kustomization.yaml
