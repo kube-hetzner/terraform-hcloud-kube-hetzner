@@ -4,7 +4,6 @@
 # .tfstate files
 *.tfstate
 *.tfstate.*
-state.config
 
 # Crash log files
 crash.log
@@ -41,7 +40,7 @@ terraform.tfvars
 plans-custom.yaml
 kustomization.yaml
 *kustomization_backup.yaml
-
+kube.tf
 .terraform.lock.hcl
 issue_fix.patch
 
