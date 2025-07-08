@@ -401,8 +401,8 @@ module "kube-hetzner" {
   # You also can use additional parameters from https://docs.k3s.io/cli/etcd-snapshot, such as `etc-s3-folder`
   etcd_s3_backup = {
     etcd-s3-endpoint        = "baphomet.hel1.your-objectstorage.com"
-    etcd-s3-access-key      = "AKIA5CBGTN3X4W7NXD5D"
-    etcd-s3-secret-key      = "YfF9FLIbPj+CqEpTySgFtKXFcG8Ai2ctWNHYhUJB"
+    etcd-s3-access-key      = ""
+    etcd-s3-secret-key      = ""
     etcd-s3-bucket          = "baphomet"
     # etcd-s3-region          = "<your-s3-bucket-region|usually required for aws>"
   }
