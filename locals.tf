@@ -72,8 +72,8 @@ locals {
       join("\n", compact([
         "IFACE=$(ip route show default | awk '{print $5; exit}')",
         "if [ -n \"$IFACE\" ]; then",
-        length(local.dns_servers_ipv4) > 0 ? "  nmcli con mod \"$IFACE\" ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
-        length(local.dns_servers_ipv6) > 0 ? "  nmcli con mod \"$IFACE\" ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
+        length(local.dns_servers_ipv4) > 0 ? "  nmcli con mod \"$IFACE\" ipv4.ignore-auto-dns yes ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
+        length(local.dns_servers_ipv6) > 0 ? "  nmcli con mod \"$IFACE\" ipv6.ignore-auto-dns yes ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
         "fi"
       ]))
     ] : [],
