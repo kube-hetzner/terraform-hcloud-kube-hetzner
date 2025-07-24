@@ -1105,6 +1105,36 @@ variable "k3s_registries" {
   type        = string
 }
 
+variable "k3s_audit_policy_config" {
+  description = "K3S audit-policy.yaml contents. Used to configure Kubernetes audit logging."
+  default     = ""
+  type        = string
+}
+
+variable "k3s_audit_log_path" {
+  description = "Path where audit logs will be stored on control plane nodes"
+  default     = "/var/log/k3s-audit/audit.log"
+  type        = string
+}
+
+variable "k3s_audit_log_maxage" {
+  description = "Maximum number of days to retain audit log files"
+  default     = 30
+  type        = number
+}
+
+variable "k3s_audit_log_maxbackup" {
+  description = "Maximum number of audit log files to retain"
+  default     = 10
+  type        = number
+}
+
+variable "k3s_audit_log_maxsize" {
+  description = "Maximum size in megabytes of the audit log file before rotation"
+  default     = 100
+  type        = number
+}
+
 variable "additional_tls_sans" {
   description = "Additional TLS SANs to allow connection to control-plane through it."
   default     = []
