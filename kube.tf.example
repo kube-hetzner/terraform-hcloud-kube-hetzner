@@ -749,6 +749,41 @@ module "kube-hetzner" {
   # k3s_agent_kubelet_args = []
   # k3s_autoscaler_kubelet_args = []
 
+  # Enable Kubernetes audit logging on control plane nodes
+  # This will create an audit policy file and configure k3s to use it
+  # Audit logs will be written to /var/log/k3s-audit/audit.log by default
+  #
+  # k3s_audit_policy_config = <<-EOT
+  #   apiVersion: audit.k8s.io/v1
+  #   kind: Policy
+  #   rules:
+  #     # Log pod changes at RequestResponse level
+  #     - level: RequestResponse
+  #       omitStages:
+  #         - RequestReceived
+  #       resources:
+  #         - group: ""
+  #           resources: ["pods", "services"]
+  #       namespaces: ["default", "kube-system"]
+  #     # Log all other resources at Metadata level
+  #     - level: Metadata
+  #       omitStages:
+  #         - RequestReceived
+  #     # Don't log requests to certain non-resource URL paths
+  #     - level: None
+  #       nonResourceURLs:
+  #         - /api*
+  #         - /version
+  #         - /healthz
+  #         - /readyz
+  # EOT
+  #
+  # # Audit log configuration
+  # k3s_audit_log_path = "/var/log/k3s-audit/audit.log"  # Path to audit log file
+  # k3s_audit_log_maxage = 30     # Days to retain audit logs
+  # k3s_audit_log_maxbackup = 10  # Number of audit log files to keep
+  # k3s_audit_log_maxsize = 100   # Max size in MB before rotation
+
   # If you want to allow all outbound traffic you can set this to "false". Default is "true".
   # restrict_outbound_traffic = false
 

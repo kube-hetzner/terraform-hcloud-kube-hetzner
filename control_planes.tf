@@ -7,31 +7,33 @@ module "control_planes" {
 
   for_each = local.control_plane_nodes
 
-  name                         = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
-  microos_snapshot_id          = substr(each.value.server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
-  base_domain                  = var.base_domain
-  ssh_keys                     = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
-  ssh_port                     = var.ssh_port
-  ssh_public_key               = var.ssh_public_key
-  ssh_private_key              = var.ssh_private_key
-  ssh_additional_public_keys   = length(var.ssh_hcloud_key_label) > 0 ? concat(var.ssh_additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh_additional_public_keys
-  firewall_ids                 = each.value.disable_ipv4 && each.value.disable_ipv6 ? [] : [hcloud_firewall.k3s.id] # Cannot attach a firewall when public interfaces are disabled
-  placement_group_id           = var.placement_group_disable ? null : (each.value.placement_group == null ? hcloud_placement_group.control_plane[each.value.placement_group_compat_idx].id : hcloud_placement_group.control_plane_named[each.value.placement_group].id)
-  location                     = each.value.location
-  server_type                  = each.value.server_type
-  backups                      = each.value.backups
-  ipv4_subnet_id               = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
-  dns_servers                  = var.dns_servers
-  k3s_registries               = var.k3s_registries
-  k3s_registries_update_script = local.k3s_registries_update_script
-  cloudinit_write_files_common = local.cloudinit_write_files_common
-  cloudinit_runcmd_common      = local.cloudinit_runcmd_common
-  swap_size                    = each.value.swap_size
-  zram_size                    = each.value.zram_size
-  keep_disk_size               = var.keep_disk_cp
-  disable_ipv4                 = each.value.disable_ipv4
-  disable_ipv6                 = each.value.disable_ipv6
-  network_id                   = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
+  name                             = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
+  microos_snapshot_id              = substr(each.value.server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
+  base_domain                      = var.base_domain
+  ssh_keys                         = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
+  ssh_port                         = var.ssh_port
+  ssh_public_key                   = var.ssh_public_key
+  ssh_private_key                  = var.ssh_private_key
+  ssh_additional_public_keys       = length(var.ssh_hcloud_key_label) > 0 ? concat(var.ssh_additional_public_keys, data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.public_key) : var.ssh_additional_public_keys
+  firewall_ids                     = each.value.disable_ipv4 && each.value.disable_ipv6 ? [] : [hcloud_firewall.k3s.id] # Cannot attach a firewall when public interfaces are disabled
+  placement_group_id               = var.placement_group_disable ? null : (each.value.placement_group == null ? hcloud_placement_group.control_plane[each.value.placement_group_compat_idx].id : hcloud_placement_group.control_plane_named[each.value.placement_group].id)
+  location                         = each.value.location
+  server_type                      = each.value.server_type
+  backups                          = each.value.backups
+  ipv4_subnet_id                   = hcloud_network_subnet.control_plane[[for i, v in var.control_plane_nodepools : i if v.name == each.value.nodepool_name][0]].id
+  dns_servers                      = var.dns_servers
+  k3s_registries                   = var.k3s_registries
+  k3s_registries_update_script     = local.k3s_registries_update_script
+  k3s_audit_policy_config          = var.k3s_audit_policy_config
+  k3s_audit_policy_update_script   = local.k3s_audit_policy_update_script
+  cloudinit_write_files_common     = local.cloudinit_write_files_common
+  cloudinit_runcmd_common          = local.cloudinit_runcmd_common
+  swap_size                        = each.value.swap_size
+  zram_size                        = each.value.zram_size
+  keep_disk_size                   = var.keep_disk_cp
+  disable_ipv4                     = each.value.disable_ipv4
+  disable_ipv6                     = each.value.disable_ipv6
+  network_id                       = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
@@ -180,6 +182,36 @@ resource "null_resource" "control_plane_config" {
   ]
 }
 
+resource "null_resource" "audit_policy" {
+  for_each = local.control_plane_nodes
+
+  triggers = {
+    control_plane_id = module.control_planes[each.key].id
+    audit_policy     = sha1(var.k3s_audit_policy_config)
+  }
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = local.control_plane_ips[each.key]
+    port           = var.ssh_port
+  }
+
+  provisioner "file" {
+    content     = var.k3s_audit_policy_config
+    destination = "/tmp/audit-policy.yaml"
+  }
+
+  provisioner "remote-exec" {
+    inline = [local.k3s_audit_policy_update_script]
+  }
+
+  depends_on = [
+    null_resource.first_control_plane,
+    hcloud_network_subnet.control_plane
+  ]
+}
 
 resource "null_resource" "authentication_config" {
   for_each = local.control_plane_nodes

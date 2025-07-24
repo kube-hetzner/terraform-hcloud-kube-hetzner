@@ -464,7 +464,16 @@ locals {
   kube_controller_manager_arg = "flex-volume-plugin-dir=/var/lib/kubelet/volumeplugins"
   flannel_iface               = "eth1"
 
-  kube_apiserver_arg = var.authentication_config != "" ? ["authentication-config=/etc/rancher/k3s/authentication_config.yaml"] : []
+  kube_apiserver_arg = concat(
+    var.authentication_config != "" ? ["authentication-config=/etc/rancher/k3s/authentication_config.yaml"] : [],
+    var.k3s_audit_policy_config != "" ? [
+      "audit-policy-file=/etc/rancher/k3s/audit-policy.yaml",
+      "audit-log-path=${var.k3s_audit_log_path}",
+      "audit-log-maxage=${var.k3s_audit_log_maxage}",
+      "audit-log-maxbackup=${var.k3s_audit_log_maxbackup}",
+      "audit-log-maxsize=${var.k3s_audit_log_maxsize}"
+    ] : []
+  )
 
   cilium_values = var.cilium_values != "" ? var.cilium_values : <<EOT
 # Enable Kubernetes host-scope IPAM mode (required for K3s + Hetzner CCM)
@@ -858,6 +867,41 @@ else
 fi
 EOF
 
+k3s_audit_policy_update_script = <<EOF
+DATE=`date +%Y-%m-%d_%H-%M-%S`
+if [ -z "${var.k3s_audit_policy_config}" ] || [ "${var.k3s_audit_policy_config}" = " " ]; then
+  echo "No audit policy config provided, skipping audit policy setup"
+  if [ -f "/etc/rancher/k3s/audit-policy.yaml" ]; then
+    echo "Removing existing audit policy file"
+    mv /etc/rancher/k3s/audit-policy.yaml /tmp/audit-policy_removed_$DATE.yaml
+    echo "Restart of k3s service required after audit policy removal"
+    systemctl restart k3s || echo "Warning: Failed to restart k3s after audit policy removal"
+  fi
+else
+  if cmp -s /tmp/audit-policy.yaml /etc/rancher/k3s/audit-policy.yaml; then
+    echo "No update required to the audit-policy.yaml file"
+  else
+    if [ -f "/etc/rancher/k3s/audit-policy.yaml" ]; then
+      echo "Backing up /etc/rancher/k3s/audit-policy.yaml to /tmp/audit-policy_$DATE.yaml"
+      cp /etc/rancher/k3s/audit-policy.yaml /tmp/audit-policy_$DATE.yaml
+    fi
+    echo "Updated audit-policy.yaml detected, restart of k3s service required"
+    cp /tmp/audit-policy.yaml /etc/rancher/k3s/audit-policy.yaml
+    if systemctl is-active --quiet k3s; then
+      systemctl restart k3s || (echo "Error: Failed to restart k3s. Restoring /etc/rancher/k3s/audit-policy.yaml from backup" && cp /tmp/audit-policy_$DATE.yaml /etc/rancher/k3s/audit-policy.yaml && systemctl restart k3s)
+    else
+      echo "k3s service is not active, skipping restart"
+    fi
+    echo "k3s service restarted successfully with new audit policy"
+  fi
+fi
+
+# Ensure audit log directory exists with proper permissions
+mkdir -p $(dirname ${var.k3s_audit_log_path})
+chmod 750 $(dirname ${var.k3s_audit_log_path})
+chown root:root $(dirname ${var.k3s_audit_log_path})
+EOF
+
 k3s_authentication_config_update_script = <<EOF
 DATE=`date +%Y-%m-%d_%H-%M-%S`
 if cmp -s /tmp/authentication_config.yaml /etc/rancher/k3s/authentication_config.yaml; then
@@ -1102,6 +1146,11 @@ cloudinit_runcmd_common = <<EOT
 
 # Cleanup some logs
 - [truncate, '-s', '0', '/var/log/audit/audit.log']
+
+# Create audit log directory for k3s
+- [mkdir, '-p', '${dirname(var.k3s_audit_log_path)}']
+- [chmod, '750', '${dirname(var.k3s_audit_log_path)}']
+- [chown, 'root:root', '${dirname(var.k3s_audit_log_path)}']
 
 # Add logic to truly disable SELinux if disable_selinux = true.
 # We'll do it by appending to cloudinit_runcmd_common.
