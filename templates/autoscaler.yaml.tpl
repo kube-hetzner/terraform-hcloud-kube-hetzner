@@ -207,6 +207,10 @@ spec:
           - name: HCLOUD_SERVER_CREATION_TIMEOUT
             value: '${cluster_autoscaler_server_creation_timeout}'
           %{~ endif ~}
+          - name: HCLOUD_PUBLIC_IPV4
+            value: '${enable_ipv4}'
+          - name: HCLOUD_PUBLIC_IPV6
+            value: '${enable_ipv6}'
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs

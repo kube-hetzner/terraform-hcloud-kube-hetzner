@@ -161,8 +161,8 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group,
-        disable_ipv4 : nodepool_obj.disable_ipv4,
-        disable_ipv6 : nodepool_obj.disable_ipv6,
+        disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+        disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
       }
     }
@@ -189,8 +189,8 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group,
-        disable_ipv4 : nodepool_obj.disable_ipv4,
-        disable_ipv6 : nodepool_obj.disable_ipv6,
+        disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+        disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
       }
     }
@@ -218,8 +218,8 @@ locals {
           placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
           placement_group : nodepool_obj.placement_group,
           index : floor(tonumber(node_key)),
-          disable_ipv4 : nodepool_obj.disable_ipv4,
-          disable_ipv6 : nodepool_obj.disable_ipv6,
+          disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+          disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
           network_id : nodepool_obj.network_id,
         },
         { for key, value in node_obj : key => value if value != null },
@@ -242,9 +242,28 @@ locals {
 
   use_existing_network = length(var.existing_network_id) > 0
 
+  use_nat_router = var.nat_router != null
+
+  ssh_bastion = local.use_nat_router ? {
+    bastion_host        = hcloud_server.nat_router[0].ipv4_address
+    bastion_port        = var.ssh_port
+    bastion_user        = "nat-router"
+    bastion_private_key = var.ssh_private_key
+    } : {
+    bastion_host        = null
+    bastion_port        = null
+    bastion_user        = null
+    bastion_private_key = null
+  }
+
   # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
   # the rest of the subnets are for agent nodes in each nodepools.
-  network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
+
+  network_ipv4_subnets                     = [for index in range(4) : cidrsubnet(var.network_ipv4_cidr, 2, index)]
+  network_ipv4_subnets_agent_pools         = [for index in range(256) : cidrsubnet(local.network_ipv4_subnets[0], 8, index)]
+  network_ipv4_subnets_control_plane_pools = [for index in range(256) : cidrsubnet(local.network_ipv4_subnets[1], 8, index)]
+  network_ipv4_subnet_peripherals          = local.network_ipv4_subnets[2]
+
   # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
   cluster_dns_ipv4 = var.cluster_dns_ipv4 != null ? var.cluster_dns_ipv4 : cidrhost(var.service_ipv4_cidr, 10)
 
@@ -889,22 +908,31 @@ cloudinit_write_files_common = <<EOT
 
     sleep 11
 
-    # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-    INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
-    MAC=$(cat /sys/class/net/$INTERFACE/address)
+    # Somehow sometimes on private-ip only setups, the 
+    # interface may already be correctly names, and this
+    # block should be skipped.
+    if ! ip link show eth1; then
+      # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
+      INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+      MAC=$(cat /sys/class/net/$INTERFACE/address)
 
-    cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
-    SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
+      if [ "$INTERFACE" = "eth1" ]; then
+        echo "Interface $INTERFACE already points to $MAC, skipping..."
+        exit 0
+      fi
+
+      # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
+      # WV REMOVE > INTERFACE=$(ip link show | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+      # WV REMOVE > MAC=$(cat /sys/class/net/$INTERFACE/address)
+
+      cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
+      SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
     EOF
 
-    if [ "$INTERFACE" = "eth1" ]; then
-      echo "Interface $INTERFACE already points to $MAC, skipping..."
-      exit 0
+      ip link set $INTERFACE down
+      ip link set $INTERFACE name eth1
+      ip link set eth1 up
     fi
-
-    ip link set $INTERFACE down
-    ip link set $INTERFACE name eth1
-    ip link set eth1 up
 
     myrepeat () {
         # Current time + 300 seconds (5 minutes)

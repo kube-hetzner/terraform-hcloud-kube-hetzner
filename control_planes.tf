@@ -31,7 +31,8 @@ module "control_planes" {
   keep_disk_size               = var.keep_disk_cp
   disable_ipv4                 = each.value.disable_ipv4
   disable_ipv6                 = each.value.disable_ipv6
-  network_id                   = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
+  ssh_bastion                  = local.ssh_bastion
+  network_id                   = data.hcloud_network.k3s.id
 
   # We leave some room so 100 eventual Hetzner LBs that can be created perfectly safely
   # It leaves the subnet with 254 x 254 - 100 = 64416 IPs to use, so probably enough.
@@ -44,6 +45,8 @@ module "control_planes" {
   depends_on = [
     hcloud_network_subnet.control_plane,
     hcloud_placement_group.control_plane,
+    hcloud_server.nat_router,
+    null_resource.nat_router_await_cloud_init,
   ]
 }
 
@@ -63,6 +66,7 @@ resource "hcloud_load_balancer_network" "control_plane" {
   load_balancer_id        = hcloud_load_balancer.control_plane.*.id[0]
   subnet_id               = hcloud_network_subnet.control_plane.*.id[0]
   enable_public_interface = var.control_plane_lb_enable_public_interface
+  ip                      = cidrhost(hcloud_network_subnet.control_plane.*.ip_range[0], 254)
 
   # To ensure backwards compatibility, we ignore changes to the IP address
   # as before it was set manually.
@@ -162,6 +166,12 @@ resource "null_resource" "control_plane_config" {
     agent_identity = local.ssh_agent_identity
     host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Generating k3s server config file
@@ -195,6 +205,12 @@ resource "null_resource" "authentication_config" {
     agent_identity = local.ssh_agent_identity
     host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   provisioner "file" {
@@ -225,6 +241,12 @@ resource "null_resource" "control_planes" {
     agent_identity = local.ssh_agent_identity
     host           = local.control_plane_ips[each.key]
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Install k3s server

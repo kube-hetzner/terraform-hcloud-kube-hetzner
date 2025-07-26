@@ -44,13 +44,10 @@ resource "hcloud_server" "server" {
     ipv6_enabled = !var.disable_ipv6
   }
 
-  dynamic "network" {
-    for_each = var.network_id > 0 ? [""] : []
-    content {
-      network_id = var.network_id
-      ip         = var.private_ipv4
-      alias_ips  = []
-    }
+  network {
+    network_id = var.network_id
+    ip         = var.private_ipv4
+    alias_ips  = []
   }
 
   labels = var.labels
@@ -72,6 +69,12 @@ resource "hcloud_server" "server" {
     agent_identity = local.ssh_agent_identity
     host           = coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))
     port           = var.ssh_port
+
+    bastion_host        = var.ssh_bastion.bastion_host
+    bastion_port        = var.ssh_bastion.bastion_port
+    bastion_user        = var.ssh_bastion.bastion_user
+    bastion_private_key = var.ssh_bastion.bastion_private_key
+
   }
 
   # Prepare ssh identity file
@@ -86,7 +89,7 @@ resource "hcloud_server" "server" {
   provisioner "local-exec" {
     command = <<-EOT
       timeout 600 bash <<EOF
-          until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} -o ConnectTimeout=2 -p ${var.ssh_port} root@${coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))} true 2> /dev/null
+          until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} ${local.ssh_proxy_jump} -o ConnectTimeout=2 -p ${var.ssh_port} root@${coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))} true 2> /dev/null
           do
             echo "Waiting for MicroOS to become available..."
             sleep 3
@@ -129,6 +132,12 @@ resource "null_resource" "registries" {
     agent_identity = local.ssh_agent_identity
     host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
     port           = var.ssh_port
+
+    bastion_host        = var.ssh_bastion.bastion_host
+    bastion_port        = var.ssh_bastion.bastion_port
+    bastion_user        = var.ssh_bastion.bastion_user
+    bastion_private_key = var.ssh_bastion.bastion_private_key
+
   }
 
   provisioner "file" {
@@ -159,12 +168,6 @@ resource "hcloud_rdns" "server_ipv6" {
   dns_ptr    = format("%s.%s", local.name, var.base_domain)
 }
 
-resource "hcloud_server_network" "server" {
-  count     = var.network_id > 0 ? 0 : 1
-  ip        = var.private_ipv4
-  server_id = hcloud_server.server.id
-  subnet_id = var.ipv4_subnet_id
-}
 
 data "cloudinit_config" "config" {
   gzip          = true
@@ -184,7 +187,7 @@ data "cloudinit_config" "config" {
         cloudinit_write_files_common = var.cloudinit_write_files_common
         cloudinit_runcmd_common      = var.cloudinit_runcmd_common
         swap_size                    = var.swap_size
-        private_network_only         = var.disable_ipv4 && var.disable_ipv6
+        private_network_only         = (var.disable_ipv4 && var.disable_ipv6)
       }
     )
   }
@@ -201,6 +204,12 @@ resource "null_resource" "zram" {
     agent_identity = local.ssh_agent_identity
     host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
     port           = var.ssh_port
+
+    bastion_host        = var.ssh_bastion.bastion_host
+    bastion_port        = var.ssh_bastion.bastion_port
+    bastion_user        = var.ssh_bastion.bastion_user
+    bastion_private_key = var.ssh_bastion.bastion_private_key
+
   }
 
   provisioner "file" {
@@ -282,6 +291,12 @@ resource "null_resource" "os_upgrade_toggle" {
     agent_identity = local.ssh_agent_identity
     host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
     port           = var.ssh_port
+
+    bastion_host        = var.ssh_bastion.bastion_host
+    bastion_port        = var.ssh_bastion.bastion_port
+    bastion_user        = var.ssh_bastion.bastion_user
+    bastion_private_key = var.ssh_bastion.bastion_private_key
+
   }
 
   provisioner "remote-exec" {
