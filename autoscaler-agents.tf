@@ -42,8 +42,6 @@ locals {
       firewall_id                                = hcloud_firewall.k3s.id
       cluster_name                               = local.cluster_prefix
       node_pools                                 = var.autoscaler_nodepools
-      disable_ipv4                               = var.autoscaler_disable_ipv4 || local.use_nat_router
-      disable_ipv6                               = var.autoscaler_disable_ipv6 || local.use_nat_router
       enable_ipv4                                = !(var.autoscaler_disable_ipv4 || local.use_nat_router)
       enable_ipv6                                = !(var.autoscaler_disable_ipv6 || local.use_nat_router)
   })
