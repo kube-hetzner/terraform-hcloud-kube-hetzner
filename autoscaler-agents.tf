@@ -44,6 +44,8 @@ locals {
       node_pools                                 = var.autoscaler_nodepools
       disable_ipv4                               = var.autoscaler_disable_ipv4 || local.use_nat_router
       disable_ipv6                               = var.autoscaler_disable_ipv6 || local.use_nat_router
+      enable_ipv4                                = !(var.autoscaler_disable_ipv4 || local.use_nat_router)
+      enable_ipv6                                = !(var.autoscaler_disable_ipv6 || local.use_nat_router)
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
