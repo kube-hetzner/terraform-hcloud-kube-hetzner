@@ -195,22 +195,14 @@ spec:
             value: '${ipv4_subnet_id}'
           - name: HCLOUD_FIREWALL
             value: '${firewall_id}'
-          %{~ if disable_ipv4 ~}
-          - name: HCLOUD_PUBLIC_IPV4
-            value: "false"
-          %{~ endif ~}
-          %{~ if disable_ipv6 ~}
-          - name: HCLOUD_PUBLIC_IPV6
-            value: "false"
-          %{~ endif ~}
-          %{~ if cluster_autoscaler_server_creation_timeout != "" ~}
-          - name: HCLOUD_SERVER_CREATION_TIMEOUT
-            value: '${cluster_autoscaler_server_creation_timeout}'
-          %{~ endif ~}
           - name: HCLOUD_PUBLIC_IPV4
             value: '${enable_ipv4}'
           - name: HCLOUD_PUBLIC_IPV6
             value: '${enable_ipv6}'
+          %{~ if cluster_autoscaler_server_creation_timeout != "" ~}
+          - name: HCLOUD_SERVER_CREATION_TIMEOUT
+            value: '${cluster_autoscaler_server_creation_timeout}'
+          %{~ endif ~}
           volumeMounts:
             - name: ssl-certs
               mountPath: /etc/ssl/certs
