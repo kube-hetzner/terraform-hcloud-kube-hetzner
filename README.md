@@ -998,7 +998,7 @@ enable_delete_protection = {
 </details>
 <details>
 
-<summary>Use only private ips in your cluster</summary>
+<summary>Use only private ips in your cluster (Wireguard)</summary>
 
 To use only private ips on your cluster, you need in your project:
 1. A network already configured.
@@ -1019,6 +1019,22 @@ If you follow this values, in your kube.tf, please set:
 
 This setup is compatible with a loadbalancer for your control planes, however you should consider to set
 `control_plane_lb_enable_public_interface = false` to keep ip private.
+</details>
+<details>
+
+<summary>Use only private ips in your cluster (NAT Router)</summary>
+
+Setup a purely private cluster where public internet traffic is limited to the 
+following paths:
+- egress: entirely through the NAT router, using a single IP for all egress traffic.
+- ssh: entirely through the bastion host, at the moment the same as the NAT router.
+- control-plane (kubectl): through the control plane load balancer only.
+- regular ingress: through the agents load balancer only.
+
+By seperating various roles, this decreases the attack surfaces a bit.
+
+If you need highly available egress (often this is not necessary), this setup is not for you. This setup does not have any impact on the availability of ingress.
+
 </details>
 
 

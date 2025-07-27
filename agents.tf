@@ -31,9 +31,9 @@ module "agents" {
   keep_disk_size               = var.keep_disk_agents
   disable_ipv4                 = each.value.disable_ipv4
   disable_ipv6                 = each.value.disable_ipv6
-  network_id                   = length(var.existing_network_id) > 0 ? var.existing_network_id[0] : 0
-
-  private_ipv4 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
+  ssh_bastion                  = local.ssh_bastion
+  network_id                   = data.hcloud_network.k3s.id
+  private_ipv4                 = cidrhost(hcloud_network_subnet.agent[[for i, v in var.agent_nodepools : i if v.name == each.value.nodepool_name][0]].ip_range, each.value.index + 101)
 
   labels = merge(local.labels, local.labels_agent_node)
 
@@ -41,7 +41,9 @@ module "agents" {
 
   depends_on = [
     hcloud_network_subnet.agent,
-    hcloud_placement_group.agent
+    hcloud_placement_group.agent,
+    hcloud_server.nat_router,
+    null_resource.nat_router_await_cloud_init,
   ]
 }
 
@@ -94,6 +96,12 @@ resource "null_resource" "agent_config" {
     agent_identity = local.ssh_agent_identity
     host           = local.agent_ips[each.key]
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Generating k3s agent config file
@@ -120,6 +128,12 @@ resource "null_resource" "agents" {
     agent_identity = local.ssh_agent_identity
     host           = local.agent_ips[each.key]
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Install k3s agent
@@ -130,7 +144,7 @@ resource "null_resource" "agents" {
   # Start the k3s agent and wait for it to have started
   provisioner "remote-exec" {
     inline = concat(var.enable_longhorn || var.enable_iscsid ? ["systemctl enable --now iscsid"] : [], [
-      "systemctl start k3s-agent 2> /dev/null",
+      "timeout 120 systemctl start k3s-agent 2> /dev/null",
       <<-EOT
       timeout 120 bash <<EOF
         until systemctl status k3s-agent > /dev/null; do
@@ -189,6 +203,12 @@ resource "null_resource" "configure_longhorn_volume" {
     agent_identity = local.ssh_agent_identity
     host           = local.agent_ips[each.key]
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   depends_on = [
@@ -271,6 +291,12 @@ resource "null_resource" "configure_floating_ip" {
     agent_identity = local.ssh_agent_identity
     host           = local.agent_ips[each.key]
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   depends_on = [
