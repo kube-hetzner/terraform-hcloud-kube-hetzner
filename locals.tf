@@ -71,8 +71,7 @@ locals {
     local.has_dns_servers ? [
       join("\n", compact([
         "# Wait for NetworkManager to be ready",
-        "timeout 60 bash -c 'while ! systemctl is-active --quiet NetworkManager; do echo \"Waiting for NetworkManager to be ready...\"; sleep 2; done'",
-        "if ! systemctl is-active --quiet NetworkManager; then",
+        "if ! timeout 60 bash -c 'until systemctl is-active --quiet NetworkManager; do echo \"Waiting for NetworkManager to be ready...\"; sleep 2; done'; then",
         "  echo \"ERROR: NetworkManager is not active after timeout\" >&2",
         "  exit 0  # Don't fail cloud-init",
         "fi",
