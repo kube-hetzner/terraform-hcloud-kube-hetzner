@@ -833,6 +833,10 @@ cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : 
 crds:
   enabled: true
   keep: true
+%{if var.ingress_controller == "nginx"~}
+extraArgs:
+  --feature-gates: ACMEHTTP01IngressPathTypeExact=false
+%{endif~}
   EOT
 
 kured_options = merge({
