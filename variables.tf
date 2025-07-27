@@ -306,11 +306,15 @@ variable "agent_nodepools" {
   }
 
   validation {
-    condition = (
-      can(regex("^/([a-zA-Z0-9._-]+/?)*$", var.longhorn_mount_path)) &&
-      !endswith(var.longhorn_mount_path, "/") || var.longhorn_mount_path == "/"
-    )
-    error_message = "The longhorn_mount_path must be a valid absolute Linux path without a trailing slash (except root '/'), and contain only alphanumeric characters, dashes, underscores, and dots."
+    condition = alltrue([
+      for np in var.agent_nodepools : (
+        (
+          can(regex("^/([a-zA-Z0-9._-]+/?)*$", np.longhorn_mount_path)) &&
+          (!endswith(np.longhorn_mount_path, "/") || np.longhorn_mount_path == "/")
+        )
+      )
+    ])
+    error_message = "Each longhorn_mount_path must be a valid absolute path without trailing slash (except '/')."
   }
 
 }
