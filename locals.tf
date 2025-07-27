@@ -70,6 +70,12 @@ locals {
     ],
     local.has_dns_servers ? [
       join("\n", compact([
+        "# Wait for NetworkManager to be ready",
+        "timeout 60 bash -c 'while ! systemctl is-active --quiet NetworkManager; do echo \"Waiting for NetworkManager to be ready...\"; sleep 2; done'",
+        "if ! systemctl is-active --quiet NetworkManager; then",
+        "  echo \"ERROR: NetworkManager is not active after timeout\" >&2",
+        "  exit 0  # Don't fail cloud-init",
+        "fi",
         "# Get the default interface",
         "IFACE=$(ip route show default 2>/dev/null | awk '/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
         "if [ -z \"$IFACE\" ]; then",
