@@ -33,7 +33,7 @@ locals {
     (
       var.control_plane_lb_enable_public_interface ?
       hcloud_load_balancer.control_plane.*.ipv4[0]
-      : hcloud_load_balancer.control_plane.*.network_ip[0]
+      : hcloud_load_balancer_network.control_plane.*.ip[0]
     )
     :
     (can(local.first_control_plane_ip) ? local.first_control_plane_ip : "unknown")
