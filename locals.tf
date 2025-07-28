@@ -840,7 +840,7 @@ crds:
   keep: true
 %{if var.ingress_controller == "nginx"~}
 extraArgs:
-  --feature-gates: ACMEHTTP01IngressPathTypeExact=false
+  - --feature-gates=ACMEHTTP01IngressPathTypeExact=false
 %{endif~}
   EOT
 
