@@ -1176,5 +1176,47 @@ cloudinit_runcmd_common = <<EOT
 - [sed, '-i', '-E', 's/^SELINUX=[a-z]+/SELINUX=disabled/', '/etc/selinux/config']
 - [setenforce, '0']
 %{endif}
+
+# Configure routing for Hetzner network (protection against DHCP changes after Aug 11, 2025)
+- |
+  set +e  # Don't fail if routes exist
+  
+  # Detect network configuration
+  if ip link show eth1 &>/dev/null; then
+    # Standard setup: eth0 is public, eth1 is private
+    # Add public network default route
+    ip route add default via 172.31.1.1 dev eth0 metric 100 2>/dev/null
+    
+    # Wait for private interface to be ready (timeout: 30 seconds)
+    for i in {1..30}; do
+      if ip addr show eth1 | grep -q "inet "; then
+        # Add default route via private network with high metric
+        # Metric 20101 matches current DHCP-provided route for compatibility
+        ip route add default via 10.0.0.1 dev eth1 metric 20101 2>/dev/null
+        
+        # Configure NetworkManager to ignore DHCP default route on private interface
+        if systemctl is-active --quiet NetworkManager; then
+          NM_CONN=$(nmcli -g GENERAL.CONNECTION device show eth1 2>/dev/null | head -1)
+          if [ -n "$NM_CONN" ]; then
+            nmcli connection modify "$NM_CONN" ipv4.never-default yes 2>/dev/null
+          fi
+        fi
+        break
+      fi
+      sleep 1
+    done
+    
+    # Warn if interface didn't come up
+    if ! ip addr show eth1 | grep -q "inet "; then
+      echo "Warning: private interface eth1 did not become available after 30 seconds" >&2
+    fi
+  else
+    # Private-only setup: eth0 is the private interface
+    # Add default route via private network
+    ip route add default via 10.0.0.1 dev eth0 metric 100 2>/dev/null
+  fi
+  
+  set -e
 EOT
+
 }
