@@ -91,6 +91,36 @@ locals {
       ]))
     ] : [],
     local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
+    # Configure private network routing and NetworkManager for Hetzner DHCP changes
+    [
+      join("\n", [
+        "# Configure routing for Hetzner network (protection against DHCP changes after Aug 11, 2025)",
+        "set +e  # Don't fail if routes exist",
+        "",
+        "# Check if eth1 exists (standard setup with public + private IPs)",
+        "if ip link show eth1 &>/dev/null; then",
+        "  # Add default route via private network with high metric",
+        "  # Metric 20101 matches current DHCP-provided route for compatibility",
+        "  ip route add default via 10.0.0.1 dev eth1 metric 20101 2>/dev/null",
+        "  ",
+        "  # Configure NetworkManager to ignore DHCP default route on private interface",
+        "  if systemctl is-active --quiet NetworkManager; then",
+        "    NM_CONN=$(nmcli -g GENERAL.CONNECTION device show eth1 2>/dev/null | head -1)",
+        "    if [ -n \"$NM_CONN\" ]; then",
+        "      if ! nmcli connection modify \"$NM_CONN\" ipv4.never-default yes >/dev/null 2>&1; then",
+        "        echo \"Warning: Failed to set ipv4.never-default on eth1. This node may be affected by Hetzner DHCP changes.\" >&2",
+        "      fi",
+        "      # Also configure IPv6 to not use eth1 as default route",
+        "      if ! nmcli connection modify \"$NM_CONN\" ipv6.never-default yes >/dev/null 2>&1; then",
+        "        echo \"Warning: Failed to set ipv6.never-default on eth1. This node may be affected by Hetzner DHCP changes.\" >&2",
+        "      fi",
+        "    fi",
+        "  fi",
+        "fi",
+        "",
+        "set -e"
+      ])
+    ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
@@ -1177,50 +1207,6 @@ cloudinit_runcmd_common = <<EOT
 - [setenforce, '0']
 %{endif}
 
-# Configure routing for Hetzner network (protection against DHCP changes after Aug 11, 2025)
-- |
-  set +e  # Don't fail if routes exist
-  
-  # Detect network configuration
-  if ip link show eth1 &>/dev/null; then
-    # Standard setup: eth0 is public, eth1 is private
-    # Add public network default route
-    ip route add default via 172.31.1.1 dev eth0 metric 100 2>/dev/null
-    
-    # Wait for private interface to be ready (timeout: 30 seconds)
-    eth1_configured=false
-    for i in {1..30}; do
-      if ip addr show eth1 | grep -q "inet "; then
-        # Add default route via private network with high metric
-        # Metric 20101 matches current DHCP-provided route for compatibility
-        ip route add default via 10.0.0.1 dev eth1 metric 20101 2>/dev/null
-        
-        # Configure NetworkManager to ignore DHCP default route on private interface
-        if systemctl is-active --quiet NetworkManager; then
-          NM_CONN=$(nmcli -g GENERAL.CONNECTION device show eth1 2>/dev/null | head -1)
-          if [ -n "$NM_CONN" ]; then
-            if ! nmcli connection modify "$NM_CONN" ipv4.never-default yes >/dev/null 2>&1; then
-              echo "Warning: Failed to set ipv4.never-default on eth1. This node may be affected by Hetzner DHCP changes." >&2
-            fi
-          fi
-        fi
-        eth1_configured=true
-        break
-      fi
-      sleep 1
-    done
-    
-    # Warn if interface didn't come up
-    if [ "$eth1_configured" != "true" ]; then
-      echo "Warning: private interface eth1 did not become available after 30 seconds" >&2
-    fi
-  else
-    # Private-only setup: eth0 is the private interface
-    # Add default route via private network
-    ip route add default via 10.0.0.1 dev eth0 metric 100 2>/dev/null
-  fi
-  
-  set -e
 EOT
 
 }
