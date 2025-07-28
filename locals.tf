@@ -1188,6 +1188,7 @@ cloudinit_runcmd_common = <<EOT
     ip route add default via 172.31.1.1 dev eth0 metric 100 2>/dev/null
     
     # Wait for private interface to be ready (timeout: 30 seconds)
+    eth1_configured=false
     for i in {1..30}; do
       if ip addr show eth1 | grep -q "inet "; then
         # Add default route via private network with high metric
@@ -1198,16 +1199,19 @@ cloudinit_runcmd_common = <<EOT
         if systemctl is-active --quiet NetworkManager; then
           NM_CONN=$(nmcli -g GENERAL.CONNECTION device show eth1 2>/dev/null | head -1)
           if [ -n "$NM_CONN" ]; then
-            nmcli connection modify "$NM_CONN" ipv4.never-default yes 2>/dev/null
+            if ! nmcli connection modify "$NM_CONN" ipv4.never-default yes >/dev/null 2>&1; then
+              echo "Warning: Failed to set ipv4.never-default on eth1. This node may be affected by Hetzner DHCP changes." >&2
+            fi
           fi
         fi
+        eth1_configured=true
         break
       fi
       sleep 1
     done
     
     # Warn if interface didn't come up
-    if ! ip addr show eth1 | grep -q "inet "; then
+    if [ "$eth1_configured" != "true" ]; then
       echo "Warning: private interface eth1 did not become available after 30 seconds" >&2
     fi
   else
