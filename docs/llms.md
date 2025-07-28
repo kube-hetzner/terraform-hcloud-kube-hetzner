@@ -2688,7 +2688,7 @@ The following variables have been added to the `kube-hetzner` module since the i
 ```terraform
   # Setup a NAT router, and automatically disable public ips on all control plane and agent nodes.
   # To use this, you must also set use_control_plane_lb = true, otherwise kubectl can never reach the cluster.
-  # The NAT router will also function as bastion. This makes securing the cluster easier, as all public traffic passes through a single strongly secured node.
+  # The NAT router will also function as a bastion. This makes securing the cluster easier, as all public traffic passes through a single strongly secured node.
   # It does however also introduce a single point of failure, so if you need high-availability on your egress, you should consider other configurations.
   # nat_router = {
   #   server_type = "cx31"
@@ -2771,7 +2771,7 @@ The following variables have been added to the `kube-hetzner` module since the i
   * **Default:** Falls back to `lb_hostname` if set and using Hetzner LB
 
 * **`rancher_install_channel` (String, Optional):**
-  * **Default:** `"latest"`
+  * **Default:** `"stable"`
   * **Options:** `"stable"` or `"latest"`
   * **Purpose:** Controls which Rancher release channel to use
 
@@ -2795,7 +2795,7 @@ The following variables have been added to the `kube-hetzner` module since the i
 * **`create_kubeconfig` (Boolean, Optional):**
   * **Default:** `true` (for backward compatibility)
   * **Purpose:** Controls whether to create a kubeconfig file on disk
-  * **Best Practice:** Set to `false` and use `terraform output --raw kubeconfig > cluster_kubeconfig.yaml` instead
+  * **Best Practice:** Set to `false` and use `terraform output --raw kubeconfig_data > cluster_kubeconfig.yaml` instead
   * **Security:** Prevents accidental commits of kubeconfig files
 
 * **`create_kustomization` (Boolean, Optional):**
@@ -2854,7 +2854,7 @@ The following variables allow deep customization of various components through H
   #   mode: kubernetes
   # EOT
   
-  # Custom cert-manager values  
+  # Custom cert-manager values
   # cert_manager_values = <<EOT
   # crds:
   #   enabled: true
