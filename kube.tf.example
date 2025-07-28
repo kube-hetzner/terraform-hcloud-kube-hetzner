@@ -1027,6 +1027,29 @@ cainjector:
   replicaCount: 3
   EOT */
 
+  # Hetzner Cloud Controller Manager, all Hetzner Cloud Controller Manager helm values can be found at https://github.com/hetznercloud/hcloud-cloud-controller-manager/blob/main/chart/values.yaml
+  # We advise you to not touch this and to let the defaults that are already set under the hood.
+  # For advanced use cases like adding Hetzner Robot servers, see: https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/add-robot-server.md
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   hetzner_ccm_values = <<EOT
+networking:
+  enabled: true
+args:
+  cloud-provider: hcloud
+  allow-untagged-cloud: ""
+  route-reconciliation-period: 30s
+  webhook-secure-port: "0"
+env:
+  HCLOUD_LOAD_BALANCERS_LOCATION:
+    value: "fsn1"
+  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_ENABLED:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
+    value: "true"
+  EOT */
+
   # csi-driver-smb, all csi-driver-smb helm values can be found at https://github.com/kubernetes-csi/csi-driver-smb/blob/master/charts/latest/csi-driver-smb/values.yaml
   # The following is an example, please note that the current indentation inside the EOT is important.
   /*   csi_driver_smb_values = <<EOT

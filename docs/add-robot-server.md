@@ -10,6 +10,7 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
 - **vSwitch** set up for private networking between Cloud and Robot nodes
 - **Webservice User** created in Hetzner Robot account settings (for API access)
 - `hccm` version **1.19 or newer**
+- **Operating System**: Ideally use the MicroOS image created by this project. Otherwise, any Linux distribution that supports k3s will work
 
 ---
 
@@ -50,7 +51,7 @@ Assumptions (change these to your values!):
 ```bash
 nmcli connection add type vlan con-name vlan9999 ifname vlan9999 vlan.parent enp6s0 vlan.id 9999
 
-nmcli connection modify vlan9999 802-3-ethernet.mtu 1400
+nmcli connection modify vlan9999 802-3-ethernet.mtu 1400  # Important: vSwitch requires MTU 1400
 nmcli connection modify vlan9999 ipv4.addresses '10.1.0.2/24'
 nmcli connection modify vlan9999 ipv4.gateway '10.1.0.1'
 nmcli connection modify vlan9999 ipv4.method manual
@@ -124,19 +125,19 @@ env:
 1. **Create `/etc/rancher/k3s/config.yaml`** on the robot node:
 
     ```yaml
-    "flannel-iface": "enp6s0" # Set to your main interface
-    "prefer-bundled-bin": "true"
-    "kubelet-arg":
-      - "cloud-provider=external"
-      - "volume-plugin-dir=/var/lib/kubelet/volumeplugins"
-      - "kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi"
-      - "system-reserved=cpu=250m,memory=6000Mi" # Optional: reserve some space for system
-    "node-label":
-      - "k3s_upgrade=true"
-    "node-taint": []
-    "selinux": true
-    "server": "https://$IP:6443" # Replace with your API server IP
-    "token": "$TOKEN"            # Replace with your cluster token
+    flannel-iface: enp6s0  # Set to your main interface (only needed for Flannel CNI)
+    prefer-bundled-bin: true
+    kubelet-arg:
+      - cloud-provider=external
+      - volume-plugin-dir=/var/lib/kubelet/volumeplugins
+      - kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi
+      - system-reserved=cpu=250m,memory=6000Mi  # Optional: reserve some space for system
+    node-label:
+      - k3s_upgrade=true
+    node-taint: []
+    selinux: true
+    server: https://<API_SERVER_IP>:6443  # Replace with your API server IP
+    token: <CLUSTER_TOKEN>                # Replace with your cluster token
     ```
 
 2. **Before starting the agent**, verify network connectivity:
@@ -168,6 +169,15 @@ env:
 
 - This setup may not cover all edge cases (e.g., other CNIs, non-wireguard clusters, complex private networks).
 - **Test your network thoroughly** before adding robot nodes to production clusters.
+- **MTU Issues**: When using vSwitch, MTU configuration is critical:
+  - vSwitch has a maximum MTU of 1400
+  - Some users report needing even lower MTU values (e.g., 1350 or less) for stable operation
+  - This particularly affects Cilium CNI users
+  - Without proper MTU configuration, you may experience:
+    - Pods unable to connect to the Kubernetes API
+    - Network instability for pods not using host networking
+    - Intermittent connection issues
+  - Test different MTU values if you encounter network issues
 
 ---
 

@@ -654,6 +654,25 @@ controller:
   EOT
 
   hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
+networking:
+  enabled: true
+args:
+  cloud-provider: hcloud
+  allow-untagged-cloud: ""
+  route-reconciliation-period: 30s
+  webhook-secure-port: "0"
+%{if local.using_klipper_lb~}
+  secure-port: "10288"
+%{endif~}
+env:
+  HCLOUD_LOAD_BALANCERS_LOCATION:
+    value: "${var.load_balancer_location}"
+  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_ENABLED:
+    value: "${!local.using_klipper_lb}"
+  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
+    value: "true"
   EOT
 
   haproxy_values = var.haproxy_values != "" ? var.haproxy_values : <<EOT
