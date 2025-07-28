@@ -333,6 +333,23 @@ module "kube-hetzner" {
   # Specifies the number of times a health check is retried before a target is marked as unhealthy. (default: 3)
   # load_balancer_health_check_retries = 3
 
+
+  # Setup a NAT router, and automatically disable public ips on all control plane and agent nodes.
+  # To use this, you must also set use_control_plane_lb = true, otherwise kubectl can never
+  # reach the cluster. The NAT router will also function as bastion. This makes securing the cluster
+  # easier, as all public traffic passes through a single strongly secured node. It does
+  # however also introduce a single point of failure, so if you need high-availability on your
+  # egress, you should consider other configurations.
+  # 
+  #
+  # nat_router = {
+  #   server_type = "cax21"
+  #   location    = "fsn1"
+  #   enable_sudo = false # optional, default to false. Set to true to add nat-router user to the sudo'ers. Note that ssh as root is disabled.
+  #   labels      = {} # optionally add labels.
+  # }
+
+
   ### The following values are entirely optional (and can be removed from this if unused)
 
   # You can refine a base domain name to be use in this form of nodename.base_domain for setting the reverse dns inside Hetzner
@@ -976,6 +993,7 @@ module "kube-hetzner" {
   # Be careful when maintaining your own cilium_values, as the choice of available settings depends on the Cilium version used. See also the cilium_version setting to fix a specific version.
   # The following is an example, please note that the current indentation inside the EOT is important.
   /*   cilium_values = <<EOT
+
 ipam:
   mode: kubernetes
 k8s:
@@ -1007,6 +1025,29 @@ webhook:
   replicaCount: 3
 cainjector:
   replicaCount: 3
+  EOT */
+
+  # Hetzner Cloud Controller Manager, all Hetzner Cloud Controller Manager helm values can be found at https://github.com/hetznercloud/hcloud-cloud-controller-manager/blob/main/chart/values.yaml
+  # We advise you to not touch this and to let the defaults that are already set under the hood.
+  # For advanced use cases like adding Hetzner Robot servers, see: https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/add-robot-server.md
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   hetzner_ccm_values = <<EOT
+networking:
+  enabled: true
+args:
+  cloud-provider: hcloud
+  allow-untagged-cloud: ""
+  route-reconciliation-period: 30s
+  webhook-secure-port: "0"
+env:
+  HCLOUD_LOAD_BALANCERS_LOCATION:
+    value: "fsn1"
+  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_ENABLED:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
+    value: "true"
   EOT */
 
   # csi-driver-smb, all csi-driver-smb helm values can be found at https://github.com/kubernetes-csi/csi-driver-smb/blob/master/charts/latest/csi-driver-smb/values.yaml

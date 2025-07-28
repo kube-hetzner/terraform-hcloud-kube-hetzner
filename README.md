@@ -61,6 +61,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Optional use of **Floating IPs** for use via Cilium's Egress Gateway.
 - [x] Proper IPv6 support for inbound/outbound traffic.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
+- [x] Ability to add Hetzner "Robot" / Dedicated servers as nodes
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -287,6 +288,10 @@ Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Char
 By default, we strive to give you optimal defaults, but if you wish, you can customize them.
 
 For Traefik, Nginx, HAProxy, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
+
+## Adding Hetzner Robot / Dedicated Servers
+
+See the [guide on adding robot servers](docs/add-robot-server.md)
 
 ## Adding Extras
 
@@ -998,7 +1003,7 @@ enable_delete_protection = {
 </details>
 <details>
 
-<summary>Use only private ips in your cluster</summary>
+<summary>Use only private ips in your cluster (Wireguard)</summary>
 
 To use only private ips on your cluster, you need in your project:
 1. A network already configured.
@@ -1019,6 +1024,22 @@ If you follow this values, in your kube.tf, please set:
 
 This setup is compatible with a loadbalancer for your control planes, however you should consider to set
 `control_plane_lb_enable_public_interface = false` to keep ip private.
+</details>
+<details>
+
+<summary>Use only private ips in your cluster (NAT Router)</summary>
+
+Setup a purely private cluster where public internet traffic is limited to the 
+following paths:
+- egress: entirely through the NAT router, using a single IP for all egress traffic.
+- ssh: entirely through the bastion host, at the moment the same as the NAT router.
+- control-plane (kubectl): through the control plane load balancer only.
+- regular ingress: through the agents load balancer only.
+
+By seperating various roles, this decreases the attack surfaces a bit.
+
+If you need highly available egress (often this is not necessary), this setup is not for you. This setup does not have any impact on the availability of ingress.
+
 </details>
 
 
