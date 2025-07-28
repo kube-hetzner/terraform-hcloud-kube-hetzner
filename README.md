@@ -17,6 +17,26 @@
   <hr />
 </p>
 
+- [About The Project](#about-the-project)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [CNI](#cni)
+- [Scaling Nodes](#scaling-nodes)
+- [Autoscaling Node Pools](#autoscaling-node-pools)
+- [High Availability](#high-availability)
+- [Automatic Upgrade](#automatic-upgrade)
+- [Customizing the Cluster Components](#customizing-the-cluster-components)
+- [Adding Hetzner Robot / Dedicated Servers](#adding-hetzner-robot--dedicated-servers)
+- [Adding Extras](#adding-extras)
+- [Examples](#examples)
+- [Debugging](#debugging)
+- [Takedown](#takedown)
+- [Upgrading the Module](#upgrading-the-module)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
+
+---
+
 ## About The Project
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
