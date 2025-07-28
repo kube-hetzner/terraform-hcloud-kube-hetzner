@@ -653,6 +653,9 @@ controller:
 %{endif~}
   EOT
 
+  hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
+  EOT
+
   haproxy_values = var.haproxy_values != "" ? var.haproxy_values : <<EOT
 controller:
   kind: "Deployment"
