@@ -12,7 +12,7 @@
   </p>
   <hr />
     <p align="center">
-    🔥 Introducing <a href="https://chatgpt.com/g/g-67df95cd1e0c8191baedfa3179061581-kh-assistant" target="_blank">KH Assistant</a>, our Custom-GPT kube.tf generator to get you going fast, just tell it what you need! 🚀
+    🔥 Introducing <a href="https://chatgpt.com/g/g-67df95cd1e0c8191baedfa3179061581-kh-assistant" target="_blank">KH Assistant</a>, our Custom-GPT kube.tf generator to get you going fast, just tell it what you need! 🚀 (Updated: 28th July 2025)
   </p>
   <hr />
 </p>
@@ -61,6 +61,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Optional use of **Floating IPs** for use via Cilium's Egress Gateway.
 - [x] Proper IPv6 support for inbound/outbound traffic.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
+- [x] Ability to add Hetzner "Robot" / Dedicated servers as nodes
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -287,6 +288,10 @@ Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Char
 By default, we strive to give you optimal defaults, but if you wish, you can customize them.
 
 For Traefik, Nginx, HAProxy, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
+
+## Adding Hetzner Robot / Dedicated Servers
+
+See the [guide on adding robot servers](docs/add-robot-server.md)
 
 ## Adding Extras
 

@@ -70,15 +70,22 @@ locals {
     ],
     local.has_dns_servers ? [
       join("\n", compact([
+        "# Wait for NetworkManager to be ready",
+        "if ! timeout 60 bash -c 'until systemctl is-active --quiet NetworkManager; do echo \"Waiting for NetworkManager to be ready...\"; sleep 2; done'; then",
+        "  echo \"ERROR: NetworkManager is not active after timeout\" >&2",
+        "  exit 0  # Don't fail cloud-init",
+        "fi",
         "# Get the default interface",
         "IFACE=$(ip route show default 2>/dev/null | awk '/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
         "if [ -z \"$IFACE\" ]; then",
         "  # Fallback: try to get any interface that's up and has an IP",
-        "    IFACE=$(ip route show 2>/dev/null | awk '!/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
+        "  IFACE=$(ip route show 2>/dev/null | awk '!/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
         "fi",
         "if [ -n \"$IFACE\" ]; then",
         "  CONNECTION=$(nmcli -g GENERAL.CONNECTION device show \"$IFACE\" 2>/dev/null | head -1)",
         "  if [ -n \"$CONNECTION\" ]; then",
+        "    # Disable auto-DNS for both protocols when custom DNS servers are provided",
+        "    nmcli con mod \"$CONNECTION\" ipv4.ignore-auto-dns yes ipv6.ignore-auto-dns yes",
         length(local.dns_servers_ipv4) > 0 ? "    nmcli con mod \"$CONNECTION\" ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
         length(local.dns_servers_ipv6) > 0 ? "    nmcli con mod \"$CONNECTION\" ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
         "  fi",
@@ -86,6 +93,36 @@ locals {
       ]))
     ] : [],
     local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
+    # Configure private network routing and NetworkManager for Hetzner DHCP changes
+    [
+      join("\n", [
+        "# Configure routing for Hetzner network (protection against DHCP changes after Aug 11, 2025)",
+        "set +e  # Don't fail if routes exist",
+        "",
+        "# Check if eth1 exists (standard setup with public + private IPs)",
+        "if ip link show eth1 &>/dev/null; then",
+        "  # Add default route via private network with high metric",
+        "  # Metric 20101 matches current DHCP-provided route for compatibility",
+        "  ip route add default via 10.0.0.1 dev eth1 metric 20101 2>/dev/null",
+        "  ",
+        "  # Configure NetworkManager to ignore DHCP default route on private interface",
+        "  if systemctl is-active --quiet NetworkManager; then",
+        "    NM_CONN=$(nmcli -g GENERAL.CONNECTION device show eth1 2>/dev/null | head -1)",
+        "    if [ -n \"$NM_CONN\" ]; then",
+        "      if ! nmcli connection modify \"$NM_CONN\" ipv4.never-default yes >/dev/null 2>&1; then",
+        "        echo \"Warning: Failed to set ipv4.never-default on eth1. This node may be affected by Hetzner DHCP changes.\" >&2",
+        "      fi",
+        "      # Also configure IPv6 to not use eth1 as default route",
+        "      if ! nmcli connection modify \"$NM_CONN\" ipv6.never-default yes >/dev/null 2>&1; then",
+        "        echo \"Warning: Failed to set ipv6.never-default on eth1. This node may be affected by Hetzner DHCP changes.\" >&2",
+        "      fi",
+        "    fi",
+        "  fi",
+        "fi",
+        "",
+        "set -e"
+      ])
+    ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
@@ -650,6 +687,28 @@ controller:
 %{endif~}
   EOT
 
+  hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
+networking:
+  enabled: true
+args:
+  cloud-provider: hcloud
+  allow-untagged-cloud: ""
+  route-reconciliation-period: 30s
+  webhook-secure-port: "0"
+%{if local.using_klipper_lb~}
+  secure-port: "10288"
+%{endif~}
+env:
+  HCLOUD_LOAD_BALANCERS_LOCATION:
+    value: "${var.load_balancer_location}"
+  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_ENABLED:
+    value: "${!local.using_klipper_lb}"
+  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
+    value: "true"
+  EOT
+
   haproxy_values = var.haproxy_values != "" ? var.haproxy_values : <<EOT
 controller:
   kind: "Deployment"
@@ -835,6 +894,10 @@ cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : 
 crds:
   enabled: true
   keep: true
+%{if var.ingress_controller == "nginx"~}
+extraArgs:
+  - --feature-gates=ACMEHTTP01IngressPathTypeExact=false
+%{endif~}
   EOT
 
 kured_options = merge({
@@ -1147,5 +1210,7 @@ cloudinit_runcmd_common = <<EOT
 - [sed, '-i', '-E', 's/^SELINUX=[a-z]+/SELINUX=disabled/', '/etc/selinux/config']
 - [setenforce, '0']
 %{endif}
+
 EOT
+
 }

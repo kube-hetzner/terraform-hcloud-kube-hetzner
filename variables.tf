@@ -905,12 +905,8 @@ variable "cert_manager_helmchart_bootstrap" {
 
 variable "cert_manager_values" {
   type        = string
-  default     = <<EOT
-crds:
-  enabled: true
-  keep: true
-  EOT
-  description = "Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. Warning, the default value is only valid from cert-manager v1.15.0 onwards. For older versions, you need to set 'installCRDs: true'."
+  default     = ""
+  description = "Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. Defaults are set in locals.tf. For cert-manager versions prior to v1.15.0, you need to set 'installCRDs: true'."
 }
 
 variable "enable_rancher" {
@@ -1239,4 +1235,10 @@ variable "sys_upgrade_controller_version" {
   type        = string
   default     = "v0.14.2"
   description = "Version of the System Upgrade Controller for automated upgrades of k3s. See https://github.com/rancher/system-upgrade-controller/releases for the available versions."
+}
+
+variable "hetzner_ccm_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to Hetzner Controller Manager as 'valuesContent' at the HelmChart."
 }
