@@ -17,6 +17,26 @@
   <hr />
 </p>
 
+- [About The Project](#about-the-project)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [CNI](#cni)
+- [Scaling Nodes](#scaling-nodes)
+- [Autoscaling Node Pools](#autoscaling-node-pools)
+- [High Availability](#high-availability)
+- [Automatic Upgrade](#automatic-upgrade)
+- [Customizing the Cluster Components](#customizing-the-cluster-components)
+- [Adding Hetzner Robot / Dedicated Servers](#adding-hetzner-robot--dedicated-servers)
+- [Adding Extras](#adding-extras)
+- [Examples](#examples)
+- [Debugging](#debugging)
+- [Takedown](#takedown)
+- [Upgrading the Module](#upgrading-the-module)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
+
+---
+
 ## About The Project
 
 [Hetzner Cloud](https://hetzner.com) is a good cloud provider that offers very affordable prices for cloud instances, with data center locations in both Europe and the US.
@@ -75,16 +95,17 @@ Follow those simple steps, and your world's cheapest Kubernetes cluster will be 
 
 First and foremost, you need to have a Hetzner Cloud account. You can sign up for free [here](https://hetzner.com/cloud/).
 
-Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) or [tofu](https://opentofu.org/docs/intro/install/), [packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli#installing-packer) (for the initial snapshot creation only, no longer needed once that's done), [kubectl](https://kubernetes.io/docs/tasks/tools/) cli and [hcloud](https://github.com/hetznercloud/cli) the Hetzner cli for convenience. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem). Timeout command is also used, which is a part of coreutils on MacOS.
+Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) or [tofu](https://opentofu.org/docs/intro/install/), [packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli#installing-packer) (for the initial snapshot creation only, no longer needed once that's done), [kubectl](https://kubernetes.io/docs/tasks/tools/) cli and [hcloud](https://github.com/hetznercloud/cli) the Hetzner cli for convenience.  
+The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on MacOS, Linux and Windows Linux Subsystem). The timeout command is also used, which is part of coreutils on MacOS.
 
-```sh
-brew tap hashicorp/tap
-brew install hashicorp/tap/terraform # OR brew install opentofu
-brew install hashicorp/tap/packer
-brew install kubectl
-brew install hcloud
-brew install coreutils
-```
+|        **Tool**        |                              **Installation Command**                              |
+|:----------------------:|:----------------------------------------------------------------------------------:|
+| Homebrew (macOS/Linux) | brew install terraform packer kubectl hcloud                                       |
+| Yay/Paru (Arch-based)  | yay -S terraform packer kubectl hcloud<br> paru -S terraform packer kubectl hcloud |
+| APT (Debian-based)     | sudo apt install terraform packer kubectl                                          |
+| DNF (Red Hat-based)    | sudo dnf install terraform packer kubectl                                          |
+| Snap                   | sudo snap install terraform kubectl --classic && snap install packer               |
+| Chocolatey (Windows)   | choco install terraform packer kubernetes-cli hetzner-cli                          |
 
 ### 💡 [Do not skip] Creating your kube.tf file and the OpenSUSE MicroOS snapshot
 
