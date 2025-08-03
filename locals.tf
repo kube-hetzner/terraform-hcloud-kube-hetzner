@@ -301,8 +301,8 @@ locals {
     bastion_private_key = null
   }
 
-  # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
-  # the rest of the subnets are for agent nodes in each nodepools.
+  # Create 256 /24 subnets from the base network CIDR.
+  # Control planes allocate from the end (255, 254, 253...) and agents from the start (0, 1, 2...)
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
 
   # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
