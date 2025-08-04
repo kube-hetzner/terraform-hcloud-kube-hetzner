@@ -40,7 +40,6 @@ rules:
       - "replicationcontrollers"
       - "persistentvolumeclaims"
       - "persistentvolumes"
-      - "volumeattachments"
     verbs: ["watch", "list", "get"]
   - apiGroups: ["extensions"]
     resources: ["replicasets", "daemonsets"]
@@ -52,7 +51,7 @@ rules:
     resources: ["statefulsets", "replicasets", "daemonsets"]
     verbs: ["watch", "list", "get"]
   - apiGroups: ["storage.k8s.io"]
-    resources: ["storageclasses", "csinodes", "csistoragecapacities", "csidrivers"]
+    resources: ["storageclasses", "csinodes", "csistoragecapacities", "csidrivers", "volumeattachments"]
     verbs: ["watch", "list", "get"]
   - apiGroups: ["batch", "extensions"]
     resources: ["jobs"]
