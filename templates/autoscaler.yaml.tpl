@@ -40,7 +40,6 @@ rules:
       - "replicationcontrollers"
       - "persistentvolumeclaims"
       - "persistentvolumes"
-      - "volumeattachments"
     verbs: ["watch", "list", "get"]
   - apiGroups: ["extensions"]
     resources: ["replicasets", "daemonsets"]
