@@ -34,27 +34,32 @@ data "hcloud_network" "k3s" {
 }
 
 
+# We start from the end of the subnets cidr array,
+# as we would have fewer control plane nodepools, than agent ones.
 resource "hcloud_network_subnet" "control_plane" {
   count        = length(var.control_plane_nodepools)
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
-  ip_range     = local.network_ipv4_subnets_control_plane_pools[count.index]
+  ip_range     = local.network_ipv4_subnets[255 - count.index]
 }
 
+# Here we start at the beginning of the subnets cidr array
 resource "hcloud_network_subnet" "agent" {
   count        = length(var.agent_nodepools)
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
-  ip_range     = local.network_ipv4_subnets_agent_pools[count.index]
+  ip_range     = local.network_ipv4_subnets[count.index]
 }
 
-resource "hcloud_network_subnet" "peripherals" {
+# Subnet for NAT router and other peripherals
+resource "hcloud_network_subnet" "nat_router" {
+  count        = var.nat_router != null ? 1 : 0
   network_id   = data.hcloud_network.k3s.id
   type         = "cloud"
   network_zone = var.network_region
-  ip_range     = local.network_ipv4_subnet_peripherals
+  ip_range     = local.network_ipv4_subnets[var.nat_router_subnet_index]
 }
 
 

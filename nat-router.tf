@@ -1,5 +1,5 @@
 locals {
-  nat_router_ip = cidrhost(resource.hcloud_network_subnet.peripherals.ip_range, 1)
+  nat_router_ip = var.nat_router != null ? cidrhost(hcloud_network_subnet.nat_router[0].ip_range, 1) : ""
   nat_router_data_center = var.nat_router != null ? {
     "fsn1" : "fsn1-dc14",
     "nbg1" : "nbg1-dc3",
@@ -82,7 +82,7 @@ resource "hcloud_server" "nat_router" {
   }
 
   network {
-    network_id = resource.hcloud_network_subnet.peripherals.network_id
+    network_id = data.hcloud_network.k3s.id
     ip         = local.nat_router_ip
     alias_ips  = []
   }
