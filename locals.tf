@@ -993,12 +993,21 @@ cloudinit_write_files_common = <<EOT
       IP_LINK_NO_FLANNEL=$(ip link show | grep -v 'flannel')
 
       # Try to find an interface with a predictable name, e.g., enp1s0
-      INTERFACE=$(echo "$IP_LINK_NO_FLANNEL" | awk '/enp[0-9]+s[0-9]+:/{print $2; exit}' | sed 's/://g')
+      INTERFACE=$(awk '/enp[0-9]+s[0-9]+:/{sub(/:/,"",$2); print $2; exit}' <<< "$IP_LINK_NO_FLANNEL")
 
       # If no predictable name is found, use original logic as fallback
       if [ -z "$INTERFACE" ]; then
-        INTERFACE=$(echo "$IP_LINK_NO_FLANNEL" | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+        INTERFACE=$(awk 'BEGIN{l3=""}; /^3:/{l3=$2; sub(/:/,"",l3)}; /^2:/{l2=$2; sub(/:/,"",l2)}; END{if(l3!="") print l3; else print l2}' <<< "$IP_LINK_NO_FLANNEL")
       fi
+
+      # Ensure an interface was found
+      if [ -z "$INTERFACE" ]; then
+        echo "ERROR: Failed to detect network interface for renaming to eth1" >&2
+        echo "Available interfaces:" >&2
+        ip link show | grep -E '^[0-9]+:' >&2
+        exit 1
+      fi
+
       MAC=$(cat /sys/class/net/$INTERFACE/address)
 
       if [ "$INTERFACE" = "eth1" ]; then
