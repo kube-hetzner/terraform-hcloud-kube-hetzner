@@ -979,18 +979,22 @@ cloudinit_write_files_common = <<EOT
     # interface may already be correctly names, and this
     # block should be skipped.
     if ! ip link show eth1; then
-      # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-      INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+      # Find the private network interface - look for enp* pattern (handles both enp7s0 and enp1s0 formats)
+      INTERFACE=$(ip link show | grep -v 'flannel' | awk '/enp[0-9]+s[0-9]+:/{print $2; exit}' | sed 's/://g')
+      # If no enp*s* interface found, try simpler enp* pattern (like enp7s0)
+      if [ -z "$INTERFACE" ]; then
+        INTERFACE=$(ip link show | grep -v 'flannel' | awk '/enp[0-9]+s[0-9]:/{print $2; exit}' | sed 's/://g')
+      fi
+      # If still no enp* interface found, use original logic as fallback
+      if [ -z "$INTERFACE" ]; then
+        INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+      fi
       MAC=$(cat /sys/class/net/$INTERFACE/address)
 
       if [ "$INTERFACE" = "eth1" ]; then
         echo "Interface $INTERFACE already points to $MAC, skipping..."
         exit 0
       fi
-
-      # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-      # WV REMOVE > INTERFACE=$(ip link show | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
-      # WV REMOVE > MAC=$(cat /sys/class/net/$INTERFACE/address)
 
       cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
       SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
