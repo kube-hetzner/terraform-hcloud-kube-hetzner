@@ -979,15 +979,16 @@ cloudinit_write_files_common = <<EOT
     # interface may already be correctly names, and this
     # block should be skipped.
     if ! ip link show eth1; then
-      # Find the private network interface - look for enp* pattern (handles both enp7s0 and enp1s0 formats)
-      INTERFACE=$(ip link show | grep -v 'flannel' | awk '/enp[0-9]+s[0-9]+:/{print $2; exit}' | sed 's/://g')
-      # If no enp*s* interface found, try simpler enp* pattern (like enp7s0)
+      # Find the private network interface by name, falling back to original logic.
+      # The output of 'ip link show' is stored to avoid multiple calls.
+      IP_LINK_NO_FLANNEL=$(ip link show | grep -v 'flannel')
+
+      # Try to find an interface with a predictable name, e.g., enp1s0
+      INTERFACE=$(echo "$IP_LINK_NO_FLANNEL" | awk '/enp[0-9]+s[0-9]+:/{print $2; exit}' | sed 's/://g')
+
+      # If no predictable name is found, use original logic as fallback
       if [ -z "$INTERFACE" ]; then
-        INTERFACE=$(ip link show | grep -v 'flannel' | awk '/enp[0-9]+s[0-9]:/{print $2; exit}' | sed 's/://g')
-      fi
-      # If still no enp* interface found, use original logic as fallback
-      if [ -z "$INTERFACE" ]; then
-        INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+        INTERFACE=$(echo "$IP_LINK_NO_FLANNEL" | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
       fi
       MAC=$(cat /sys/class/net/$INTERFACE/address)
 
