@@ -995,16 +995,11 @@ cloudinit_write_files_common = <<EOT
       if [ -z "$INTERFACE" ]; then
         echo "ERROR: Failed to detect network interface for renaming to eth1" >&2
         echo "Available interfaces:" >&2
-        ip link show | grep -E '^[0-9]+:' >&2
+        echo "$IP_LINK_NO_FLANNEL" >&2
         exit 1
       fi
 
       MAC=$(cat /sys/class/net/$INTERFACE/address)
-
-      if [ "$INTERFACE" = "eth1" ]; then
-        echo "Interface $INTERFACE already points to $MAC, skipping..."
-        exit 0
-      fi
 
       cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
       SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
