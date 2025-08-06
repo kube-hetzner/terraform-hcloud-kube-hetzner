@@ -990,7 +990,7 @@ cloudinit_write_files_common = <<EOT
 
       # If no predictable name is found, use original logic as fallback
       if [ -z "$INTERFACE" ]; then
-        INTERFACE=$(awk 'BEGIN{l3=""}; /^3:/{l3=$2; sub(/:/,"",l3)}; /^2:/{l2=$2; sub(/:/,"",l2)}; END{if(l3!="") print l3; else print l2}' <<< "$IP_LINK_NO_FLANNEL")
+        INTERFACE=$(awk '/^3:/{p=$2} /^2:/{s=$2} END{iface=p?p:s; sub(/:/,"",iface); print iface}' <<< "$IP_LINK_NO_FLANNEL")
       fi
 
       # Ensure an interface was found
