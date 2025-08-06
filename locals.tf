@@ -987,7 +987,7 @@ cloudinit_write_files_common = <<EOT
     # Somehow sometimes on private-ip only setups, the 
     # interface may already be correctly names, and this
     # block should be skipped.
-    if ! ip link show eth1; then
+    if ! ip link show eth1 >/dev/null 2>&1; then
       # Find the private network interface by name, falling back to original logic.
       # The output of 'ip link show' is stored to avoid multiple calls.
       # Use '|| true' to prevent grep from causing script failure when no matches found
@@ -1010,7 +1010,7 @@ cloudinit_write_files_common = <<EOT
         exit 1
       fi
 
-      MAC=$(cat /sys/class/net/$INTERFACE/address)
+      MAC=$(cat "/sys/class/net/$INTERFACE/address")
 
       cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
       SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
