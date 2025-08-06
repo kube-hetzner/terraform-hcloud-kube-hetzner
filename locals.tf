@@ -981,10 +981,12 @@ cloudinit_write_files_common = <<EOT
     if ! ip link show eth1; then
       # Find the private network interface by name, falling back to original logic.
       # The output of 'ip link show' is stored to avoid multiple calls.
-      IP_LINK_NO_FLANNEL=$(ip link show | grep -v 'flannel')
+      # Use '|| true' to prevent grep from causing script failure when no matches found
+      IP_LINK_NO_FLANNEL=$(ip link show | grep -v 'flannel' || true)
 
       # Try to find an interface with a predictable name, e.g., enp1s0
-      INTERFACE=$(awk '/enp[0-9]+s[0-9]+:/{sub(/:/,"",$2); print $2; exit}' <<< "$IP_LINK_NO_FLANNEL")
+      # Anchor pattern to second field to avoid false matches
+      INTERFACE=$(awk '$2 ~ /^enp[0-9]+s[0-9]+:$/{sub(/:/,"",$2); print $2; exit}' <<< "$IP_LINK_NO_FLANNEL")
 
       # If no predictable name is found, use original logic as fallback
       if [ -z "$INTERFACE" ]; then
