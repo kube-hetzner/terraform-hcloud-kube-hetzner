@@ -306,15 +306,15 @@ variable "agent_nodepools" {
   }
 
   validation {
-    condition = alltrue([
-      for np in var.agent_nodepools : (
-        (
-          can(regex("^/([a-zA-Z0-9._-]+/?)*$", np.longhorn_mount_path)) &&
-          (!endswith(np.longhorn_mount_path, "/") || np.longhorn_mount_path == "/")
-        )
+  condition = alltrue([
+    for np in var.agent_nodepools : (
+      (
+        can(regex("^/var/([a-zA-Z0-9._-]+/?)*$", np.longhorn_mount_path)) &&
+        (!endswith(np.longhorn_mount_path, "/") || np.longhorn_mount_path == "/var/")
       )
-    ])
-    error_message = "Each longhorn_mount_path must be a valid absolute path without trailing slash (except '/')."
+    )
+  ])
+  error_message = "Each longhorn_mount_path must start with '/var/', be a valid absolute path, and not end with a slash (except '/var/')."
   }
 
 }
