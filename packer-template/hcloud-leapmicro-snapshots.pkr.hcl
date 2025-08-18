@@ -133,7 +133,7 @@ locals {
 
 # Source for the Leap Micro x86 snapshot
 source "hcloud" "leapmicro-x86-snapshot" {
-  image       = "ubuntu-22.04"
+  image       = "ubuntu-24.04"
   rescue      = "linux64"
   location    = "fsn1"
   server_type = "cpx21" # disk size of >= 40GiB is needed to install the Leap Micro image
@@ -148,7 +148,7 @@ source "hcloud" "leapmicro-x86-snapshot" {
 
 # Source for the Leap Micro ARM snapshot
 source "hcloud" "leapmicro-arm-snapshot" {
-  image       = "ubuntu-22.04"
+  image       = "ubuntu-24.04"
   rescue      = "linux64"
   location    = "fsn1"
   server_type = "cax21" # disk size of >= 40GiB is needed to install the Leap Micro image
