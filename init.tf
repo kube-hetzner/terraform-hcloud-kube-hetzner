@@ -23,6 +23,13 @@ resource "hcloud_load_balancer_network" "cluster" {
   count = local.has_external_load_balancer ? 0 : 1
 
   load_balancer_id = hcloud_load_balancer.cluster.*.id[0]
+  ip = cidrhost(
+    (
+      length(hcloud_network_subnet.agent) > 0
+      ? hcloud_network_subnet.agent.*.ip_range[0]
+      : hcloud_network_subnet.control_plane.*.ip_range[0]
+    )
+  , 254)
   subnet_id = (
     length(hcloud_network_subnet.agent) > 0
     ? hcloud_network_subnet.agent.*.id[0]
@@ -77,6 +84,12 @@ resource "null_resource" "first_control_plane" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Generating k3s master config file
@@ -177,6 +190,7 @@ resource "null_resource" "kustomization" {
       local.rancher_values,
       local.hetzner_csi_values,
       local.kustomization_backup_yaml
+      local.hetzner_ccm_values,
     ])
     # Redeploy when versions of addons need to be updated
     versions = join("\n", [
@@ -209,6 +223,12 @@ resource "null_resource" "kustomization" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Upload kustomization.yaml, containing Hetzner CSI & CSM, as well as kured.
@@ -276,10 +296,10 @@ resource "null_resource" "kustomization" {
     content = var.hetzner_ccm_use_helm ? templatefile(
       "${path.module}/templates/hcloud-ccm-helm.yaml.tpl",
       {
+        values              = indent(4, local.hetzner_ccm_values)
         version             = coalesce(local.ccm_version, "*")
         using_klipper_lb    = local.using_klipper_lb
         default_lb_location = var.load_balancer_location
-
       }
     ) : ""
     destination = "/var/post_install/hcloud-ccm-helm.yaml"

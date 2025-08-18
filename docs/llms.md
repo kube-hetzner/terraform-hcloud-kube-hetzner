@@ -2676,3 +2676,268 @@ The key takeaways are:
 * **Extensibility:** Options for custom Helm values, Kustomize overlays, and pre/post commands allow tailoring the deployment significantly.
 
 This detailed walkthrough should serve as a comprehensive reference for anyone working with or seeking to understand this particular Terraform setup for deploying k3s on Hetzner Cloud.
+
+---
+
+**Additional Variables Added Since June 2024**
+
+The following variables have been added to the `kube-hetzner` module since the initial documentation was created. These provide additional functionality and configuration options:
+
+**NAT Router Configuration**
+
+```terraform
+  # Setup a NAT router, and automatically disable public ips on all control plane and agent nodes.
+  # To use this, you must also set use_control_plane_lb = true, otherwise kubectl can never reach the cluster.
+  # The NAT router will also function as a bastion. This makes securing the cluster easier, as all public traffic passes through a single strongly secured node.
+  # It does however also introduce a single point of failure, so if you need high-availability on your egress, you should consider other configurations.
+  # nat_router = {
+  #   server_type = "cx31"
+  #   location = "fsn1"
+  # }
+```
+
+* **`nat_router` (Object, Optional):**
+  * **Purpose:** Creates a dedicated NAT router server that acts as the single egress point for all cluster traffic. When enabled, all control plane and agent nodes are provisioned without public IPs.
+  * **Requirements:** Must set `use_control_plane_lb = true` when using NAT router, as kubectl needs a public endpoint to reach the cluster.
+  * **Benefits:** 
+    * Enhanced security by limiting public exposure to a single hardened node
+    * Acts as a bastion host for SSH access to internal nodes
+    * Simplifies firewall rules and security auditing
+  * **Trade-offs:** Introduces a single point of failure for egress traffic
+  * **Configuration:**
+    * `server_type`: The Hetzner server type for the NAT router
+    * `location`: The location where the NAT router should be deployed
+
+**k3s Binary Configuration**
+
+```terraform
+  # Set to true if util-linux breaks on the OS (temporary regression fixed in util-linux v2.41.1).
+  # k3s_prefer_bundled_bin = false
+```
+
+* **`k3s_prefer_bundled_bin` (Boolean, Optional):**
+  * **Default:** `false`
+  * **Purpose:** Forces k3s to use its bundled binaries instead of system binaries. This is a workaround for compatibility issues with certain OS utilities.
+  * **Use Case:** Temporary fix for util-linux regression that affected k3s operation on certain MicroOS versions.
+
+**Load Balancer Hostname Configuration**
+
+```terraform
+  # The lb_hostname setting optimizes communication between services within the Kubernetes cluster when they use domain names instead of direct service names.
+  # By associating a domain name directly with the Hetzner Load Balancer, this setting can help reduce potential communication delays.
+  # lb_hostname = "mycluster.example.com"
+```
+
+* **`lb_hostname` (String, Optional):**
+  * **Purpose:** Associates a domain name directly with the Hetzner Load Balancer for optimized internal service communication.
+  * **Technical Impact:** Sets the `load-balancer.hetzner.cloud/hostname` annotation in the LB definition.
+  * **Use Case:** When services communicate using domain names (e.g., `a.mycluster.domain.com`) that point to the external LB, this can reduce communication delays.
+  * **Setup:**
+    1. Set `lb_hostname` to a domain like `mycluster.domain.com`
+    2. Create an A record pointing to your LB's IP
+    3. Create CNAME records for service subdomains pointing to the main domain
+  * **Note:** Optional - only needed if services communicate via domain names instead of direct service names.
+
+**Rancher Integration**
+
+```terraform
+  # You can enable Rancher (installed by Helm behind the scenes) with the following flag, the default is "false".
+  # enable_rancher = true
+  
+  # If using Rancher you can set the Rancher hostname
+  # rancher_hostname = "rancher.example.com"
+  
+  # Rancher install channel
+  # rancher_install_channel = "stable"
+  
+  # Bootstrap password for Rancher (min 48 characters)
+  # rancher_bootstrap_password = ""
+  
+  # Rancher registration manifest URL
+  # rancher_registration_manifest_url = ""
+```
+
+* **`enable_rancher` (Boolean, Optional):**
+  * **Default:** `false`
+  * **Purpose:** Installs Rancher Manager for Kubernetes cluster management UI.
+  * **Requirements:** 
+    * Control plane nodes need at least 4GB RAM (cx21 or larger)
+    * Must set `rancher_hostname`
+    * May need to adjust `initial_k3s_channel` for compatibility
+  * **Note:** Automatically installs cert-manager with self-signed certificates
+
+* **`rancher_hostname` (String, Required if `enable_rancher = true`):**
+  * **Purpose:** The hostname for accessing Rancher UI. Must be unique even if not used with DNS.
+  * **Default:** Falls back to `lb_hostname` if set and using Hetzner LB
+
+* **`rancher_install_channel` (String, Optional):**
+  * **Default:** `"stable"`
+  * **Options:** `"stable"` or `"latest"`
+  * **Purpose:** Controls which Rancher release channel to use
+
+* **`rancher_bootstrap_password` (String, Optional):**
+  * **Purpose:** Initial admin password for Rancher (minimum 48 characters)
+  * **Default:** Auto-generated if not specified
+
+* **`rancher_registration_manifest_url` (String, Optional):**
+  * **Purpose:** URL for importing this cluster into an existing Rancher installation
+  * **Note:** Alternative to enabling Rancher directly - use one or the other
+
+**Kustomization Control**
+
+```terraform
+  # Control kubeconfig and kustomization file generation
+  # create_kubeconfig = false
+  # create_kustomization = true
+  # export_values = true
+```
+
+* **`create_kubeconfig` (Boolean, Optional):**
+  * **Default:** `true` (for backward compatibility)
+  * **Purpose:** Controls whether to create a kubeconfig file on disk
+  * **Best Practice:** Set to `false` and use `terraform output --raw kubeconfig_data > cluster_kubeconfig.yaml` instead
+  * **Security:** Prevents accidental commits of kubeconfig files
+
+* **`create_kustomization` (Boolean, Optional):**
+  * **Default:** `true`
+  * **Purpose:** Controls creation of kustomization backup files
+  * **Use Case:** Set to `false` for automation scenarios
+
+* **`export_values` (Boolean, Optional):**
+  * **Default:** `false`
+  * **Purpose:** Exports values.yaml files for deployed components (traefik, longhorn, cert-manager, etc.)
+  * **Use Case:** Useful for GitOps workflows with ArgoCD or similar tools
+
+**Extra Kustomization Parameters**
+
+```terraform
+  # Extra commands and parameters for kustomization
+  # extra_kustomize_deployment_commands = ["kubectl wait --for=condition=ready pod -l app=myapp -n mynamespace --timeout=300s"]
+  # extra_kustomize_parameters = {
+  #   myvar = "myvalue"
+  # }
+```
+
+* **`extra_kustomize_deployment_commands` (List of Strings, Optional):**
+  * **Purpose:** Commands to execute after `kubectl apply -k`
+  * **Use Cases:** 
+    * Wait for CRDs to be ready
+    * Apply additional manifests
+    * Post-install validation
+
+* **`extra_kustomize_parameters` (Map, Optional):**
+  * **Purpose:** Variables passed to `extra-manifests/kustomization.yaml.tpl`
+  * **Use Case:** Template variables for custom kustomization overlays
+
+**MicroOS Snapshot Control**
+
+```terraform
+  # Use specific MicroOS snapshot IDs
+  # microos_x86_snapshot_id = "123456"
+  # microos_arm_snapshot_id = "789012"
+```
+
+* **`microos_x86_snapshot_id` / `microos_arm_snapshot_id` (String, Optional):**
+  * **Default:** Uses the most recent snapshot created with `createkh`
+  * **Purpose:** Pin to specific MicroOS snapshot versions
+  * **Discovery:** `hcloud image list --selector 'microos-snapshot=yes'`
+  * **Use Case:** Ensure consistency across deployments or rollback to known-good images
+
+**Additional Helm Values Customization**
+
+The following variables allow deep customization of various components through Helm values:
+
+```terraform
+  # Custom Cilium values
+  # cilium_values = <<EOT
+  # ipam:
+  #   mode: kubernetes
+  # EOT
+  
+  # Custom cert-manager values
+  # cert_manager_values = <<EOT
+  # crds:
+  #   enabled: true
+  # EOT
+  
+  # Custom Hetzner CCM values
+  # hetzner_ccm_values = <<EOT
+  # networking:
+  #   enabled: true
+  # EOT
+  
+  # Custom CSI driver SMB values
+  # csi_driver_smb_values = <<EOT
+  # controller:
+  #   replicas: 2
+  # EOT
+  
+  # Custom Longhorn values
+  # longhorn_values = <<EOT
+  # defaultSettings:
+  #   defaultDataPath: /var/longhorn
+  # EOT
+  
+  # Custom Rancher values
+  # rancher_values = <<EOT
+  # hostname: rancher.example.com
+  # replicas: 3
+  # EOT
+```
+
+Each of these `*_values` variables:
+* **Purpose:** Override default Helm chart values for the respective component
+* **Format:** YAML string (heredoc syntax preserves formatting)
+* **Reference:** See each component's Helm chart documentation for available options
+* **Note:** Indentation within the heredoc is significant
+
+**Ingress Controller Versions and Values**
+
+```terraform
+  # Specific ingress controller versions
+  # traefik_version = "30.1.0"
+  # nginx_version = "4.11.3"
+  # haproxy_version = "1.41.0"
+  
+  # Custom Traefik values
+  # traefik_values = <<EOT
+  # deployment:
+  #   replicas: 3
+  # EOT
+  
+  # Custom Nginx values
+  # nginx_values = <<EOT
+  # controller:
+  #   replicaCount: 3
+  # EOT
+  
+  # Custom HAProxy configuration
+  # haproxy_additional_proxy_protocol_ips = ["10.0.0.0/8", "172.16.0.0/12"]
+  # haproxy_requests_cpu = "250m"
+  # haproxy_requests_memory = "256Mi"
+  # haproxy_values = <<EOT
+  # controller:
+  #   replicaCount: 3
+  # EOT
+```
+
+* **`traefik_version` / `nginx_version` / `haproxy_version` (String, Optional):**
+  * **Purpose:** Pin to specific Helm chart versions for ingress controllers
+  * **Default:** Latest available version
+  * **Reference:** Check respective GitHub releases pages
+
+* **`traefik_values` / `nginx_values` / `haproxy_values` (String, Optional):**
+  * **Purpose:** Override default Helm values for ingress controllers
+  * **Format:** YAML heredoc string
+
+* **`haproxy_additional_proxy_protocol_ips` (List of Strings, Optional):**
+  * **Purpose:** Additional trusted IPs for HAProxy proxy protocol
+  * **Default:** Includes common private ranges
+
+* **`haproxy_requests_cpu` / `haproxy_requests_memory` (String, Optional):**
+  * **Purpose:** Resource requests for HAProxy pods
+  * **Format:** Kubernetes resource notation (e.g., "250m", "256Mi")
+
+---
+
+This concludes the documentation of variables added to the `kube-hetzner` module since June 2024. These additions provide enhanced security options (NAT router), better integration capabilities (Rancher), more granular control over deployments (snapshot IDs, kubeconfig generation), and extensive customization options through Helm values overrides.

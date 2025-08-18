@@ -21,6 +21,7 @@ data "hcloud_network" "k3s" {
   id = local.use_existing_network ? var.existing_network_id[0] : hcloud_network.k3s[0].id
 }
 
+
 # We start from the end of the subnets cidr array,
 # as we would have fewer control plane nodepools, than agent ones.
 resource "hcloud_network_subnet" "control_plane" {
@@ -39,6 +40,16 @@ resource "hcloud_network_subnet" "agent" {
   network_zone = var.network_region
   ip_range     = local.network_ipv4_subnets[count.index]
 }
+
+# Subnet for NAT router and other peripherals
+resource "hcloud_network_subnet" "nat_router" {
+  count        = var.nat_router != null ? 1 : 0
+  network_id   = data.hcloud_network.k3s.id
+  type         = "cloud"
+  network_zone = var.network_region
+  ip_range     = local.network_ipv4_subnets[var.nat_router_subnet_index]
+}
+
 
 resource "hcloud_firewall" "k3s" {
   name   = var.cluster_name

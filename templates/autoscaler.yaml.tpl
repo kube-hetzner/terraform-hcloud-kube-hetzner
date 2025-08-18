@@ -40,7 +40,6 @@ rules:
       - "replicationcontrollers"
       - "persistentvolumeclaims"
       - "persistentvolumes"
-      - "volumeattachments"
     verbs: ["watch", "list", "get"]
   - apiGroups: ["extensions"]
     resources: ["replicasets", "daemonsets"]
@@ -52,7 +51,7 @@ rules:
     resources: ["statefulsets", "replicasets", "daemonsets"]
     verbs: ["watch", "list", "get"]
   - apiGroups: ["storage.k8s.io"]
-    resources: ["storageclasses", "csinodes", "csistoragecapacities", "csidrivers"]
+    resources: ["storageclasses", "csinodes", "csistoragecapacities", "csidrivers", "volumeattachments"]
     verbs: ["watch", "list", "get"]
   - apiGroups: ["batch", "extensions"]
     resources: ["jobs"]
@@ -195,14 +194,10 @@ spec:
             value: '${ipv4_subnet_id}'
           - name: HCLOUD_FIREWALL
             value: '${firewall_id}'
-          %{~ if disable_ipv4 ~}
           - name: HCLOUD_PUBLIC_IPV4
-            value: "false"
-          %{~ endif ~}
-          %{~ if disable_ipv6 ~}
+            value: '${enable_ipv4}'
           - name: HCLOUD_PUBLIC_IPV6
-            value: "false"
-          %{~ endif ~}
+            value: '${enable_ipv6}'
           %{~ if cluster_autoscaler_server_creation_timeout != "" ~}
           - name: HCLOUD_SERVER_CREATION_TIMEOUT
             value: '${cluster_autoscaler_server_creation_timeout}'

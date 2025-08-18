@@ -70,14 +70,59 @@ locals {
     ],
     local.has_dns_servers ? [
       join("\n", compact([
-        "IFACE=$(ip route show default | awk '{print $5; exit}')",
+        "# Wait for NetworkManager to be ready",
+        "if ! timeout 60 bash -c 'until systemctl is-active --quiet NetworkManager; do echo \"Waiting for NetworkManager to be ready...\"; sleep 2; done'; then",
+        "  echo \"ERROR: NetworkManager is not active after timeout\" >&2",
+        "  exit 0  # Don't fail cloud-init",
+        "fi",
+        "# Get the default interface",
+        "IFACE=$(ip route show default 2>/dev/null | awk '/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
+        "if [ -z \"$IFACE\" ]; then",
+        "  # Fallback: try to get any interface that's up and has an IP",
+        "  IFACE=$(ip route show 2>/dev/null | awk '!/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
+        "fi",
         "if [ -n \"$IFACE\" ]; then",
-        length(local.dns_servers_ipv4) > 0 ? "  nmcli con mod \"$IFACE\" ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
-        length(local.dns_servers_ipv6) > 0 ? "  nmcli con mod \"$IFACE\" ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
+        "  CONNECTION=$(nmcli -g GENERAL.CONNECTION device show \"$IFACE\" 2>/dev/null | head -1)",
+        "  if [ -n \"$CONNECTION\" ]; then",
+        "    # Disable auto-DNS for both protocols when custom DNS servers are provided",
+        "    nmcli con mod \"$CONNECTION\" ipv4.ignore-auto-dns yes ipv6.ignore-auto-dns yes",
+        length(local.dns_servers_ipv4) > 0 ? "    nmcli con mod \"$CONNECTION\" ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
+        length(local.dns_servers_ipv6) > 0 ? "    nmcli con mod \"$CONNECTION\" ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
+        "  fi",
         "fi"
       ]))
     ] : [],
     local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
+    # Configure private network routing and NetworkManager for Hetzner DHCP changes
+    [
+      join("\n", [
+        "# Configure routing for Hetzner network (protection against DHCP changes after Aug 11, 2025)",
+        "set +e  # Don't fail if routes exist",
+        "",
+        "# Check if eth1 exists (standard setup with public + private IPs)",
+        "if ip link show eth1 &>/dev/null; then",
+        "  # Add default route via private network with high metric",
+        "  # Metric 20101 matches current DHCP-provided route for compatibility",
+        "  ip route add default via 10.0.0.1 dev eth1 metric 20101 2>/dev/null",
+        "  ",
+        "  # Configure NetworkManager to ignore DHCP default route on private interface",
+        "  if systemctl is-active --quiet NetworkManager; then",
+        "    NM_CONN=$(nmcli -g GENERAL.CONNECTION device show eth1 2>/dev/null | head -1)",
+        "    if [ -n \"$NM_CONN\" ]; then",
+        "      if ! nmcli connection modify \"$NM_CONN\" ipv4.never-default yes >/dev/null 2>&1; then",
+        "        echo \"Warning: Failed to set ipv4.never-default on eth1. This node may be affected by Hetzner DHCP changes.\" >&2",
+        "      fi",
+        "      # Also configure IPv6 to not use eth1 as default route",
+        "      if ! nmcli connection modify \"$NM_CONN\" ipv6.never-default yes >/dev/null 2>&1; then",
+        "        echo \"Warning: Failed to set ipv6.never-default on eth1. This node may be affected by Hetzner DHCP changes.\" >&2",
+        "      fi",
+        "    fi",
+        "  fi",
+        "fi",
+        "",
+        "set -e"
+      ])
+    ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
@@ -178,8 +223,8 @@ EOT
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group,
         os : nodepool_obj.os
-        disable_ipv4 : nodepool_obj.disable_ipv4,
-        disable_ipv6 : nodepool_obj.disable_ipv6,
+        disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+        disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
       }
     }
@@ -208,8 +253,8 @@ EOT
         placement_group : nodepool_obj.placement_group
         os : nodepool_obj.os
         placement_group : nodepool_obj.placement_group,
-        disable_ipv4 : nodepool_obj.disable_ipv4,
-        disable_ipv6 : nodepool_obj.disable_ipv6,
+        disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+        disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
       }
     }
@@ -238,8 +283,8 @@ EOT
           placement_group : nodepool_obj.placement_group,
           index : floor(tonumber(node_key)),
           os : nodepool_obj.os
-          disable_ipv4 : nodepool_obj.disable_ipv4,
-          disable_ipv6 : nodepool_obj.disable_ipv6,
+          disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+          disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
           network_id : nodepool_obj.network_id,
         },
         { for key, value in node_obj : key => value if value != null },
@@ -262,9 +307,24 @@ EOT
 
   use_existing_network = length(var.existing_network_id) > 0
 
-  # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
-  # the rest of the subnets are for agent nodes in each nodepools.
+  use_nat_router = var.nat_router != null
+
+  ssh_bastion = local.use_nat_router ? {
+    bastion_host        = hcloud_server.nat_router[0].ipv4_address
+    bastion_port        = var.ssh_port
+    bastion_user        = "nat-router"
+    bastion_private_key = var.ssh_private_key
+    } : {
+    bastion_host        = null
+    bastion_port        = null
+    bastion_user        = null
+    bastion_private_key = null
+  }
+
+  # Create 256 /24 subnets from the base network CIDR.
+  # Control planes allocate from the end (255, 254, 253...) and agents from the start (0, 1, 2...)
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
+
   # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
   cluster_dns_ipv4 = var.cluster_dns_ipv4 != null ? var.cluster_dns_ipv4 : cidrhost(var.service_ipv4_cidr, 10)
 
@@ -641,6 +701,28 @@ controller:
 %{endif~}
   EOT
 
+  hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
+networking:
+  enabled: true
+args:
+  cloud-provider: hcloud
+  allow-untagged-cloud: ""
+  route-reconciliation-period: 30s
+  webhook-secure-port: "0"
+%{if local.using_klipper_lb~}
+  secure-port: "10288"
+%{endif~}
+env:
+  HCLOUD_LOAD_BALANCERS_LOCATION:
+    value: "${var.load_balancer_location}"
+  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_ENABLED:
+    value: "${!local.using_klipper_lb}"
+  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
+    value: "true"
+  EOT
+
   haproxy_values = var.haproxy_values != "" ? var.haproxy_values : <<EOT
 controller:
   kind: "Deployment"
@@ -826,6 +908,10 @@ cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : 
 crds:
   enabled: true
   keep: true
+%{if var.ingress_controller == "nginx"~}
+extraArgs:
+  - --feature-gates=ACMEHTTP01IngressPathTypeExact=false
+%{endif~}
   EOT
 
 kured_options = merge({
@@ -914,22 +1000,31 @@ opensuse_write_files_common = <<EOT
 
     sleep 11
 
-    # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-    INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
-    MAC=$(cat /sys/class/net/$INTERFACE/address)
+    # Somehow sometimes on private-ip only setups, the 
+    # interface may already be correctly names, and this
+    # block should be skipped.
+    if ! ip link show eth1; then
+      # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
+      INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+      MAC=$(cat /sys/class/net/$INTERFACE/address)
 
-    cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
-    SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
+      if [ "$INTERFACE" = "eth1" ]; then
+        echo "Interface $INTERFACE already points to $MAC, skipping..."
+        exit 0
+      fi
+
+      # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
+      # WV REMOVE > INTERFACE=$(ip link show | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
+      # WV REMOVE > MAC=$(cat /sys/class/net/$INTERFACE/address)
+
+      cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
+      SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
     EOF
 
-    if [ "$INTERFACE" = "eth1" ]; then
-      echo "Interface $INTERFACE already points to $MAC, skipping..."
-      exit 0
+      ip link set $INTERFACE down
+      ip link set $INTERFACE name eth1
+      ip link set eth1 up
     fi
-
-    ip link set $INTERFACE down
-    ip link set $INTERFACE name eth1
-    ip link set eth1 up
 
     myrepeat () {
         # Current time + 300 seconds (5 minutes)
@@ -1139,6 +1234,7 @@ opensuse_runcmd_common = <<EOT
 - [sed, '-i', '-E', 's/^SELINUX=[a-z]+/SELINUX=disabled/', '/etc/selinux/config']
 - [setenforce, '0']
 %{endif}
+
 EOT
 
 snapshot_id_by_os = {
