@@ -77,15 +77,9 @@ locals {
 
     # echo "First reboot successful, installing needed packages..."
     ARCH=$(uname -m)
-    REPO_URL="https://ftp.rz.uni-wuerzburg.de/opensuse/distribution/leap-micro/6.1/product/repo/openSUSE-Leap-Micro-6.1-$ARCH"
     transactional-update shell <<- EOF
     setenforce 0
 
-    # Added mirror with higher prio.
-    # As of now (23.04.2025), the main repo doesn't have container-selinux in vers. 2.236
-    # thereforce, we prioritize the mirrors, as they seem to have the proper versions
-
-    zypper ar "$REPO_URL" uni-wuerzburg-mirror
     zypper --non-interactive --gpg-auto-import-keys refresh
 
     zypper --verbose --non-interactive install --allow-vendor-change ${local.needed_packages}
