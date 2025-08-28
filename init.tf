@@ -425,7 +425,7 @@ resource "null_resource" "kustomization" {
       RETRY_INTERVAL=10
       for attempt in $(seq 1 $MAX_ATTEMPTS); do
         echo "Attempt $attempt: Checking kubectl connectivity..."
-        if [[ "$(kubectl get --raw='/readyz' 2>/dev/null)" == "ok" ]]; then
+        if [ "$(kubectl get --raw='/readyz' 2>/dev/null)" = "ok" ]; then
           echo "kubectl connectivity established, deploying secrets..."
           kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -
           kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -
