@@ -593,6 +593,7 @@ hubble:
 %{endfor~}
 %{endif~}
 
+
 MTU: 1450
   EOT
 
@@ -701,6 +702,8 @@ env:
     value: "${!local.using_klipper_lb}"
   HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
     value: "true"
+# Use host network to avoid circular dependency with CNI
+hostNetwork: true
   EOT
 
   haproxy_values = var.haproxy_values != "" ? var.haproxy_values : <<EOT
