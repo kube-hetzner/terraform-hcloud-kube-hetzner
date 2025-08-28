@@ -141,7 +141,7 @@ variable "nat_router_subnet_index" {
   type        = number
   default     = 200
   description = "Subnet index (0-255) for NAT router. Default 200 is safe for most deployments. Must not conflict with control plane (counting down from 255) or agent pools (counting up from 0)."
-  
+
   validation {
     condition     = var.nat_router_subnet_index >= 0 && var.nat_router_subnet_index <= 255
     error_message = "NAT router subnet index must be between 0 and 255."
