@@ -593,13 +593,6 @@ hubble:
 %{endfor~}
 %{endif~}
 
-# Operator tolerations to ensure it can schedule during cluster initialization
-operator:
-  tolerations:
-    - key: node.cloudprovider.kubernetes.io/uninitialized
-      operator: Exists
-      effect: NoSchedule
-
 MTU: 1450
   EOT
 
