@@ -84,7 +84,7 @@ resource "null_resource" "first_control_plane" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
-    timeout        = "10m"  # Extended timeout to handle network migrations during upgrades
+    timeout        = "10m" # Extended timeout to handle network migrations during upgrades
 
     bastion_host        = local.ssh_bastion.bastion_host
     bastion_port        = local.ssh_bastion.bastion_port
@@ -224,7 +224,7 @@ resource "null_resource" "kustomization" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
-    timeout        = "10m"  # Extended timeout to handle network migrations during upgrades
+    timeout        = "10m" # Extended timeout to handle network migrations during upgrades
 
     bastion_host        = local.ssh_bastion.bastion_host
     bastion_port        = local.ssh_bastion.bastion_port
