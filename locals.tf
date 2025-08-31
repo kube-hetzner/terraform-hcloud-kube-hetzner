@@ -17,7 +17,7 @@ locals {
 
   # Determine kured YAML suffix based on version (>= 1.20.0 uses -combined.yaml, < 1.20.0 uses -dockerhub.yaml)
   # Extract version numbers for comparison
-  kured_version_parts = split(".", local.kured_version)
+  kured_version_parts = split(".", trimprefix(local.kured_version, "v"))
   kured_major         = tonumber(try(local.kured_version_parts[0], "0"))
   kured_minor         = tonumber(try(local.kured_version_parts[1], "0"))
   kured_yaml_suffix   = (local.kured_major > 1 || (local.kured_major == 1 && local.kured_minor >= 20)) ? "combined" : "dockerhub"
