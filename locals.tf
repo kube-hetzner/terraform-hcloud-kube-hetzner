@@ -15,6 +15,13 @@ locals {
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
   calico_version = length(data.github_release.calico) == 0 ? var.calico_version : data.github_release.calico[0].release_tag
 
+  # Determine kured YAML suffix based on version (>= 1.20.0 uses -combined.yaml, < 1.20.0 uses -dockerhub.yaml)
+  # Extract version numbers for comparison
+  kured_version_parts = split(".", local.kured_version)
+  kured_major         = tonumber(try(local.kured_version_parts[0], "0"))
+  kured_minor         = tonumber(try(local.kured_version_parts[1], "0"))
+  kured_yaml_suffix   = (local.kured_major > 1 || (local.kured_major == 1 && local.kured_minor >= 20)) ? "combined" : "dockerhub"
+
   cilium_ipv4_native_routing_cidr = coalesce(var.cilium_ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
 
   # Check if the user has set custom DNS servers.
@@ -136,7 +143,7 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
+        "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-${local.kured_yaml_suffix}.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],
