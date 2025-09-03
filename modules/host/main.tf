@@ -74,7 +74,7 @@ resource "hcloud_server" "server" {
     inline = [
       "echo 'Waiting for system to become fully ready...'",
 
-      # Retry any command until it succeeds (indicates machine reachable + OS ready)
+      # Wait until the system is fully booted and in a running state.
       "timeout 600 bash -c 'until systemctl is-system-running --quiet; do echo \"Waiting for system...\"; sleep 3; done'",
 
       "echo 'System is fully ready!'"
