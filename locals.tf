@@ -136,7 +136,7 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-combined.yaml",
+        "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-${versioncompare(local.kured_version, "1.20.0") >= 0 ? "combined" : "dockerhub"}.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],
