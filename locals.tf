@@ -10,9 +10,11 @@ locals {
   # if given as a variable, we want to use the given token. This is needed to restore the cluster
   k3s_token = var.k3s_token == null ? random_password.k3s_token.result : var.k3s_token
 
-  ccm_version    = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
-  csi_version    = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
-  kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
+  ccm_version   = var.hetzner_ccm_version != null ? var.hetzner_ccm_version : data.github_release.hetzner_ccm[0].release_tag
+  csi_version   = length(data.github_release.hetzner_csi) == 0 ? var.hetzner_csi_version : data.github_release.hetzner_csi[0].release_tag
+  kured_version = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
+  kured_dl_url  = "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-${provider::semvers::compare(local.kured_version, "1.20.0") >= 0 ? "combined" : "dockerhub"}.yaml"
+
   calico_version = length(data.github_release.calico) == 0 ? var.calico_version : data.github_release.calico[0].release_tag
 
   cilium_ipv4_native_routing_cidr = coalesce(var.cilium_ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
@@ -136,7 +138,7 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
+        local.kured_dl_url,
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],

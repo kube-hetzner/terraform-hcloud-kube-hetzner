@@ -21,5 +21,9 @@ terraform {
       source  = "hashicorp/assert"
       version = ">= 0.16.0"
     }
+    semvers = {
+      source  = "anapsix/semvers"
+      version = "0.7.1"
+    }
   }
 }
