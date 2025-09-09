@@ -103,7 +103,7 @@ locals {
         "if ip link show eth1 &>/dev/null; then",
         "  # Add default route via private network with high metric",
         "  # Metric 20101 matches current DHCP-provided route for compatibility",
-        "  ip route add default via 10.0.0.1 dev eth1 metric 20101 2>/dev/null",
+        "  ip route add default via ${local.network_gw_ipv4} dev eth1 metric 20101 2>/dev/null",
         "  ",
         "  # Configure NetworkManager to ignore DHCP default route on private interface",
         "  if systemctl is-active --quiet NetworkManager; then",
@@ -307,6 +307,8 @@ locals {
 
   # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
   cluster_dns_ipv4 = var.cluster_dns_ipv4 != null ? var.cluster_dns_ipv4 : cidrhost(var.service_ipv4_cidr, 10)
+
+  network_gw_ipv4 = cidrhost(var.network_ipv4_cidr, 1)
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
