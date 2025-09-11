@@ -44,10 +44,14 @@ resource "hcloud_server" "server" {
     ipv6_enabled = !var.disable_ipv6
   }
 
-  network {
-    network_id = var.network_id
-    ip         = var.private_ipv4
-    alias_ips  = []
+  # Only use inline network block if subnet_id is NOT provided (new deployments)
+  dynamic "network" {
+    for_each = var.ipv4_subnet_id == null && var.network_id > 0 ? [1] : []
+    content {
+      network_id = var.network_id
+      ip         = var.private_ipv4
+      alias_ips  = []
+    }
   }
 
   labels = var.labels
@@ -119,6 +123,14 @@ resource "hcloud_server" "server" {
     ]
   }
 
+}
+
+# For backward compatibility - create separate network attachment when using subnet_id (existing deployments)
+resource "hcloud_server_network" "server" {
+  count     = var.ipv4_subnet_id != null ? 1 : 0
+  ip        = var.private_ipv4
+  server_id = hcloud_server.server.id
+  subnet_id = var.ipv4_subnet_id
 }
 
 resource "null_resource" "registries" {
