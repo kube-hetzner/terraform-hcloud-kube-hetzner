@@ -16,16 +16,34 @@ variable "hcloud_token" {
   sensitive = true
 }
 
+variable "k3s_selinux_version" {
+  type        = string
+  default     = "v1.6.stable.1"
+  description = "k3s-selinux version to install"
+}
+
+variable "leap_micro_version" {
+  type        = string
+  default     = "6.1"
+  description = "OpenSUSE Leap Micro version"
+}
+
+variable "fail2ban_version" {
+  type        = string
+  default     = "1.1.0"
+  description = "fail2ban version to install"
+}
+
 # We download the OpenSUSE Leap Micro x86 image from an automatically selected mirror.
 variable "opensuse_leapmicro_x86_mirror_link" {
   type    = string
-  default = "https://download.opensuse.org/distribution/leap-micro/6.1/appliances/openSUSE-Leap-Micro.x86_64-Base-qcow.qcow2"
+  default = "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.x86_64-Base-qcow.qcow2"
 }
 
 # We download the OpenSUSE Leap Micro ARM image from an automatically selected mirror.
 variable "opensuse_leapmicro_arm_mirror_link" {
   type    = string
-  default = "https://download.opensuse.org/distribution/leap-micro/6.1/appliances/openSUSE-Leap-Micro.aarch64-Base-qcow.qcow2"
+  default = "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.aarch64-Base-qcow.qcow2"
 }
 
 # If you need to add other packages to the OS, do it here in the default value, like ["vim", "curl", "wget"]
@@ -47,8 +65,6 @@ locals {
     "restorecond",
     "selinux-policy",
     "fuse-overlayfs",
-    #"fuse",
-    #"libfuse3",
     "audit",
     "open-iscsi",
     "nfs-client",
@@ -85,7 +101,7 @@ locals {
     zypper --verbose --non-interactive install --allow-vendor-change ${local.needed_packages}
 
     rpm --import https://rpm.rancher.io/public.key
-    zypper --verbose --non-interactive install -y https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.stable.1/k3s-selinux-1.6-1.slemicro.noarch.rpm
+    zypper --verbose --non-interactive install -y https://github.com/k3s-io/k3s-selinux/releases/download/${var.k3s_selinux_version}/k3s-selinux-${replace(var.k3s_selinux_version, "v", "")}-1.slemicro.noarch.rpm
     zypper addlock k3s-selinux
 
     restorecon -Rv /etc/selinux/targeted/policy
@@ -97,6 +113,9 @@ locals {
     rpm -qa |grep container
     zypper search-packages -s container-selinux
 
+    # update all packages
+    zypper update -y
+
     sed -i '/disable_root/c\disable_root: false' /etc/cloud/cloud.cfg
     sed -i '/keys_to_console/s/^/#/' /etc/cloud/cloud.cfg
     sed -i '/^#*PermitRootLogin/s/.*/PermitRootLogin yes/' /etc/ssh/ssh_config.d/50-suse.conf
@@ -107,7 +126,7 @@ locals {
 
   install_fail2ban = <<-EOT
     transactional-update shell <<- EOF
-    git clone --branch 1.1.0 --depth 1 https://github.com/fail2ban/fail2ban.git
+    git clone --branch ${var.fail2ban_version} --depth 1 https://github.com/fail2ban/fail2ban.git
     cd fail2ban
     python3 setup.py install --without-tests
     cp build/fail2ban.service /etc/systemd/system/
