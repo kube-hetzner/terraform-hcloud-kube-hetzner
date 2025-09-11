@@ -189,7 +189,7 @@ resource "null_resource" "kustomization" {
       local.cert_manager_values,
       local.rancher_values,
       local.hetzner_csi_values,
-      local.kustomization_backup_yaml
+      local.kustomization_backup_yaml,
       local.hetzner_ccm_values,
     ])
     # Redeploy when versions of addons need to be updated
