@@ -75,7 +75,7 @@ module "kube-hetzner" {
 
   # Using the default configuration you can only create a maximum of 42 agent-nodepools.
   # This is due to the creation of a subnet for each nodepool with CIDRs being in the shape of 10.[nodepool-index].0.0/16 which collides with k3s' cluster and service IP ranges (defaults below).
-  To create additional ones (or if you want to use different ranges for other reasons), set the `subnet_ip_range` explicitly for a node pool.
+  # To create additional ones (or if you want to use different ranges for other reasons), set the `subnet_ip_range` explicitly for a node pool.
   # Furthermore the maximum number of nodepools (controlplane and agent) is 50, due to a hard limit of 50 subnets per network, see https://docs.hetzner.com/cloud/networks/faq/.
   # So to be able to create a maximum of 50 nodepools in total, the values below have to be changed to something outside that range, e.g. `10.200.0.0/16` and `10.201.0.0/16` for cluster and service respectively.
 
