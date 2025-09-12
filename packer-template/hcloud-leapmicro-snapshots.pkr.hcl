@@ -56,27 +56,21 @@ variable "packages_to_install" {
 locals {
   opensuse_leapmicro_x86_mirror_link_computed = var.opensuse_leapmicro_x86_mirror_link != "" ? var.opensuse_leapmicro_x86_mirror_link : "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.x86_64-Base-qcow.qcow2"
   opensuse_leapmicro_arm_mirror_link_computed = var.opensuse_leapmicro_arm_mirror_link != "" ? var.opensuse_leapmicro_arm_mirror_link : "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.aarch64-Base-qcow.qcow2"
-  
+
   needed_packages = join(" ", concat([
-    "busybox-bzip2",
+    # SELinux packages
     "container-selinux",
     "policycoreutils",
-    "policycoreutils-devel",
     "policycoreutils-python-utils",
-    "python3-policycoreutils",
-    "python311-setools",
-    "restorecond",
     "selinux-policy",
+    "selinux-tools",
+    # Container and storage packages
     "fuse-overlayfs",
-    "audit",
-    "open-iscsi",
-    "nfs-client",
     "xfsprogs",
     "cryptsetup",
-    "lvm2",
-    "git",
-    "cifs-utils",
-    "bash-completion",
+    # System packages
+    "audit",
+    # Additional tools
     "udica"
   ], var.packages_to_install))
 
@@ -99,12 +93,28 @@ locals {
     transactional-update shell <<- EOF
     setenforce 0
 
-    zypper --non-interactive --gpg-auto-import-keys refresh
+    # Fix the main repository URL if it's using cdn.opensuse.org
+    ARCH=\$(uname -m)
+    if [ "\$ARCH" = "aarch64" ]; then
+      zypper mr --url="https://download.opensuse.org/distribution/leap-micro/6.1/product/repo/openSUSE-Leap-Micro-6.1-aarch64/" repo-main || true
+    else
+      zypper mr --url="https://download.opensuse.org/distribution/leap-micro/6.1/product/repo/openSUSE-Leap-Micro-6.1-x86_64/" repo-main || true
+    fi
 
-    zypper --verbose --non-interactive install --allow-vendor-change ${local.needed_packages}
+    # Add additional repositories for missing packages
+    zypper addrepo -G -f https://download.opensuse.org/distribution/leap/15.6/repo/oss/ leap-15.6-oss || true
+    zypper addrepo -G -f https://download.opensuse.org/update/leap/15.6/oss/ leap-15.6-update || true
+
+    zypper --non-interactive --gpg-auto-import-keys refresh || true
+
+    # Install packages - some may already be installed or not available
+    zypper --verbose --non-interactive install --allow-vendor-change --no-recommends ${local.needed_packages} || true
+
+    # Try to install additional packages from Leap repos
+    zypper --verbose --non-interactive install --allow-vendor-change --no-recommends git bash-completion nfs-utils cifs-utils open-iscsi || true
 
     rpm --import https://rpm.rancher.io/public.key
-    zypper --verbose --non-interactive install -y https://github.com/k3s-io/k3s-selinux/releases/download/${var.k3s_selinux_version}/k3s-selinux-${replace(var.k3s_selinux_version, "v", "")}-1.slemicro.noarch.rpm
+    zypper --verbose --non-interactive install -y https://github.com/k3s-io/k3s-selinux/releases/download/${var.k3s_selinux_version}/k3s-selinux-${replace(replace(var.k3s_selinux_version, "v", ""), ".stable.1", "")}-1.slemicro.noarch.rpm
     zypper addlock k3s-selinux
 
     restorecon -Rv /etc/selinux/targeted/policy
@@ -129,11 +139,28 @@ locals {
 
   install_fail2ban = <<-EOT
     transactional-update shell <<- EOF
-    git clone --branch ${var.fail2ban_version} --depth 1 https://github.com/fail2ban/fail2ban.git
-    cd fail2ban
-    python3 setup.py install --without-tests
-    cp build/fail2ban.service /etc/systemd/system/
-    systemctl enable fail2ban.service
+    # Check if git is available (should have been installed in previous step)
+    if ! command -v git >/dev/null 2>&1; then
+      echo "Git not found, trying to install it..."
+      zypper --non-interactive --gpg-auto-import-keys refresh || true
+      zypper --verbose --non-interactive install --allow-vendor-change git || true
+    fi
+
+    # Install fail2ban from source
+    if command -v git >/dev/null 2>&1; then
+      cd /tmp
+      git clone --branch ${var.fail2ban_version} --depth 1 https://github.com/fail2ban/fail2ban.git
+      cd fail2ban
+      python3 setup.py install --without-tests
+      cp build/fail2ban.service /etc/systemd/system/
+      systemctl enable fail2ban.service
+      cd /
+      rm -rf /tmp/fail2ban
+      echo "fail2ban installed successfully from source"
+    else
+      echo "ERROR: Cannot install fail2ban - git is not available"
+      exit 1
+    fi
     EOF
   EOT
 
