@@ -34,6 +34,12 @@ variable "fail2ban_version" {
   description = "fail2ban version to install"
 }
 
+variable "leap_version" {
+  type        = string
+  default     = "15.6"
+  description = "OpenSUSE Leap version for additional repositories"
+}
+
 # We download the OpenSUSE Leap Micro x86 image from an automatically selected mirror.
 variable "opensuse_leapmicro_x86_mirror_link" {
   type    = string
@@ -102,8 +108,8 @@ locals {
     fi
 
     # Add additional repositories for missing packages
-    zypper addrepo -G -f https://download.opensuse.org/distribution/leap/15.6/repo/oss/ leap-15.6-oss || true
-    zypper addrepo -G -f https://download.opensuse.org/update/leap/15.6/oss/ leap-15.6-update || true
+    zypper addrepo -G -f https://download.opensuse.org/distribution/leap/${var.leap_version}/repo/oss/ leap-${var.leap_version}-oss || true
+    zypper addrepo -G -f https://download.opensuse.org/update/leap/${var.leap_version}/oss/ leap-${var.leap_version}-update || true
 
     zypper --non-interactive --gpg-auto-import-keys refresh || true
 
