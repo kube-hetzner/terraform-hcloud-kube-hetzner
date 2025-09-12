@@ -37,13 +37,13 @@ variable "fail2ban_version" {
 # We download the OpenSUSE Leap Micro x86 image from an automatically selected mirror.
 variable "opensuse_leapmicro_x86_mirror_link" {
   type    = string
-  default = "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.x86_64-Base-qcow.qcow2"
+  default = ""
 }
 
 # We download the OpenSUSE Leap Micro ARM image from an automatically selected mirror.
 variable "opensuse_leapmicro_arm_mirror_link" {
   type    = string
-  default = "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.aarch64-Base-qcow.qcow2"
+  default = ""
 }
 
 # If you need to add other packages to the OS, do it here in the default value, like ["vim", "curl", "wget"]
@@ -54,6 +54,9 @@ variable "packages_to_install" {
 }
 
 locals {
+  opensuse_leapmicro_x86_mirror_link_computed = var.opensuse_leapmicro_x86_mirror_link != "" ? var.opensuse_leapmicro_x86_mirror_link : "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.x86_64-Base-qcow.qcow2"
+  opensuse_leapmicro_arm_mirror_link_computed = var.opensuse_leapmicro_arm_mirror_link != "" ? var.opensuse_leapmicro_arm_mirror_link : "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.aarch64-Base-qcow.qcow2"
+  
   needed_packages = join(" ", concat([
     "busybox-bzip2",
     "container-selinux",
@@ -180,7 +183,7 @@ build {
 
   # Download the Leap Micro x86 image
   provisioner "shell" {
-    inline = ["${local.download_image}${var.opensuse_leapmicro_x86_mirror_link}"]
+    inline = ["${local.download_image}${local.opensuse_leapmicro_x86_mirror_link_computed}"]
   }
 
   # Write the Leap Micro x86 image to disk
@@ -218,7 +221,7 @@ build {
 
   # Download the Leap Micro ARM image
   provisioner "shell" {
-    inline = ["${local.download_image}${var.opensuse_leapmicro_arm_mirror_link}"]
+    inline = ["${local.download_image}${local.opensuse_leapmicro_arm_mirror_link_computed}"]
   }
 
   # Write the Leap Micro ARM image to disk
