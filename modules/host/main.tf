@@ -44,9 +44,10 @@ resource "hcloud_server" "server" {
     ipv6_enabled = !var.disable_ipv6
   }
 
-  # Only use inline network block if subnet_id is NOT provided (new deployments)
+  # Don't use inline network block - we'll use the separate hcloud_server_network resource
+  # This avoids conflicts between inline and separate network attachments
   dynamic "network" {
-    for_each = var.ipv4_subnet_id == null && var.network_id > 0 ? [1] : []
+    for_each = []
     content {
       network_id = var.network_id
       ip         = var.private_ipv4
@@ -125,9 +126,9 @@ resource "hcloud_server" "server" {
 
 }
 
-# For backward compatibility - create separate network attachment when using subnet_id (existing deployments)
+# Create network attachment when network_id is provided
 resource "hcloud_server_network" "server" {
-  count     = var.ipv4_subnet_id != null ? 1 : 0
+  count     = var.network_id != null && var.network_id > 0 ? 1 : 0
   ip        = var.private_ipv4
   server_id = hcloud_server.server.id
   subnet_id = var.ipv4_subnet_id
