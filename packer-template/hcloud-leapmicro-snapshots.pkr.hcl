@@ -68,7 +68,10 @@ locals {
     "container-selinux",
     "policycoreutils",
     "policycoreutils-python-utils",
+    "policycoreutils-devel",
+    "checkpolicy",
     "selinux-policy",
+    "selinux-policy-devel",
     "selinux-tools",
     # Container and storage packages
     "fuse-overlayfs",
@@ -127,6 +130,42 @@ locals {
     restorecon -Rv /var/lib
     fixfiles restore
     touch /.autorelabel
+    
+    # Create SELinux policy to allow containers to read certificate directories
+    # This addresses cluster-autoscaler and other k8s components needing cert access
+    cat > /tmp/k8s-custom-policies.te <<'SELINUX_POLICY'
+module k8s-custom-policies 1.0;
+
+require {
+    type container_t;
+    type cert_t;
+    type fail2ban_t;
+    type net_conf_t;
+    type unreserved_port_t;
+    class dir read;
+    class file { read open getattr };
+    class sock_file create;
+    class tcp_socket { name_bind name_connect };
+}
+
+# Allow containers to read certificate directories and files
+allow container_t cert_t:dir read;
+allow container_t cert_t:file { read open getattr };
+
+# Allow fail2ban to create socket files in /etc (net_conf_t context)
+allow fail2ban_t net_conf_t:sock_file create;
+
+# Allow containers to bind to high ports (including 10250 for metrics-server)
+allow container_t unreserved_port_t:tcp_socket { name_bind name_connect };
+SELINUX_POLICY
+    
+    # Compile and install the SELinux policy module
+    checkmodule -M -m -o /tmp/k8s-custom-policies.mod /tmp/k8s-custom-policies.te || true
+    semodule_package -o /tmp/k8s-custom-policies.pp -m /tmp/k8s-custom-policies.mod || true
+    semodule -i /tmp/k8s-custom-policies.pp || true
+    
+    # Clean up temporary files
+    rm -f /tmp/k8s-custom-policies.{te,mod,pp}
 
     echo so what do we have here
     rpm -qa |grep container
@@ -177,6 +216,8 @@ locals {
     echo "Make sure to use NetworkManager"
     touch /etc/NetworkManager/NetworkManager.conf
     sleep 1 && udevadm settle
+    echo "Running fstrim to reduce snapshot size..."
+    fstrim -av || true
   EOT
 }
 
