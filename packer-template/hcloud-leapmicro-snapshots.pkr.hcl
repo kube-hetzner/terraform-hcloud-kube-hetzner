@@ -130,7 +130,7 @@ locals {
     restorecon -Rv /var/lib
     fixfiles restore
     touch /.autorelabel
-    
+
     # Create SELinux policy to allow containers to read certificate directories
     # This addresses cluster-autoscaler and other k8s components needing cert access
     cat > /tmp/k8s-custom-policies.te <<'SELINUX_POLICY'
@@ -158,12 +158,12 @@ allow fail2ban_t net_conf_t:sock_file create;
 # Allow containers to bind to high ports (including 10250 for metrics-server)
 allow container_t unreserved_port_t:tcp_socket { name_bind name_connect };
 SELINUX_POLICY
-    
+
     # Compile and install the SELinux policy module
     checkmodule -M -m -o /tmp/k8s-custom-policies.mod /tmp/k8s-custom-policies.te || true
     semodule_package -o /tmp/k8s-custom-policies.pp -m /tmp/k8s-custom-policies.mod || true
     semodule -i /tmp/k8s-custom-policies.pp || true
-    
+
     # Clean up temporary files
     rm -f /tmp/k8s-custom-policies.{te,mod,pp}
 
@@ -226,7 +226,7 @@ source "hcloud" "leapmicro-x86-snapshot" {
   image       = "ubuntu-24.04"
   rescue      = "linux64"
   location    = "fsn1"
-  server_type = "cpx21" # disk size of >= 40GiB is needed to install the Leap Micro image
+  server_type = "cx22" # disk size of >= 40GiB is needed to install the Leap Micro image
   snapshot_labels = {
     leapmicro-snapshot = "yes"
     creator          = "kube-hetzner"
@@ -241,7 +241,7 @@ source "hcloud" "leapmicro-arm-snapshot" {
   image       = "ubuntu-24.04"
   rescue      = "linux64"
   location    = "fsn1"
-  server_type = "cax21" # disk size of >= 40GiB is needed to install the Leap Micro image
+  server_type = "cax11" # disk size of >= 40GiB is needed to install the Leap Micro image
   snapshot_labels = {
     leapmicro-snapshot = "yes"
     creator          = "kube-hetzner"
