@@ -39,6 +39,8 @@ module "agents" {
 
   automatically_upgrade_os = var.automatically_upgrade_os
 
+  network_gw_ipv4 = local.network_gw_ipv4
+
   depends_on = [
     hcloud_network_subnet.agent,
     hcloud_placement_group.agent,
