@@ -29,7 +29,7 @@ resource "hcloud_load_balancer_network" "cluster" {
       ? hcloud_network_subnet.agent.*.ip_range[0]
       : hcloud_network_subnet.control_plane.*.ip_range[0]
     )
-  , 254)
+  , -2)
   subnet_id = (
     length(hcloud_network_subnet.agent) > 0
     ? hcloud_network_subnet.agent.*.id[0]
