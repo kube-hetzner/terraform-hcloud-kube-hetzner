@@ -1239,3 +1239,14 @@ variable "hetzner_ccm_values" {
   default     = ""
   description = "Additional helm values file to pass to Hetzner Controller Manager as 'valuesContent' at the HelmChart."
 }
+
+variable "control_plane_endpoint" {
+  type        = string
+  description = "Optional external control plane endpoint URL (e.g. https://myapi.domain.com:6443). Used as the k3s 'server' value for agents and secondary control planes."
+  default     = null
+  validation {
+    condition = can(regex("^https?://(?:[a-zA-Z0-9.-]+|(?:[0-9]{1,3}\\.){3}[0-9]{1,3}|\\[[0-9a-fA-F:]+\\])(?::[0-9]{1,5})?(?:/.*)?$", var.control_plane_endpoint)) || var.control_plane_endpoint == null
+
+    error_message = "The control_plane_endpoint must be null or a valid URL (e.g., https://my-api.example.com:6443)."
+  }
+}
