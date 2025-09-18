@@ -368,6 +368,7 @@ module "kube-hetzner" {
   #    name        = "autoscaled-small"
   #    server_type = "cx32"
   #    location    = "fsn1"
+  #    # Add the arg --enforce-node-group-min-size=true in the cluster_autoscaler_extra_args option below if you want min_nodes to be effective
   #    min_nodes   = 0
   #    max_nodes   = 5
   #    labels      = {
