@@ -7,7 +7,8 @@ output "ipv6_address" {
 }
 
 output "private_ipv4_address" {
-  value = try(one(hcloud_server.server.network).ip, "")
+  # Simply return the private IP that was configured - it doesn't change based on how it's attached
+  value = var.private_ipv4 != null ? var.private_ipv4 : ""
 }
 
 output "name" {
