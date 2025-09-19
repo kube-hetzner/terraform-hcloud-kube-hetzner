@@ -146,7 +146,7 @@ locals {
       } : {
       tls-san = concat(
         compact([
-          var.control_plane_endpoint != null ? trim(coalesce(try(regex("^https?://([^:/]+)", var.control_plane_endpoint)[0], null), ""), "[]") : null,
+          var.control_plane_endpoint != null ? trim(coalesce(try(regex("^https?://(?:[^@/]*@)?([^:/]+)", var.control_plane_endpoint)[0], null), ""), "[]") : null,
           module.control_planes[k].ipv4_address != "" ? module.control_planes[k].ipv4_address : null,
           module.control_planes[k].ipv6_address != "" ? module.control_planes[k].ipv6_address : null,
           try(one(module.control_planes[k].network).ip, null)
