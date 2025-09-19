@@ -95,7 +95,7 @@ resource "hcloud_load_balancer_service" "control_plane" {
 }
 
 locals {
-  control_plane_endpoint_host = var.control_plane_endpoint != null ? trim(coalesce(try(regex("^https?://(?:[^@/]*@)?([^:/]+)", var.control_plane_endpoint)[0], null), ""), "[]") : null
+  control_plane_endpoint_host = var.control_plane_endpoint != null ? trim(coalesce(try(regex("^https?://(?:[^@/]*@)?(\\[[^\\]]+\\]|[^:/]+)", var.control_plane_endpoint)[0], null), ""), "[]") : null
   control_plane_ips = {
     for k, v in module.control_planes : k => coalesce(
       v.ipv4_address,
