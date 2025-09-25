@@ -1,78 +1,39 @@
 # Hetzner Robot Server Integration using HCCM v1.19+
 
 This guide describes how to add Hetzner **robot servers** to a Kubernetes cluster with help of the [hcloud-cloud-controller-manager](https://github.com/hetznercloud/hcloud-cloud-controller-manager), version 1.19 or newer.
-It covers configuration for both k3s and Robot nodes, including networking, configuration, and caveats.
+It covers configuration for both k3s and Robot nodes, including networking, configuration, and caveats. Alternatives like WireGuard via public network exist, but are not covered here.
 
 ---
 
-## Prerequisites
+## Prerequisites for connecting a Robot node to a new or already existing Cluster
 
-- **vSwitch** set up for private networking between Cloud and Robot nodes
+- **Hetzner vSwitch** 
+    - The recommended way is using a **vSwitch**, which connects the project-level Cloud subnets to the Robot node.
+    - The vSwitch can be created in the Hetzner Robot web-UI. 
 - **Webservice User** created in Hetzner Robot account settings (for API access)
+    - This is required for `hccm` to list robot servers via the metadata endpoint:
+        - `https://169.254.169.254/hetzner/v1/metadata/instance-id`
 - `hccm` version **1.19 or newer**
 - **Operating System**: Ideally use the MicroOS image created by this project. Otherwise, any Linux distribution that supports k3s will work
 
 ---
 
-## 1. Networking: Private Communication
+## 1. Prepare the Kubernetes Cluster for connection
 
-- **Robot and Cloud servers communication happens over a private network.**
-    - The recommended way is using a **vSwitch**.
-    - Alternatives like WireGuard exist, but are not covered here.
-    - Ensure all nodes can reach each other via internal IPs (e.g., `10.x.x.x`).
+### 1a. For a new Cluster
 
----
+In your kube.tf-configuration:
+  - Set `robot_ccm_enabled = true`
+  - Set the Webservice User credentials to robot_user and robot_password variables as you would with hcloud_token.
+  - If the credentials are unset, the `hcloud-cloud-controller-manager`-pod will give error.
 
-## 2. Hetzner Robot API Access
-
-- Create a **Webservice User** in your Hetzner Robot account.
-- This is required for `hccm` to list robot servers via the metadata endpoint:
-    - `https://169.254.169.254/hetzner/v1/metadata/instance-id`
-
----
-
-## 3. Robot Node Network Configuration
-
-- **Manually configure** the network interface and routes on the robot server.
-- For Ubuntu, see [Hetzner docs](https://docs.hetzner.com/cloud/networks/connect-dedi-vswitch#persistent-example-configurations).
-- For RHEL-based systems (e.g., AlmaLinux), use the following `nmcli` commands:
-
-<details>
-<summary>RHEL/AlmaLinux nmcli Example</summary>
-
-Assumptions (change these to your values!):
-- vSwitch subnet: `10.1.0.0/24`
-- vSwitch ID: `9999` # arbitrary value, replace with your vSwitch ID
-- Main interface: `enp6s0`
-
-> [!CAUTION]
-> The routes and CIDR notations depend on your local setup and may vary depending on your network configuration.
-
-```bash
-nmcli connection add type vlan con-name vlan9999 ifname vlan9999 vlan.parent enp6s0 vlan.id 9999
-
-nmcli connection modify vlan9999 802-3-ethernet.mtu 1400  # Important: vSwitch requires MTU 1400
-nmcli connection modify vlan9999 ipv4.addresses '10.1.0.2/24'
-nmcli connection modify vlan9999 ipv4.gateway '10.1.0.1'
-nmcli connection modify vlan9999 ipv4.method manual
-# Route all 10.x IPs through the vSwitch gateway
-nmcli connection modify vlan9999 +ipv4.routes "10.0.0.0/8 10.1.0.1"
-
-# Apply the config
-nmcli connection down vlan9999
-nmcli connection up vlan9999
-```
-
-</details>
-
----
-
-## 4. HCCM Helm Chart Configuration
+### 1b. HCCM Helm Chart Configuration for an existing Cluster
 
 - **Update the `hcloud` Kubernetes secret** with your `robot-user` and `robot-password`.
-- Set `networking.enabled: true` in `hetzner_ccm_values`.
+- Set `robot.enabled: true` in `hetzner_ccm_values`.
 - Set the correct `cluster-cidr` (the pod subnet for your cluster).
 - Deploy `hccm` version **1.19 or newer**.
+- Refer to [HCCM Github if required](https://github.com/hetznercloud/hcloud-cloud-controller-manager/blob/a0217eafe74c8704a5e8086cc774ceb3de8f04e3/chart/values.yaml#L54)
 
 Example `hetzner_ccm_values` for Helm:
 
@@ -103,7 +64,6 @@ env:
       secretKeyRef:
         name: hcloud
         key: token
-
   ROBOT_USER:
     valueFrom:
       secretKeyRef:
@@ -120,7 +80,85 @@ env:
 
 ---
 
-## 5. Robot Node: k3s Agent Configuration
+## 2. Connect the Cluster Subnets and Robot to vSwitch 
+
+1. Choose a subnet CIDR to be used for the Robot nodes that doesn't conflict with the existing Cluster subnets, such 10.50.0.0/16.
+2. Connect the existing Cluster Cloud network to the previously created vSwitch in the web-UI and expose the routes to vSwitch. 
+  - Follow the steps in [Hetzner docs](https://docs.hetzner.com/cloud/networks/connect-dedi-vswitch/#attaching-dedicated-root-servers-to-cloud-networks) outline how to connect the Cluster Subnets to the vSwitch and the Robot node to the vSwitch from the other side. Use your selected subnet CIDR and vSwitch id.
+- Make sure to use MTU 1400 or less. Cilium is reported to be requiring MTU 1350 or less.
+
+<details>
+<summary>Robot Network configuration example for RHEL/AlmaLinux using nmcli</summary>
+
+Assumptions (change these to your values!):
+- vSwitch subnet: `10.50.0.0/24`
+- vSwitch ID: `9999` # arbitrary value, replace with your vSwitch ID
+- Main interface: `enp6s0`
+
+> [!CAUTION]
+> The routes and CIDR notations depend on your local setup and may vary depending on your network configuration.
+
+```bash
+nmcli connection add type vlan con-name vlan9999 ifname vlan9999 vlan.parent enp6s0 vlan.id 9999
+
+nmcli connection modify vlan9999 802-3-ethernet.mtu 1400  # Important: vSwitch requires MTU 1400
+nmcli connection modify vlan9999 ipv4.addresses '10.50.0.2/24'
+nmcli connection modify vlan9999 ipv4.gateway '10.50.0.1'
+nmcli connection modify vlan9999 ipv4.method manual
+# Route all 10.x IPs through the vSwitch gateway
+nmcli connection modify vlan9999 +ipv4.routes "10.0.0.0/8 10.50.0.1"
+
+# Apply the config
+nmcli connection down vlan9999
+nmcli connection up vlan9999
+```
+
+</details>
+
+---
+## 3. Verify Network connectivity
+1. Log in to your Robot Node using SSH and ping one of the Cloud Control Plane nodes Private Network IP. Often such as 10.255.0.101.
+2. Log in to one of the Cloud Control Plane nodes using SSH and ping the Robot Node Private Network IP, such as 10.50.0.2.
+
+
+<details>
+<summary>Troubleshoot Robot Node networking</summary>
+
+- Make sure the ip address and routing are correct on the Robot Node.
+- Following examples assume Robot Node public ip 95.123.231.123, private ip 10.50.0.2, vSwitch ID 4000 and device enp6s0.
+- `ip route show` on the Robot Node should print similar to this:
+```
+default via 95.123.231.123 dev enp6s0 proto static onlink 
+10.0.0.0/8 via 10.50.0.1 dev enp6s0.4000 proto static onlink 
+10.50.0.0/24 dev enp6s0.4000 proto kernel scope link src 10.50.0.2 
+```
+- `ip addr` on the Robot Node should include similar to this:
+```
+2: enp6s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether a8:a1:REDACTED brd ff:ff:ff:ff:ff:ff
+    inet 95.123.231.123/32 scope global enp6s0
+       valid_lft forever preferred_lft forever
+    inet6 2a01:REDACTED/64 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::REDACTED/64 scope link 
+       valid_lft forever preferred_lft forever
+3: enp6s0.4000@enp6s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UP group default qlen 1000
+    link/ether a8:a1:REDACTED brd ff:ff:ff:ff:ff:ff
+    inet 10.50.0.2/24 brd 10.50.0.255 scope global enp6s0.4000
+       valid_lft forever preferred_lft forever
+    inet6 fe80::REDACTED/64 scope link 
+       valid_lft forever preferred_lft forever
+``` 
+- You may want to try to "Refresh" the vSwitch connection in the Robot web-UIs vSwitches admin-panel. Select the vSwitch, then Robot Node and click Refresh.
+- Try rebooting the Robot Node
+
+</details>
+
+---
+
+## 4. Robot Node: k3s Agent Configuration
+
+- Note! If you set a Nodename for the k3s-agent, you must use the same name as the Robot Server has in Servers-list.
 
 1. **Create `/etc/rancher/k3s/config.yaml`** on the robot node:
 
@@ -134,18 +172,16 @@ env:
       - system-reserved=cpu=250m,memory=6000Mi  # Optional: reserve some space for system
     node-label:
       - k3s_upgrade=true
+      - instance.hetzner.cloud/provided-by=robot # To prevent Hetzner CSI pods from being scheduled on robot nodes
     node-taint: []
     selinux: true
     server: https://<API_SERVER_IP>:6443  # Replace with your API server IP
     token: <CLUSTER_TOKEN>                # Replace with your cluster token
     ```
 
-2. **Before starting the agent**, verify network connectivity:
-    - You must be able to `ping` other nodes' internal IPs (e.g., `ping 10.255.0.101`).
-
 ---
 
-## 6. Storage and Scheduling Notes
+## 5. Storage and Scheduling Notes
 
 - **Hetzner Cloud Volumes** do **not** work on robot servers (CSI driver limitation).
     - Use [Longhorn](https://longhorn.io/) or other external storage.
@@ -165,7 +201,7 @@ env:
 
 ---
 
-## 7. Caveats & Warnings
+## 6. Caveats & Warnings
 
 - This setup may not cover all edge cases (e.g., other CNIs, non-wireguard clusters, complex private networks).
 - **Test your network thoroughly** before adding robot nodes to production clusters.

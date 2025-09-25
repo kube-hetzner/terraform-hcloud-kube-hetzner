@@ -1,10 +1,14 @@
 locals {
   # You have the choice of setting your Hetzner API token here or define the TF_VAR_hcloud_token env
-  # within your shell, such as: export TF_VAR_hcloud_token=xxxxxxxxxxx
+  # within your shell, such as: export TF_VAR_hcloud_token=xxxxxxxxxxx. Or you can use .tfvars-files.
   # If you choose to define it in the shell, this can be left as is.
 
   # Your Hetzner token can be found in your Project > Security > API Token (Read & Write is required).
   hcloud_token = "xxxxxxxxxxx"
+
+  # Credentials for the Hetzner Robot webservice
+  robot_user     = ""
+  robot_password = ""
 }
 
 module "kube-hetzner" {
@@ -12,6 +16,8 @@ module "kube-hetzner" {
     hcloud = hcloud
   }
   hcloud_token = var.hcloud_token != "" ? var.hcloud_token : local.hcloud_token
+  robot_user     = var.robot_user != "" ? var.robot_user : local.robot_user
+  robot_password = var.robot_password != "" ? var.robot_password : local.robot_password
 
   # Then fill or edit the below values. Only the first values starting with a * are obligatory; the rest can remain with their default values, or you
   # could adapt them to your needs.
@@ -518,6 +524,14 @@ module "kube-hetzner" {
 
   # By default, new installations use Helm to install Hetzner CCM. You can use the legacy deployment method (using `kubectl apply`) by setting `hetzner_ccm_use_helm = false`.
   hetzner_ccm_use_helm = true
+
+  # To enable Hetzner CCM compatibility with dedicated Robot servers, set the `robot_ccm_enabled` to "true", default is "false". 
+  # Requirements for the CCM and Kubernetes Cluster to work with dedicated Robot servers:
+  # - Create Robot Webservice credentials and set them to the `robot_user` and `robot_password` TF-variables. They are passed on via secrets to HCCM env.
+  # - `hetzner_ccm_use_helm = true`
+  # - `robot_ccm_enabled = true`
+  # See more from https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/add-robot-server.md
+  # robot_ccm_enabled = false
 
   # See https://github.com/hetznercloud/csi-driver/releases for the available versions.
   # hetzner_csi_version = ""
@@ -1240,6 +1254,16 @@ output "kubeconfig" {
 }
 
 variable "hcloud_token" {
+  sensitive = true
+  default   = ""
+}
+
+variable "robot_user" {
+  sensitive = true
+  default   = ""
+}
+
+variable "robot_password" {
   sensitive = true
   default   = ""
 }
