@@ -1064,7 +1064,7 @@ The example shows three control plane nodepools, each with one node, in differen
     * `false`: The module uses a legacy method, likely applying raw Kubernetes YAML manifests (`kubectl apply -f ...`). This might be for compatibility with older module versions or specific needs.
 
 ```terraform
-  # To enable Hetzner CCM compatibility and connection with dedicated Robot servers, set the `robot_ccm_enabled` to "true", default is "false". 
+  # To enable Hetzner CCM compatibility and connection with dedicated Robot servers, set the `robot_ccm_enabled` to "true", default is "false".
   robot_ccm_enabled = true
 ```
 

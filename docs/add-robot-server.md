@@ -9,7 +9,7 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
 
 - **Hetzner vSwitch** 
     - The recommended way is using a **vSwitch**, which connects the project-level Cloud subnets to the Robot node.
-    - The vSwitch can be created in the Hetzner Robot web-UI. 
+    - The vSwitch can be created in the Hetzner Robot web-UI.
 - **Webservice User** created in Hetzner Robot account settings (for API access)
     - This is required for `hccm` to list robot servers via the metadata endpoint:
         - `https://169.254.169.254/hetzner/v1/metadata/instance-id`
@@ -25,7 +25,7 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
 In your kube.tf-configuration:
   - Set `robot_ccm_enabled = true`
   - Set the Webservice User credentials to robot_user and robot_password variables as you would with hcloud_token.
-  - If the credentials are unset, the `hcloud-cloud-controller-manager`-pod will give error.
+  - If the credentials are unset, the `hcloud-cloud-controller-manager`-pod will report an error.
 
 ### 1b. HCCM Helm Chart Configuration for an existing Cluster
 
@@ -80,12 +80,12 @@ env:
 
 ---
 
-## 2. Connect the Cluster Subnets and Robot to vSwitch 
+## 2. Connect the Cluster Subnets and Robot to vSwitch
 
-1. Choose a subnet CIDR to be used for the Robot nodes that doesn't conflict with the existing Cluster subnets, such 10.50.0.0/16.
-2. Connect the existing Cluster Cloud network to the previously created vSwitch in the web-UI and expose the routes to vSwitch. 
-  - Follow the steps in [Hetzner docs](https://docs.hetzner.com/cloud/networks/connect-dedi-vswitch/#attaching-dedicated-root-servers-to-cloud-networks) outline how to connect the Cluster Subnets to the vSwitch and the Robot node to the vSwitch from the other side. Use your selected subnet CIDR and vSwitch id.
-- Make sure to use MTU 1400 or less. Cilium is reported to be requiring MTU 1350 or less.
+1. Choose a subnet CIDR to be used for the Robot nodes that doesn't conflict with the existing Cluster subnets, such as 10.50.0.0/16.
+2. Connect the existing Cluster Cloud network to the previously created vSwitch in the web-UI and expose the routes to vSwitch.
+  - Follow the steps in [Hetzner docs](https://docs.hetzner.com/cloud/networks/connect-dedi-vswitch/#attaching-dedicated-root-servers-to-cloud-networks) that outline how to connect the Cluster Subnets to the vSwitch and the Robot node to the vSwitch from the other side. Use your selected subnet CIDR and vSwitch id.
+3. Make sure to use an MTU of 1400 or less. Cilium is reported to be requiring an MTU of 1350 or less.
 
 <details>
 <summary>Robot Network configuration example for RHEL/AlmaLinux using nmcli</summary>
@@ -117,7 +117,7 @@ nmcli connection up vlan9999
 
 ---
 ## 3. Verify Network connectivity
-1. Log in to your Robot Node using SSH and ping one of the Cloud Control Plane nodes Private Network IP. Often such as 10.255.0.101.
+1. Log in to your Robot Node using SSH and ping one of the Cloud Control Plane nodes Private Network IP (e.g., 10.255.0.101).
 2. Log in to one of the Cloud Control Plane nodes using SSH and ping the Robot Node Private Network IP, such as 10.50.0.2.
 
 
@@ -125,7 +125,7 @@ nmcli connection up vlan9999
 <summary>Troubleshoot Robot Node networking</summary>
 
 - Make sure the ip address and routing are correct on the Robot Node.
-- Following examples assume Robot Node public ip 95.123.231.123, private ip 10.50.0.2, vSwitch ID 4000 and device enp6s0.
+- Following examples assume Robot Node public IP 95.123.231.123, private IP 10.50.0.2, vSwitch ID 4000 and device enp6s0.
 - `ip route show` on the Robot Node should print similar to this:
 ```
 default via 95.123.231.123 dev enp6s0 proto static onlink 
@@ -158,7 +158,7 @@ default via 95.123.231.123 dev enp6s0 proto static onlink
 
 ## 4. Robot Node: k3s Agent Configuration
 
-- Note! If you set a Nodename for the k3s-agent, you must use the same name as the Robot Server has in Servers-list.
+- Note! If you set a Nodename for the k3s-agent, you must use the same name as the Robot Server has in the Servers list.
 
 1. **Create `/etc/rancher/k3s/config.yaml`** on the robot node:
 
