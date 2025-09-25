@@ -1064,6 +1064,17 @@ The example shows three control plane nodepools, each with one node, in differen
     * `false`: The module uses a legacy method, likely applying raw Kubernetes YAML manifests (`kubectl apply -f ...`). This might be for compatibility with older module versions or specific needs.
 
 ```terraform
+  # To enable Hetzner CCM compatibility and connection with dedicated Robot servers, set the `robot_ccm_enabled` to "true", default is "false". 
+  robot_ccm_enabled = true
+```
+
+* **`robot_ccm_enabled` (Boolean, Optional):**
+  * **Default:** `false`.
+  * **Purpose:** Controls whether to configure the Hetzner CCM to expect connection with a Robot Node.
+    * `true`: The HCCM is configured to allow connections to Robot Nodes.
+    * `false`: The HCCM won't handle connections to Robot Nodes
+
+```terraform
   # See https://github.com/hetznercloud/csi-driver/releases for the available versions.
   # hetzner_csi_version = ""
 ```
@@ -2660,6 +2671,35 @@ variable "hcloud_token" {
     * If not, `var.hcloud_token` defaults to `""`, and the ternary operator then chooses `local.hcloud_token`.
   * This variable declaration is what allows `TF_VAR_hcloud_token` to populate `var.hcloud_token`.
 
+```terraform
+variable "robot_user" {
+  sensitive = true
+  default   = ""
+}
+```
+
+* **`variable "robot_user"` Block:**
+  * **Purpose:** Declares an input variable named `robot_user` for this root Terraform configuration. The value should be retrieved from the Hetzner Robot Webservice UI. This variable is required for connecting Robot Nodes to the cluster and is only used when `robot_ccm_enabled` is set to `true`.
+  * **`sensitive = true`:** Marks this input variable as sensitive. If you were to set it via a `terraform.tfvars` file or command line (`-var="hcloud_token=..."`), Terraform would handle it with more care regarding logging.
+  * **`default = ""`:** Provides a default value (empty string). This allows the logic `var.robot_user != "" ? var.robot_user : local.robot_user` to work correctly:
+    * If `TF_VAR_robot_user` is set in the environment, `var.robot_user` gets that value.
+    * If not, `var.robot_user` defaults to `""`, and the ternary operator then chooses `local.robot_user`.
+  * This variable declaration is what allows `TF_VAR_robot_user` to populate `var.robot_user`.
+
+```terraform
+variable "robot_password" {
+  sensitive = true
+  default   = ""
+}
+```
+
+* **`variable "robot_password"` Block:**
+  * **Purpose:** Declares an input variable named `robot_password` for this root Terraform configuration. The value should be retrieved from the Hetzner Robot Webservice UI. This variable is required for connecting Robot Nodes to the cluster and is only used when `robot_ccm_enabled` is set to `true`.
+  * **`sensitive = true`:** Marks this input variable as sensitive. If you were to set it via a `terraform.tfvars` file or command line (`-var="hcloud_token=..."`), Terraform would handle it with more care regarding logging.
+  * **`default = ""`:** Provides a default value (empty string). This allows the logic `var.robot_password != "" ? var.robot_password : local.robot_password` to work correctly:
+    * If `TF_VAR_robot_password` is set in the environment, `var.robot_password` gets that value.
+    * If not, `var.robot_password` defaults to `""`, and the ternary operator then chooses `local.robot_password`.
+  * This variable declaration is what allows `TF_VAR_robot_password` to populate `var.robot_password`.
 ---
 
 **Conclusion of the Deep Dive**

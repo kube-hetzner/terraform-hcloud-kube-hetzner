@@ -427,8 +427,8 @@ resource "null_resource" "kustomization" {
         echo "Attempt $attempt: Checking kubectl connectivity..."
         if [ "$(kubectl get --raw='/readyz' 2>/dev/null)" = "ok" ]; then
           echo "kubectl connectivity established, deploying secrets..."
-          kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -
-          kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -
+          kubectl -n kube-system create secret generic hcloud --from-literal=token='${var.hcloud_token}' --from-literal=network=${data.hcloud_network.k3s.name} --from-literal=robot-user='${var.robot_user}' --from-literal=robot-password='${var.robot_password}' --dry-run=client -o yaml | kubectl apply -f -
+          kubectl -n kube-system create secret generic hcloud-csi --from-literal=token='${var.hcloud_token}' --dry-run=client -o yaml | kubectl apply -f -
           echo "Secrets deployed successfully"
           break
         else

@@ -11,6 +11,26 @@ variable "k3s_token" {
   default     = null
 }
 
+variable "robot_user" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "User for the Hetzner Robot webservice"
+}
+
+variable "robot_password" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "Password for the Hetzner Robot webservice"
+}
+
+variable "robot_ccm_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable CCM for the Hetzner Robot webservice"
+}
+
 variable "microos_x86_snapshot_id" {
   description = "MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
   type        = string
