@@ -524,7 +524,7 @@ module "kube-hetzner" {
   # By default, new installations use Helm to install Hetzner CCM. You can use the legacy deployment method (using `kubectl apply`) by setting `hetzner_ccm_use_helm = false`.
   hetzner_ccm_use_helm = true
 
-  # To enable Hetzner CCM compatibility with dedicated Robot servers, set the `robot_ccm_enabled` to "true", default is "false". 
+  # To enable Hetzner CCM compatibility with dedicated Robot servers, set the `robot_ccm_enabled` to "true", default is "false".
   # Requirements for the CCM and Kubernetes Cluster to work with dedicated Robot servers:
   # - Create Robot Webservice credentials and set them to the `robot_user` and `robot_password` TF-variables. They are passed on via secrets to HCCM env.
   # - `hetzner_ccm_use_helm = true`
