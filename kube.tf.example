@@ -532,6 +532,11 @@ module "kube-hetzner" {
   # See more from https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/add-robot-server.md
   # robot_ccm_enabled = false
 
+  # To connect the Hetzner Cloud network to Robot servers via vSwitch subnet, create the vSwitch and set its ID to the `vswitch_id` (number).
+  # Note that the VLAN ID is not the same as vSwitch ID. The vSwitch-subnet is assigned to 10.201.0.0/16 by default, can be changed via var.vswitch_subnet_index.
+  # The vSwitch subnet is not created when the value is null. Default: null
+  # vswitch_id = null
+
   # See https://github.com/hetznercloud/csi-driver/releases for the available versions.
   # hetzner_csi_version = ""
 
