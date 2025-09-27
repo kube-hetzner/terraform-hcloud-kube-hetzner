@@ -11,6 +11,26 @@ variable "k3s_token" {
   default     = null
 }
 
+variable "robot_user" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "User for the Hetzner Robot webservice"
+}
+
+variable "robot_password" {
+  type        = string
+  default     = ""
+  sensitive   = true
+  description = "Password for the Hetzner Robot webservice"
+}
+
+variable "robot_ccm_enabled" {
+  type        = bool
+  default     = false
+  description = "Enable CCM for the Hetzner Robot webservice"
+}
+
 variable "microos_x86_snapshot_id" {
   description = "MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used"
   type        = string
@@ -148,6 +168,22 @@ variable "nat_router_subnet_index" {
   }
 }
 
+variable "vswitch_subnet_index" {
+  type        = number
+  default     = 201
+  description = "Subnet index (0-255) for vSwitch. Default 201 is safe for most deployments. Must not conflict with control plane (counting down from 255) or agent pools (counting up from 0)."
+
+  validation {
+    condition     = var.vswitch_subnet_index >= 0 && var.vswitch_subnet_index <= 255
+    error_message = "vSwitch subnet index must be between 0 and 255."
+  }
+}
+
+variable "vswitch_id" {
+  description = "Hetzner Cloud vSwitch ID. If defined, a subnet will be created in the IP-range defined by vswitch_subnet_index. The vSwitch must exist before this module is called."
+  type        = number
+  default     = null
+}
 
 variable "load_balancer_location" {
   description = "Default load balancer location."
