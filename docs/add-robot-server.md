@@ -24,7 +24,7 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
 In your kube.tf-configuration:
   - Set `robot_ccm_enabled = true`
   - Set the Webservice User credentials to `robot_user` and `robot_password` variables as you would with `hcloud_token`. If the credentials are unset, the `hcloud-cloud-controller-manager`-pod will give error.
-  - Set `vswitch_id = <vswitch_id from prerequisities>`
+  - Set `vswitch_id = <vswitch_id from prerequisites>`
 
 For manual configuration of the settings, see below:
 
@@ -104,7 +104,7 @@ env:
 <summary>Robot Network configuration example for RHEL/AlmaLinux using nmcli</summary>
 
 Assumptions (change these to your values!):
-- vSwitch subnet: `10.201.0.0/24`
+- vSwitch subnet: `10.201.0.0/16`
 - VLAN ID: `9999` # arbitrary value, replace with your VLAN ID
 - Main interface: `enp6s0`
 
@@ -115,7 +115,7 @@ Assumptions (change these to your values!):
 nmcli connection add type vlan con-name vlan9999 ifname vlan9999 vlan.parent enp6s0 vlan.id 9999
 
 nmcli connection modify vlan9999 802-3-ethernet.mtu 1400  # Important: vSwitch requires MTU 1400
-nmcli connection modify vlan9999 ipv4.addresses '10.201.0.2/24'
+nmcli connection modify vlan9999 ipv4.addresses '10.201.0.2/16'
 nmcli connection modify vlan9999 ipv4.gateway '10.201.0.1'
 nmcli connection modify vlan9999 ipv4.method manual
 # Route all 10.x IPs through the vSwitch gateway
