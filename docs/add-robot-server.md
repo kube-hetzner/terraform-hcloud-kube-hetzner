@@ -5,11 +5,11 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
 
 ---
 
-## Prerequisities for connecting a Robot node to a new or already existing Cluster
+## Prerequisites for connecting a Robot node to a new or already existing Cluster
 
 - **Hetzner vSwitch** 
     - The recommended way is using a **vSwitch**, which connects the project-level Cloud subnets to the Robot node.
-    - This guide assumes the vSwitch has been created and is not currently connected to any subnet The vSwitch can be created in the Hetzner Robot web-UI. See [Hetzner Docs](https://docs.hetzner.com/robot/dedicated-server/network/vswitch)
+    - This guide assumes the vSwitch has been created and is not currently connected to any subnet. The vSwitch can be created in the Hetzner Robot web-UI. See [Hetzner Docs](https://docs.hetzner.com/robot/dedicated-server/network/vswitch)
     - Note down the vSwitch ID and the VLAN ID. Note: vSwitch IDs are in the number range of around 10000+, while VLAN ID range is account-specific and starts from 4000 by default.
 - **Webservice User** created in Hetzner Robot account settings (for API access)
     - This is required for `hccm` to list robot servers via the metadata endpoint:
@@ -31,7 +31,7 @@ For manual configuration of the settings, see below:
 <details>
 <summary>Manual configuration of HCCM-settings and vSwitch connection</summary>
 
-### 2. HCCM-settings
+### 1. HCCM-settings
 
 - **Update the `hcloud` Kubernetes secret** with your `robot-user` and `robot-password`.
 - Set `robot.enabled: true` in `hetzner_ccm_values`.
@@ -217,7 +217,7 @@ default via 95.123.231.123 dev enp6s0 proto static onlink
 ## 6. Caveats & Warnings
 
 - This setup may not cover all edge cases (e.g., other CNIs, non-wireguard clusters, complex private networks).
-- When destroying the Cluster, the vSwitch-binding is not immediately relieved on the Robot-side, but after some minutes. 
+- When destroying the cluster, it takes a few minutes for the vSwitch binding to be released on the Robot side.
 - **Test your network thoroughly** before adding robot nodes to production clusters.
 - **MTU Issues**: When using vSwitch, MTU configuration is critical:
   - vSwitch has a maximum MTU of 1400
