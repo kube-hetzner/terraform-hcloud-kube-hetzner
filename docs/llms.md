@@ -2883,6 +2883,23 @@ The following variables have been added to the `kube-hetzner` module since the i
   * **Discovery:** `hcloud image list --selector 'microos-snapshot=yes'`
   * **Use Case:** Ensure consistency across deployments or rollback to known-good images
 
+**vSwitch Configuration**
+
+```terraform
+  # To connect the Hetzner Cloud network to Robot servers via vSwitch subnet, create the vSwitch and set its ID to the `vswitch_id` (number).
+  # Note that the VLAN ID is not the same as vSwitch ID. The vSwitch-subnet is assigned to 10.201.0.0/16 by default, can be changed via vars.vswitch_subnet_index.
+  # The vSwitch subnet is not created when the value is null. Default: null
+  # vswitch_id = null
+```
+
+* **`vswitch_id` (number, Optional):**
+  * **Purpose:** Connects the Cloud network to a Hetzner vSwitch and creates a subnet for it. Exposes Cloud network routes to the vSwitch.
+  * **Requirements:** vSwitch must exist
+  * **Use Case:** The connection is required if Hetzner Robot instances are connected to the Hetzner Cloud instances via private networking  
+
+* **`vswitch_subnet_index` (number, Optional):**
+  * **Purpose:** Defines the subnet range index to be used in the vSwitch subnet creation. Default: 201, which then converts to 10.201.0.0/16 by default.
+
 **Additional Helm Values Customization**
 
 The following variables allow deep customization of various components through Helm values:
