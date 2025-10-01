@@ -806,6 +806,17 @@ variable "cilium_routing_mode" {
   }
 }
 
+variable "cilium_loadbalancer_acceleration_mode" {
+  type        = string
+  default     = "native"
+  description = "Set Cilium loadbalancer.acceleration-mode. Supported values are \"disabled\", \"native\" and \"best-effort\"."
+
+  validation {
+    condition     = contains(["disabled", "native", "best-effort"], var.cilium_loadbalancer_acceleration_mode)
+    error_message = "The cilium_loadbalancer_acceleration_mode must be one of \"disabled\", \"native\" or \"best-effort\"."
+  }
+}
+
 variable "cilium_values" {
   type        = string
   default     = ""

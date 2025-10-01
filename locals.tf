@@ -540,6 +540,7 @@ k8s:
 
 # Replace kube-proxy with Cilium
 kubeProxyReplacement: true
+
 %{if var.disable_kube_proxy}
 # Enable health check server (healthz) for the kube-proxy replacement
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
@@ -568,7 +569,7 @@ endpointRoutes:
 
 loadBalancer:
   # Enable LoadBalancer & NodePort XDP Acceleration (direct routing (routingMode=native) is recommended to achieve optimal performance)
-  acceleration: native
+  acceleration: "${var.cilium_loadbalancer_acceleration_mode}"
 
 bpf:
   # Enable eBPF-based Masquerading ("The eBPF-based implementation is the most efficient implementation")
