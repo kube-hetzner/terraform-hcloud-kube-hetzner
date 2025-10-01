@@ -27,6 +27,8 @@ locals {
   dns_servers_ipv4 = [for ip in var.dns_servers : ip if provider::assert::ipv4(ip)]
   dns_servers_ipv6 = [for ip in var.dns_servers : ip if provider::assert::ipv6(ip)]
 
+  use_robot_ccm = var.robot_ccm_enabled && var.robot_user != "" && var.robot_password != ""
+
   additional_k3s_environment = join("\n",
     [
       for var_name, var_value in var.additional_k3s_environment :
@@ -538,6 +540,7 @@ k8s:
 
 # Replace kube-proxy with Cilium
 kubeProxyReplacement: true
+
 %{if var.disable_kube_proxy}
 # Enable health check server (healthz) for the kube-proxy replacement
 kubeProxyReplacementHealthzBindAddr: "0.0.0.0:10256"
@@ -566,7 +569,7 @@ endpointRoutes:
 
 loadBalancer:
   # Enable LoadBalancer & NodePort XDP Acceleration (direct routing (routingMode=native) is recommended to achieve optimal performance)
-  acceleration: native
+  acceleration: "${var.cilium_loadbalancer_acceleration_mode}"
 
 bpf:
   # Enable eBPF-based Masquerading ("The eBPF-based implementation is the most efficient implementation")
@@ -643,17 +646,22 @@ persistence:
   csi_driver_smb_values = var.csi_driver_smb_values != "" ? var.csi_driver_smb_values : <<EOT
   EOT
 
-  hetzner_csi_values = var.hetzner_csi_values != "" ? var.hetzner_csi_values : (!local.allow_scheduling_on_control_plane ? <<-EOT
+  hetzner_csi_values = var.hetzner_csi_values != "" ? var.hetzner_csi_values : <<-EOT
 node:
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
           - matchExpressions:
+              - key: "instance.hetzner.cloud/provided-by"
+                operator: NotIn
+                values:
+                  - "robot"
+%{if !local.allow_scheduling_on_control_plane~}                      
               - key: "node-role.kubernetes.io/control-plane"
                 operator: DoesNotExist
+%{endif~}                
 EOT
-  : "")
 
   nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
 controller:
@@ -688,6 +696,10 @@ controller:
   hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
 networking:
   enabled: true
+%{if local.use_robot_ccm~}
+robot:
+  enabled: true
+%{endif~}
 args:
   cloud-provider: hcloud
   allow-untagged-cloud: ""
@@ -705,6 +717,10 @@ env:
     value: "${!local.using_klipper_lb}"
   HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
     value: "true"
+%{if local.use_robot_ccm~}
+  HCLOUD_NETWORK_ROUTES_ENABLED:
+    value: "false"
+%{endif~}         
 # Use host network to avoid circular dependency with CNI
 hostNetwork: true
   EOT
