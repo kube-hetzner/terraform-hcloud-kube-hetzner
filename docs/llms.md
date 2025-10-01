@@ -1894,6 +1894,21 @@ Excellent! Let's continue our meticulous dissection.
   * **Reference:** Consult the Hubble documentation for available metric types and configuration syntax.
 
 ```terraform
+  # Set the Cilium LoadBalancer & NodePort XDP Acceleration. For best performance, the setting is recommended to be kept at "native". Default: "native".
+  # Other options are "disabled" and "best-effort". The "disabled"-option is more compatible with wider range of networking configurations, 
+  # while "best-effort" attempts to use XDP acceleration on nodes that have capability for the acceleration.
+  # For Robot nodes connected over vSwitch, the XDP acceleration may not work on the Robot node and the setting therefore recommended to be set to "best-effort" or "disabled".
+  # See [Cilium XDP documentation](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration).
+  # cilium_loadbalancer_acceleration_mode = "native"
+```
+
+* **`cilium_loadbalancer_acceleration_mode` (String, Optional, relevant if `cni_plugin = "cilium"`):**
+  * **Default:** `"native"`.
+  * **Purpose:** Specifies the Loadbalancer Acceleration mode for Cilium (loadBalancer.acceleration). 
+  * **Impact:** Deploys Hubble components (e.g., Hubble Relay, Hubble UI pods) into the cluster.
+  * **Reference:** See [Cilium XDP documentation](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration)
+
+```terraform
   # You can choose the version of Calico that you want. By default, the latest is used.
   # More info on available versions can be found at https://github.com/projectcalico/calico/releases
   # Please note that if you are getting 403s from Github, it's also useful to set the version manually. However there is rarely a need for that!

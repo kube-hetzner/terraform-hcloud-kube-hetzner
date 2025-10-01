@@ -16,6 +16,10 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
         - `https://169.254.169.254/hetzner/v1/metadata/instance-id`
 - `hccm` version **1.19 or newer**
 - **Operating System**: Ideally use the MicroOS image created by this project. Otherwise, any Linux distribution that supports k3s will work
+- **Network CNI Configuration**: 
+    - Flannel: Doesn't need additional configuration on the Kubernetes Cloud-side
+    - Cilium: Set `cilium_loadbalancer_acceleration_mode` to `"best-effort"` or `"disabled"`
+    - Calico: Untested
 
 ---
 
