@@ -2,6 +2,26 @@ locals {
   user_kustomization_templates = try(fileset(var.extra_kustomize_folder, "**/*.yaml.tpl"), toset([]))
 }
 
+
+resource "null_resource" "kustomization_user_deploy_pre_local" {
+  count = length(var.extra_kustomize_pre_deployment_local_exec) > 0 && var.create_kubeconfig ? 1 : 0
+
+  provisioner "local-exec" {
+    command = var.extra_kustomize_pre_deployment_local_exec
+    environment = {
+      KUBECONFIG = local_file.kubeconfig[0].filename
+    }
+  }
+
+  triggers = {
+    manifest_sha1 = "${sha1(var.extra_kustomize_pre_deployment_local_exec)}"
+  }
+
+  depends_on = [
+    null_resource.kustomization
+  ]
+}
+
 resource "null_resource" "kustomization_user" {
   for_each = local.user_kustomization_templates
 
@@ -35,7 +55,8 @@ resource "null_resource" "kustomization_user" {
   }
 
   depends_on = [
-    null_resource.kustomization
+    null_resource.kustomization,
+    null_resource.kustomization_user_deploy_pre_local
   ]
 }
 
@@ -74,6 +95,7 @@ resource "null_resource" "kustomization_user_deploy" {
   }
 
   depends_on = [
-    null_resource.kustomization_user
+    null_resource.kustomization_user,
+    null_resource.kustomization_user_deploy_pre_local,
   ]
 }

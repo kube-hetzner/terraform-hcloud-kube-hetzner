@@ -952,6 +952,16 @@ module "kube-hetzner" {
   # More information about the registration can be found here https://rancher.com/docs/rancher/v2.6/en/cluster-provisioning/registered-clusters/
   # rancher_registration_manifest_url = "https://rancher.xyz.dev/v3/import/xxxxxxxxxxxxxxxxxxYYYYYYYYYYYYYYYYYYYzzzzzzzzzzzzzzzzzzzzz.yaml"
 
+  # Extra commands to be executed locally before the `kubectl apply -k` (useful for pre-install actions, e.g. install repos and CRDs). Default is "".
+  # The option requires setting `create_kubeconfig = true`.
+  # Note: The commands are run locally and they are run only when the list of commands has changed. Therefore Terraform does not enforce or check that the resources exist later on.
+  # Example: 
+  # extra_kustomize_pre_deployment_local_exec = <<-EOT
+  #   helm repo add external-secrets https://charts.external-secrets.io
+  #   helm install --wait --wait-for-jobs --timeout 1m0s external-secrets external-secrets/external-secrets -n external-secrets --create-namespace 
+  # EOT
+  # extra_kustomize_pre_deployment_local_exec = ""
+
   # Extra commands to be executed after the `kubectl apply -k` (useful for post-install actions, e.g. wait for CRD, apply additional manifests, etc.).
   # extra_kustomize_deployment_commands=""
 

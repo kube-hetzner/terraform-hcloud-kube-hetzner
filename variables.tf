@@ -1068,6 +1068,11 @@ variable "postinstall_exec" {
   description = "Additional to execute after the install calls, for example restoring a backup."
 }
 
+variable "extra_kustomize_pre_deployment_local_exec" {
+  type        = string
+  default     = ""
+  description = "A series of commands to be executed locally before the user kustomizations are applied. Useful for pre-install actions like adding Helm repositories or installing CRDs before the main kustomization manifests are deployed."
+}
 
 variable "extra_kustomize_deployment_commands" {
   type        = string
