@@ -334,11 +334,27 @@ _That said, you can also use pure Terraform and import the kube-hetzner module a
 
 <details>
 
-<summary>Custom post-install actions</summary>
+<summary>Custom pre- and post-install actions</summary>
 
 After the initial bootstrapping of your Kubernetes cluster, you might want to deploy applications using the same terraform mechanism. For many scenarios it is sufficient to create a `kustomization.yaml.tpl` file (see [Adding Extras](#adding-extras)). All applied kustomizations will be applied at once by executing a single `kubectl apply -k` command.
 
-However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://argoproj.github.io/cd/)) need a different deployment strategy: one has to deploy CRDs first, then wait for the deployment, before being able to install the actual application. In the ArgoCD case, not waiting for the CRD setup to finish will cause failures. Therefore, an additional mechanism is available to support these kind of deployments. Specify `extra_kustomize_deployment_commands` in your `kube.tf` file containing a series of commands to be executed, after the `Kustomization` step finished:
+However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://argoproj.github.io/cd/)) need a different deployment strategy: one has to deploy CRDs first, then wait for the deployment, before being able to install the actual application. In the ArgoCD case, not waiting for the CRD setup to finish will cause failures. Therefore, an additional mechanism is available to support these kind of deployments. 
+
+**Pre-install actions, external-secrets repo and Helm**
+You can install Helm repos and CRDs before the Kustomization-scripts.
+Specify `extra_kustomize_pre_deployment_local_exec` in your `kube.tf` file containing a series of commands to be executed before Kustomization-scripts and post-install. 
+Note! The commands are executed locally and `create_kubeconfig` must be true. Also note that the commands are only run on first run and when `extra_kustomize_pre_deployment_local_exec` has changed.
+
+Below is an example for adding repo for external-secrets and installing it.
+```tf
+  extra_kustomize_pre_deployment_local_exec = <<-EOT
+    helm repo add external-secrets https://charts.external-secrets.io
+    helm install --wait --wait-for-jobs --timeout 1m0s external-secrets external-secrets/external-secrets -n external-secrets --create-namespace 
+  EOT
+```
+
+**Post-install actions, ArgoCD-example**
+Specify `extra_kustomize_deployment_commands` in your `kube.tf` file containing a series of commands to be executed, after the `Kustomization` step finished:
 
 ```tf
   extra_kustomize_deployment_commands = <<-EOT

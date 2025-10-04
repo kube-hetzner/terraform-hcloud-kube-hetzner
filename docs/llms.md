@@ -2829,6 +2829,25 @@ The following variables have been added to the `kube-hetzner` module since the i
   * **Purpose:** Variables passed to `extra-manifests/kustomization.yaml.tpl`
   * **Use Case:** Template variables for custom kustomization overlays
 
+```terraform
+  # Extra commands to be executed locally before the `kubectl apply -k` (useful for pre-install actions, e.g. install repos and CRDs). Default is "".
+  # Note: The commands are run locally and they are run only when the list of commands has changed. Therefore Terraform does not enforce or check that the resources exist later on.
+  # The option requires setting `create_kubeconfig = true`.
+  # Example: 
+  # extra_kustomize_pre_deployment_local_exec = <<-EOT
+  #   helm repo add external-secrets https://charts.external-secrets.io
+  #   helm install --wait --wait-for-jobs --timeout 1m0s external-secrets external-secrets/external-secrets -n external-secrets --create-namespace 
+  # EOT
+  # extra_kustomize_pre_deployment_local_exec = ""
+```
+
+* **`extra_kustomize_pre_deployment_local_exec` (String, Optional):**
+  * **Default:** Empty string ""
+  * **Purpose:** Commands to be executed locally before the kustomization `kubectl apply -k` and `extra_kustomize_deployment_commands`. 
+  * **Use Cases:** 
+    * Add repos
+    * Install CRDs
+
 **MicroOS Snapshot Control**
 
 ```terraform
