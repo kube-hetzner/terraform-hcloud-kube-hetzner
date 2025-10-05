@@ -1,11 +1,34 @@
 locals {
-  user_kustomization_templates = try(fileset(var.extra_kustomize_folder, "**/*.yaml.tpl"), toset([]))
+  default_user_kustomize = {
+    "1" = {
+      source_folder        = "extra-manifests-preinstall"
+      kustomize_parameters = {}
+      post_commands        = ""
+    },
+    "2" = {
+      source_folder        = var.extra_kustomize_folder
+      kustomize_parameters = var.extra_kustomize_parameters
+      post_commands        = var.extra_kustomize_deployment_commands
+    }
+  }
+
+  user_kustomize_defaulted = length(var.user_kustomizations) > 0 ? var.user_kustomizations : local.default_user_kustomize
+
+  processed_kustomizes = {
+    for key, config in local.user_kustomize_defaulted : key => {
+      # kustomize_parameters may contain secrets
+      kustomize_parameters = sensitive(config.kustomize_parameters)
+      source_folder        = config.source_folder
+      post_commands        = config.post_commands
+    }
+  }
 }
 
-resource "null_resource" "kustomization_user" {
-  for_each = local.user_kustomization_templates
+module "user_kustomizations" {
 
-  connection {
+  source = "./modules/user_kustomizations"
+
+  ssh_connection = {
     user           = "root"
     private_key    = var.ssh_private_key
     agent_identity = local.ssh_agent_identity
@@ -16,64 +39,11 @@ resource "null_resource" "kustomization_user" {
     bastion_port        = local.ssh_bastion.bastion_port
     bastion_user        = local.ssh_bastion.bastion_user
     bastion_private_key = local.ssh_bastion.bastion_private_key
-
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "mkdir -p $(dirname /var/user_kustomize/${each.key})"
-    ]
-  }
-
-  provisioner "file" {
-    content     = templatefile("${var.extra_kustomize_folder}/${each.key}", var.extra_kustomize_parameters)
-    destination = replace("/var/user_kustomize/${each.key}", ".yaml.tpl", ".yaml")
-  }
-
-  triggers = {
-    manifest_sha1 = "${sha1(templatefile("${var.extra_kustomize_folder}/${each.key}", var.extra_kustomize_parameters))}"
-  }
+  kustomizations_map = local.processed_kustomizes
 
   depends_on = [
-    null_resource.kustomization
-  ]
-}
-
-resource "null_resource" "kustomization_user_deploy" {
-  count = length(local.user_kustomization_templates) > 0 ? 1 : 0
-
-  connection {
-    user           = "root"
-    private_key    = var.ssh_private_key
-    agent_identity = local.ssh_agent_identity
-    host           = local.first_control_plane_ip
-    port           = var.ssh_port
-
-    bastion_host        = local.ssh_bastion.bastion_host
-    bastion_port        = local.ssh_bastion.bastion_port
-    bastion_user        = local.ssh_bastion.bastion_user
-    bastion_private_key = local.ssh_bastion.bastion_private_key
-
-  }
-
-  # Remove templates after rendering, and apply changes.
-  provisioner "remote-exec" {
-    # Debugging: "sh -c 'for file in $(find /var/user_kustomize -type f -name \"*.yaml\" | sort -n); do echo \"\n### Template $${file}.tpl after rendering:\" && cat $${file}; done'",
-    inline = compact([
-      "rm -f /var/user_kustomize/**/*.yaml.tpl",
-      "echo 'Applying user kustomization...'",
-      "kubectl apply -k /var/user_kustomize/ --wait=true",
-      var.extra_kustomize_deployment_commands
-    ])
-  }
-
-  lifecycle {
-    replace_triggered_by = [
-      null_resource.kustomization_user
-    ]
-  }
-
-  depends_on = [
-    null_resource.kustomization_user
+    null_resource.kustomization,
   ]
 }

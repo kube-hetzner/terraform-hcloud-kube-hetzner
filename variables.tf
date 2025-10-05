@@ -1068,23 +1068,34 @@ variable "postinstall_exec" {
   description = "Additional to execute after the install calls, for example restoring a backup."
 }
 
-
 variable "extra_kustomize_deployment_commands" {
   type        = string
   default     = ""
   description = "Commands to be executed after the `kubectl apply -k <dir>` step."
+  sensitive   = true
 }
 
 variable "extra_kustomize_parameters" {
   type        = any
   default     = {}
   description = "All values will be passed to the `kustomization.tmp.yml` template."
+  sensitive   = true
 }
 
 variable "extra_kustomize_folder" {
   type        = string
   default     = "extra-manifests"
   description = "Folder from where to upload extra manifests"
+}
+
+variable "user_kustomizations" {
+  type = map(object({
+    source_folder        = string
+    kustomize_parameters = map(any)
+    post_commands        = string
+  }))
+  default     = {}
+  description = "Map of Kustomization-set entries, where key is the order number."
 }
 
 variable "create_kubeconfig" {
