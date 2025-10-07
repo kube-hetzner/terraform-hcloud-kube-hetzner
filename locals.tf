@@ -603,7 +603,7 @@ hubble:
 %{endif~}
 
 
-MTU: 1450
+MTU: %{if local.use_robot_ccm} 1350 %{else} 1450 %{endif}
   EOT
 
   # Not to be confused with the other helm values, this is used for the calico.yaml kustomize patch
@@ -699,10 +699,12 @@ controller:
   hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
 networking:
   enabled: true
+  clusterCIDR: "${var.cluster_ipv4_cidr}"
 %{if local.use_robot_ccm~}
 robot:
   enabled: true
 %{endif~}
+
 args:
   cloud-provider: hcloud
   allow-untagged-cloud: ""

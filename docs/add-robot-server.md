@@ -43,54 +43,11 @@ For manual configuration of the settings, see below:
 - Deploy `hccm` version **1.19 or newer**.
 - Refer to [HCCM Github if required](https://github.com/hetznercloud/hcloud-cloud-controller-manager/blob/a0217eafe74c8704a5e8086cc774ceb3de8f04e3/chart/values.yaml#L54)
 
-Example `hetzner_ccm_values` for Helm:
-
-```yaml
-networking:
-  enabled: true
-robot:
-  enabled: true
-
-args:
-  allocate-node-cidrs: "true"
-  cluster-cidr: "10.42.0.0/16" # Adjust to your pod subnet
-
-env:
-  HCLOUD_LOAD_BALANCERS_ENABLED:
-    value: "true"
-  HCLOUD_LOAD_BALANCERS_LOCATION:
-    value: "fsn1"  # Adjust to your LB region
-  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
-    value: "true"
-  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
-    value: "true"
-  HCLOUD_NETWORK_ROUTES_ENABLED:
-    value: "false"
-
-  HCLOUD_TOKEN:
-    valueFrom:
-      secretKeyRef:
-        name: hcloud
-        key: token
-  ROBOT_USER:
-    valueFrom:
-      secretKeyRef:
-        name: hcloud
-        key: robot-user
-        optional: true
-  ROBOT_PASSWORD:
-    valueFrom:
-      secretKeyRef:
-        name: hcloud
-        key: robot-password
-        optional: true
-```
 ### 2. Connect the Existing Cluster Subnet manually to vSwitch 
 
 1. Choose a subnet CIDR to be used for the Robot nodes that doesn't conflict with the existing Cluster subnets, such as 10.201.0.0/16.
 2. Connect the existing Cluster Cloud network to the previously created vSwitch in the web-UI and expose the routes to vSwitch. 
   - Follow the steps in [Hetzner docs](https://docs.hetzner.com/cloud/networks/connect-dedi-vswitch) on how to connect the Cluster Subnets to the vSwitch. Use your selected subnet CIDR and VLAN ID.
-
 
 </details>
 
