@@ -17,8 +17,8 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
 - `hccm` version **1.19 or newer**
 - **Operating System**: Ideally use the MicroOS image created by this project. Otherwise, any Linux distribution that supports k3s will work
 - **Network CNI Configuration**: 
-    - Flannel: Doesn't need additional configuration on the Kubernetes Cloud-side
-    - Cilium: Set `cilium_loadbalancer_acceleration_mode` to `"best-effort"` or `"disabled"`
+    - Flannel: Doesn't need additional configuration.
+    - Cilium: Doesn't need additional configuration, ensure `cilium_loadbalancer_acceleration_mode` is set to `"best-effort"` or `"disabled"`
     - Calico: Untested
 
 ---
@@ -132,7 +132,7 @@ default via 95.123.231.123 dev enp6s0 proto static onlink
 
 ## 4. Robot Node: k3s Agent Configuration
 
-- Note! If you set a Nodename for the k3s-agent, you must use the same name as the Robot Server has in the Servers list.
+- Note! If you set a Nodename for the k3s-agent, you must use the same name what's set in the Hetzner Robot Web-UI for the server.
 
 1. **Create `/etc/rancher/k3s/config.yaml`** on the robot node:
 

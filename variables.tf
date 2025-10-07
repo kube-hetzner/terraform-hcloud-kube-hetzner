@@ -808,7 +808,7 @@ variable "cilium_routing_mode" {
 
 variable "cilium_loadbalancer_acceleration_mode" {
   type        = string
-  default     = "native"
+  default     = "best-effort"
   description = "Set Cilium loadbalancer.acceleration-mode. Supported values are \"disabled\", \"native\" and \"best-effort\"."
 
   validation {

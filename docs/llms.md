@@ -1894,16 +1894,15 @@ Excellent! Let's continue our meticulous dissection.
   * **Reference:** Consult the Hubble documentation for available metric types and configuration syntax.
 
 ```terraform
-  # Set the Cilium LoadBalancer & NodePort XDP Acceleration. For best performance, the setting is recommended to be kept at "native". Default: "native".
-  # Other options are "disabled" and "best-effort". The "disabled"-option is more compatible with wider range of networking configurations, 
-  # while "best-effort" attempts to use XDP acceleration on nodes that have capability for the acceleration.
-  # For Robot nodes connected over vSwitch, the XDP acceleration may not work on the Robot node and the setting therefore recommended to be set to "best-effort" or "disabled".
+  # Set the Cilium LoadBalancer & NodePort XDP Acceleration. Default: "best-effort".
+  # The setting "native" enforces XDP Acceleration on ports and "disabled" disabled the acceleration, "best-effort" enables the XDP Acceleration if the interface supports it.
   # See [Cilium XDP documentation](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration).
-  # cilium_loadbalancer_acceleration_mode = "native"
+  # For Robot nodes connected over vSwitch, the XDP acceleration may not work on the Robot node and the setting therefore recommended to be set to "best-effort" or "disabled".
+  # cilium_loadbalancer_acceleration_mode = "best-effort"
 ```
 
 * **`cilium_loadbalancer_acceleration_mode` (String, Optional, relevant if `cni_plugin = "cilium"`):**
-  * **Default:** `"native"`.
+  * **Default:** `"best-effort"`.
   * **Purpose:** Specifies the Loadbalancer Acceleration mode for Cilium (loadBalancer.acceleration). 
   * **Impact:** Deploys Hubble components (e.g., Hubble Relay, Hubble UI pods) into the cluster.
   * **Reference:** See [Cilium XDP documentation](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration)
