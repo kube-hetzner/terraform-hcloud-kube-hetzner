@@ -17,8 +17,9 @@ variable "ssh_connection" {
 variable "kustomizations_map" {
   type = map(object({
     source_folder        = string
-    kustomize_parameters = map(any)
-    post_commands        = string
+    kustomize_parameters = optional(map(any), {})
+    pre_commands         = optional(string, "")
+    post_commands        = optional(string, "")
   }))
   default     = {}
   description = "Map of kustomization entries, where key is the order number."

@@ -3,11 +3,13 @@ locals {
     "1" = {
       source_folder        = "extra-manifests-preinstall"
       kustomize_parameters = {}
+      pre_commands         = ""
       post_commands        = ""
     },
     "2" = {
       source_folder        = var.extra_kustomize_folder
       kustomize_parameters = var.extra_kustomize_parameters
+      pre_commands         = ""
       post_commands        = var.extra_kustomize_deployment_commands
     }
   }
@@ -19,6 +21,7 @@ locals {
       # kustomize_parameters may contain secrets
       kustomize_parameters = sensitive(config.kustomize_parameters)
       source_folder        = config.source_folder
+      pre_commands         = config.pre_commands
       post_commands        = config.post_commands
     }
   }

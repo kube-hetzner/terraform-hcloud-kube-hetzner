@@ -1097,8 +1097,9 @@ variable "extra_kustomize_folder" {
 variable "user_kustomizations" {
   type = map(object({
     source_folder        = string
-    kustomize_parameters = map(any)
-    post_commands        = string
+    kustomize_parameters = optional(map(any), {})
+    pre_commands         = optional(string, "")
+    post_commands        = optional(string, "")
   }))
   default     = {}
   description = "Map of Kustomization-set entries, where key is the order number."

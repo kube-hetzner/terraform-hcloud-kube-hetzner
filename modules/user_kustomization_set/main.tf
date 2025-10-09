@@ -7,6 +7,7 @@ resource "null_resource" "create_target_directory" {
   triggers = {
     source_files_sha         = local.source_files_sha
     parameters_sha           = local.parameters_sha
+    pre_commands_string_sha  = local.pre_commands_string_sha
     post_commands_string_sha = local.post_commands_string_sha
   }
 
@@ -27,6 +28,11 @@ resource "null_resource" "create_target_directory" {
     inline = [
       "mkdir -p ${var.destination_folder}"
     ]
+  }
+
+  provisioner "file" {
+    content     = templatefile("${path.module}/templates/bash.sh.tpl", { commands = var.pre_commands_string })
+    destination = "${var.destination_folder}/preinstall.sh"
   }
 
   provisioner "file" {
