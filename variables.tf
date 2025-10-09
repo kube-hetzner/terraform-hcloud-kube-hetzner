@@ -1097,6 +1097,14 @@ variable "user_kustomizations" {
   }))
   default     = {}
   description = "Map of Kustomization-set entries, where key is the order number."
+
+  validation {
+    condition = alltrue([
+      for key in keys(var.user_kustomizations) :
+      can(regex("^[0-9]+$", key)) && tonumber(key) > 0
+    ])
+    error_message = "All keys in user_kustomizations must be positive numeric strings (e.g., '1', '2')."
+  }
 }
 
 variable "create_kubeconfig" {

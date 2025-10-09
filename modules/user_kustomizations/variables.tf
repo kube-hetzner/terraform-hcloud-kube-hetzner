@@ -26,7 +26,7 @@ variable "kustomizations_map" {
   validation {
     condition = alltrue([
       for key in keys(var.kustomizations_map) :
-      tonumber(key) > 0 && floor(tonumber(key)) == tonumber(key) && can(regex("^[0-9]+$", key))
+      can(regex("^[0-9]+$", key)) && tonumber(key) > 0
     ])
     error_message = "All keys in kustomizations_map must be numeric strings (e.g., '1', '2')."
   }

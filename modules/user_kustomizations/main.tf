@@ -42,12 +42,20 @@ resource "null_resource" "kustomization_user_deploy" {
     inline = [
       <<-EOT
       #!/bin/bash
+      set -e
+
+      function cleanup {
+        echo "Cleaning up ${local.base_destination_folder}..."
+        rm -rf ${local.base_destination_folder}
+      }
+      trap cleanup EXIT
+
       for dest_folder in ${join(" ", local.sorted_kustomization_destination_folders)}; do
         if [ -d "$dest_folder" ]; then
           echo "Running pre-install script from $dest_folder"
           /bin/bash "$dest_folder/preinstall.sh"
 
-          if [ -f "$dest_folder/kustomization.yaml" ]; then
+          if [ -s "$dest_folder/kustomization.yaml" ]; then
             echo "Applying kustomization from $dest_folder"
             kubectl apply -k "$dest_folder"
           else
@@ -58,8 +66,6 @@ resource "null_resource" "kustomization_user_deploy" {
           /bin/bash "$dest_folder/postinstall.sh"
         fi
       done
-      echo "Cleaning up ${local.base_destination_folder}..."
-      rm -rf ${local.base_destination_folder}/*
       EOT
     ]
   }
