@@ -5,5 +5,6 @@ locals {
     filesha1("${var.source_folder}/${file_path}")
   ])
   parameters_sha           = sha1(jsonencode(var.template_parameters))
+  pre_commands_string_sha  = sha1(var.pre_commands_string)
   post_commands_string_sha = sha1(var.post_commands_string)
 }

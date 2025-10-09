@@ -8,9 +8,11 @@ module "user_kustomization_set" {
 
   ssh_connection = var.ssh_connection
 
-  source_folder        = each.value.source_folder
-  destination_folder   = "${local.base_destination_folder}/${each.key}"
-  template_parameters  = each.value.kustomize_parameters
+  source_folder       = each.value.source_folder
+  destination_folder  = "${local.base_destination_folder}/${each.key}"
+  template_parameters = each.value.kustomize_parameters
+
+  pre_commands_string  = each.value.pre_commands
   post_commands_string = each.value.post_commands
 }
 
@@ -42,12 +44,16 @@ resource "null_resource" "kustomization_user_deploy" {
       #!/bin/bash
       for dest_folder in ${join(" ", local.sorted_kustomization_destination_folders)}; do
         if [ -d "$dest_folder" ]; then
+          echo "Running pre-install script from $dest_folder"
+          /bin/bash "$dest_folder/preinstall.sh"
+
           if [ -f "$dest_folder/kustomization.yaml" ]; then
             echo "Applying kustomization from $dest_folder"
             kubectl apply -k "$dest_folder"
           else
             echo "No kustomization.yaml in $dest_folder, skipping apply."
           fi
+
           echo "Running post-install script from $dest_folder"
           /bin/bash "$dest_folder/postinstall.sh"
         fi

@@ -10,6 +10,10 @@ output "parameters_sha" {
   value = local.parameters_sha
 }
 
+output "pre_commands_string_sha" {
+  value = local.pre_commands_string_sha
+}
+
 output "post_commands_string_sha" {
   value = local.post_commands_string_sha
 }
@@ -21,6 +25,6 @@ output "files_count" {
 
 output "changes_sha" {
   value = sha1(join("", [
-    local.source_files_sha, local.parameters_sha, local.post_commands_string_sha
+    local.source_files_sha, local.parameters_sha, local.pre_commands_string_sha, local.post_commands_string_sha
   ]))
 }

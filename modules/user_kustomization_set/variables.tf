@@ -34,6 +34,11 @@ variable "template_parameters" {
   sensitive = true
 }
 
+variable "pre_commands_string" {
+  type    = string
+  default = ""
+}
+
 variable "post_commands_string" {
   type    = string
   default = ""

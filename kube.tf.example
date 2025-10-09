@@ -965,21 +965,24 @@ module "kube-hetzner" {
   # The Kustomization "sets" are run in sequential order (by numeric key) so that you can for example install a CRD and wait for it to be deployed.
   #
   # source_folder: Sets the source folder for *.yaml.tpl and Kustomization.yaml.tpl
-  # kustomize_parameters: Key-value map for passing variables into Kustomization. Applies only to the Kustomization-set in the object, but to all files defined in the source_folder of the "set".
-  # post_commands: Commands to be executed after applying the Kustomization ("kubectl apply -k"). You can use it to wait for CRD deployment etc.
+  # kustomize_parameters: Key-value map for passing variables into Kustomization. Applies only to the Kustomization-set in the object, but to all files defined in the source_folder of the "set". Defaults to {}.
+  # pre_commands: Commands to be executed before applying the Kustomization ("kubectl apply -k"). Defaults to "".
+  # post_commands: Commands to be executed after applying the Kustomization ("kubectl apply -k"). You can use it to wait for CRD deployment etc. Defaults to "".
   # - An example to wait for deployments in all namespaces: `kubectl wait --for=condition=Available deployment --all -A --timeout=120s || exit 0` (The `|| exit 0` is not "required", it just makes the deployment to continue even if a deployment hasn't started up properly)
   # - You can pass full bash-compatible scripts into the `post_commands`-variable with EOT
   # 
-  # An example from the default values: (uncomment or copy your own)
+  # An example from the default values:
   # user_kustomizations = {
   #   "1" = {
   #     source_folder        = "extra-manifests-preinstall"
   #     kustomize_parameters = {}
+  #     pre_commands         = ""
   #     post_commands        = ""
   #   },
   #   "2" = {
   #     source_folder        = "extra-manifests" # Uses `var.extra_kustomize_folder` internally, defaults to "extra-manifests"
   #     kustomize_parameters = var.extra_kustomize_parameters # Same as `extra_kustomize_parameters` in kube.tf, replace with actual values if uncommenting
+  #     pre_commands         = ""
   #     post_commands        = var.extra_kustomize_deployment_commands  # Same as `extra_kustomize_deployment_commands` in kube.tf, replace with actual values if uncommenting
   #   }
   # }
