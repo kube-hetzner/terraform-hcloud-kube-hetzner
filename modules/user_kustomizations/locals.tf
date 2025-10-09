@@ -1,7 +1,7 @@
 locals {
   sorted_kustomization_destination_folders = [
     for idx in sort([
-      for key, mod in module.user_kustomization_set : tonumber(key) if mod.files_count > 0
+      for key, mod in module.user_kustomization_set : tonumber(key)
     ]) :
     module.user_kustomization_set[tostring(idx)].destination_folder
   ]
