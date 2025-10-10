@@ -8,7 +8,7 @@ This gives more storage capacity across cluster, if you didint disable defualt l
 
 ### How set mount for your external disk differs to  ``/var/`` folder ?
 
-1. You must anable longhorn in you module
+1. You must enable longhorn in you module
 2. Set helm values
 ```yamllonghorn_values = <<EOT
 defaultSettings:
