@@ -956,8 +956,37 @@ module "kube-hetzner" {
   # Extra commands to be executed after the `kubectl apply -k` (useful for post-install actions, e.g. wait for CRD, apply additional manifests, etc.).
   # extra_kustomize_deployment_commands=""
 
-  # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` if its present.
+  # Extra values that will be passed to the `extra-manifests/kustomization.yaml.tpl` and `extra-manifests-preinstall/kustomization.yaml.tpl` when present.
   # extra_kustomize_parameters={}
+
+  # You can add extra kustomizations to be deployed in sequence by setting the `user_kustomizations` variable. 
+  # This will override the use of `extra_kustomize_deployment_commands` and `extra_kustomize_parameters` for extra-manifests, hence they will need to be reset, see below.
+  #
+  # The Kustomization "sets" are run in sequential order (by numeric key) so that you can for example install a CRD and wait for it to be deployed.
+  #
+  # source_folder: Sets the source folder for *.yaml.tpl and Kustomization.yaml.tpl
+  # kustomize_parameters: Key-value map for passing variables into Kustomization. Applies only to the Kustomization-set in the object, but to all files defined in the source_folder of the "set". Defaults to {}.
+  # pre_commands: Commands to be executed before applying the Kustomization ("kubectl apply -k"). Defaults to "".
+  # post_commands: Commands to be executed after applying the Kustomization ("kubectl apply -k"). You can use it to wait for CRD deployment etc. Defaults to "".
+  # - An example to wait for deployments in all namespaces: `kubectl wait --for=condition=Available deployment --all -A --timeout=120s || true` (The `|| true` is necessary to prevent the script from exiting on a timeout if you want the sequence to continue.)
+  # - It is recommended to use more specific `kubectl wait` commands depending on the case, for example filtering for a certain deployment or pod.
+  # - You can pass full bash-compatible scripts into the `post_commands`-variable with EOT
+  # 
+  # An example from the default values:
+  # user_kustomizations = {
+  #   "1" = {
+  #     source_folder        = "extra-manifests-preinstall"
+  #     kustomize_parameters = {}
+  #     pre_commands         = ""
+  #     post_commands        = ""
+  #   },
+  #   "2" = {
+  #     source_folder        = "extra-manifests" # Uses `var.extra_kustomize_folder` internally, defaults to "extra-manifests"
+  #     kustomize_parameters = var.extra_kustomize_parameters # Same as `extra_kustomize_parameters` in kube.tf, replace with actual values if uncommenting
+  #     pre_commands         = ""
+  #     post_commands        = var.extra_kustomize_deployment_commands  # Same as `extra_kustomize_deployment_commands` in kube.tf, replace with actual values if uncommenting
+  #   }
+  # }
 
   # See working examples for extra manifests or a HelmChart in examples/kustomization_user_deploy/README.md
 

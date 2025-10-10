@@ -334,11 +334,44 @@ _That said, you can also use pure Terraform and import the kube-hetzner module a
 
 <details>
 
-<summary>Custom post-install actions</summary>
+<summary>Custom pre- and post-install actions</summary>
 
 After the initial bootstrapping of your Kubernetes cluster, you might want to deploy applications using the same terraform mechanism. For many scenarios it is sufficient to create a `kustomization.yaml.tpl` file (see [Adding Extras](#adding-extras)). All applied kustomizations will be applied at once by executing a single `kubectl apply -k` command.
 
-However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://argoproj.github.io/cd/)) need a different deployment strategy: one has to deploy CRDs first, then wait for the deployment, before being able to install the actual application. In the ArgoCD case, not waiting for the CRD setup to finish will cause failures. Therefore, an additional mechanism is available to support these kind of deployments. Specify `extra_kustomize_deployment_commands` in your `kube.tf` file containing a series of commands to be executed, after the `Kustomization` step finished:
+However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://argoproj.github.io/cd/)) need a different deployment strategy: one has to deploy CRDs first, then wait for the deployment, before being able to install the actual application. In the ArgoCD case, not waiting for the CRD setup to finish will cause failures.
+
+To support these scenarios, this module provides a flexible mechanism using the `user_kustomizations` variable in your `kube.tf`. This allows you to define multiple "sets" of kustomizations that are applied sequentially, ordered by a numeric key. Each set can have its own `source_folder`, `kustomize_parameters`, and `pre_commands`/`post_commands` for running scripts before or after `kubectl apply`. This is the recommended way to handle complex, ordered deployments.
+
+For backward compatibility, if `user_kustomizations` is not defined, the module falls back to the previous behavior. The following sections provide examples of how this new system can be used.
+
+### Pre-install Actions, Example: external-secrets repo and Helm
+You can install Helm repos and CRDs before the main Kustomization scripts by adding the helm charts to the `extra-manifests-preinstall` folder and specifying the Helm chart in `extra-manifests-preinstall/kustomization.yaml.tpl`, just like with `extra-manifests`.
+
+For example, to add `external-secrets` so that it can be referenced later on, create files:
+1. extra-manifests-preinstall/eso.yaml.tpl
+```yaml
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: external-secrets
+  namespace: kube-system
+spec:
+  chart: external-secrets
+  repo: https://charts.external-secrets.io
+  targetNamespace: external-secrets
+  createNamespace: true
+```
+2. extra-manifests-preinstall/kustomization.yaml.tpl
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - eso.yaml
+```
+
+### Post-install actions, ArgoCD-example
+Specify `extra_kustomize_deployment_commands` in your `kube.tf` file containing a series of commands to be executed, after the `Kustomization` step has finished:
 
 ```tf
   extra_kustomize_deployment_commands = <<-EOT
