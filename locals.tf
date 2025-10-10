@@ -691,6 +691,7 @@ controller:
   hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
 networking:
   enabled: true
+  clusterCIDR: ${var.cluster_ipv4_cidr}
 args:
   cloud-provider: hcloud
   allow-untagged-cloud: ""
