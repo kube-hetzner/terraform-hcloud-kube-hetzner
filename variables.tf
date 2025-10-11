@@ -262,7 +262,7 @@ variable "agent_nodepools" {
       labels                     = optional(list(string))
       taints                     = optional(list(string))
       longhorn_volume_size       = optional(number)
-      longhorn_mount_path        = optional(string, "/var/longhorn")
+      longhorn_mount_path        = optional(string, null)
       swap_size                  = optional(string, "")
       zram_size                  = optional(string, "")
       kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
@@ -309,17 +309,11 @@ variable "agent_nodepools" {
     condition = alltrue(flatten([
       for np in var.agent_nodepools : concat(
         [
-          (
-            can(regex("^/var/([a-zA-Z0-9._-]+/?)*$", np.longhorn_mount_path)) &&
-            (!endswith(np.longhorn_mount_path, "/") || np.longhorn_mount_path == "/var/")
-          )
+          can(regex("^/var/$|^/var/([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*)$", np.longhorn_mount_path))
         ],
         [
           for node in values(coalesce(np.nodes, {})) : (
-            (
-              can(regex("^/var/([a-zA-Z0-9._-]+/?)*$", node.longhorn_mount_path)) &&
-              (!endswith(node.longhorn_mount_path, "/") || node.longhorn_mount_path == "/var/")
-            )
+            node.longhorn_mount_path == null || can(regex("^/var/$|^/var/([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*)$", node.longhorn_mount_path))
           )
         ]
       )
