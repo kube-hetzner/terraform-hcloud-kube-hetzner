@@ -1,97 +1,108 @@
-## Page describes how to use longhorn custom mount path
+## How to use a custom mount path for Longhorn
 <hr>
-In order to use nvme and extarnal disks with longhorn, you need to mount extarnal disk to another location under `/var/` folder.
-This gives more storage capacity across cluster, if you didint disable defualt longhorn disks off course.
 
+In order to use NVMe and external disks with Longhorn, you may need to mount an external disk to a location other than the default under the `/var/` folder. This can provide more storage capacity across the cluster, especially if you haven't disabled the default Longhorn disks.
 
-> ⚠️ Note: You can set any mount path but only within `/var/` folder
+> ⚠️ Note: You can set any mount path, but it must be within the `/var/` folder.
 
-### How set mount for your external disk differs to  ``/var/`` folder ?
+### How to set a custom mount path for your external disk?
 
-1. You must enable longhorn in you module
-2. Set helm values
-```yamllonghorn_values = <<EOT
-defaultSettings:
-  nodeDrainPolicy: allow-if-replica-is-stopped
-  defaultDataPath: /var/longhorn # This important, this path automatically creates Longhorn it will be default storage class woth points to nvme disks
-persistence:
-  defaultFsType: ext4
-  defaultClassReplicaCount: 3
-  defaultClass: true
-  EOT
-```
-3. Nodes where you want to have customized mount path set following 
+1.  You must enable Longhorn in your module.
+    ```terraform
+    enable_longhorn = true
+    ```
+
+2.  Set the Helm values for Longhorn. The `defaultDataPath` is important as this path is automatically created by Longhorn and will be the default storage class pointing to your primary disks (e.g., NVMe).
+    ```yaml
+    longhorn_values = <<EOT
+    defaultSettings:
+      nodeDrainPolicy: allow-if-replica-is-stopped
+      defaultDataPath: /var/longhorn
+    persistence:
+      defaultFsType: ext4
+      defaultClassReplicaCount: 3
+      defaultClass: true
+    EOT
+    ```
+
+3.  In the `agent_nodepools` where you want to have a customized mount path, set the `longhorn_mount_path` variable.
+    ```terraform
+    agent_nodepools = [
+      {
+        # ... other nodepool configuration
+        labels               = ["role=monitoring", "storage=ssd"], # Label we use to filter nodes
+        longhorn_volume_size = 50,
+        longhorn_mount_path  = "/var/lib/longhorn" # This is the custom path
+      }
+    ]
+    ```
+
+4.  Apply the changes. As a result, your external disks will be mounted to `/var/lib/longhorn`.
+
+### How to configure Longhorn to use the new path?
+
+After setting the custom mount path, you need to configure Longhorn to recognize and use it. This typically involves:
+1.  Patching the Longhorn nodes to add the new disk.
+2.  Creating a new StorageClass that uses the new disk.
+
+Here is an example of how you can achieve this with Terraform:
+
 ```terraform
-agent_nodepools = [
-//
-{ //omit code
-      labels = ["role=monitoring", "storage=ssd"], # Lable we use to filter nodes
-      longhorn_volume_size = 50
-      longhorn_mount_path = "/var/lib/longhorn" # This path you need to use further
-}
-]
-```
-3. Apply changes in result your disks will be mounted to /var/lib/longhorn
-
-### How to configure Longhorn? 
-1. You need to patch longhorn nodes
-2. Create one more storage class
-
-   
-Here is example how you can achieve it
-```terraform
+# Find the nodes with the 'ssd' storage label
 data "kubernetes_nodes" "ssd_nodes" {
- metadata {
-   labels = {
-     "storage" = "ssd"
-   }
- }
+  metadata {
+    labels = {
+      "storage" = "ssd"
+    }
+  }
 }
 
-# Patch nodes only with this label
+# Patch the selected Longhorn nodes to add the new disk
 resource "null_resource" "longhorn_patch_external_disk" {
- for_each = {
-   for node in data.kubernetes_nodes.ssd_nodes.nodes : node.metadata[0].name => node.metadata[0].name
- }
- triggers = {
-   always_run = timestamp()  
- }
- provisioner "local-exec" {
-   command = <<-EOT
-     KUBECONFIG=${var.kubeconfig_path} kubectl -n longhorn-system patch nodes.longhorn.io ${each.key} --type merge -p '{
-       "spec": {
-         "disks": {
-           "external-ssd": {
-             "path": "/var/lib/longhorn", # Path you set in nodepools variable
-             "allowScheduling": true,
-             "tags": ["ssd"] 
-           }
-         }
-       }
-     }'
-   EOT
- }
+  for_each = {
+    for node in data.kubernetes_nodes.ssd_nodes.nodes : node.metadata[0].name => node.metadata[0].name
+  }
+
+  triggers = {
+    always_run = timestamp()
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      KUBECONFIG=${var.kubeconfig_path} kubectl -n longhorn-system patch nodes.longhorn.io ${each.key} --type merge -p '{
+        "spec": {
+          "disks": {
+            "external-ssd": {
+              "path": "/var/lib/longhorn", # The path you set in the nodepools variable
+              "allowScheduling": true,
+              "tags": ["ssd"]
+            }
+          }
+        }
+      }'
+    EOT
+  }
 }
 
-resource "kubernetes_manifest" "longhorn_ssd_replica" {
- manifest = {
-   apiVersion = "storage.k8s.io/v1"
-   kind       = "StorageClass"
-   metadata = {
-     name = "longhorn-ssd-replica"
-   }
-   provisioner = "driver.longhorn.io"
-   parameters = {
-     numberOfReplicas    = "1"
-     staleReplicaTimeout = "30"
-     diskSelector        = "ssd"
+# Create a new StorageClass for the SSD-backed Longhorn storage
+resource "kubernetes_manifest" "longhorn_ssd_storageclass" {
+  manifest = {
+    apiVersion = "storage.k8s.io/v1"
+    kind       = "StorageClass"
+    metadata = {
+      name = "longhorn-ssd"
+    }
+    provisioner = "driver.longhorn.io"
+    parameters = {
+      numberOfReplicas    = "1"
+      staleReplicaTimeout = "30"
+      diskSelector        = "ssd"
+      fromBackup          = ""
+    }
+    reclaimPolicy        = "Delete"
+    allowVolumeExpansion = true
+    volumeBindingMode    = "Immediate"
+  }
 
-     fromBackup          = ""
-   }
-   reclaimPolicy        = "Delete"
-   allowVolumeExpansion = true
-   volumeBindingMode    = "Immediate"
- }
- depends_on = [null_resource.longhorn_patch_external_disk]
+  depends_on = [null_resource.longhorn_patch_external_disk]
 }
-```
