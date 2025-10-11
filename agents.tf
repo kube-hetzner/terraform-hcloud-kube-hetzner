@@ -193,7 +193,7 @@ resource "null_resource" "configure_longhorn_volume" {
   provisioner "remote-exec" {
     inline = [
       "mkdir -p '${each.value.longhorn_mount_path}' >/dev/null 2>&1",
-      "mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} '${each.value.longhorn_mount_path}'",
+      "mountpoint -q '${each.value.longhorn_mount_path}' || mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} '${each.value.longhorn_mount_path}'",
       "${var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
       "grep -qF '${each.value.longhorn_mount_path}' /etc/fstab || echo '${hcloud_volume.longhorn_volume[each.key].linux_device} ${each.value.longhorn_mount_path} ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
     ]
