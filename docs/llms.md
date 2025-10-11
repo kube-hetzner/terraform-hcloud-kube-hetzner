@@ -1895,7 +1895,7 @@ Excellent! Let's continue our meticulous dissection.
 
 ```terraform
   # Set the Cilium LoadBalancer & NodePort XDP Acceleration. Default: "best-effort".
-  # The setting "native" enforces XDP Acceleration on ports and "disabled" disabled the acceleration, "best-effort" enables the XDP Acceleration if the interface supports it.
+  # The setting "native" enforces XDP Acceleration on ports and "disabled" disables the acceleration, "best-effort" enables the XDP Acceleration if the interface supports it.
   # See [Cilium XDP documentation](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration).
   # For Robot nodes connected over vSwitch, the XDP acceleration may not work on the Robot node and the setting therefore recommended to be set to "best-effort" or "disabled".
   # cilium_loadbalancer_acceleration_mode = "best-effort"
@@ -1904,8 +1904,6 @@ Excellent! Let's continue our meticulous dissection.
 * **`cilium_loadbalancer_acceleration_mode` (String, Optional, relevant if `cni_plugin = "cilium"`):**
   * **Default:** `"best-effort"`.
   * **Purpose:** Specifies the Loadbalancer Acceleration mode for Cilium (loadBalancer.acceleration). 
-  * **Impact:** Deploys Hubble components (e.g., Hubble Relay, Hubble UI pods) into the cluster.
-  * **Reference:** See [Cilium XDP documentation](https://docs.cilium.io/en/stable/network/kubernetes/kubeproxy-free/#loadbalancer-nodeport-xdp-acceleration)
 
 ```terraform
   # You can choose the version of Calico that you want. By default, the latest is used.
@@ -2901,7 +2899,7 @@ The following variables have been added to the `kube-hetzner` module since the i
 
 ```terraform
   # To connect the Hetzner Cloud network to Robot servers via vSwitch subnet, create the vSwitch and set its ID to the `vswitch_id` (number).
-  # Note that the VLAN ID is not the same as vSwitch ID. The vSwitch-subnet is assigned to 10.201.0.0/16 by default, can be changed via vars.vswitch_subnet_index.
+  # Note that the VLAN ID is not the same as vSwitch ID. The vSwitch-subnet is assigned to 10.201.0.0/16 by default, can be changed via var.vswitch_subnet_index.
   # The vSwitch subnet is not created when the value is null. Default: null
   # vswitch_id = null
 ```

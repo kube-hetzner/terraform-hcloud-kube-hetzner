@@ -660,10 +660,10 @@ node:
                 operator: NotIn
                 values:
                   - "robot"
-%{if !local.allow_scheduling_on_control_plane~}                      
+%{if !local.allow_scheduling_on_control_plane}                      
               - key: "node-role.kubernetes.io/control-plane"
                 operator: DoesNotExist
-%{endif~}                
+%{endif}                
 EOT
 
   nginx_values = var.nginx_values != "" ? var.nginx_values : <<EOT
@@ -700,10 +700,10 @@ controller:
 networking:
   enabled: true
   clusterCIDR: "${var.cluster_ipv4_cidr}"
-%{if local.use_robot_ccm~}
+%{if local.use_robot_ccm}
 robot:
   enabled: true
-%{endif~}
+%{endif}
 
 args:
   cloud-provider: hcloud
@@ -722,10 +722,10 @@ env:
     value: "${!local.using_klipper_lb}"
   HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
     value: "true"
-%{if local.use_robot_ccm~}
+%{if local.use_robot_ccm}
   HCLOUD_NETWORK_ROUTES_ENABLED:
     value: "false"
-%{endif~}         
+%{endif}         
 # Use host network to avoid circular dependency with CNI
 hostNetwork: true
   EOT

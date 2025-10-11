@@ -26,8 +26,7 @@ It covers configuration for both k3s and Robot nodes, including networking, conf
 ## 1. Connection from Kubernetes Cluster to vSwitch
 
 In your kube.tf-configuration:
-  - Set `robot_ccm_enabled = true`
-  - Set the Webservice User credentials to `robot_user` and `robot_password` variables as you would with `hcloud_token`. If the credentials are unset, the `hcloud-cloud-controller-manager`-pod will give error.
+  - Set `robot_ccm_enabled = true` and provide the Webservice User credentials in the `robot_user` and `robot_password` variables. All three are required to enable Robot server integration. If `robot_ccm_enabled` is true but credentials are not provided, the integration will not be activated.
   - Set `vswitch_id = <vswitch_id from prerequisites>`
 
 For manual configuration of the settings, see below:
@@ -98,13 +97,13 @@ nmcli connection up vlan9999
 <details>
 <summary>Troubleshoot Robot Node networking</summary>
 
-- Make sure the ip address and routing are correct on the Robot Node.
+- Make sure the IP address and routing are correct on the Robot Node.
 - Following examples assume Robot Node public IP 95.123.231.123, private IP 10.201.0.2, VLAN ID 4000 and device enp6s0.
 - `ip route show` on the Robot Node should print similar to this:
 ```
 default via 95.123.231.123 dev enp6s0 proto static onlink 
 10.0.0.0/8 via 10.201.0.1 dev enp6s0.4000 proto static onlink 
-10.201.0.0/24 dev enp6s0.4000 proto kernel scope link src 10.201.0.2 
+10.201.0.0/16 dev enp6s0.4000 proto kernel scope link src 10.201.0.2 
 ```
 - `ip addr` on the Robot Node should include similar to this:
 ```
@@ -118,7 +117,7 @@ default via 95.123.231.123 dev enp6s0 proto static onlink
        valid_lft forever preferred_lft forever
 3: enp6s0.4000@enp6s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1400 qdisc noqueue state UP group default qlen 1000
     link/ether a8:a1:REDACTED brd ff:ff:ff:ff:ff:ff
-    inet 10.201.0.2/24 brd 10.201.0.255 scope global enp6s0.4000
+    inet 10.201.0.2/16 brd 10.201.0.255 scope global enp6s0.4000
        valid_lft forever preferred_lft forever
     inet6 fe80::REDACTED/64 scope link 
        valid_lft forever preferred_lft forever

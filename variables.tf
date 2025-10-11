@@ -28,7 +28,7 @@ variable "robot_password" {
 variable "robot_ccm_enabled" {
   type        = bool
   default     = false
-  description = "Enable CCM for the Hetzner Robot webservice"
+  description = "If true, enables the integration of Hetzner Robot dedicated servers with the cluster via the Cloud Controller Manager (CCM). Variables `robot_user` and `robot_password` are required when using connection to Hetzner Robot."
 }
 
 variable "microos_x86_snapshot_id" {
