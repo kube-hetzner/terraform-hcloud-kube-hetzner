@@ -34,12 +34,13 @@ data "hcloud_ssh_keys" "keys_by_selector" {
 }
 
 data "external" "my_ip" {
-  count = local.is_my_ipv4_ref_used ? 1 : 0
+  count = local.is_ref_myipv4_used ? 1 : 0
 
   program = [
     "bash",
     "-c",
     <<-EOT
+      set -euo pipefail
       error_exit() {
         echo "Error: $1" >&2
         exit 1

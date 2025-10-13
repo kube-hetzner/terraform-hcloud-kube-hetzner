@@ -691,7 +691,7 @@ variable "firewall_ssh_source" {
   description = "Source networks that have SSH access to the servers."
 }
 
-variable "my_ipv4_ref" {
+variable "myipv4_ref" {
   type        = string
   default     = "myipv4"
   description = "Name to be used in firewall rules as a substitute for your own IPv4 address."
