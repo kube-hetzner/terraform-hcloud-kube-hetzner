@@ -56,9 +56,9 @@ For manual configuration of the settings, see below:
 ## 2. Connect the Robot to the vSwitch 
 
 1. Follow the steps in "Step 2: Configure networking on your dedicated root servers" in [Hetzner docs](https://docs.hetzner.com/cloud/networks/connect-dedi-vswitch/#step-2-configure-networking-on-your-dedicated-root-servers) to connect the Robot node to the vSwitch.
-- Use your selected VLAN ID. 
-- If you created the Cloud->vSwitch connection via Terraform in the Step 1 of this guide, the default range for Robot is 10.201.0.0/16. The gateway is then at 10.201.0.1 and first Robot node should use private IP 10.201.0.2. 
-- Make sure to use MTU 1400 or less. Cilium is reported to be requiring MTU 1350 or less.
+  - Use your selected VLAN ID. 
+  - If you created the Cloud->vSwitch connection via Terraform in the Step 1 of this guide, the default range for Robot is 10.201.0.0/16. The gateway is then at 10.201.0.1 and first Robot node should use private IP 10.201.0.2. 
+  - Make sure to use MTU 1400 or less. Cilium is reported to be requiring MTU 1350 or less.
 
 <details>
 <summary>Robot Network configuration example for RHEL/AlmaLinux using nmcli</summary>
