@@ -451,7 +451,7 @@ In `kube.tf`, specify the folders in `user_kustomizations`.
 ### Example: ArgoCD with Post-install actions
 
 See examples from `examples/kustomization_user_deploy/helm-chart`, place the chart-files along with Kustomization.yaml.tpl into folder `argocd`.
-The specify additional project-helms in `argocd-projects`.
+Then specify additional project-helms in `argocd-projects`.
 
 ```
   user_kustomizations = {

@@ -65,7 +65,7 @@ resource "null_resource" "user_kustomization_template_files" {
 
   provisioner "file" {
     content     = templatefile("${var.source_folder}/${each.key}", var.template_parameters)
-    destination = replace("${var.destination_folder}/${each.key}", ".yaml.tpl", ".yaml")
+    destination = replace("${var.destination_folder}/${each.key}", ".tpl", "")
   }
 
   depends_on = [null_resource.create_target_directory]
