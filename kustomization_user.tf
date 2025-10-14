@@ -1,12 +1,6 @@
 locals {
   default_user_kustomize = {
     "1" = {
-      source_folder        = "extra-manifests-preinstall"
-      kustomize_parameters = {}
-      pre_commands         = ""
-      post_commands        = ""
-    },
-    "2" = {
       source_folder        = var.extra_kustomize_folder
       kustomize_parameters = var.extra_kustomize_parameters
       pre_commands         = ""
