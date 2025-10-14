@@ -131,7 +131,8 @@ default via 95.123.231.123 dev enp6s0 proto static onlink
 
 ## 4. Robot Node: k3s Agent Configuration
 
-- Note! If you set a Nodename for the k3s-agent, you must use the same name what's set in the Hetzner Robot Web-UI for the server.
+> [!IMPORTANT]
+> If you set a Nodename for the k3s-agent, you must use the same name what's set in the Hetzner Robot Web-UI for the server.
 
 1. **Create `/etc/rancher/k3s/config.yaml`** on the robot node:
 
