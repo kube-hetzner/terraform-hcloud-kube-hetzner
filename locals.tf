@@ -861,6 +861,11 @@ podDisruptionBudget:
   enabled: true
   maxUnavailable: 33%
 %{endif~}
+providers:
+%{if var.traefik_provider_kubernetes_gateway_enabled~}
+  kubernetesGateway:
+    enabled: true
+%{endif~}
 additionalArguments:
   - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_controller_namespace}/traefik"
 %{for option in var.traefik_additional_options~}
