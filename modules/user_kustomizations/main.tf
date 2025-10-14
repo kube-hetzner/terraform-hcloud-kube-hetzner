@@ -55,11 +55,11 @@ resource "null_resource" "kustomization_user_deploy" {
           echo "Running pre-install script from $dest_folder"
           /bin/bash "$dest_folder/preinstall.sh"
 
-          if [ -s "$dest_folder/kustomization.yaml" ]; then
+          if [ -s "$dest_folder/kustomization.yaml" ] || [ -s "$dest_folder/kustomization.yml" ] || [ -s "$dest_folder/Kustomization" ]; then
             echo "Applying kustomization from $dest_folder"
             kubectl apply -k "$dest_folder"
           else
-            echo "No kustomization.yaml in $dest_folder, skipping apply."
+            echo "No valid kustomization file found in $dest_folder, skipping apply."
           fi
 
           echo "Running post-install script from $dest_folder"

@@ -17,13 +17,10 @@ locals {
   user_kustomize_defaulted = length(var.user_kustomizations) > 0 ? var.user_kustomizations : local.default_user_kustomize
 
   processed_kustomizes = {
-    for key, config in local.user_kustomize_defaulted : key => {
+    for key, config in local.user_kustomize_defaulted : key => merge(config, {
       # kustomize_parameters may contain secrets
       kustomize_parameters = sensitive(config.kustomize_parameters)
-      source_folder        = config.source_folder
-      pre_commands         = config.pre_commands
-      post_commands        = config.post_commands
-    }
+    })
   }
 }
 
