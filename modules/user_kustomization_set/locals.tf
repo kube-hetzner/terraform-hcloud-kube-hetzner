@@ -1,5 +1,5 @@
 locals {
-  source_folder_files = try(fileset(var.source_folder, "**/*.yaml.tpl"), toset([]))
+  source_folder_files = try(fileset(var.source_folder, "**/*.tpl"), toset([]))
   source_files_sha = join("", [
     for file_path in local.source_folder_files :
     filesha1("${var.source_folder}/${file_path}")
