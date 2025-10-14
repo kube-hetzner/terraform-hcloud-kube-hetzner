@@ -49,9 +49,9 @@ data "external" "my_ip" {
       if ! command -v dig &> /dev/null; then
         error_exit "'dig' command not found. Please install it (e.g., 'apt-get install dnsutils' or 'yum install bind-utils')."
       fi
-      IPV4=$(dig +time=5 +tries=2 -4 +short myip.opendns.com @resolver1.opendns.com | head -n 1)
+      IPV4=$(dig +time=5 +tries=2 -4 +short myip.opendns.com @resolver1.opendns.com | head -n 1 || true)
       if [ -z "$IPV4" ]; then
-        IPV4=$(dig +time=5 +tries=2 -4 +short TXT o-o.myaddr.l.google.com @ns1.google.com | head -n 1 | tr -d '"')
+        IPV4=$(dig +time=5 +tries=2 -4 +short TXT o-o.myaddr.l.google.com @ns1.google.com | head -n 1 | tr -d '"' || true)
       fi
       if [ -z "$IPV4" ]; then
         error_exit "Failed to retrieve public IPv4 address. The command returned an empty string. Please check network connectivity."

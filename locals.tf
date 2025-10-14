@@ -491,8 +491,8 @@ locals {
     direction       = rule.direction
     protocol        = rule.protocol
     port            = rule.port
-    source_ips      = compact([for ip in coalesce(lookup(rule, "source_ips", null), []) : ip == var.myipv4_ref ? local.my_public_ipv4_cidr : ip])
-    destination_ips = compact([for ip in coalesce(lookup(rule, "destination_ips", null), []) : ip == var.myipv4_ref ? local.my_public_ipv4_cidr : ip])
+    source_ips      = compact([for ip in lookup(rule, "source_ips", []) : ip == var.myipv4_ref ? local.my_public_ipv4_cidr : ip])
+    destination_ips = compact([for ip in lookup(rule, "destination_ips", []) : ip == var.myipv4_ref ? local.my_public_ipv4_cidr : ip])
   } if rule != null]
 
   labels = {
