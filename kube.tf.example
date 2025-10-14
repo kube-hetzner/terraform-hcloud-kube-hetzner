@@ -567,7 +567,7 @@ module "kube-hetzner" {
   # The default is true.
   # traefik_pod_disruption_budget = false
 
-  # Enable kubernetes gateway api (https://gateway-api.sigs.k8s.io/reference/spec/#secretobjectreference) provider support.
+  # Enable kubernetes gateway api (https://doc.traefik.io/traefik/providers/kubernetes-gateway/) provider support.
   # The default is false.
   # traefik_provider_kubernetes_gateway_enabled = true
 
