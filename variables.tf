@@ -502,8 +502,8 @@ variable "traefik_pod_disruption_budget" {
 }
 
 variable "traefik_provider_kubernetes_gateway_enabled" {
-  type = bool
-  default = false
+  type        = bool
+  default     = false
   description = "Should traefik enable the kubernetes gateway provider. Default is false."
 }
 
