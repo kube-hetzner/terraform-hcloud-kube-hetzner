@@ -667,9 +667,22 @@ variable "automatically_upgrade_os" {
 }
 
 variable "extra_firewall_rules" {
-  type        = list(any)
+  type = list(object({
+    description     = optional(string, "")
+    direction       = string
+    protocol        = string
+    port            = string
+    source_ips      = list(string)
+    destination_ips = list(string)
+  }))
+
   default     = []
   description = "Additional firewall rules to apply to the cluster."
+
+  validation {
+    condition     = alltrue([for rule in var.extra_firewall_rules : contains(["in", "out"], rule.direction)])
+    error_message = "The direction must be either 'in' or 'out'."
+  }
 }
 
 variable "firewall_kube_api_source" {
@@ -682,6 +695,12 @@ variable "firewall_ssh_source" {
   type        = list(string)
   default     = ["0.0.0.0/0", "::/0"]
   description = "Source networks that have SSH access to the servers."
+}
+
+variable "myipv4_ref" {
+  type        = string
+  default     = "myipv4"
+  description = "Name to be used in firewall rules as a substitute for your own IPv4 address."
 }
 
 variable "use_cluster_name_in_node_name" {
