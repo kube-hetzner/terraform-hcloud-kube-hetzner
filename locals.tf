@@ -862,6 +862,11 @@ podDisruptionBudget:
   enabled: true
   maxUnavailable: 33%
 %{endif~}
+providers:
+%{if var.traefik_provider_kubernetes_gateway_enabled~}
+  kubernetesGateway:
+    enabled: true
+%{endif~}
 additionalArguments:
   - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_controller_namespace}/traefik"
 %{for option in var.traefik_additional_options~}
@@ -898,6 +903,12 @@ cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : 
 crds:
   enabled: true
   keep: true
+%{if var.traefik_provider_kubernetes_gateway_enabled~}
+config:
+  apiVersion: controller.config.cert-manager.io/v1alpha1
+  kind: ControllerConfiguration
+  enableGatewayAPI: true
+%{endif~}
 %{if var.ingress_controller == "nginx"~}
 extraArgs:
   - --feature-gates=ACMEHTTP01IngressPathTypeExact=false

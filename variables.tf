@@ -501,6 +501,12 @@ variable "traefik_pod_disruption_budget" {
   description = "Should traefik enable pod disruption budget. Default values are maxUnavailable: 33% and minAvailable: 1."
 }
 
+variable "traefik_provider_kubernetes_gateway_enabled" {
+  type        = bool
+  default     = false
+  description = "Should traefik enable the kubernetes gateway provider. Default is false."
+}
+
 variable "traefik_resource_limits" {
   type        = bool
   default     = true
