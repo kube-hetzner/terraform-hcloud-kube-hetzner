@@ -55,15 +55,8 @@ resource "hcloud_load_balancer_target" "cluster" {
   label_selector = join(",", concat(
     [for k, v in local.labels : "${k}=${v}"],
     [
-      # Generic label merge from control plane and agent namespaces with "or",
-      # resulting in: role in (control_plane_node,agent_node)
-      for key in keys(merge(local.labels_control_plane_node, local.labels_agent_node)) :
-      "${key} in (${
-        join(",", compact([
-          for labels in [local.labels_control_plane_node, local.labels_agent_node] :
-          try(labels[key], "")
-        ]))
-      })"
+      for key, value in local.labels_control_plane_node :
+      "${key}=${value}"
     ]
   ))
   use_private_ip = true
