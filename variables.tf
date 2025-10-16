@@ -242,6 +242,7 @@ variable "agent_nodepools" {
     labels                     = list(string)
     taints                     = list(string)
     longhorn_volume_size       = optional(number)
+    longhorn_mount_path        = optional(string, "/var/longhorn")
     swap_size                  = optional(string, "")
     zram_size                  = optional(string, "")
     kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
@@ -261,6 +262,7 @@ variable "agent_nodepools" {
       labels                     = optional(list(string))
       taints                     = optional(list(string))
       longhorn_volume_size       = optional(number)
+      longhorn_mount_path        = optional(string, null)
       swap_size                  = optional(string, "")
       zram_size                  = optional(string, "")
       kubelet_args               = optional(list(string), ["kube-reserved=cpu=50m,memory=300Mi,ephemeral-storage=1Gi", "system-reserved=cpu=250m,memory=300Mi"])
@@ -301,6 +303,22 @@ variable "agent_nodepools" {
     condition = length(var.agent_nodepools) == 0 ? true : sum([for agent_nodepool in var.agent_nodepools : length(coalesce(agent_nodepool.nodes, {})) + coalesce(agent_nodepool.count, 0)]) <= 100
     # 154 because the private ip is derived from tonumber(key) + 101. See private_ipv4 in agents.tf
     error_message = "Hetzner does not support networks with more than 100 servers."
+  }
+
+  validation {
+    condition = alltrue(flatten([
+      for np in var.agent_nodepools : concat(
+        [
+          can(regex("^/var/$|^/var/([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*)$", np.longhorn_mount_path))
+        ],
+        [
+          for node in values(coalesce(np.nodes, {})) : (
+            node.longhorn_mount_path == null || can(regex("^/var/$|^/var/([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*)$", node.longhorn_mount_path))
+          )
+        ]
+      )
+    ]))
+    error_message = "Each longhorn_mount_path must start with '/var/', be a valid absolute path, and not end with a slash (except for '/var/'). This applies to both nodepool-level and node-level settings."
   }
 
 }
