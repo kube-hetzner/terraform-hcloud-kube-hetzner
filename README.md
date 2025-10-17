@@ -318,11 +318,11 @@ See the [guide on adding robot servers](docs/add-robot-server.md)
 
 If you need to install additional Helm charts or Kubernetes manifests that are not provided by default, you can easily do so by using [Kustomize](https://kustomize.io). This is done by creating one or more `extra-manifests/kustomization.yaml.tpl` files beside your `kube.tf`.
 
-These files need to be valid `Kustomization` manifests, additionally supporting terraform templating! (The templating parameters can be passed via the `extra_kustomize_parameters` variable (via a map) to the module).
+These files need to be valid `Kustomization` manifests, additionally supporting terraform templating! (The templating parameters can be passed via the `user_kustomizations` variable (via a map) to the module).
 
 All files in the `extra-manifests` directory and its subdirectories including the rendered versions of the `*.yaml.tpl` will be applied to k3s with `kubectl apply -k` (which will be executed after and independently of the basic cluster configuration).
 
-If you'd like to use a different folder name or apply the kustomizations in multiple steps due to CRD installation etc, you can override the values using `user_kustomizations`-variable. Note! This will override `extra_kustomize_deployment_commands` and `extra_kustomize_parameters`, so you will need to move them into the `user_kustomizations`-variable.
+If you'd like to use a different folder name, specify the template parameters or apply the kustomizations in multiple steps due to CRD installation etc, you can override the values using `user_kustomizations`-variable, see below:
 
 Example of using user_kustomizations in `kube.tf`:
 ```
@@ -333,7 +333,7 @@ Example of using user_kustomizations in `kube.tf`:
     "2" = {
       source_folder        = "extra-manifests"
       kustomize_parameters = {key: "LowSecretKey"}
-      post_commands        = var.extra_kustomize_deployment_commands
+      post_commands        = "kubectl wait --for=condition=Available deployment --all -A --timeout=120s || true"
     }
   }
 ```
@@ -355,8 +355,6 @@ After the initial bootstrapping of your Kubernetes cluster, you might want to de
 However, some applications that e.g. provide custom CRDs (e.g. [ArgoCD](https://argoproj.github.io/cd/)) need a different deployment strategy: one has to deploy CRDs first, then wait for the deployment, before being able to install the actual application. In the ArgoCD case, not waiting for the CRD setup to finish will cause failures.
 
 To support these scenarios, you can use the `user_kustomizations` variable in your `kube.tf`. This allows you to define multiple "sets" of kustomizations that are applied sequentially. Each set can have its own `source_folder`, `kustomize_parameters`, and `pre_commands`/`post_commands` for running scripts before or after the `kubectl apply -k`. 
-
-For backward compatibility, if `user_kustomizations` is not defined, the module uses the `extra_kustomize_parameters` and `extra_kustomize_deployment_commands` with `extra-manifests` being the source folder.
 
 ### Example: external-secrets repo and Helm
 You can install Helm repos and CRDs before the main Kustomization scripts by adding the Helm charts a different folder, e.g. `extra-manifests-preinstall` and specifying the folder in `user_kustomizations`-settings.
@@ -439,10 +437,14 @@ In `kube.tf`, specify the folders in `user_kustomizations`.
   user_kustomizations = {
     "1" = {
       source_folder = "extra-manifests-1"
-      post_commands = "kubectl -n external-secrets wait --for=condition=Available deployment --all --timeout=120s"
+      post_commands = "kubectl -n external-secrets wait --for=condition=Available deployment --all --timeout=120s || true"
     },
     "2" = {
       source_folder = "extra-manifests-2"
+      kustomize_parameters = {
+        eso_access_username = "..."
+        eso_access_password = "..."
+	    }      
     },
     ...
   }
