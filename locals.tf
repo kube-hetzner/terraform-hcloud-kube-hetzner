@@ -862,8 +862,8 @@ podDisruptionBudget:
   enabled: true
   maxUnavailable: 33%
 %{endif~}
-providers:
 %{if var.traefik_provider_kubernetes_gateway_enabled~}
+providers:
   kubernetesGateway:
     enabled: true
 %{endif~}
