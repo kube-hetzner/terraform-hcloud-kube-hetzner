@@ -1,10 +1,10 @@
 locals {
   default_user_kustomize = {
     "1" = {
-      source_folder        = var.extra_kustomize_folder
-      kustomize_parameters = var.extra_kustomize_parameters
+      source_folder        = "extra-manifests"
+      kustomize_parameters = {}
       pre_commands         = ""
-      post_commands        = var.extra_kustomize_deployment_commands
+      post_commands        = ""
     }
   }
 
