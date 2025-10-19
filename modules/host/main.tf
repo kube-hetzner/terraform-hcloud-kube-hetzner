@@ -202,6 +202,7 @@ data "cloudinit_config" "config" {
         swap_size                    = var.swap_size
         os                           = var.os
         private_network_only         = (var.disable_ipv4 && var.disable_ipv6)
+        network_gw_ipv4              = var.network_gw_ipv4
       }
     )
   }

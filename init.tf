@@ -84,6 +84,7 @@ resource "null_resource" "first_control_plane" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
+    timeout        = "10m" # Extended timeout to handle network migrations during upgrades
 
     bastion_host        = local.ssh_bastion.bastion_host
     bastion_port        = local.ssh_bastion.bastion_port
@@ -223,6 +224,7 @@ resource "null_resource" "kustomization" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
+    timeout        = "10m" # Extended timeout to handle network migrations during upgrades
 
     bastion_host        = local.ssh_bastion.bastion_host
     bastion_port        = local.ssh_bastion.bastion_port
@@ -416,9 +418,29 @@ resource "null_resource" "kustomization" {
   # Deploy secrets, logging is automatically disabled due to sensitive variables
   provisioner "remote-exec" {
     inline = [
-      "set -ex",
-      "kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -",
-      "kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -",
+      <<-EOT
+      set -ex
+      # Retry logic to handle temporary network connectivity issues during upgrades
+      MAX_ATTEMPTS=30
+      RETRY_INTERVAL=10
+      for attempt in $(seq 1 $MAX_ATTEMPTS); do
+        echo "Attempt $attempt: Checking kubectl connectivity..."
+        if [ "$(kubectl get --raw='/readyz' 2>/dev/null)" = "ok" ]; then
+          echo "kubectl connectivity established, deploying secrets..."
+          kubectl -n kube-system create secret generic hcloud --from-literal=token=${var.hcloud_token} --from-literal=network=${data.hcloud_network.k3s.name} --dry-run=client -o yaml | kubectl apply -f -
+          kubectl -n kube-system create secret generic hcloud-csi --from-literal=token=${var.hcloud_token} --dry-run=client -o yaml | kubectl apply -f -
+          echo "Secrets deployed successfully"
+          break
+        else
+          echo "kubectl not ready yet, waiting $RETRY_INTERVAL seconds..."
+          sleep $RETRY_INTERVAL
+        fi
+        if [ $attempt -eq $MAX_ATTEMPTS ]; then
+          echo "Failed to establish kubectl connectivity after $MAX_ATTEMPTS attempts"
+          exit 1
+        fi
+      done
+      EOT
     ]
   }
 
@@ -461,7 +483,7 @@ resource "null_resource" "kustomization" {
         # Ready, set, go for the kustomization
         "kubectl apply -k /var/post_install",
         "echo 'Waiting for the system-upgrade-controller deployment to become available...'",
-        "kubectl -n system-upgrade wait --for=condition=available --timeout=360s deployment/system-upgrade-controller",
+        "kubectl -n system-upgrade wait --for=condition=available --timeout=900s deployment/system-upgrade-controller",
         "sleep 7", # important as the system upgrade controller CRDs sometimes don't get ready right away, especially with Cilium.
         "kubectl -n system-upgrade apply -f /var/post_install/plans.yaml"
       ],

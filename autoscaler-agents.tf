@@ -131,7 +131,8 @@ data "cloudinit_config" "autoscaler_config" {
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common_by_os["leapmicro"]
         cloudinit_runcmd_common      = local.cloudinit_runcmd_common_by_os["leapmicro"]
-        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6
+        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
+        network_gw_ipv4              = local.network_gw_ipv4
       }
     )
   }
@@ -170,7 +171,8 @@ data "cloudinit_config" "autoscaler_legacy_config" {
         install_k3s_agent_script     = join("\n", concat(local.install_k3s_agent, ["systemctl start k3s-agent"]))
         cloudinit_write_files_common = local.cloudinit_write_files_common_by_os["leapmicro"]
         cloudinit_runcmd_common      = local.cloudinit_runcmd_common_by_os["leapmicro"]
-        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6
+        private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
+        network_gw_ipv4              = local.network_gw_ipv4,
       }
     )
   }
