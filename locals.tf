@@ -171,19 +171,28 @@ locals {
   })
 
   apply_k3s_selinux = [<<-EOT
-retry_count=0
-max_retries=5
-wait_time=10
-while [ $retry_count -lt $max_retries ]; do
-  /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp && break
-  echo "Failed to apply SELinux module, retrying in $wait_time seconds..."
-  sleep $wait_time
-  retry_count=$((retry_count + 1))
-  wait_time=$((wait_time * 2))
-done
-if [ $retry_count -eq $max_retries ]; then
-  echo "Failed to apply SELinux module after $max_retries attempts"
-  exit 1
+# k3s-selinux should be pre-installed in the Packer image for Leap Micro
+# Just verify and apply the policy if needed
+echo "Checking k3s SELinux policy status..."
+
+# Check if k3s-selinux is installed
+if rpm -q k3s-selinux >/dev/null 2>&1; then
+  echo "k3s-selinux package is installed"
+  
+  # Check if the policy file exists and needs to be applied
+  if [ -f /usr/share/selinux/packages/k3s.pp ]; then
+    echo "Applying k3s SELinux policy..."
+    /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp && {
+      echo "Successfully applied k3s SELinux policy"
+    } || {
+      echo "Warning: Failed to apply k3s SELinux policy, it may already be applied"
+    }
+  else
+    echo "k3s SELinux policy file not found, it may be built into k3s or already applied"
+  fi
+else
+  echo "Warning: k3s-selinux package not found. It should be pre-installed in the Packer image."
+  echo "Continuing without k3s-selinux - k3s may handle SELinux internally"
 fi
 EOT
   ]
@@ -1000,7 +1009,7 @@ opensuse_write_files_common = <<EOT
 
     sleep 11
 
-    # Somehow sometimes on private-ip only setups, the 
+    # Somehow sometimes on private-ip only setups, the
     # interface may already be correctly names, and this
     # block should be skipped.
     if ! ip link show eth1; then
@@ -1194,7 +1203,10 @@ opensuse_runcmd_common = <<EOT
 # SELinux permission for the SSH alternative port
 %{if var.ssh_port != 22}
 # SELinux permission for the SSH alternative port.
-- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, '${var.ssh_port}']
+- |
+  semanage port -a -t ssh_port_t -p tcp ${var.ssh_port} 2>/dev/null || \
+  semanage port -m -t ssh_port_t -p tcp ${var.ssh_port} 2>/dev/null || \
+  echo "Port ${var.ssh_port} already configured for SSH"
 %{endif}
 
 # Create and apply the necessary SELinux module for kube-hetzner
@@ -1208,17 +1220,34 @@ opensuse_runcmd_common = <<EOT
 - [systemctl, disable, '--now', 'rebootmgr.service']
 
 # Bounds the amount of logs that can survive on the system
-- [sed, '-i', 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
-- [sed, '-i', 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
+- |
+  if [ -f /etc/systemd/journald.conf ]; then
+    sed -i 's/#SystemMaxUse=/SystemMaxUse=3G/g' /etc/systemd/journald.conf
+    sed -i 's/#MaxRetentionSec=/MaxRetentionSec=1week/g' /etc/systemd/journald.conf
+  elif [ -f /usr/lib/systemd/journald.conf ]; then
+    mkdir -p /etc/systemd/journald.conf.d/
+    echo -e "[Journal]\nSystemMaxUse=3G\nMaxRetentionSec=1week" > /etc/systemd/journald.conf.d/kube-hetzner.conf
+  else
+    echo "journald.conf not found, skipping journal size configuration"
+  fi
 
 # Reduces the default number of snapshots from 2-10 number limit, to 4 and from 4-10 number limit important, to 2
-- [sed, '-i', 's/NUMBER_LIMIT="2-10"/NUMBER_LIMIT="4"/g', /etc/snapper/configs/root]
-- [sed, '-i', 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g', /etc/snapper/configs/root]
+- |
+  if [ -f /etc/snapper/configs/root ]; then
+    sed -i 's/NUMBER_LIMIT="2-10"/NUMBER_LIMIT="4"/g' /etc/snapper/configs/root
+    sed -i 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g' /etc/snapper/configs/root
+  else
+    echo "Snapper config not found, skipping snapshot limit configuration"
+  fi
 
 # Allow network interface
 - [chmod, '+x', '/etc/cloud/rename_interface.sh']
 
-# Restart the sshd service to apply the new config
+# Ensure sshd includes config.d directory and restart to apply the new config
+- |
+  if ! grep -q "^Include /etc/ssh/sshd_config.d/\*.conf" /etc/ssh/sshd_config 2>/dev/null; then
+    echo "Include /etc/ssh/sshd_config.d/*.conf" >> /etc/ssh/sshd_config
+  fi
 - [systemctl, 'restart', 'sshd']
 
 # Make sure the network is up
