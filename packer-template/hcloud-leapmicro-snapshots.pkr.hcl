@@ -110,9 +110,11 @@ REPO
     rpm --import https://rpm.rancher.io/public.key || true
     # Install k3s-selinux with no-gpg-checks as the key is already imported
     zypper --non-interactive --no-gpg-checks install -y k3s-selinux || {
-      echo "Failed to install k3s-selinux, trying alternative method..."
-      # Alternative: Download and install the RPM directly
-      curl -fsSL -o /tmp/k3s-selinux.rpm https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.stable.1/k3s-selinux-1.6-1.sle.noarch.rpm
+      echo "Failed to install k3s-selinux via zypper, trying direct RPM download..."
+      # Alternative: Download and install the RPM directly using the version variable
+      # Strip the 'v' prefix from version for the RPM filename (e.g., v1.6.stable.1 -> 1.6.stable.1)
+      K3S_SELINUX_RPM_VERSION=$(echo "${var.k3s_selinux_version}" | sed 's/^v//')
+      curl -fsSL -o /tmp/k3s-selinux.rpm "https://github.com/k3s-io/k3s-selinux/releases/download/${var.k3s_selinux_version}/k3s-selinux-$${K3S_SELINUX_RPM_VERSION}-1.sle.noarch.rpm"
       rpm -i --nosignature /tmp/k3s-selinux.rpm || true
     }
     # Disable dontaudit rules to make SELinux less restrictive and show all denials
