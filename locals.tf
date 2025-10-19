@@ -181,7 +181,7 @@ echo "Checking k3s SELinux policy status..."
 # Check if k3s-selinux is installed
 if rpm -q k3s-selinux >/dev/null 2>&1; then
   echo "k3s-selinux package is installed"
-  
+
   # Check if the policy file exists and needs to be applied
   if [ -f /usr/share/selinux/packages/k3s.pp ]; then
     echo "Applying k3s SELinux policy..."
@@ -264,7 +264,6 @@ EOT
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group
         os : nodepool_obj.os
-        placement_group : nodepool_obj.placement_group,
         disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
         disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
