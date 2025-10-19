@@ -78,6 +78,8 @@ locals {
     echo "Make sure to use NetworkManager"
     touch /etc/NetworkManager/NetworkManager.conf
     sleep 1 && udevadm settle
+    echo "Running fstrim to reduce snapshot size..."
+    fstrim -av || true
   EOT
 }
 

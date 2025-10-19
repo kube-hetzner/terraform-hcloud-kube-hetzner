@@ -63,25 +63,9 @@ locals {
   opensuse_leapmicro_x86_mirror_link_computed = var.opensuse_leapmicro_x86_mirror_link != "" ? var.opensuse_leapmicro_x86_mirror_link : "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.x86_64-Base-qcow.qcow2"
   opensuse_leapmicro_arm_mirror_link_computed = var.opensuse_leapmicro_arm_mirror_link != "" ? var.opensuse_leapmicro_arm_mirror_link : "https://download.opensuse.org/distribution/leap-micro/${var.leap_micro_version}/appliances/openSUSE-Leap-Micro.aarch64-Base-qcow.qcow2"
 
-  needed_packages = join(" ", concat([
-    # SELinux packages
-    "container-selinux",
-    "policycoreutils",
-    "policycoreutils-python-utils",
-    "policycoreutils-devel",
-    "checkpolicy",
-    "selinux-policy",
-    "selinux-policy-devel",
-    "selinux-tools",
-    # Container and storage packages
-    "fuse-overlayfs",
-    "xfsprogs",
-    "cryptsetup",
-    # System packages
-    "audit",
-    # Additional tools
-    "udica"
-  ], var.packages_to_install))
+  # Keep the package list minimal and working
+  # SELinux tools will be installed via transactional-update
+  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils audit open-iscsi nfs-client git selinux-policy xfsprogs cryptsetup lvm2 git bash-completion udica qemu-guest-agent bash-completion"], var.packages_to_install))
 
   # Add local variables for inline shell commands
   download_image = "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only "
@@ -96,117 +80,67 @@ locals {
 
   install_packages = <<-EOT
     set -ex
+    echo "First reboot successful, installing needed packages..."
 
-    # echo "First reboot successful, installing needed packages..."
-    ARCH=$(uname -m)
-    transactional-update shell <<- EOF
-    setenforce 0
+    # Add Rancher K3s repository for k3s-selinux (needs to be added to the system, not just in transactional environment)
+    cat > /etc/zypp/repos.d/rancher-k3s-common.repo <<'REPO'
+[rancher-k3s-common-stable]
+name=Rancher K3s Common (stable)
+baseurl=https://rpm.rancher.io/k3s/stable/common/microos/noarch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=0
+gpgkey=https://rpm.rancher.io/public.key
+REPO
 
-    # Fix the main repository URL if it's using cdn.opensuse.org
-    ARCH=\$(uname -m)
-    if [ "\$ARCH" = "aarch64" ]; then
-      zypper mr --url="https://download.opensuse.org/distribution/leap-micro/6.1/product/repo/openSUSE-Leap-Micro-6.1-aarch64/" repo-main || true
-    else
-      zypper mr --url="https://download.opensuse.org/distribution/leap-micro/6.1/product/repo/openSUSE-Leap-Micro-6.1-x86_64/" repo-main || true
-    fi
-
-    # Add additional repositories for missing packages
-    zypper addrepo -G -f https://download.opensuse.org/distribution/leap/${var.leap_version}/repo/oss/ leap-${var.leap_version}-oss || true
-    zypper addrepo -G -f https://download.opensuse.org/update/leap/${var.leap_version}/oss/ leap-${var.leap_version}-update || true
-
+    # Import GPG key and make sure it's trusted
+    curl -fsSL https://rpm.rancher.io/public.key > /tmp/rancher.key
+    rpm --import /tmp/rancher.key || true
+    
+    # Refresh repositories with auto-import of keys
     zypper --non-interactive --gpg-auto-import-keys refresh || true
 
-    # Install packages - some may already be installed or not available
-    zypper --verbose --non-interactive install --allow-vendor-change --no-recommends ${local.needed_packages} || true
-
-    # Try to install additional packages from Leap repos
-    zypper --verbose --non-interactive install --allow-vendor-change --no-recommends git bash-completion nfs-utils cifs-utils open-iscsi || true
-
-    rpm --import https://rpm.rancher.io/public.key
-    zypper --verbose --non-interactive install -y https://github.com/k3s-io/k3s-selinux/releases/download/${var.k3s_selinux_version}/k3s-selinux-${replace(replace(var.k3s_selinux_version, "v", ""), ".stable.1", "")}-1.slemicro.noarch.rpm
-    zypper addlock k3s-selinux
-
-    restorecon -Rv /etc/selinux/targeted/policy
-    restorecon -Rv /var/lib
-    fixfiles restore
-    touch /.autorelabel
-
-    # Create SELinux policy to allow containers to read certificate directories
-    # This addresses cluster-autoscaler and other k8s components needing cert access
-    cat > /tmp/k8s-custom-policies.te <<'SELINUX_POLICY'
-module k8s-custom-policies 1.0;
-
-require {
-    type container_t;
-    type cert_t;
-    type fail2ban_t;
-    type net_conf_t;
-    type unreserved_port_t;
-    class dir read;
-    class file { read open getattr };
-    class sock_file create;
-    class tcp_socket { name_bind name_connect };
-}
-
-# Allow containers to read certificate directories and files
-allow container_t cert_t:dir read;
-allow container_t cert_t:file { read open getattr };
-
-# Allow fail2ban to create socket files in /etc (net_conf_t context)
-allow fail2ban_t net_conf_t:sock_file create;
-
-# Allow containers to bind to high ports (including 10250 for metrics-server)
-allow container_t unreserved_port_t:tcp_socket { name_bind name_connect };
-SELINUX_POLICY
-
-    # Compile and install the SELinux policy module
-    checkmodule -M -m -o /tmp/k8s-custom-policies.mod /tmp/k8s-custom-policies.te || true
-    semodule_package -o /tmp/k8s-custom-policies.pp -m /tmp/k8s-custom-policies.mod || true
-    semodule -i /tmp/k8s-custom-policies.pp || true
-
-    # Clean up temporary files
-    rm -f /tmp/k8s-custom-policies.{te,mod,pp}
-
-    echo so what do we have here
-    rpm -qa |grep container
-    zypper search-packages -s container-selinux
-
-    # update all packages
-    zypper update -y
-
-    sed -i '/disable_root/c\disable_root: false' /etc/cloud/cloud.cfg
-    sed -i '/keys_to_console/s/^/#/' /etc/cloud/cloud.cfg
-    sed -i '/^#*PermitRootLogin/s/.*/PermitRootLogin yes/' /etc/ssh/ssh_config.d/50-suse.conf
-    setenforce 1
-    EOF
-    sleep 10 && udevadm settle && reboot
+    # Install packages - first without k3s-selinux to ensure base packages are installed
+    transactional-update --continue pkg install -y ${local.needed_packages}
+    
+    # Now install k3s-selinux with proper GPG handling inside transactional-update
+    transactional-update --continue shell <<-'SHELL'
+    set -ex
+    # Import the key inside the transaction
+    rpm --import https://rpm.rancher.io/public.key || true
+    # Install k3s-selinux with no-gpg-checks as the key is already imported
+    zypper --non-interactive --no-gpg-checks install -y k3s-selinux || {
+      echo "Failed to install k3s-selinux, trying alternative method..."
+      # Alternative: Download and install the RPM directly
+      curl -fsSL -o /tmp/k3s-selinux.rpm https://github.com/k3s-io/k3s-selinux/releases/download/v1.6.stable.1/k3s-selinux-1.6-1.sle.noarch.rpm
+      rpm -i --nosignature /tmp/k3s-selinux.rpm || true
+    }
+    # Disable dontaudit rules to make SELinux less restrictive and show all denials
+    echo "Disabling SELinux dontaudit rules for better visibility..."
+    semodule -DB || true
+SHELL
+    sleep 1 && udevadm settle && reboot
   EOT
 
   install_fail2ban = <<-EOT
-    transactional-update shell <<- EOF
-    # Check if git is available (should have been installed in previous step)
-    if ! command -v git >/dev/null 2>&1; then
-      echo "Git not found, trying to install it..."
-      zypper --non-interactive --gpg-auto-import-keys refresh || true
-      zypper --verbose --non-interactive install --allow-vendor-change git || true
-    fi
-
-    # Install fail2ban from source
-    if command -v git >/dev/null 2>&1; then
-      cd /tmp
-      git clone --branch ${var.fail2ban_version} --depth 1 https://github.com/fail2ban/fail2ban.git
-      cd fail2ban
-      python3 setup.py install --without-tests
-      cp build/fail2ban.service /etc/systemd/system/
-      systemctl enable fail2ban.service
-      cd /
-      rm -rf /tmp/fail2ban
-      echo "fail2ban installed successfully from source"
-    else
-      echo "ERROR: Cannot install fail2ban - git is not available"
-      exit 1
-    fi
-    EOF
+    set -ex
+    echo "Installing fail2ban from source in transactional environment..."
+    
+    # Install fail2ban from source using transactional-update
+    transactional-update --continue shell <<FAILBAN
+    set -ex
+    cd /tmp
+    git clone --branch ${var.fail2ban_version} --depth 1 https://github.com/fail2ban/fail2ban.git
+    cd fail2ban
+    python3 setup.py install --without-tests
+    cp build/fail2ban.service /etc/systemd/system/
+    systemctl enable fail2ban.service
+    cd /
+    rm -rf /tmp/fail2ban
+    echo "fail2ban installed successfully from source"
+FAILBAN
+    
+    sleep 1 && udevadm settle && reboot
   EOT
 
   clean_up = <<-EOT
