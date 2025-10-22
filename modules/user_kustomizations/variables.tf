@@ -23,6 +23,7 @@ variable "kustomizations_map" {
   }))
   default     = {}
   description = "Map of kustomization entries, where key is the order number."
+  sensitive   = true
   validation {
     condition = alltrue([
       for key in keys(var.kustomizations_map) :

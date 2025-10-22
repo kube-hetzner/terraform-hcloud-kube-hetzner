@@ -444,7 +444,7 @@ In `kube.tf`, specify the folders in `user_kustomizations`.
       kustomize_parameters = {
         eso_access_username = "..."
         eso_access_password = "..."
-	    }      
+      }
     },
     ...
   }

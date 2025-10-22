@@ -2,7 +2,7 @@
 
 # 2.18.3 -> 2.19.0
 
-## Extra_kustomization
+## User Kustomization
 The extra_kustomization-feature has been moved to a module so that multiple extra_kustomizations can be run in sequential steps.
 A new variable `user_kustomizations` is now in use, which contains the previous extra_kustomize_* vars.
 

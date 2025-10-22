@@ -12,8 +12,10 @@ locals {
 
   processed_kustomizes = {
     for key, config in local.user_kustomize_defaulted : key => merge(config, {
-      # kustomize_parameters may contain secrets
-      kustomize_parameters = sensitive(config.kustomize_parameters)
+      # kustomize_parameters, pre_commands, and post_commands may contain secrets
+      kustomize_parameters = sensitive(config.kustomize_parameters),
+      pre_commands         = sensitive(config.pre_commands),
+      post_commands        = sensitive(config.post_commands)
     })
   }
 }

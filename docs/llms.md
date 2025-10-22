@@ -2225,7 +2225,7 @@ Locked and loaded! Let's continue the detailed exploration.
 ```
 
 * **`user_kustomizations` (Map of Objects, Optional):**
-  * **Purpose:** Allows you to specify Kustomization sets that are run sequantially, with each set containing its own source_folder, pre_commands, post_commands and kustomize_parameters
+  * **Purpose:** Allows you to specify Kustomization sets that are run sequentially, with each set containing its own source_folder, pre_commands, post_commands and kustomize_parameters
   * **Use Cases:**
     * Some applications deployed via Helm or Kustomize install CustomResourceDefinitions (CRDs) first, and then CustomResources (CRs) that depend on those CRDs. There can be a race condition if the CRs are applied before the CRDs are fully registered. You could add a command here to wait for CRDs to become available (e.g., `kubectl wait --for condition=established crd/mycrd.example.com --timeout=120s`).
     * The `user_kustomizations`-map allows you to define steps of install where e.g. the first step installs CRDs, checks for their proper existence and then second step that install further CRs.
