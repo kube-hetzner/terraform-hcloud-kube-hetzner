@@ -1,6 +1,6 @@
-# Private Network Egress & Hetzner DHCP (Aug 2025)
+# Private Network Egress & Hetzner DHCP (Aug 2025)
 
-On **August 11, 2025** Hetzner Cloud stopped sending the legacy DHCP *Router option (code 3)* on private networks and now relies solely on *Classless Static Route (option 121)*. Any node that forwards outbound traffic through a NAT or VPN gateway on the private network must therefore install and persist a default route to the virtual gateway (typically the first IP of the prefix, e.g. `10.0.0.1`).
+On **August 11, 2025**, Hetzner Cloud removed the legacy DHCP *Router option (code 3)* on private networks and now relies solely on *Classless Static Route (option 121)*. Any node that forwards outbound traffic through a NAT or VPN gateway on the private network must therefore install and persist a default route to the virtual gateway (typically the first IP of the prefix, e.g. `10.0.0.1`).
 
 Starting with this module version:
 
