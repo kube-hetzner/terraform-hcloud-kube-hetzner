@@ -9,7 +9,7 @@
 
 ### Planning & Testing
 - `terraform plan` - Generate and show execution plan (always run before apply)
-- `terraform apply` - Apply changes (test in `/Users/karim/Code/kube-test`)
+- `terraform apply` - Apply changes
 - `terraform init -upgrade` - Initialize and upgrade providers to latest versions
 
 ### Single Test Execution
