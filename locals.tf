@@ -130,7 +130,7 @@ locals {
         "    fi",
         "  fi",
         "  # Runtime guard to cover current leases before dispatcher hooks fire",
-        "  if ! ip -4 route show default | grep -q \" via ${local.network_gw_ipv4} dev $PRIV_IF \" ; then",
+        "  if ! ip -4 route show default | grep -qE \" via ${local.network_gw_ipv4} dev $PRIV_IF([[:space:]]|$)\" ; then",
         "    ip -4 route add default via ${local.network_gw_ipv4} dev \"$PRIV_IF\" metric 512 2>/dev/null || true",
         "  fi",
         "else",

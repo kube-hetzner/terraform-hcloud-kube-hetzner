@@ -5,7 +5,7 @@ On **August 11, 2025** Hetzner Cloud stopped sending the legacy DHCP *Router o
 Starting with this module version:
 
 - All nodes that attach to the Hetzner private network detect the relevant interface dynamically (no hardcoded `eth1`) and persist a `0.0.0.0/0` route via `${local.network_gw_ipv4}` in the active NetworkManager connection.
-- A runtime guard (`ip route replace`) ensures nodes regain egress immediately, even before NetworkManager reapplies the profile.
+- A runtime guard (`ip route add` with a high metric) ensures nodes regain egress immediately, even before NetworkManager reapplies the profile, without disturbing an existing public default route.
 - The route uses a higher metric so the public interface continues to be preferred on mixed deployments.
 
 No manual `ip route add` commands are needed after reboots or DHCP renewals. If you roll your own images or bootstrap logic, make sure an equivalent persistent route exists or the nodes will lose outbound connectivity the next time the DHCP lease renews.
