@@ -8,7 +8,8 @@ module "control_planes" {
   for_each = local.control_plane_nodes
 
   name                         = "${var.use_cluster_name_in_node_name ? "${var.cluster_name}-" : ""}${each.value.nodepool_name}"
-  microos_snapshot_id          = substr(each.value.server_type, 0, 3) == "cax" ? data.hcloud_image.microos_arm_snapshot.id : data.hcloud_image.microos_x86_snapshot.id
+  os_snapshot_id               = local.snapshot_id_by_os[each.value.os][substr(each.value.server_type, 0, 3) == "cax" ? "arm" : "x86"]
+  os                           = each.value.os
   base_domain                  = var.base_domain
   ssh_keys                     = length(var.ssh_hcloud_key_label) > 0 ? concat([local.hcloud_ssh_key_id], data.hcloud_ssh_keys.keys_by_selector[0].ssh_keys.*.id) : [local.hcloud_ssh_key_id]
   ssh_port                     = var.ssh_port
@@ -24,8 +25,8 @@ module "control_planes" {
   dns_servers                  = var.dns_servers
   k3s_registries               = var.k3s_registries
   k3s_registries_update_script = local.k3s_registries_update_script
-  cloudinit_write_files_common = local.cloudinit_write_files_common
-  cloudinit_runcmd_common      = local.cloudinit_runcmd_common
+  cloudinit_write_files_common = local.cloudinit_write_files_common_by_os[each.value.os]
+  cloudinit_runcmd_common      = local.cloudinit_runcmd_common_by_os[each.value.os]
   swap_size                    = each.value.swap_size
   zram_size                    = each.value.zram_size
   keep_disk_size               = var.keep_disk_cp

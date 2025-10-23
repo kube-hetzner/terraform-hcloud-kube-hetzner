@@ -173,8 +173,33 @@ locals {
     )
   })
 
-  apply_k3s_selinux = ["/sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp"]
-  swap_node_label   = ["node.kubernetes.io/server-swap=enabled"]
+  apply_k3s_selinux = [<<-EOT
+# k3s-selinux should be pre-installed in the Packer image for Leap Micro
+# Just verify and apply the policy if needed
+echo "Checking k3s SELinux policy status..."
+
+# Check if k3s-selinux is installed
+if rpm -q k3s-selinux >/dev/null 2>&1; then
+  echo "k3s-selinux package is installed"
+
+  # Check if the policy file exists and needs to be applied
+  if [ -f /usr/share/selinux/packages/k3s.pp ]; then
+    echo "Applying k3s SELinux policy..."
+    /sbin/semodule -v -i /usr/share/selinux/packages/k3s.pp && {
+      echo "Successfully applied k3s SELinux policy"
+    } || {
+      echo "Warning: Failed to apply k3s SELinux policy, it may already be applied"
+    }
+  else
+    echo "k3s SELinux policy file not found, it may be built into k3s or already applied"
+  fi
+else
+  echo "Warning: k3s-selinux package not found. It should be pre-installed in the Packer image."
+  echo "Continuing without k3s-selinux - k3s may handle SELinux internally"
+fi
+EOT
+  ]
+  swap_node_label = ["node.kubernetes.io/server-swap=enabled"]
 
   k3s_install_command = "curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_SKIP_SELINUX_RPM=true %{if var.install_k3s_version == ""}INSTALL_K3S_CHANNEL=${var.initial_k3s_channel}%{else}INSTALL_K3S_VERSION=${var.install_k3s_version}%{endif} INSTALL_K3S_EXEC='%s' sh -"
 
@@ -209,6 +234,7 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group,
+        os : nodepool_obj.os
         disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
         disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
@@ -236,7 +262,8 @@ locals {
         index : node_index
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
-        placement_group : nodepool_obj.placement_group,
+        placement_group : nodepool_obj.placement_group
+        os : nodepool_obj.os
         disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
         disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
@@ -266,6 +293,7 @@ locals {
           placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
           placement_group : nodepool_obj.placement_group,
           index : floor(tonumber(node_key)),
+          os : nodepool_obj.os
           disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
           disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
           network_id : nodepool_obj.network_id,
@@ -315,7 +343,7 @@ locals {
   network_gw_ipv4 = cidrhost(var.network_ipv4_cidr, 1)
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
-  control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
+  control_plane_count    = length(var.control_plane_nodepools) > 0 ? sum([for v in var.control_plane_nodepools : v.count]) : 0
   agent_count            = length(var.agent_nodepools) > 0 ? sum([for v in var.agent_nodepools : length(coalesce(v.nodes, {})) + coalesce(v.count, 0)]) : 0
   autoscaler_max_count   = length(var.autoscaler_nodepools) > 0 ? sum([for v in var.autoscaler_nodepools : v.max_nodes]) : 0
   is_single_node_cluster = (local.control_plane_count + local.agent_count + local.autoscaler_max_count) == 1
@@ -987,7 +1015,12 @@ else
 fi
 EOF
 
-cloudinit_write_files_common = <<EOT
+cloudinit_write_files_common_by_os = {
+  microos   = local.opensuse_write_files_common
+  leapmicro = local.opensuse_write_files_common
+}
+
+opensuse_write_files_common = <<EOT
 # Script to rename the private interface to eth1 and unify NetworkManager connection naming
 - path: /etc/cloud/rename_interface.sh
   content: |
@@ -996,7 +1029,7 @@ cloudinit_write_files_common = <<EOT
 
     sleep 11
 
-    # Somehow sometimes on private-ip only setups, the 
+    # Somehow sometimes on private-ip only setups, the
     # interface may already be correctly names, and this
     # block should be skipped.
     if ! ip link show eth1 >/dev/null 2>&1; then
@@ -1189,14 +1222,22 @@ cloudinit_write_files_common = <<EOT
 %{endif}
 EOT
 
-cloudinit_runcmd_common = <<EOT
+cloudinit_runcmd_common_by_os = {
+  microos   = local.opensuse_runcmd_common
+  leapmicro = local.opensuse_runcmd_common
+}
+
+opensuse_runcmd_common = <<EOT
 # ensure that /var uses full available disk size, thanks to btrfs this is easy
 - [btrfs, 'filesystem', 'resize', 'max', '/var']
 
 # SELinux permission for the SSH alternative port
 %{if var.ssh_port != 22}
 # SELinux permission for the SSH alternative port.
-- [semanage, port, '-a', '-t', ssh_port_t, '-p', tcp, '${var.ssh_port}']
+- |
+  semanage port -a -t ssh_port_t -p tcp ${var.ssh_port} 2>/dev/null || \
+  semanage port -m -t ssh_port_t -p tcp ${var.ssh_port} 2>/dev/null || \
+  echo "Port ${var.ssh_port} already configured for SSH"
 %{endif}
 
 # Create and apply the necessary SELinux module for kube-hetzner
@@ -1210,17 +1251,34 @@ cloudinit_runcmd_common = <<EOT
 - [systemctl, disable, '--now', 'rebootmgr.service']
 
 # Bounds the amount of logs that can survive on the system
-- [sed, '-i', 's/#SystemMaxUse=/SystemMaxUse=3G/g', /etc/systemd/journald.conf]
-- [sed, '-i', 's/#MaxRetentionSec=/MaxRetentionSec=1week/g', /etc/systemd/journald.conf]
+- |
+  if [ -f /etc/systemd/journald.conf ]; then
+    sed -i 's/#SystemMaxUse=/SystemMaxUse=3G/g' /etc/systemd/journald.conf
+    sed -i 's/#MaxRetentionSec=/MaxRetentionSec=1week/g' /etc/systemd/journald.conf
+  elif [ -f /usr/lib/systemd/journald.conf ]; then
+    mkdir -p /etc/systemd/journald.conf.d/
+    echo -e "[Journal]\nSystemMaxUse=3G\nMaxRetentionSec=1week" > /etc/systemd/journald.conf.d/kube-hetzner.conf
+  else
+    echo "journald.conf not found, skipping journal size configuration"
+  fi
 
 # Reduces the default number of snapshots from 2-10 number limit, to 4 and from 4-10 number limit important, to 2
-- [sed, '-i', 's/NUMBER_LIMIT="2-10"/NUMBER_LIMIT="4"/g', /etc/snapper/configs/root]
-- [sed, '-i', 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g', /etc/snapper/configs/root]
+- |
+  if [ -f /etc/snapper/configs/root ]; then
+    sed -i 's/NUMBER_LIMIT="2-10"/NUMBER_LIMIT="4"/g' /etc/snapper/configs/root
+    sed -i 's/NUMBER_LIMIT_IMPORTANT="4-10"/NUMBER_LIMIT_IMPORTANT="3"/g' /etc/snapper/configs/root
+  else
+    echo "Snapper config not found, skipping snapshot limit configuration"
+  fi
 
 # Allow network interface
 - [chmod, '+x', '/etc/cloud/rename_interface.sh']
 
-# Restart the sshd service to apply the new config
+# Ensure sshd includes config.d directory and restart to apply the new config
+- |
+  if ! grep -q "^Include /etc/ssh/sshd_config.d/\*.conf" /etc/ssh/sshd_config 2>/dev/null; then
+    echo "Include /etc/ssh/sshd_config.d/*.conf" >> /etc/ssh/sshd_config
+  fi
 - [systemctl, 'restart', 'sshd']
 
 # Make sure the network is up
@@ -1239,4 +1297,31 @@ cloudinit_runcmd_common = <<EOT
 
 EOT
 
+snapshot_id_by_os = {
+  leapmicro = local.os_requirements.leapmicro ? {
+    arm = var.leapmicro_arm_snapshot_id != "" ? var.leapmicro_arm_snapshot_id : try(data.hcloud_image.leapmicro_arm_snapshot[0].id, ""),
+    x86 = var.leapmicro_x86_snapshot_id != "" ? var.leapmicro_x86_snapshot_id : try(data.hcloud_image.leapmicro_x86_snapshot[0].id, "")
+  } : null,
+  microos = local.os_requirements.microos ? {
+    arm = var.microos_arm_snapshot_id != "" ? var.microos_arm_snapshot_id : try(data.hcloud_image.microos_arm_snapshot[0].id, ""),
+    x86 = var.microos_x86_snapshot_id != "" ? var.microos_x86_snapshot_id : try(data.hcloud_image.microos_x86_snapshot[0].id, "")
+  } : null
+}
+
+# Get all unique OS requirements across all nodes
+used_os = distinct(concat(
+  [for node in var.control_plane_nodepools : node.os],
+  [for node in var.agent_nodepools : node.os],
+  flatten([
+    for node in var.agent_nodepools :
+    coalesce(values(node.nodes != null ? { for k, n in node.nodes : k => coalesce(n.os, node.os) } : {}), [])
+  ]),
+  [for node in var.autoscaler_nodepools : node.os]
+))
+
+# Check OS image requirements
+os_requirements = {
+  microos   = contains(local.used_os, "microos")
+  leapmicro = contains(local.used_os, "leapmicro")
+}
 }

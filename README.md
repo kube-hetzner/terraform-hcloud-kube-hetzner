@@ -8,7 +8,7 @@
   <h2 align="center">Kube-Hetzner</h2>
 
   <p align="center">
-    A highly optimized, easy-to-use, auto-upgradable, HA-default & Load-Balanced, Kubernetes cluster powered by k3s-on-MicroOS and deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑
+    A highly optimized, easy-to-use, auto-upgradable, HA-default & Load-Balanced, Kubernetes cluster powered by k3s-on-LeapMicro and deployed for peanuts on <a href="https://hetzner.com" target="_blank">Hetzner Cloud</a> 🤑
   </p>
   <hr />
     <p align="center">
@@ -43,15 +43,26 @@
 
 This project aims to create a highly optimized Kubernetes installation that is easy to maintain, secure, and automatically upgrades both the nodes and Kubernetes. We aimed for functionality as close as possible to GKE's Auto-Pilot. _Please note that we are not affiliates of Hetzner, but we do strive to be an optimal solution for deploying and maintaining Kubernetes clusters on Hetzner Cloud._
 
-To achieve this, we built up on the shoulders of giants by choosing [openSUSE MicroOS](https://en.opensuse.org/Portal:MicroOS) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
+To achieve this, we built up on the shoulders of giants by choosing [openSUSE LeapMicro](https://en.opensuse.org/Portal:LeapMicro) as the base operating system and [k3s](https://k3s.io/) as the k8s engine.
 
 ![Product Name Screen Shot][product-screenshot]
 
-**Why OpenSUSE MicroOS (and not Ubuntu)?**
+**Migration Notes (MicroOS → LeapMicro)**
+
+As of version **X.Y.Z**, **openSUSE LeapMicro** replaced **MicroOS** as the default operating system for Kube-Hetzner installations.
+
+Reason for switching to LeapMicro:
+
+- **Stability & Reliability:** LeapMicro provides a stable, fixed-point release with fewer updates, reducing the risk of disruptions that MicroOS's rolling-release model occasionally introduced.
+- **Controlled Updates:** LeapMicro’s snapshot-based updates allow pinning specific kernel and package versions, enabling more predictable upgrades compared to MicroOS.
+
+🚨 If you already have an existing deployment, please ensure you read the [Upgrade & Migration Guide](UPGRADE_AND_MIGRATION_GUIDE.md) before proceeding.
+
+**Why OpenSUSE LeapMicro (and not Ubuntu)?**
 
 - Optimized container OS that is fully locked down, most of the filesystem is read-only!
 - Hardened by default with an automatic ban for abusive IPs on SSH for instance.
-- Evergreen release, your node will stay valid forever, as it piggybacks into OpenSUSE Tumbleweed's rolling release!
+- Point-release stability — pin your kernel and packages
 - Automatic updates by default and automatic rollbacks if something breaks, thanks to its use of BTRFS snapshots.
 - Supports [Kured](https://github.com/kubereboot/kured) to properly drain and reboot nodes in an HA fashion.
 
@@ -64,7 +75,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 
 ### Features
 
-- [x] **Maintenance-free** with auto-upgrades to the latest version of MicroOS and k3s.
+- [x] **Maintenance-free** with auto-upgrades to the latest version of LeapMicro and k3s.
 - [x] **Multi-architecture support**, choose any Hetzner cloud instances, including the cheaper CAX ARM instances.
 - [x] Proper use of the **Hetzner private network** to minimize latency.
 - [x] Choose between **Flannel, Calico, or Cilium** as CNI.
@@ -107,11 +118,11 @@ The easiest way is to use the [homebrew](https://brew.sh/) package manager to in
 | Snap                   | sudo snap install terraform kubectl --classic && snap install packer               |
 | Chocolatey (Windows)   | choco install terraform packer kubernetes-cli hcloud                               |
 
-### 💡 [Do not skip] Creating your kube.tf file and the OpenSUSE MicroOS snapshot
+### 💡 [Do not skip] Creating your kube.tf file and the OpenSUSE LeapMicro snapshot
 
 1. Create a project in your [Hetzner Cloud Console](https://console.hetzner.cloud/), and go to **Security > API Tokens** of that project to grab the API key, it needs to be Read & Write. Take note of the key! ✅
 2. Generate a passphrase-less ed25519 SSH key pair for your cluster; take note of the respective paths of your private and public keys. Or, see our detailed [SSH options](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/ssh.md). ✅
-3. Now navigate to where you want to have your project live and execute the following command, which will help you get started with a **new folder** along with the required files, and will propose you to create a needed MicroOS snapshot. ✅
+3. Now navigate to where you want to have your project live and execute the following command, which will help you get started with a **new folder** along with the required files, and will propose you to create a needed LeapMicro snapshot. ✅
 
    ```sh
    tmp_script=$(mktemp) && curl -sSL -o "${tmp_script}" https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/scripts/create.sh && chmod +x "${tmp_script}" && "${tmp_script}" && rm "${tmp_script}"
@@ -141,10 +152,10 @@ The easiest way is to use the [homebrew](https://brew.sh/) package manager to in
    mkdir /path/to/your/new/folder
    cd /path/to/your/new/folder
    curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/kube.tf.example -o kube.tf
-   curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-microos-snapshots.pkr.hcl -o hcloud-microos-snapshots.pkr.hcl
+   curl -sL https://raw.githubusercontent.com/kube-hetzner/terraform-hcloud-kube-hetzner/master/packer-template/hcloud-leapmicro-snapshots.pkr.hcl -o hcloud-leapmicro-snapshots.pkr.hcl
    export HCLOUD_TOKEN="your_hcloud_token"
-   packer init hcloud-microos-snapshots.pkr.hcl
-   packer build hcloud-microos-snapshots.pkr.hcl
+   packer init hcloud-leapmicro-snapshots.pkr.hcl
+   packer build hcloud-leapmicro-snapshots.pkr.hcl
    hcloud context create <project-name>
    ```
 
@@ -236,7 +247,7 @@ Otherwise, it is essential to turn off automatic OS upgrades (k3s can continue t
 
 ### The Default Setting
 
-By default, MicroOS gets upgraded automatically on each node and reboot safely via [Kured](https://github.com/kubereboot/kured) installed in the cluster.
+By default, LeapMico gets upgraded automatically on each node and reboot safely via [Kured](https://github.com/kubereboot/kured) installed in the cluster.
 
 As for k3s, it also automatically upgrades thanks to Rancher's [system upgrade controller](https://github.com/rancher/system-upgrade-controller). By default, it will be set to the `initial_k3s_channel`, but you can also set it to `stable`, `latest`, or one more specific like `v1.23` if needed or specify a target version to upgrade to via the upgrade plan (this also allows for downgrades).
 
@@ -252,7 +263,7 @@ All options from the [docs](https://kured.dev/docs/configuration/) are available
 
 ### Turning Off Automatic Upgrades
 
-_If you wish to turn off automatic MicroOS upgrades (Important if you are not launching an HA setup that requires at least 3 control-plane nodes), you need to set:_
+_If you wish to turn off automatic LeapMico upgrades (Important if you are not launching an HA setup that requires at least 3 control-plane nodes), you need to set:_
 
 ```tf
 automatically_upgrade_os = false
@@ -530,7 +541,7 @@ To create a snapshot, run the following command:
 
 ```bash
 export HCLOUD_TOKEN=<your-token>
-packer build ./packer-template/hcloud-microos-snapshots.pkr.hcl
+packer build ./packer-template/hcloud-leapmicro-snapshots.pkr.hcl
 ```
 
 To delete a snapshot, first find it with:
@@ -1174,15 +1185,15 @@ Usually, you will want to upgrade the module in your project to the latest versi
 
 When moving from 1.x to 2.x:
 
-- Within your project folder, run the `createkh` installation command, see [Do Not Skip](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#-do-not-skip-creating-your-kubetf-file-and-the-opensuse-microos-snapshot) section above. This will create the snapshot for you. Don't worry, it's non-destructive and will leave your kube.tf and terraform state alone, but will download the required other packer file.
-- Then modify your kube.tf to use version >= 2.0, and remove `extra_packages_to_install` and `opensuse_microos_mirror_link` variables if used. This functionality has been moved to the packer snapshot definition, see [packer-template/hcloud-microos-snapshots.pkr.hlc](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/packer-template/hcloud-microos-snapshots.pkr.hcl).
+- Within your project folder, run the `createkh` installation command, see [Do Not Skip](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner#-do-not-skip-creating-your-kubetf-file-and-the-opensuse-leapmicro-snapshot) section above. This will create the snapshot for you. Don't worry, it's non-destructive and will leave your kube.tf and terraform state alone, but will download the required other packer file.
+- Then modify your kube.tf to use version >= 2.0, and remove `extra_packages_to_install` and `opensuse_leapmicro_mirror_link` variables if used. This functionality has been moved to the packer snapshot definition, see [packer-template/hcloud-leapmicro-snapshots.pkr.hlc](https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/packer-template/hcloud-leapmicro-snapshots.pkr.hcl).
 - Then run `terraform init -upgrade && terraform apply`.
 
 <!-- CONTRIBUTING -->
 
 ## Contributing
 
-🌱 This project currently installs openSUSE MicroOS via the Hetzner rescue mode, making things a few minutes slower. To help with that, you could **take a few minutes to send a support request to Hetzner, asking them to please add openSUSE MicroOS as a default image**, not just an ISO. The more requests they receive, the likelier they are to add support for it, and if they do, that will cut the deployment time by half. The official link to openSUSE MicroOS is <https://get.opensuse.org/microos>, and their `OpenStack Cloud` image has full support for Cloud-init, which would probably very much suit the Hetzner Ops team!
+🌱 This project currently installs openSUSE LeapMicro via the Hetzner rescue mode, making things a few minutes slower. To help with that, you could **take a few minutes to send a support request to Hetzner, asking them to please add openSUSE LeapMicro as a default image**, not just an ISO. The more requests they receive, the likelier they are to add support for it, and if they do, that will cut the deployment time by half. The official link to openSUSE LeapMicro is <https://get.opensuse.org/leapmicro>, and their `OpenStack Cloud` image has full support for Cloud-init, which would probably very much suit the Hetzner Ops team!
 
 Code contributions are very much **welcome**.
 
@@ -1199,7 +1210,7 @@ Code contributions are very much **welcome**.
    ../kube-hetzner/scripts/cleanup.sh
 
    # To build the Packer image
-   packer build ../kube-hetzner/packer-template/hcloud-microos-snapshots.pkr.hcl
+   packer build ../kube-hetzner/packer-template/hcloud-leapmicro-snapshots.pkr.hcl
    ```
 
 1. Update examples in `kube.tf.example` if required.
@@ -1216,7 +1227,7 @@ Code contributions are very much **welcome**.
 - [Hetzner Cloud](https://www.hetzner.com) for providing a solid infrastructure and terraform package.
 - [Hashicorp](https://www.hashicorp.com) for the amazing terraform framework that makes all the magic happen.
 - [Rancher](https://www.rancher.com) for k3s, an amazing Kube distribution that is the core engine of this project.
-- [openSUSE](https://www.opensuse.org) for MicroOS, which is just next-level Container OS technology.
+- [openSUSE](https://www.opensuse.org) for LeapMicro, which is just next-level Container OS technology.
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
