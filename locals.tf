@@ -131,7 +131,7 @@ locals {
         "  fi",
         "  # Runtime guard to cover current leases before dispatcher hooks fire",
         "  if ! ip -4 route show default | grep -q \" via ${local.network_gw_ipv4} dev $PRIV_IF \" ; then",
-        "    ip -4 route replace default via ${local.network_gw_ipv4} dev \"$PRIV_IF\" metric 512",
+        "    ip -4 route add default via ${local.network_gw_ipv4} dev \"$PRIV_IF\" metric 512 2>/dev/null || true",
         "  fi",
         "else",
         "  echo \"Info: Unable to identify interface that reaches ${local.network_gw_ipv4}; skipping private default route setup.\"",
