@@ -111,7 +111,7 @@ locals {
         "      # Add persistent default route via private network",
         "      # Hetzner DHCP no longer provides default routes for internal networks",
         "      # See https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/issues/1873",
-        "      if ! nmcli connection show \"$NM_CONN\" | grep -q \"0.0.0.0/0.*${local.network_gw_ipv4}\"; then",
+        "      if ! nmcli -g ipv4.routes connection show \"$NM_CONN\" | grep -q \"0.0.0.0/0.*${local.network_gw_ipv4}\"; then",
         "        if ! nmcli connection modify \"$NM_CONN\" +ipv4.routes \"0.0.0.0/0 ${local.network_gw_ipv4}\" >/dev/null 2>&1; then",
         "          echo \"Warning: Failed to add default route on eth1. This node may be affected by Hetzner DHCP changes.\" >&2",
         "        fi",
