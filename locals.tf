@@ -104,7 +104,7 @@ locals {
         "# Determine the private interface dynamically (no hardcoded eth1)",
         "PRIV_IF=$(ip -4 route get ${local.network_gw_ipv4} 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1); exit}}')",
         "if [ -z \"$PRIV_IF\" ]; then",
-        "  PRIV_IF=$(ip -4 route show ${local.network_ipv4_cidr} 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1); exit}}')",
+        "  PRIV_IF=$(ip -4 route show ${var.network_ipv4_cidr} 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1); exit}}')",
         "fi",
         "if [ -n \"$PRIV_IF\" ]; then",
         "  if systemctl is-active --quiet NetworkManager; then",
