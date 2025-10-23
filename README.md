@@ -105,7 +105,7 @@ The easiest way is to use the [homebrew](https://brew.sh/) package manager to in
 | APT (Debian-based)     | sudo apt install terraform packer kubectl                                          |
 | DNF (Red Hat-based)    | sudo dnf install terraform packer kubectl                                          |
 | Snap                   | sudo snap install terraform kubectl --classic && snap install packer               |
-| Chocolatey (Windows)   | choco install terraform packer kubernetes-cli hetzner-cli                          |
+| Chocolatey (Windows)   | choco install terraform packer kubernetes-cli hcloud                               |
 
 ### 💡 [Do not skip] Creating your kube.tf file and the OpenSUSE MicroOS snapshot
 

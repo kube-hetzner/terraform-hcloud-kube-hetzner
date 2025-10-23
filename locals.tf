@@ -106,7 +106,7 @@ locals {
         "if ip link show eth1 &>/dev/null; then",
         "  # Add default route via private network with high metric",
         "  # Metric 20101 matches current DHCP-provided route for compatibility",
-        "  ip route add default via 10.0.0.1 dev eth1 metric 20101 2>/dev/null",
+        "  ip route add default via ${local.network_gw_ipv4} dev eth1 metric 20101 2>/dev/null",
         "  ",
         "  # Configure NetworkManager to ignore DHCP default route on private interface",
         "  if systemctl is-active --quiet NetworkManager; then",
@@ -310,6 +310,9 @@ locals {
 
   # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
   cluster_dns_ipv4 = var.cluster_dns_ipv4 != null ? var.cluster_dns_ipv4 : cidrhost(var.service_ipv4_cidr, 10)
+
+  # The gateway's IP address is always the first IP address of the subnet's IP range
+  network_gw_ipv4 = cidrhost(var.network_ipv4_cidr, 1)
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
@@ -688,6 +691,7 @@ controller:
   hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
 networking:
   enabled: true
+  clusterCIDR: "${var.cluster_ipv4_cidr}"
 args:
   cloud-provider: hcloud
   allow-untagged-cloud: ""
@@ -858,6 +862,11 @@ podDisruptionBudget:
   enabled: true
   maxUnavailable: 33%
 %{endif~}
+%{if var.traefik_provider_kubernetes_gateway_enabled~}
+providers:
+  kubernetesGateway:
+    enabled: true
+%{endif~}
 additionalArguments:
   - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_controller_namespace}/traefik"
 %{for option in var.traefik_additional_options~}
@@ -894,6 +903,12 @@ cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : 
 crds:
   enabled: true
   keep: true
+%{if var.traefik_provider_kubernetes_gateway_enabled~}
+config:
+  apiVersion: controller.config.cert-manager.io/v1alpha1
+  kind: ControllerConfiguration
+  enableGatewayAPI: true
+%{endif~}
 %{if var.ingress_controller == "nginx"~}
 extraArgs:
   - --feature-gates=ACMEHTTP01IngressPathTypeExact=false
@@ -984,19 +999,30 @@ cloudinit_write_files_common = <<EOT
     # Somehow sometimes on private-ip only setups, the 
     # interface may already be correctly names, and this
     # block should be skipped.
-    if ! ip link show eth1; then
-      # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-      INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
-      MAC=$(cat /sys/class/net/$INTERFACE/address)
+    if ! ip link show eth1 >/dev/null 2>&1; then
+      # Find the private network interface by name, falling back to original logic.
+      # The output of 'ip link show' is stored to avoid multiple calls.
+      # Use '|| true' to prevent grep from causing script failure when no matches found
+      IP_LINK_NO_FLANNEL=$(ip link show | grep -v 'flannel' || true)
 
-      if [ "$INTERFACE" = "eth1" ]; then
-        echo "Interface $INTERFACE already points to $MAC, skipping..."
-        exit 0
+      # Try to find an interface with a predictable name, e.g., enp1s0
+      # Anchor pattern to second field to avoid false matches
+      INTERFACE=$(awk '$2 ~ /^enp[0-9]+s[0-9]+:$/{sub(/:/,"",$2); print $2; exit}' <<< "$IP_LINK_NO_FLANNEL")
+
+      # If no predictable name is found, use original logic as fallback
+      if [ -z "$INTERFACE" ]; then
+        INTERFACE=$(awk '/^3:/{p=$2} /^2:/{s=$2} END{iface=p?p:s; sub(/:/,"",iface); print iface}' <<< "$IP_LINK_NO_FLANNEL")
       fi
 
-      # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-      # WV REMOVE > INTERFACE=$(ip link show | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
-      # WV REMOVE > MAC=$(cat /sys/class/net/$INTERFACE/address)
+      # Ensure an interface was found
+      if [ -z "$INTERFACE" ]; then
+        echo "ERROR: Failed to detect network interface for renaming to eth1" >&2
+        echo "Available interfaces:" >&2
+        echo "$IP_LINK_NO_FLANNEL" >&2
+        exit 1
+      fi
+
+      MAC=$(cat "/sys/class/net/$INTERFACE/address")
 
       cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
       SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
