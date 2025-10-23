@@ -1274,4 +1274,9 @@ cloudinit_runcmd_common = <<EOT
 
 EOT
 
+credential_provider_kubelet_arg = var.credential_provider_config_path != null && var.credential_provider_bin_path != null ? [
+  "image-credential-provider-config=${var.credential_provider_config_path}",
+  "image-credential-provider-bin-dir=${var.credential_provider_bin_path}"
+] : []
+
 }

@@ -1226,6 +1226,30 @@ replicas: 1
 bootstrapPassword: "supermario"
   EOT */
 
+  # Uncomment if you want to deploy a credential provider configuration.
+  # If this is for an ECR ensure the base image contains the necessary files (variable 'include_aws_ecr_credential_provider')
+  /*
+  credential_provider_bin_path="/opt/kubernetes-credential-provider/bin"
+  credential_provider_config_path="/opt/kubernetes-credential-provider/credential-provider-config.yaml"
+  credential_provider_config_content = <<EOT
+  apiVersion: kubelet.config.k8s.io/v1
+  kind: CredentialProviderConfig
+  providers:
+    - name: ecr-credential-provider
+      matchImages:
+        - "*.dkr.ecr.*.amazonaws.com"
+      defaultCacheDuration: "12h"
+      apiVersion: credentialprovider.kubelet.k8s.io/v1
+      env:
+        # Option 1: Provide credentials directly
+        - name: AWS_ACCESS_KEY_ID
+          value: ""
+        - name: AWS_SECRET_ACCESS_KEY
+          value: ""
+        # Option 2: Provide the AWS profile to use (in /root/.aws/config). Ensure that the config is added in the base image.
+        - name: AWS_PROFILE
+          value: ""
+EOT*/
 }
 
 provider "hcloud" {

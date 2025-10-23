@@ -35,8 +35,20 @@ variable "packages_to_install" {
   default = []
 }
 
+variable "include_aws_ecr_credential_provider" {
+  description = "Enable to include the aws cli package and the ecr-credential-provider binary"
+  type        = bool
+  default     = false
+}
+
 locals {
-  needed_packages = join(" ", concat(["restorecond policycoreutils policycoreutils-python-utils setools-console audit bind-utils wireguard-tools fuse open-iscsi nfs-client xfsprogs cryptsetup lvm2 git cifs-utils bash-completion mtr tcpdump udica qemu-guest-agent"], var.packages_to_install))
+  required_packages = ["restorecond", "policycoreutils", "policycoreutils-python-utils", "setools-console", "audit", "bind-utils", "wireguard-tools", "fuse", "open-iscsi", "nfs-client", "xfsprogs", "cryptsetup", "lvm2", "git", "cifs-utils", "bash-completion", "mtr", "tcpdump", "udica", "qemu-guest-agent"]
+
+  optional_packages = concat(
+    var.include_aws_ecr_credential_provider ? ["aws-cli"] : []
+  )
+
+  final_package_list = join(" ", concat(local.required_packages, local.optional_packages, var.packages_to_install))
 
   # Add local variables for inline shell commands
   download_image = "wget --timeout=5 --waitretry=5 --tries=5 --retry-connrefused --inet4-only "
@@ -49,10 +61,26 @@ locals {
     sleep 1 && udevadm settle && reboot
   EOT
 
+  install_aws_ecr_credential_provider_commands = <<-EOT
+    transactional-update --continue pkg install -y go make
+    transactional-update --continue shell <<- EOF
+    setenforce 0
+    mkdir -p /tmp/cloud-provider-aws
+    cd /tmp/cloud-provider-aws
+    git clone --depth=1 --branch v1.34.1 https://github.com/kubernetes/cloud-provider-aws build
+    (export GOPATH=/tmp/cloud-provider-aws/go && export GOCACHE=/tmp/cloud-provider-aws/go_cache && cd build/cmd/ecr-credential-provider && go build)
+    mkdir -p /opt/kubernetes-credential-provider/bin
+    cp build/cmd/ecr-credential-provider/ecr-credential-provider /opt/kubernetes-credential-provider/bin
+    rm -rf /tmp/cloud-provider-aws
+    setenforce 1
+    EOF
+    transactional-update --continue pkg rm --clean-deps -y go make
+  EOT
+
   install_packages = <<-EOT
     set -ex
     echo "First reboot successful, installing needed packages..."
-    transactional-update --continue pkg install -y ${local.needed_packages}
+    transactional-update --continue pkg install -y ${local.final_package_list}
     transactional-update --continue shell <<- EOF
     setenforce 0
     rpm --import https://rpm.rancher.io/public.key
@@ -61,6 +89,10 @@ locals {
     restorecon -Rv /etc/selinux/targeted/policy
     restorecon -Rv /var/lib
     setenforce 1
+    EOF
+    ${var.include_aws_ecr_credential_provider ? local.install_aws_ecr_credential_provider_commands:""}
+    transactional-update --continue shell <<- EOF
+    zypper cc -a
     EOF
     sleep 1 && udevadm settle && reboot
   EOT

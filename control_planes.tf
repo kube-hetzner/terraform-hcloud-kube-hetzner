@@ -44,6 +44,9 @@ module "control_planes" {
 
   network_gw_ipv4 = local.network_gw_ipv4
 
+  credential_provider_config_content = var.credential_provider_config_content
+  credential_provider_config_path    = var.credential_provider_config_path
+
   depends_on = [
     hcloud_network_subnet.control_plane,
     hcloud_placement_group.control_plane,
@@ -118,7 +121,7 @@ locals {
       disable-kube-proxy       = var.disable_kube_proxy
       disable                  = local.disable_extras
       # Kubelet arg precedence (last wins): local.kubelet_arg > v.kubelet_args > k3s_global_kubelet_args > k3s_control_plane_kubelet_args
-      kubelet-arg                 = concat(local.kubelet_arg, v.kubelet_args, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args)
+      kubelet-arg                 = concat(local.kubelet_arg, v.kubelet_args, var.k3s_global_kubelet_args, var.k3s_control_plane_kubelet_args, local.credential_provider_kubelet_arg)
       kube-apiserver-arg          = local.kube_apiserver_arg
       kube-controller-manager-arg = local.kube_controller_manager_arg
       flannel-iface               = local.flannel_iface
