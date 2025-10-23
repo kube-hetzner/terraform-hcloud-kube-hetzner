@@ -1061,6 +1061,8 @@ By seperating various roles, this decreases the attack surfaces a bit.
 
 If you need highly available egress (often this is not necessary), this setup is not for you. This setup does not have any impact on the availability of ingress.
 
+> ℹ️ **August 11 2025 DHCP change**: Hetzner stopped advertising the legacy Router option on private networks. Beginning with this module version, every node attached to the Hetzner private network automatically persists a `0.0.0.0/0` route via the virtual gateway on its private interface, so NAT/VPN egress survives DHCP renewals and reboots without manual `ip route add` fixes.
+
 </details>
 
 

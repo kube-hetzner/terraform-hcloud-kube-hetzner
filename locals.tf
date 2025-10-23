@@ -96,7 +96,7 @@ locals {
       ]))
     ] : [],
     local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
-    local.use_nat_router ? [
+    [
       join("\n", [
         "# Ensure persistent private-network default route (Hetzner DHCP change Aug 11, 2025)",
         "set +e  # Allow idempotent network adjustments",
@@ -111,25 +111,35 @@ locals {
         "    NM_CONN=$(nmcli -g GENERAL.CONNECTION device show \"$PRIV_IF\" 2>/dev/null | head -1)",
         "    if [ -n \"$NM_CONN\" ]; then",
         "      # Persist a default route via the private gateway with higher metric than public NICs",
-        "      if ! nmcli -g ipv4.routes connection show \"$NM_CONN\" | grep -qE \"^0\\.0\\.0\\.0/0[[:space:]]+${local.network_gw_ipv4}([[:space:]]|$)\"; then",
-        "        nmcli connection modify \"$NM_CONN\" +ipv4.routes \"0.0.0.0/0 ${local.network_gw_ipv4} 512\" >/dev/null 2>&1 || \\",
+        "      ROUTE_READY=0",
+        "      if nmcli -g ipv4.routes connection show \"$NM_CONN\" | grep -qE \"^0\\.0\\.0\\.0/0[[:space:]]+${local.network_gw_ipv4}([[:space:]]|$)\"; then",
+        "        ROUTE_READY=1",
+        "      else",
+        "        if nmcli connection modify \"$NM_CONN\" +ipv4.routes \"0.0.0.0/0 ${local.network_gw_ipv4} 512\" >/dev/null 2>&1; then",
+        "          ROUTE_READY=1",
+        "        else",
         "          echo \"Warning: Failed to persist default route on $PRIV_IF. Node may be affected by Hetzner DHCP changes.\" >&2",
+        "        fi",
         "      fi",
-        "      nmcli connection modify \"$NM_CONN\" ipv4.never-default yes >/dev/null 2>&1 || true",
-        "      nmcli connection modify \"$NM_CONN\" ipv6.never-default yes >/dev/null 2>&1 || true",
-        "      nmcli connection modify \"$NM_CONN\" ipv4.route-metric 512 >/dev/null 2>&1 || true",
-        "      nmcli connection up \"$NM_CONN\" >/dev/null 2>&1 || true",
+        "      if [ \"$ROUTE_READY\" -eq 1 ]; then",
+        "        nmcli connection modify \"$NM_CONN\" ipv4.never-default yes >/dev/null 2>&1 || true",
+        "        nmcli connection modify \"$NM_CONN\" ipv6.never-default yes >/dev/null 2>&1 || true",
+        "        nmcli connection modify \"$NM_CONN\" ipv4.route-metric 512 >/dev/null 2>&1 || true",
+        "        nmcli connection up \"$NM_CONN\" >/dev/null 2>&1 || true",
+        "      fi",
         "    fi",
         "  fi",
         "  # Runtime guard to cover current leases before dispatcher hooks fire",
-        "  ip -4 route replace default via ${local.network_gw_ipv4} dev \"$PRIV_IF\" metric 512",
+        "  if ! ip -4 route show default | grep -q \" via ${local.network_gw_ipv4} dev $PRIV_IF \" ; then",
+        "    ip -4 route replace default via ${local.network_gw_ipv4} dev \"$PRIV_IF\" metric 512",
+        "  fi",
         "else",
-        "  echo \"Info: No interface reaches ${local.network_gw_ipv4}; skipping private default route setup.\" >&2",
+        "  echo \"Info: Unable to identify interface that reaches ${local.network_gw_ipv4}; skipping private default route setup.\"",
         "fi",
         "",
         "set -e"
       ])
-    ] : [],
+    ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
