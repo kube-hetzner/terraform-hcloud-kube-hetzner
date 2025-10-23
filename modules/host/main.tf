@@ -30,7 +30,7 @@ variable "network" {
 
 resource "hcloud_server" "server" {
   name               = local.name
-  image              = var.microos_snapshot_id
+  image              = var.os_snapshot_id
   server_type        = var.server_type
   location           = var.location
   ssh_keys           = var.ssh_keys
@@ -44,10 +44,15 @@ resource "hcloud_server" "server" {
     ipv6_enabled = !var.disable_ipv6
   }
 
-  network {
-    network_id = var.network_id
-    ip         = var.private_ipv4
-    alias_ips  = []
+  # Don't use inline network block - we'll use the separate hcloud_server_network resource
+  # This avoids conflicts between inline and separate network attachments
+  dynamic "network" {
+    for_each = []
+    content {
+      network_id = var.network_id
+      ip         = var.private_ipv4
+      alias_ips  = []
+    }
   }
 
   labels = var.labels
@@ -85,15 +90,15 @@ resource "hcloud_server" "server" {
     EOT
   }
 
-  # Wait for MicroOS to reboot and be ready.
+  # Wait for OS to reboot and be ready.
   provisioner "local-exec" {
     command = <<-EOT
       timeout 600 bash <<EOF
-          until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} ${local.ssh_proxy_jump} -o ConnectTimeout=2 -p ${var.ssh_port} root@${coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))} true 2> /dev/null
-          do
-            echo "Waiting for MicroOS to become available..."
-            sleep 3
-          done
+        until ssh ${local.ssh_args} -i /tmp/${random_string.identity_file.id} ${local.ssh_proxy_jump} -o ConnectTimeout=2 -p ${var.ssh_port} root@${coalesce(self.ipv4_address, self.ipv6_address, try(one(self.network).ip, null))} true 2> /dev/null
+        do
+          echo "Waiting for ${var.os} to become available..."
+          sleep 3
+        done
       EOF
     EOT
   }
@@ -119,6 +124,14 @@ resource "hcloud_server" "server" {
     ]
   }
 
+}
+
+# Create network attachment when network_id is provided
+resource "hcloud_server_network" "server" {
+  count     = var.network_id != null && var.network_id > 0 ? 1 : 0
+  ip        = var.private_ipv4
+  server_id = hcloud_server.server.id
+  subnet_id = var.ipv4_subnet_id
 }
 
 resource "null_resource" "registries" {
@@ -187,6 +200,7 @@ data "cloudinit_config" "config" {
         cloudinit_write_files_common = var.cloudinit_write_files_common
         cloudinit_runcmd_common      = var.cloudinit_runcmd_common
         swap_size                    = var.swap_size
+        os                           = var.os
         private_network_only         = (var.disable_ipv4 && var.disable_ipv6)
         network_gw_ipv4              = var.network_gw_ipv4
       }
