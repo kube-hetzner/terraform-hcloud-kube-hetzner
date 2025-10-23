@@ -96,7 +96,7 @@ resource "hcloud_load_balancer_service" "control_plane" {
 
 locals {
   control_plane_endpoint_host = var.control_plane_endpoint != null ? (
-    contains(var.control_plane_endpoint, "[") ?
+    strcontains(var.control_plane_endpoint, "[") ?
     # IPv6
     replace(trim(split("]", split("[", var.control_plane_endpoint)[1])[0]), ".*@", "") :
     # IPv4 or DNS
