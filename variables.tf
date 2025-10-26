@@ -501,6 +501,12 @@ variable "traefik_pod_disruption_budget" {
   description = "Should traefik enable pod disruption budget. Default values are maxUnavailable: 33% and minAvailable: 1."
 }
 
+variable "traefik_provider_kubernetes_gateway_enabled" {
+  type        = bool
+  default     = false
+  description = "Should traefik enable the kubernetes gateway provider. Default is false."
+}
+
 variable "traefik_resource_limits" {
   type        = bool
   default     = true
@@ -625,7 +631,7 @@ variable "initial_k3s_channel" {
   description = "Allows you to specify an initial k3s channel. See https://update.k3s.io/v1-release/channels for available channels."
 
   validation {
-    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26", "v1.27", "v1.28", "v1.29", "v1.30", "v1.31", "v1.32", "v1.33"], var.initial_k3s_channel)
+    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26", "v1.27", "v1.28", "v1.29", "v1.30", "v1.31", "v1.32", "v1.33", "v1.34"], var.initial_k3s_channel)
     error_message = "The initial k3s channel must be one of stable, latest or testing, or any of the minor kube versions like v1.26."
   }
 }

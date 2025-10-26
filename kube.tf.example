@@ -341,6 +341,10 @@ module "kube-hetzner" {
   # however also introduce a single point of failure, so if you need high-availability on your
   # egress, you should consider other configurations.
   # 
+  # Hetzner removed the DHCP Router option from private networks on 2025-08-11, so the module
+  # now ensures each node attached to the private network persists a default route via the
+  # virtual gateway. No manual `ip route add` is required after reboots or DHCP renewals.
+  # 
   #
   # nat_router = {
   #   server_type = "cax21"
@@ -368,6 +372,7 @@ module "kube-hetzner" {
   #    name        = "autoscaled-small"
   #    server_type = "cx32"
   #    location    = "fsn1"
+  #    # Add the arg --enforce-node-group-min-size=true in the cluster_autoscaler_extra_args option below if you want min_nodes to be effective
   #    min_nodes   = 0
   #    max_nodes   = 5
   #    labels      = {
@@ -568,6 +573,10 @@ module "kube-hetzner" {
   # Enable or disable pod disruption budget for traefik. Values are maxUnavailable: 33% and minAvailable: 1.
   # The default is true.
   # traefik_pod_disruption_budget = false
+
+  # Enable kubernetes gateway api (https://doc.traefik.io/traefik/providers/kubernetes-gateway/) provider support.
+  # The default is false.
+  # traefik_provider_kubernetes_gateway_enabled = true
 
   # Enable or disable default resource requests and limits for traefik. Values requested are 100m & 50Mi and limits 300m & 150Mi.
   # The default is true.
