@@ -193,7 +193,7 @@ resource "null_resource" "configure_longhorn_volume" {
   provisioner "remote-exec" {
     inline = [
       "set -e",
-      "mkdir -p '${each.value.longhorn_mount_path}' >/dev/null 2>&1",
+      "mkdir -p '${each.value.longhorn_mount_path}' >/dev/null",
       "mountpoint -q '${each.value.longhorn_mount_path}' || mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} '${each.value.longhorn_mount_path}'",
       "${var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
       # Match any non-comment line (^[^#]) with any first field, followed by a space and your mount path in the second column.
