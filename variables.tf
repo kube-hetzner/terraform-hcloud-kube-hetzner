@@ -309,14 +309,14 @@ variable "agent_nodepools" {
     condition = alltrue(flatten([
       for np in var.agent_nodepools : concat(
         [
-          can(regex("^/var/$|^/var/([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*)$", np.longhorn_mount_path)) &&
+          regex("^/var/$|^/var/([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*)$", np.longhorn_mount_path) &&
           !contains(split("/", np.longhorn_mount_path), "..") &&
           !contains(split("/", np.longhorn_mount_path), ".")
         ],
         [
           for node in values(coalesce(np.nodes, {})) : (
             node.longhorn_mount_path == null || (
-              can(regex("^/var/$|^/var/([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*)$", node.longhorn_mount_path)) &&
+              regex("^/var/$|^/var/([a-zA-Z0-9._-]+(/[a-zA-Z0-9._-]+)*)$", node.longhorn_mount_path) &&
               !contains(split("/", node.longhorn_mount_path), "..") &&
               !contains(split("/", node.longhorn_mount_path), ".")
             )
