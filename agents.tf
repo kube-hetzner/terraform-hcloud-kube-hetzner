@@ -196,8 +196,9 @@ resource "null_resource" "configure_longhorn_volume" {
       "mkdir -p '${each.value.longhorn_mount_path}' >/dev/null 2>&1",
       "mountpoint -q '${each.value.longhorn_mount_path}' || mount -o discard,defaults ${hcloud_volume.longhorn_volume[each.key].linux_device} '${each.value.longhorn_mount_path}'",
       "${var.longhorn_fstype == "ext4" ? "resize2fs" : "xfs_growfs"} ${hcloud_volume.longhorn_volume[each.key].linux_device}",
-      "awk '{print $2}' /etc/fstab | grep -qxF '${each.value.longhorn_mount_path}' /etc/fstab || echo '${hcloud_volume.longhorn_volume[each.key].linux_device} ${each.value.longhorn_mount_path} ${var.longhorn_fstype} discard,nofail,defaults 0 0' >> /etc/fstab"
-    ]
+      # Match any non-comment line (^[^#]) with any first field, followed by a space and your mount path in the second column.
+      # This prevents false positives like /data matching /data1.
+      "grep -qE '^[^#[:space:]]+[[:space:]]+${each.value.longhorn_mount_path}[[:space:]]' /etc/fstab || echo '${hcloud_volume.longhorn_volume[each.key].linux_device} ${each.value.longhorn_mount_path} ${var.longhorn_fstype} discard,nofail,defaults 0 0' | tee -a /etc/fstab >/dev/null"]
   }
 
   connection {
