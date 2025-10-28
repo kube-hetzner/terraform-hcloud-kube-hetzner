@@ -94,7 +94,7 @@ resource "kubernetes_manifest" "longhorn_ssd_storageclass" {
     }
     provisioner = "driver.longhorn.io"
     parameters = {
-      numberOfReplicas    = "1"
+      numberOfReplicas    = "3"
       staleReplicaTimeout = "30"
       diskSelector        = "ssd"
       fromBackup          = ""
