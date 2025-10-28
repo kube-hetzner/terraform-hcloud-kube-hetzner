@@ -62,11 +62,6 @@ resource "null_resource" "longhorn_patch_external_disk" {
   for_each = {
     for node in data.kubernetes_nodes.ssd_nodes.nodes : node.metadata[0].name => node.metadata[0].name
   }
-
-  triggers = {
-    always_run = timestamp()
-  }
-
   provisioner "local-exec" {
     command = <<-EOT
       KUBECONFIG=${var.kubeconfig_path} kubectl -n longhorn-system patch nodes.longhorn.io ${each.key} --type merge -p '{
