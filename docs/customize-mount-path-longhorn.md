@@ -68,7 +68,7 @@ resource "null_resource" "longhorn_patch_external_disk" {
         "spec": {
           "disks": {
             "external-ssd": {
-              "path": "/var/lib/longhorn", # The path you set in the nodepools variable
+              "path": "/var/lib/longhorn", # IMPORTANT: This path must match the 'longhorn_mount_path' for the nodes selected by the 'storage=ssd' label. This example assumes all selected nodes use the same path.
               "allowScheduling": true,
               "tags": ["ssd"]
             }
