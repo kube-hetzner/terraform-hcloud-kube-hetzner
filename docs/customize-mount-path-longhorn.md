@@ -25,19 +25,24 @@ In order to use NVMe and external disks with Longhorn, you may need to mount an 
     EOT
     ```
 
-3.  In the `agent_nodepools` where you want to have a customized mount path, set the `longhorn_mount_path` variable.
+3.  In the `agent_nodepools` where you want to have a customized mount path, set the `longhorn_mount_path` variable. It's a good practice to define this path as a local variable to ensure consistency.
+
     ```terraform
+    locals {
+      custom_longhorn_path = "/var/lib/longhorn"
+    }
+
     agent_nodepools = [
       {
         # ... other nodepool configuration
         labels               = ["role=monitoring", "storage=ssd"], # Label we use to filter nodes
         longhorn_volume_size = 50,
-        longhorn_mount_path  = "/var/lib/longhorn" # This is the custom path
+        longhorn_mount_path  = local.custom_longhorn_path # This is the custom path
       }
     ]
     ```
 
-4.  Apply the changes. As a result, your external disks will be mounted to `/var/lib/longhorn`.
+4.  Apply the changes. As a result, your external disks will be mounted to the path defined in `local.custom_longhorn_path`.
 
 ### How to configure Longhorn to use the new path?
 
@@ -68,7 +73,7 @@ resource "null_resource" "longhorn_patch_external_disk" {
         "spec": {
           "disks": {
             "external-ssd": {
-              "path": "/var/lib/longhorn", # IMPORTANT: This path must match the 'longhorn_mount_path' for the nodes selected by the 'storage=ssd' label. This example assumes all selected nodes use the same path.
+              "path": "${local.custom_longhorn_path}", # IMPORTANT: This path must match the 'longhorn_mount_path' for the nodes selected by the 'storage=ssd' label.
               "allowScheduling": true,
               "tags": ["ssd"]
             }
