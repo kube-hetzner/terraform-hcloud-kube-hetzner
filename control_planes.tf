@@ -48,7 +48,7 @@ module "control_planes" {
     hcloud_network_subnet.control_plane,
     hcloud_placement_group.control_plane,
     hcloud_server.nat_router,
-    null_resource.nat_router_await_cloud_init,
+    terraform_data.nat_router_await_cloud_init,
   ]
 }
 

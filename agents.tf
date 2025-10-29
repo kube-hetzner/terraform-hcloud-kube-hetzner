@@ -45,7 +45,7 @@ module "agents" {
     hcloud_network_subnet.agent,
     hcloud_placement_group.agent,
     hcloud_server.nat_router,
-    null_resource.nat_router_await_cloud_init,
+    terraform_data.nat_router_await_cloud_init,
   ]
 }
 
