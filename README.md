@@ -12,10 +12,30 @@
   </p>
   <hr />
     <p align="center">
-    🔥 Introducing <a href="https://chatgpt.com/g/g-67df95cd1e0c8191baedfa3179061581-kh-assistant" target="_blank">KH Assistant</a>, our Custom-GPT kube.tf generator to get you going fast, just tell it what you need! 🚀
+    🔥 Introducing <a href="https://chatgpt.com/g/g-67df95cd1e0c8191baedfa3179061581-kh-assistant" target="_blank">KH Assistant</a>, our Custom-GPT kube.tf generator to get you going fast, just tell it what you need! 🚀 (Updated: 28th July 2025)
   </p>
   <hr />
 </p>
+
+- [About The Project](#about-the-project)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [CNI](#cni)
+- [Scaling Nodes](#scaling-nodes)
+- [Autoscaling Node Pools](#autoscaling-node-pools)
+- [High Availability](#high-availability)
+- [Automatic Upgrade](#automatic-upgrade)
+- [Customizing the Cluster Components](#customizing-the-cluster-components)
+- [Adding Hetzner Robot / Dedicated Servers](#adding-hetzner-robot--dedicated-servers)
+- [Adding Extras](#adding-extras)
+- [Examples](#examples)
+- [Debugging](#debugging)
+- [Takedown](#takedown)
+- [Upgrading the Module](#upgrading-the-module)
+- [Contributing](#contributing)
+- [Acknowledgements](#acknowledgements)
+
+---
 
 ## About The Project
 
@@ -61,6 +81,7 @@ To achieve this, we built up on the shoulders of giants by choosing [openSUSE Mi
 - [x] Optional use of **Floating IPs** for use via Cilium's Egress Gateway.
 - [x] Proper IPv6 support for inbound/outbound traffic.
 - [x] **Flexible configuration options** via variables and an extra Kustomization option.
+- [x] Ability to add Hetzner "Robot" / Dedicated servers as nodes
 
 _It uses Terraform to deploy as it's easy to use, and Hetzner has a great [Hetzner Terraform Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)._
 
@@ -74,16 +95,17 @@ Follow those simple steps, and your world's cheapest Kubernetes cluster will be 
 
 First and foremost, you need to have a Hetzner Cloud account. You can sign up for free [here](https://hetzner.com/cloud/).
 
-Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) or [tofu](https://opentofu.org/docs/intro/install/), [packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli#installing-packer) (for the initial snapshot creation only, no longer needed once that's done), [kubectl](https://kubernetes.io/docs/tasks/tools/) cli and [hcloud](https://github.com/hetznercloud/cli) the Hetzner cli for convenience. The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on Linux, Mac, and Windows Linux Subsystem). Timeout command is also used, which is a part of coreutils on MacOS.
+Then you'll need to have [terraform](https://learn.hashicorp.com/tutorials/terraform/install-cli) or [tofu](https://opentofu.org/docs/intro/install/), [packer](https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli#installing-packer) (for the initial snapshot creation only, no longer needed once that's done), [kubectl](https://kubernetes.io/docs/tasks/tools/) cli and [hcloud](https://github.com/hetznercloud/cli) the Hetzner cli for convenience.  
+The easiest way is to use the [homebrew](https://brew.sh/) package manager to install them (available on MacOS, Linux and Windows Linux Subsystem). The timeout command is also used, which is part of coreutils on MacOS.
 
-```sh
-brew tap hashicorp/tap
-brew install hashicorp/tap/terraform # OR brew install opentofu
-brew install hashicorp/tap/packer
-brew install kubectl
-brew install hcloud
-brew install coreutils
-```
+|        **Tool**        |                              **Installation Command**                              |
+|:----------------------:|:----------------------------------------------------------------------------------:|
+| Homebrew (macOS/Linux) | brew install terraform packer kubectl hcloud                                       |
+| Yay/Paru (Arch-based)  | yay -S terraform packer kubectl hcloud<br> paru -S terraform packer kubectl hcloud |
+| APT (Debian-based)     | sudo apt install terraform packer kubectl                                          |
+| DNF (Red Hat-based)    | sudo dnf install terraform packer kubectl                                          |
+| Snap                   | sudo snap install terraform kubectl --classic && snap install packer               |
+| Chocolatey (Windows)   | choco install terraform packer kubernetes-cli hcloud                               |
 
 ### 💡 [Do not skip] Creating your kube.tf file and the OpenSUSE MicroOS snapshot
 
@@ -287,6 +309,10 @@ Most cluster components of Kube-Hetzner are deployed with the Rancher [Helm Char
 By default, we strive to give you optimal defaults, but if you wish, you can customize them.
 
 For Traefik, Nginx, HAProxy, Rancher, Cilium, Traefik, and Longhorn, for maximum flexibility, we give you the ability to configure them even better via helm values variables (e.g. `cilium_values`, see the advanced section in the kube.tf.example for more).
+
+## Adding Hetzner Robot / Dedicated Servers
+
+See the [guide on adding robot servers](docs/add-robot-server.md)
 
 ## Adding Extras
 
@@ -998,7 +1024,7 @@ enable_delete_protection = {
 </details>
 <details>
 
-<summary>Use only private ips in your cluster</summary>
+<summary>Use only private ips in your cluster (Wireguard)</summary>
 
 To use only private ips on your cluster, you need in your project:
 1. A network already configured.
@@ -1019,6 +1045,24 @@ If you follow this values, in your kube.tf, please set:
 
 This setup is compatible with a loadbalancer for your control planes, however you should consider to set
 `control_plane_lb_enable_public_interface = false` to keep ip private.
+</details>
+<details>
+
+<summary>Use only private ips in your cluster (NAT Router)</summary>
+
+Setup a purely private cluster where public internet traffic is limited to the 
+following paths:
+- egress: entirely through the NAT router, using a single IP for all egress traffic.
+- ssh: entirely through the bastion host, at the moment the same as the NAT router.
+- control-plane (kubectl): through the control plane load balancer only.
+- regular ingress: through the agents load balancer only.
+
+By seperating various roles, this decreases the attack surfaces a bit.
+
+If you need highly available egress (often this is not necessary), this setup is not for you. This setup does not have any impact on the availability of ingress.
+
+> ℹ️ **August 11 2025 DHCP change**: Hetzner removed the legacy Router option on private networks on this date. Beginning with this module version, every node attached to the Hetzner private network automatically persists a `0.0.0.0/0` route via the virtual gateway on its private interface, so NAT/VPN egress survives DHCP renewals and reboots without manual `ip route add` fixes.
+
 </details>
 
 

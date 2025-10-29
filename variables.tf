@@ -120,6 +120,35 @@ variable "cluster_dns_ipv4" {
   default     = null
 }
 
+
+variable "nat_router" {
+  description = "Do you want to pipe all egress through a single nat router which is to be constructed?"
+  nullable    = true
+  default     = null
+  type = object({
+    server_type = string
+    location    = string
+    labels      = optional(map(string), {})
+    enable_sudo = optional(bool, false)
+  })
+  validation {
+    condition     = (var.nat_router != null && var.use_control_plane_lb) || (var.nat_router == null)
+    error_message = "If you enable the use of a NAT router, you must set use_control_plane_lb=true."
+  }
+}
+
+variable "nat_router_subnet_index" {
+  type        = number
+  default     = 200
+  description = "Subnet index (0-255) for NAT router. Default 200 is safe for most deployments. Must not conflict with control plane (counting down from 255) or agent pools (counting up from 0)."
+
+  validation {
+    condition     = var.nat_router_subnet_index >= 0 && var.nat_router_subnet_index <= 255
+    error_message = "NAT router subnet index must be between 0 and 255."
+  }
+}
+
+
 variable "load_balancer_location" {
   description = "Default load balancer location."
   type        = string
@@ -371,7 +400,6 @@ variable "autoscaler_disable_ipv6" {
   default     = false
 }
 
-
 variable "hetzner_ccm_version" {
   type        = string
   default     = null
@@ -471,6 +499,12 @@ variable "traefik_pod_disruption_budget" {
   type        = bool
   default     = true
   description = "Should traefik enable pod disruption budget. Default values are maxUnavailable: 33% and minAvailable: 1."
+}
+
+variable "traefik_provider_kubernetes_gateway_enabled" {
+  type        = bool
+  default     = false
+  description = "Should traefik enable the kubernetes gateway provider. Default is false."
 }
 
 variable "traefik_resource_limits" {
@@ -597,7 +631,7 @@ variable "initial_k3s_channel" {
   description = "Allows you to specify an initial k3s channel. See https://update.k3s.io/v1-release/channels for available channels."
 
   validation {
-    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26", "v1.27", "v1.28", "v1.29", "v1.30", "v1.31", "v1.32", "v1.33"], var.initial_k3s_channel)
+    condition     = contains(["stable", "latest", "testing", "v1.16", "v1.17", "v1.18", "v1.19", "v1.20", "v1.21", "v1.22", "v1.23", "v1.24", "v1.25", "v1.26", "v1.27", "v1.28", "v1.29", "v1.30", "v1.31", "v1.32", "v1.33", "v1.34"], var.initial_k3s_channel)
     error_message = "The initial k3s channel must be one of stable, latest or testing, or any of the minor kube versions like v1.26."
   }
 }
@@ -874,12 +908,8 @@ variable "cert_manager_helmchart_bootstrap" {
 
 variable "cert_manager_values" {
   type        = string
-  default     = <<EOT
-crds:
-  enabled: true
-  keep: true
-  EOT
-  description = "Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. Warning, the default value is only valid from cert-manager v1.15.0 onwards. For older versions, you need to set 'installCRDs: true'."
+  default     = ""
+  description = "Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. Defaults are set in locals.tf. For cert-manager versions prior to v1.15.0, you need to set 'installCRDs: true'."
 }
 
 variable "enable_rancher" {
@@ -1208,4 +1238,10 @@ variable "sys_upgrade_controller_version" {
   type        = string
   default     = "v0.14.2"
   description = "Version of the System Upgrade Controller for automated upgrades of k3s. See https://github.com/rancher/system-upgrade-controller/releases for the available versions."
+}
+
+variable "hetzner_ccm_values" {
+  type        = string
+  default     = ""
+  description = "Additional helm values file to pass to Hetzner Controller Manager as 'valuesContent' at the HelmChart."
 }

@@ -333,6 +333,27 @@ module "kube-hetzner" {
   # Specifies the number of times a health check is retried before a target is marked as unhealthy. (default: 3)
   # load_balancer_health_check_retries = 3
 
+
+  # Setup a NAT router, and automatically disable public ips on all control plane and agent nodes.
+  # To use this, you must also set use_control_plane_lb = true, otherwise kubectl can never
+  # reach the cluster. The NAT router will also function as bastion. This makes securing the cluster
+  # easier, as all public traffic passes through a single strongly secured node. It does
+  # however also introduce a single point of failure, so if you need high-availability on your
+  # egress, you should consider other configurations.
+  # 
+  # Hetzner removed the DHCP Router option from private networks on 2025-08-11, so the module
+  # now ensures each node attached to the private network persists a default route via the
+  # virtual gateway. No manual `ip route add` is required after reboots or DHCP renewals.
+  # 
+  #
+  # nat_router = {
+  #   server_type = "cax21"
+  #   location    = "fsn1"
+  #   enable_sudo = false # optional, default to false. Set to true to add nat-router user to the sudo'ers. Note that ssh as root is disabled.
+  #   labels      = {} # optionally add labels.
+  # }
+
+
   ### The following values are entirely optional (and can be removed from this if unused)
 
   # You can refine a base domain name to be use in this form of nodename.base_domain for setting the reverse dns inside Hetzner
@@ -351,6 +372,7 @@ module "kube-hetzner" {
   #    name        = "autoscaled-small"
   #    server_type = "cx32"
   #    location    = "fsn1"
+  #    # Add the arg --enforce-node-group-min-size=true in the cluster_autoscaler_extra_args option below if you want min_nodes to be effective
   #    min_nodes   = 0
   #    max_nodes   = 5
   #    labels      = {
@@ -548,6 +570,10 @@ module "kube-hetzner" {
   # Enable or disable pod disruption budget for traefik. Values are maxUnavailable: 33% and minAvailable: 1.
   # The default is true.
   # traefik_pod_disruption_budget = false
+
+  # Enable kubernetes gateway api (https://doc.traefik.io/traefik/providers/kubernetes-gateway/) provider support.
+  # The default is false.
+  # traefik_provider_kubernetes_gateway_enabled = true
 
   # Enable or disable default resource requests and limits for traefik. Values requested are 100m & 50Mi and limits 300m & 150Mi.
   # The default is true.
@@ -976,6 +1002,7 @@ module "kube-hetzner" {
   # Be careful when maintaining your own cilium_values, as the choice of available settings depends on the Cilium version used. See also the cilium_version setting to fix a specific version.
   # The following is an example, please note that the current indentation inside the EOT is important.
   /*   cilium_values = <<EOT
+
 ipam:
   mode: kubernetes
 k8s:
@@ -995,6 +1022,9 @@ encryption:
 MTU: 1450
   EOT */
 
+  # If you want to use a specific cert-manager helm chart version, set it below; otherwise, leave them as-is for the latest versions.
+  # cert_manager_version = ""
+
   # Cert manager, all cert-manager helm values can be found at https://github.com/cert-manager/cert-manager/blob/master/deploy/charts/cert-manager/values.yaml
   # The following is an example, please note that the current indentation inside the EOT is important.
   # For cert-manager versions < v1.15.0, you need to set installCRDs: true instead of crds.enabled and crds.keep.
@@ -1007,6 +1037,29 @@ webhook:
   replicaCount: 3
 cainjector:
   replicaCount: 3
+  EOT */
+
+  # Hetzner Cloud Controller Manager, all Hetzner Cloud Controller Manager helm values can be found at https://github.com/hetznercloud/hcloud-cloud-controller-manager/blob/main/chart/values.yaml
+  # We advise you to not touch this and to let the defaults that are already set under the hood.
+  # For advanced use cases like adding Hetzner Robot servers, see: https://github.com/kube-hetzner/terraform-hcloud-kube-hetzner/blob/master/docs/add-robot-server.md
+  # The following is an example, please note that the current indentation inside the EOT is important.
+  /*   hetzner_ccm_values = <<EOT
+networking:
+  enabled: true
+args:
+  cloud-provider: hcloud
+  allow-untagged-cloud: ""
+  route-reconciliation-period: 30s
+  webhook-secure-port: "0"
+env:
+  HCLOUD_LOAD_BALANCERS_LOCATION:
+    value: "fsn1"
+  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_ENABLED:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
+    value: "true"
   EOT */
 
   # csi-driver-smb, all csi-driver-smb helm values can be found at https://github.com/kubernetes-csi/csi-driver-smb/blob/master/charts/latest/csi-driver-smb/values.yaml

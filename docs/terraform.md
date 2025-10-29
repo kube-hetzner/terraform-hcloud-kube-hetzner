@@ -8,7 +8,8 @@
 | <a name="requirement_github"></a> [github](#requirement\_github) | >= 6.4.0 |
 | <a name="requirement_hcloud"></a> [hcloud](#requirement\_hcloud) | >= 1.51.0 |
 | <a name="requirement_local"></a> [local](#requirement\_local) | >= 2.5.2 |
-| <a name="requirement_remote"></a> [remote](#requirement\_remote) | >= 0.1.3 |
+| <a name="requirement_semvers"></a> [semvers](#requirement\_semvers) | >= 0.7.1 |
+| <a name="requirement_ssh"></a> [ssh](#requirement\_ssh) | 2.7.0 |
 
 ### Providers
 
@@ -20,7 +21,7 @@
 | <a name="provider_local"></a> [local](#provider\_local) | >= 2.5.2 |
 | <a name="provider_null"></a> [null](#provider\_null) | n/a |
 | <a name="provider_random"></a> [random](#provider\_random) | n/a |
-| <a name="provider_remote"></a> [remote](#provider\_remote) | >= 0.1.3 |
+| <a name="provider_ssh"></a> [ssh](#provider\_ssh) | 2.7.0 |
 
 ### Modules
 
@@ -44,19 +45,25 @@
 | [hcloud_load_balancer_target.cluster](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/load_balancer_target) | resource |
 | [hcloud_load_balancer_target.control_plane](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/load_balancer_target) | resource |
 | [hcloud_network.k3s](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/network) | resource |
+| [hcloud_network_route.nat_route_public_internet](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/network_route) | resource |
 | [hcloud_network_subnet.agent](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/network_subnet) | resource |
 | [hcloud_network_subnet.control_plane](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/network_subnet) | resource |
+| [hcloud_network_subnet.nat_router](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/network_subnet) | resource |
 | [hcloud_placement_group.agent](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/placement_group) | resource |
 | [hcloud_placement_group.agent_named](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/placement_group) | resource |
 | [hcloud_placement_group.control_plane](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/placement_group) | resource |
 | [hcloud_placement_group.control_plane_named](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/placement_group) | resource |
+| [hcloud_primary_ip.nat_router_primary_ipv4](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/primary_ip) | resource |
+| [hcloud_primary_ip.nat_router_primary_ipv6](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/primary_ip) | resource |
 | [hcloud_rdns.agents](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/rdns) | resource |
+| [hcloud_server.nat_router](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/server) | resource |
 | [hcloud_ssh_key.k3s](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/ssh_key) | resource |
 | [hcloud_volume.longhorn_volume](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/resources/volume) | resource |
 | [local_file.cert_manager_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.cilium_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.csi_driver_smb_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.haproxy_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [local_file.hetzner_ccm_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.kustomization_backup](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.longhorn_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
 | [local_file.nginx_values](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
@@ -75,10 +82,13 @@
 | [terraform_data.kustomization](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [terraform_data.kustomization_user](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [terraform_data.kustomization_user_deploy](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [null_resource.nat_router_await_cloud_init](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_password.k3s_token](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [random_password.rancher_bootstrap](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
+| [ssh_sensitive_resource.kubeconfig](https://registry.terraform.io/providers/loafoe/ssh/2.7.0/docs/resources/sensitive_resource) | resource |
 | [cloudinit_config.autoscaler_config](https://registry.terraform.io/providers/hashicorp/cloudinit/latest/docs/data-sources/config) | data source |
 | [cloudinit_config.autoscaler_legacy_config](https://registry.terraform.io/providers/hashicorp/cloudinit/latest/docs/data-sources/config) | data source |
+| [cloudinit_config.nat_router_config](https://registry.terraform.io/providers/hashicorp/cloudinit/latest/docs/data-sources/config) | data source |
 | [github_release.calico](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/release) | data source |
 | [github_release.hetzner_ccm](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/release) | data source |
 | [github_release.hetzner_csi](https://registry.terraform.io/providers/integrations/github/latest/docs/data-sources/release) | data source |
@@ -88,7 +98,6 @@
 | [hcloud_network.k3s](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/network) | data source |
 | [hcloud_servers.autoscaled_nodes](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/servers) | data source |
 | [hcloud_ssh_keys.keys_by_selector](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs/data-sources/ssh_keys) | data source |
-| [remote_file.kubeconfig](https://registry.terraform.io/providers/tenstad/remote/latest/docs/data-sources/file) | data source |
 
 ### Inputs
 
@@ -113,7 +122,7 @@
 | <a name="input_calico_values"></a> [calico\_values](#input\_calico\_values) | Just a stub for a future helm implementation. Now it can be used to replace the calico kustomize patch of the calico manifest. | `string` | `""` | no |
 | <a name="input_calico_version"></a> [calico\_version](#input\_calico\_version) | Version of Calico. See https://github.com/projectcalico/calico/releases for the available versions. | `string` | `null` | no |
 | <a name="input_cert_manager_helmchart_bootstrap"></a> [cert\_manager\_helmchart\_bootstrap](#input\_cert\_manager\_helmchart\_bootstrap) | Whether the HelmChart cert\_manager shall be run on control-plane nodes. | `bool` | `false` | no |
-| <a name="input_cert_manager_values"></a> [cert\_manager\_values](#input\_cert\_manager\_values) | Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. Warning, the default value is only valid from cert-manager v1.15.0 onwards. For older versions, you need to set 'installCRDs: true'. | `string` | `"crds:\n  enabled: true\n  keep: true\n"` | no |
+| <a name="input_cert_manager_values"></a> [cert\_manager\_values](#input\_cert\_manager\_values) | Additional helm values file to pass to Cert-Manager as 'valuesContent' at the HelmChart. Defaults are set in locals.tf. For cert-manager versions prior to v1.15.0, you need to set 'installCRDs: true'. | `string` | `""` | no |
 | <a name="input_cert_manager_version"></a> [cert\_manager\_version](#input\_cert\_manager\_version) | Version of cert\_manager. | `string` | `"*"` | no |
 | <a name="input_cilium_egress_gateway_enabled"></a> [cilium\_egress\_gateway\_enabled](#input\_cilium\_egress\_gateway\_enabled) | Enables egress gateway to redirect and SNAT the traffic that leaves the cluster. | `bool` | `false` | no |
 | <a name="input_cilium_hubble_enabled"></a> [cilium\_hubble\_enabled](#input\_cilium\_hubble\_enabled) | Enables Hubble Observability to collect and visualize network traffic. | `bool` | `false` | no |
@@ -174,6 +183,7 @@
 | <a name="input_hcloud_ssh_key_id"></a> [hcloud\_ssh\_key\_id](#input\_hcloud\_ssh\_key\_id) | If passed, a key already registered within hetzner is used. Otherwise, a new one will be created by the module. | `string` | `null` | no |
 | <a name="input_hcloud_token"></a> [hcloud\_token](#input\_hcloud\_token) | Hetzner Cloud API Token. | `string` | n/a | yes |
 | <a name="input_hetzner_ccm_use_helm"></a> [hetzner\_ccm\_use\_helm](#input\_hetzner\_ccm\_use\_helm) | Whether to use the helm chart for the Hetzner CCM or the legacy manifest which is the default. | `bool` | `false` | no |
+| <a name="input_hetzner_ccm_values"></a> [hetzner\_ccm\_values](#input\_hetzner\_ccm\_values) | Additional helm values file to pass to Hetzner Controller Manager as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_hetzner_ccm_version"></a> [hetzner\_ccm\_version](#input\_hetzner\_ccm\_version) | Version of Kubernetes Cloud Controller Manager for Hetzner Cloud. See https://github.com/hetznercloud/hcloud-cloud-controller-manager/releases for the available versions. | `string` | `null` | no |
 | <a name="input_hetzner_csi_values"></a> [hetzner\_csi\_values](#input\_hetzner\_csi\_values) | Additional helm values file to pass to hetzner csi as 'valuesContent' at the HelmChart. | `string` | `""` | no |
 | <a name="input_hetzner_csi_version"></a> [hetzner\_csi\_version](#input\_hetzner\_csi\_version) | Version of Container Storage Interface driver for Hetzner Cloud. See https://github.com/hetznercloud/csi-driver/releases for the available versions. | `string` | `null` | no |
@@ -215,6 +225,8 @@
 | <a name="input_longhorn_version"></a> [longhorn\_version](#input\_longhorn\_version) | Version of longhorn. | `string` | `"*"` | no |
 | <a name="input_microos_arm_snapshot_id"></a> [microos\_arm\_snapshot\_id](#input\_microos\_arm\_snapshot\_id) | MicroOS ARM snapshot ID to be used. Per default empty, the most recent image created using createkh will be used | `string` | `""` | no |
 | <a name="input_microos_x86_snapshot_id"></a> [microos\_x86\_snapshot\_id](#input\_microos\_x86\_snapshot\_id) | MicroOS x86 snapshot ID to be used. Per default empty, the most recent image created using createkh will be used | `string` | `""` | no |
+| <a name="input_nat_router"></a> [nat\_router](#input\_nat\_router) | Do you want to pipe all egress through a single nat router which is to be constructed? | <pre>object({<br/>    server_type = string<br/>    location    = string<br/>    labels      = optional(map(string), {})<br/>    enable_sudo = optional(bool, false)<br/>  })</pre> | `null` | no |
+| <a name="input_nat_router_subnet_index"></a> [nat\_router\_subnet\_index](#input\_nat\_router\_subnet\_index) | Subnet index (0-255) for NAT router. Default 200 is safe for most deployments. Must not conflict with control plane (counting down from 255) or agent pools (counting up from 0). | `number` | `200` | no |
 | <a name="input_network_ipv4_cidr"></a> [network\_ipv4\_cidr](#input\_network\_ipv4\_cidr) | The main network cidr that all subnets will be created upon. | `string` | `"10.0.0.0/8"` | no |
 | <a name="input_network_region"></a> [network\_region](#input\_network\_region) | Default region for network. | `string` | `"eu-central"` | no |
 | <a name="input_nginx_values"></a> [nginx\_values](#input\_nginx\_values) | Additional helm values file to pass to nginx as 'valuesContent' at the HelmChart. | `string` | `""` | no |
@@ -246,6 +258,7 @@
 | <a name="input_traefik_autoscaling"></a> [traefik\_autoscaling](#input\_traefik\_autoscaling) | Should traefik enable Horizontal Pod Autoscaler. | `bool` | `true` | no |
 | <a name="input_traefik_image_tag"></a> [traefik\_image\_tag](#input\_traefik\_image\_tag) | Traefik image tag. Useful to use the beta version for new features. Example: v3.0.0-beta5 | `string` | `""` | no |
 | <a name="input_traefik_pod_disruption_budget"></a> [traefik\_pod\_disruption\_budget](#input\_traefik\_pod\_disruption\_budget) | Should traefik enable pod disruption budget. Default values are maxUnavailable: 33% and minAvailable: 1. | `bool` | `true` | no |
+| <a name="input_traefik_provider_kubernetes_gateway_enabled"></a> [traefik\_provider\_kubernetes\_gateway\_enabled](#input\_traefik\_provider\_kubernetes\_gateway\_enabled) | Should traefik enable the kubernetes gateway provider. Default is false. | `bool` | `false` | no |
 | <a name="input_traefik_redirect_to_https"></a> [traefik\_redirect\_to\_https](#input\_traefik\_redirect\_to\_https) | Should traefik redirect http traffic to https. | `bool` | `true` | no |
 | <a name="input_traefik_resource_limits"></a> [traefik\_resource\_limits](#input\_traefik\_resource\_limits) | Should traefik enable default resource requests and limits. Default values are requests: 100m & 50Mi and limits: 300m & 150Mi. | `bool` | `true` | no |
 | <a name="input_traefik_resource_values"></a> [traefik\_resource\_values](#input\_traefik\_resource\_values) | Requests and limits for Traefik. | <pre>object({<br/>    requests = object({<br/>      cpu    = string<br/>      memory = string<br/>    })<br/>    limits = object({<br/>      cpu    = string<br/>      memory = string<br/>    })<br/>  })</pre> | <pre>{<br/>  "limits": {<br/>    "cpu": "300m",<br/>    "memory": "150Mi"<br/>  },<br/>  "requests": {<br/>    "cpu": "100m",<br/>    "memory": "50Mi"<br/>  }<br/>}</pre> | no |
@@ -280,6 +293,10 @@
 | <a name="output_lb_control_plane_ipv4"></a> [lb\_control\_plane\_ipv4](#output\_lb\_control\_plane\_ipv4) | The public IPv4 address of the Hetzner control plane load balancer |
 | <a name="output_lb_control_plane_ipv6"></a> [lb\_control\_plane\_ipv6](#output\_lb\_control\_plane\_ipv6) | The public IPv6 address of the Hetzner control plane load balancer |
 | <a name="output_longhorn_values"></a> [longhorn\_values](#output\_longhorn\_values) | Helm values.yaml used for Longhorn |
+| <a name="output_nat_router_public_ipv4"></a> [nat\_router\_public\_ipv4](#output\_nat\_router\_public\_ipv4) | The address of the nat router, if it exists. |
+| <a name="output_nat_router_public_ipv6"></a> [nat\_router\_public\_ipv6](#output\_nat\_router\_public\_ipv6) | The address of the nat router, if it exists. |
+| <a name="output_nat_router_ssh_port"></a> [nat\_router\_ssh\_port](#output\_nat\_router\_ssh\_port) | The non-root user as which you can ssh into the router. |
+| <a name="output_nat_router_username"></a> [nat\_router\_username](#output\_nat\_router\_username) | The non-root user as which you can ssh into the router. |
 | <a name="output_network_id"></a> [network\_id](#output\_network\_id) | The ID of the HCloud network. |
 | <a name="output_nginx_values"></a> [nginx\_values](#output\_nginx\_values) | Helm values.yaml used for nginx-ingress |
 | <a name="output_ssh_key_id"></a> [ssh\_key\_id](#output\_ssh\_key\_id) | The ID of the HCloud SSH key. |

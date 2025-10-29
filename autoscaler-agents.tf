@@ -41,9 +41,9 @@ locals {
       cluster_config                             = base64encode(jsonencode(local.cluster_config))
       firewall_id                                = hcloud_firewall.k3s.id
       cluster_name                               = local.cluster_prefix
-      node_pools                                 = var.autoscaler_nodepools,
-      disable_ipv4                               = var.autoscaler_disable_ipv4,
-      disable_ipv6                               = var.autoscaler_disable_ipv6,
+      node_pools                                 = var.autoscaler_nodepools
+      enable_ipv4                                = !(var.autoscaler_disable_ipv4 || local.use_nat_router)
+      enable_ipv6                                = !(var.autoscaler_disable_ipv6 || local.use_nat_router)
   })
   # A concatenated list of all autoscaled nodes
   autoscaled_nodes = length(var.autoscaler_nodepools) == 0 ? {} : {
@@ -66,6 +66,12 @@ resource "terraform_data" "configure_autoscaler" {
     agent_identity = local.ssh_agent_identity
     host           = local.first_control_plane_ip
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   # Upload the autoscaler resource defintion
@@ -127,6 +133,7 @@ data "cloudinit_config" "autoscaler_config" {
         cloudinit_write_files_common = local.cloudinit_write_files_common
         cloudinit_runcmd_common      = local.cloudinit_runcmd_common,
         private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
+        network_gw_ipv4              = local.network_gw_ipv4
       }
     )
   }
@@ -166,6 +173,7 @@ data "cloudinit_config" "autoscaler_legacy_config" {
         cloudinit_write_files_common = local.cloudinit_write_files_common
         cloudinit_runcmd_common      = local.cloudinit_runcmd_common,
         private_network_only         = var.autoscaler_disable_ipv4 && var.autoscaler_disable_ipv6,
+        network_gw_ipv4              = local.network_gw_ipv4,
       }
     )
   }
@@ -188,6 +196,12 @@ resource "terraform_data" "autoscaled_nodes_registries" {
     agent_identity = local.ssh_agent_identity
     host           = coalesce(each.value.ipv4_address, each.value.ipv6_address, try(one(each.value.network).ip, null))
     port           = var.ssh_port
+
+    bastion_host        = local.ssh_bastion.bastion_host
+    bastion_port        = local.ssh_bastion.bastion_port
+    bastion_user        = local.ssh_bastion.bastion_user
+    bastion_private_key = local.ssh_bastion.bastion_private_key
+
   }
 
   provisioner "file" {

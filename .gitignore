@@ -48,3 +48,8 @@ CLAUDE.md
 
 # Misc
 .DS_Store
+
+requirements/*
+
+# Ignore IntelliJ related files
+.idea

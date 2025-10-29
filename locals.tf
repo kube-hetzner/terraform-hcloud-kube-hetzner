@@ -15,6 +15,9 @@ locals {
   kured_version  = var.kured_version != null ? var.kured_version : data.github_release.kured[0].release_tag
   calico_version = length(data.github_release.calico) == 0 ? var.calico_version : data.github_release.calico[0].release_tag
 
+  # Determine kured YAML suffix based on version (>= 1.20.0 uses -combined.yaml, < 1.20.0 uses -dockerhub.yaml)
+  kured_yaml_suffix = provider::semvers::compare(local.kured_version, "1.20.0") >= 0 ? "combined" : "dockerhub"
+
   cilium_ipv4_native_routing_cidr = coalesce(var.cilium_ipv4_native_routing_cidr, var.cluster_ipv4_cidr)
 
   # Check if the user has set custom DNS servers.
@@ -68,13 +71,96 @@ locals {
       local.install_system_alias,
       local.install_kubectl_bash_completion,
     ],
-    length(local.dns_servers_ipv4) > 0 ? [
-      "nmcli con mod eth0 ipv4.dns ${join(",", local.dns_servers_ipv4)}"
-    ] : [],
-    length(local.dns_servers_ipv6) > 0 ? [
-      "nmcli con mod eth0 ipv6.dns ${join(",", local.dns_servers_ipv6)}"
+    local.has_dns_servers ? [
+      join("\n", compact([
+        "# Wait for NetworkManager to be ready",
+        "if ! timeout 60 bash -c 'until systemctl is-active --quiet NetworkManager; do echo \"Waiting for NetworkManager to be ready...\"; sleep 2; done'; then",
+        "  echo \"ERROR: NetworkManager is not active after timeout\" >&2",
+        "  exit 0  # Don't fail cloud-init",
+        "fi",
+        "# Get the default interface",
+        "IFACE=$(ip route show default 2>/dev/null | awk '/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
+        "if [ -z \"$IFACE\" ]; then",
+        "  # Fallback: try to get any interface that's up and has an IP",
+        "  IFACE=$(ip route show 2>/dev/null | awk '!/^default/ && /dev/ {for(i=1;i<=NF;i++) if($i==\"dev\") {print $(i+1); exit}}')",
+        "fi",
+        "if [ -n \"$IFACE\" ]; then",
+        "  CONNECTION=$(nmcli -g GENERAL.CONNECTION device show \"$IFACE\" 2>/dev/null | head -1)",
+        "  if [ -n \"$CONNECTION\" ]; then",
+        "    # Disable auto-DNS for both protocols when custom DNS servers are provided",
+        "    nmcli con mod \"$CONNECTION\" ipv4.ignore-auto-dns yes ipv6.ignore-auto-dns yes",
+        length(local.dns_servers_ipv4) > 0 ? "    nmcli con mod \"$CONNECTION\" ipv4.dns ${join(",", local.dns_servers_ipv4)}" : "",
+        length(local.dns_servers_ipv6) > 0 ? "    nmcli con mod \"$CONNECTION\" ipv6.dns ${join(",", local.dns_servers_ipv6)}" : "",
+        "  fi",
+        "fi"
+      ]))
     ] : [],
     local.has_dns_servers ? ["systemctl restart NetworkManager"] : [],
+    [
+      join("\n", [
+        "# Ensure persistent private-network default route (Hetzner DHCP change Aug 11, 2025)",
+        "set +e  # Allow idempotent network adjustments",
+        "METRIC=30000",
+        "",
+        "# Determine the private interface dynamically (no hardcoded eth1)",
+        "PRIV_IF=$(ip -4 route show ${var.network_ipv4_cidr} 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1); exit}}' | head -n 1)",
+        "if [ -z \"$PRIV_IF\" ]; then",
+        "  ROUTE_LINE=$(ip -4 route get ${local.network_gw_ipv4} 2>/dev/null)",
+        "  if [ -n \"$ROUTE_LINE\" ] && ! echo \"$ROUTE_LINE\" | grep -q ' via '; then",
+        "    PRIV_IF=$(echo \"$ROUTE_LINE\" | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1); exit}}' | head -n 1)",
+        "  fi",
+        "fi",
+        "if [ -n \"$PRIV_IF\" ]; then",
+        "  if systemctl is-active --quiet NetworkManager; then",
+        "    NM_CONN=$(nmcli -g GENERAL.CONNECTION device show \"$PRIV_IF\" 2>/dev/null | head -1)",
+        "    if [ -n \"$NM_CONN\" ]; then",
+        "      # Persist a default route via the private gateway with higher metric than public NICs",
+        "      ROUTE_READY=0",
+        "      ROUTE_LINE=$(nmcli -g ipv4.routes connection show \"$NM_CONN\" | tr ',' '\\n' | awk '$1==\"0.0.0.0/0\" && $2==\"${local.network_gw_ipv4}\"{print $0; exit}')",
+        "      if [ -n \"$ROUTE_LINE\" ]; then",
+        "        CUR_ROUTE_METRIC=$(echo \"$ROUTE_LINE\" | awk '{print $3}')",
+        "        if [ -z \"$CUR_ROUTE_METRIC\" ] || [ \"$CUR_ROUTE_METRIC\" != \"$METRIC\" ]; then",
+        "          nmcli connection modify \"$NM_CONN\" -ipv4.routes \"$ROUTE_LINE\" >/dev/null 2>&1 || true",
+        "          if nmcli connection modify \"$NM_CONN\" +ipv4.routes \"0.0.0.0/0 ${local.network_gw_ipv4} $METRIC\" >/dev/null 2>&1; then",
+        "            ROUTE_READY=1",
+        "          else",
+        "            echo \"Warning: Failed to update default route metric on $PRIV_IF. Node may be affected by Hetzner DHCP changes.\" >&2",
+        "          fi",
+        "        else",
+        "          ROUTE_READY=1",
+        "        fi",
+        "      else",
+        "        if nmcli connection modify \"$NM_CONN\" +ipv4.routes \"0.0.0.0/0 ${local.network_gw_ipv4} $METRIC\" >/dev/null 2>&1; then",
+        "          ROUTE_READY=1",
+        "        else",
+        "          echo \"Warning: Failed to persist default route on $PRIV_IF. Node may be affected by Hetzner DHCP changes.\" >&2",
+        "        fi",
+        "      fi",
+        "      if [ \"$ROUTE_READY\" -eq 1 ]; then",
+        "        nmcli connection modify \"$NM_CONN\" ipv4.never-default yes >/dev/null 2>&1 || true",
+        "        nmcli connection modify \"$NM_CONN\" ipv6.never-default yes >/dev/null 2>&1 || true",
+        "        nmcli connection modify \"$NM_CONN\" ipv4.route-metric $METRIC >/dev/null 2>&1 || true",
+        "        nmcli connection up \"$NM_CONN\" >/dev/null 2>&1 || true",
+        "      fi",
+        "    fi",
+        "  fi",
+        "  # Runtime guard to cover current leases before dispatcher hooks fire",
+        "  EXISTING_RT=$(ip -4 route show default dev \"$PRIV_IF\" | awk '$3==\"${local.network_gw_ipv4}\"{print $0; exit}')",
+        "  if [ -n \"$EXISTING_RT\" ]; then",
+        "    CUR_RT_METRIC=$(echo \"$EXISTING_RT\" | awk 'match($0,/metric ([0-9]+)/,m){print m[1]}')",
+        "    if [ -z \"$CUR_RT_METRIC\" ] || [ \"$CUR_RT_METRIC\" != \"$METRIC\" ]; then",
+        "      ip -4 route change default via ${local.network_gw_ipv4} dev \"$PRIV_IF\" metric $METRIC 2>/dev/null || true",
+        "    fi",
+        "  else",
+        "    ip -4 route add default via ${local.network_gw_ipv4} dev \"$PRIV_IF\" metric $METRIC 2>/dev/null || true",
+        "  fi",
+        "else",
+        "  echo \"Info: Unable to identify interface that reaches ${local.network_gw_ipv4}; skipping private default route setup.\"",
+        "fi",
+        "",
+        "set -e"
+      ])
+    ],
     # User-defined commands to execute just before installing k3s.
     var.preinstall_exec,
     # Wait for a successful connection to the internet.
@@ -88,7 +174,7 @@ locals {
     kind       = "Kustomization"
     resources = concat(
       [
-        "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-dockerhub.yaml",
+        "https://github.com/kubereboot/kured/releases/download/${local.kured_version}/kured-${local.kured_version}-${local.kured_yaml_suffix}.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/system-upgrade-controller.yaml",
         "https://github.com/rancher/system-upgrade-controller/releases/download/${var.sys_upgrade_controller_version}/crd.yaml"
       ],
@@ -158,8 +244,8 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group,
-        disable_ipv4 : nodepool_obj.disable_ipv4,
-        disable_ipv6 : nodepool_obj.disable_ipv6,
+        disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+        disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
       }
     }
@@ -186,8 +272,8 @@ locals {
         selinux : nodepool_obj.selinux
         placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
         placement_group : nodepool_obj.placement_group,
-        disable_ipv4 : nodepool_obj.disable_ipv4,
-        disable_ipv6 : nodepool_obj.disable_ipv6,
+        disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+        disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
         network_id : nodepool_obj.network_id,
       }
     }
@@ -215,8 +301,8 @@ locals {
           placement_group_compat_idx : nodepool_obj.placement_group_compat_idx,
           placement_group : nodepool_obj.placement_group,
           index : floor(tonumber(node_key)),
-          disable_ipv4 : nodepool_obj.disable_ipv4,
-          disable_ipv6 : nodepool_obj.disable_ipv6,
+          disable_ipv4 : nodepool_obj.disable_ipv4 || local.use_nat_router,
+          disable_ipv6 : nodepool_obj.disable_ipv6 || local.use_nat_router,
           network_id : nodepool_obj.network_id,
         },
         { for key, value in node_obj : key => value if value != null },
@@ -239,11 +325,29 @@ locals {
 
   use_existing_network = length(var.existing_network_id) > 0
 
-  # The first two subnets are respectively the default subnet 10.0.0.0/16 use for potientially anything and 10.1.0.0/16 used for control plane nodes.
-  # the rest of the subnets are for agent nodes in each nodepools.
+  use_nat_router = var.nat_router != null
+
+  ssh_bastion = local.use_nat_router ? {
+    bastion_host        = hcloud_server.nat_router[0].ipv4_address
+    bastion_port        = var.ssh_port
+    bastion_user        = "nat-router"
+    bastion_private_key = var.ssh_private_key
+    } : {
+    bastion_host        = null
+    bastion_port        = null
+    bastion_user        = null
+    bastion_private_key = null
+  }
+
+  # Create 256 /24 subnets from the base network CIDR.
+  # Control planes allocate from the end (255, 254, 253...) and agents from the start (0, 1, 2...)
   network_ipv4_subnets = [for index in range(256) : cidrsubnet(var.network_ipv4_cidr, 8, index)]
+
   # By convention the DNS service (usually core-dns) is assigned the 10th IP address in the service CIDR block
   cluster_dns_ipv4 = var.cluster_dns_ipv4 != null ? var.cluster_dns_ipv4 : cidrhost(var.service_ipv4_cidr, 10)
+
+  # The gateway's IP address is always the first IP address of the subnet's IP range
+  network_gw_ipv4 = cidrhost(var.network_ipv4_cidr, 1)
 
   # if we are in a single cluster config, we use the default klipper lb instead of Hetzner LB
   control_plane_count    = sum([for v in var.control_plane_nodepools : v.count])
@@ -530,6 +634,7 @@ hubble:
 %{endfor~}
 %{endif~}
 
+
 MTU: 1450
   EOT
 
@@ -616,6 +721,31 @@ controller:
       "load-balancer.hetzner.cloud/hostname": "${var.lb_hostname}"
 %{endif~}
 %{endif~}
+  EOT
+
+  hetzner_ccm_values = var.hetzner_ccm_values != "" ? var.hetzner_ccm_values : <<EOT
+networking:
+  enabled: true
+  clusterCIDR: "${var.cluster_ipv4_cidr}"
+args:
+  cloud-provider: hcloud
+  allow-untagged-cloud: ""
+  route-reconciliation-period: 30s
+  webhook-secure-port: "0"
+%{if local.using_klipper_lb~}
+  secure-port: "10288"
+%{endif~}
+env:
+  HCLOUD_LOAD_BALANCERS_LOCATION:
+    value: "${var.load_balancer_location}"
+  HCLOUD_LOAD_BALANCERS_USE_PRIVATE_IP:
+    value: "true"
+  HCLOUD_LOAD_BALANCERS_ENABLED:
+    value: "${!local.using_klipper_lb}"
+  HCLOUD_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS:
+    value: "true"
+# Use host network to avoid circular dependency with CNI
+hostNetwork: true
   EOT
 
   haproxy_values = var.haproxy_values != "" ? var.haproxy_values : <<EOT
@@ -719,8 +849,8 @@ ports:
 %{endfor~}
 %{endif~}
 %{endif~}
-  websecure:
 %{if !local.using_klipper_lb~}
+  websecure:
     proxyProtocol:
       trustedIPs:
         - 127.0.0.1/32
@@ -767,6 +897,11 @@ podDisruptionBudget:
   enabled: true
   maxUnavailable: 33%
 %{endif~}
+%{if var.traefik_provider_kubernetes_gateway_enabled~}
+providers:
+  kubernetesGateway:
+    enabled: true
+%{endif~}
 additionalArguments:
   - "--providers.kubernetesingress.ingressendpoint.publishedservice=${local.ingress_controller_namespace}/traefik"
 %{for option in var.traefik_additional_options~}
@@ -803,6 +938,16 @@ cert_manager_values = var.cert_manager_values != "" ? var.cert_manager_values : 
 crds:
   enabled: true
   keep: true
+%{if var.traefik_provider_kubernetes_gateway_enabled~}
+config:
+  apiVersion: controller.config.cert-manager.io/v1alpha1
+  kind: ControllerConfiguration
+  enableGatewayAPI: true
+%{endif~}
+%{if var.ingress_controller == "nginx"~}
+extraArgs:
+  - --feature-gates=ACMEHTTP01IngressPathTypeExact=false
+%{endif~}
   EOT
 
 kured_options = merge({
@@ -886,22 +1031,42 @@ cloudinit_write_files_common = <<EOT
 
     sleep 11
 
-    # Take row beginning with 3 if exists, 2 otherwise (if only a private ip)
-    INTERFACE=$(ip link show | grep -v 'flannel' | awk 'BEGIN{l3=""}; /^3:/{l3=$2}; /^2:/{l2=$2}; END{if(l3!="") print l3; else print l2}' | sed 's/://g')
-    MAC=$(cat /sys/class/net/$INTERFACE/address)
+    # Somehow sometimes on private-ip only setups, the 
+    # interface may already be correctly names, and this
+    # block should be skipped.
+    if ! ip link show eth1 >/dev/null 2>&1; then
+      # Find the private network interface by name, falling back to original logic.
+      # The output of 'ip link show' is stored to avoid multiple calls.
+      # Use '|| true' to prevent grep from causing script failure when no matches found
+      IP_LINK_NO_FLANNEL=$(ip link show | grep -v 'flannel' || true)
 
-    cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
-    SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
+      # Try to find an interface with a predictable name, e.g., enp1s0
+      # Anchor pattern to second field to avoid false matches
+      INTERFACE=$(awk '$2 ~ /^enp[0-9]+s[0-9]+:$/{sub(/:/,"",$2); print $2; exit}' <<< "$IP_LINK_NO_FLANNEL")
+
+      # If no predictable name is found, use original logic as fallback
+      if [ -z "$INTERFACE" ]; then
+        INTERFACE=$(awk '/^3:/{p=$2} /^2:/{s=$2} END{iface=p?p:s; sub(/:/,"",iface); print iface}' <<< "$IP_LINK_NO_FLANNEL")
+      fi
+
+      # Ensure an interface was found
+      if [ -z "$INTERFACE" ]; then
+        echo "ERROR: Failed to detect network interface for renaming to eth1" >&2
+        echo "Available interfaces:" >&2
+        echo "$IP_LINK_NO_FLANNEL" >&2
+        exit 1
+      fi
+
+      MAC=$(cat "/sys/class/net/$INTERFACE/address")
+
+      cat <<EOF > /etc/udev/rules.d/70-persistent-net.rules
+      SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="$MAC", NAME="eth1"
     EOF
 
-    if [ "$INTERFACE" = "eth1" ]; then
-      echo "Interface $INTERFACE already points to $MAC, skipping..."
-      exit 0
+      ip link set $INTERFACE down
+      ip link set $INTERFACE name eth1
+      ip link set eth1 up
     fi
-
-    ip link set $INTERFACE down
-    ip link set $INTERFACE name eth1
-    ip link set eth1 up
 
     myrepeat () {
         # Current time + 300 seconds (5 minutes)
@@ -1106,5 +1271,7 @@ cloudinit_runcmd_common = <<EOT
 - [sed, '-i', '-E', 's/^SELINUX=[a-z]+/SELINUX=disabled/', '/etc/selinux/config']
 - [setenforce, '0']
 %{endif}
+
 EOT
+
 }
