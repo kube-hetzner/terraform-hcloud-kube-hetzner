@@ -41,6 +41,9 @@ module "agents" {
 
   network_gw_ipv4 = local.network_gw_ipv4
 
+  credential_provider_config_content = var.credential_provider_config_content
+  credential_provider_config_path    = var.credential_provider_config_path
+
   depends_on = [
     hcloud_network_subnet.agent,
     hcloud_placement_group.agent,
@@ -60,7 +63,8 @@ locals {
         local.kubelet_arg,
         v.kubelet_args,
         var.k3s_global_kubelet_args,
-        var.k3s_agent_kubelet_args
+        var.k3s_agent_kubelet_args,
+        local.credential_provider_kubelet_arg
       )
       flannel-iface = local.flannel_iface
       node-ip       = module.agents[k].private_ipv4_address

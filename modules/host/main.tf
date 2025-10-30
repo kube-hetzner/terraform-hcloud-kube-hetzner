@@ -121,6 +121,29 @@ resource "hcloud_server" "server" {
 
 }
 
+resource "null_resource" "credential_provider_config" {
+  count = (var.credential_provider_config_content != null && var.credential_provider_config_path != null) ? 1 : 0
+
+  connection {
+    user           = "root"
+    private_key    = var.ssh_private_key
+    agent_identity = local.ssh_agent_identity
+    host           = coalesce(hcloud_server.server.ipv4_address, hcloud_server.server.ipv6_address, try(one(hcloud_server.server.network).ip, null))
+    port           = var.ssh_port
+
+    bastion_host        = var.ssh_bastion.bastion_host
+    bastion_port        = var.ssh_bastion.bastion_port
+    bastion_user        = var.ssh_bastion.bastion_user
+    bastion_private_key = var.ssh_bastion.bastion_private_key
+
+  }
+
+  provisioner "file" {
+    content     = var.credential_provider_config_content
+    destination = var.credential_provider_config_path
+  }
+}
+
 resource "null_resource" "registries" {
   triggers = {
     registries = var.k3s_registries

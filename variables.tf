@@ -1245,3 +1245,21 @@ variable "hetzner_ccm_values" {
   default     = ""
   description = "Additional helm values file to pass to Hetzner Controller Manager as 'valuesContent' at the HelmChart."
 }
+
+variable "credential_provider_config_content" {
+  description = "Content of the credential provider config YAML file."
+  type        = string
+  default     = null
+}
+
+variable "credential_provider_config_path" {
+  description = "Path where the credential provider config YAML file will be created. This path will be added to the kubelet argument \"image-credential-provider-config\""
+  type        = string
+  default     = null
+}
+
+variable "credential_provider_bin_path" {
+  description = "Path where the credential provider will be searched. This path will be added to the kubelet argument \"image-credential-provider-bin-dir\""
+  type        = string
+  default     = null
+}

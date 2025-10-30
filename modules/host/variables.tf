@@ -177,3 +177,15 @@ variable "network_gw_ipv4" {
   type    = string
   default = "Default IPv4 gateway address for the node's primary network interface"
 }
+
+variable "credential_provider_config_content" {
+  description = "Content of the credential provider configuration file"
+  type        = string
+  default     = null
+}
+
+variable "credential_provider_config_path" {
+  description = "Path to the credential provider configuration file"
+  type        = string
+  default     = null
+}
